@@ -1,0 +1,435 @@
+iNZplot <-
+    function(x, y = NULL, g1 = NULL, g2 = NULL,
+             g1.level = "all", g2.level = NULL,
+             varnames = list(), xlab = varnames$x, ylab = varnames$y,
+             by = NULL,
+             ...) {
+      # --------------------------------------------------------------------------- #
+      # 1. Creates lists for each subplot, containing the necessary
+      #    information for the relevant plot.
+      # 2. Makes the plot window and breaks it up into the necessary layout,
+      #    depending on g1, legend, etc.
+      # 3.
+      # --------------------------------------------------------------------------- #
+
+        library(grid)
+
+      # Home of all of the plotting options.
+        opts <- modifyList(inzPlotDefaults(), list(...))
+
+      # --------------------------------------------------------------------------- #
+      #                                              set up required variable names
+
+      # For variables which are supplied, but have no varname supplied, just use
+      # the name of the variable
+
+        getName <- function(name) {
+            if (grepl("\\$", name))
+                name <- strsplit(name, "\\$")[[1]][2]
+            name
+        }
+        
+        if (is.null(varnames$x))
+            varnames$x <- getName(deparse(substitute(x)))
+        if (!is.null(y) & is.null(varnames$y))
+            varnames$y <- getName(deparse(substitute(y)))
+        if (!is.null(g1) & is.null(varnames$g1))
+            varnames$g1 <- getName(deparse(substitute(g1)))
+        if (!is.null(g2) & is.null(varnames$g2))
+            varnames$g2 <- getName(deparse(substitute(g2)))
+        if (!is.null(by) & is.null(varnames$by))
+            varnames$by <- getName(deparse(substitute(by)))
+
+      # --------------------------------------------------------------------------- #
+      #                                                       Remove missing values
+        
+        na <- is.na(x)
+        if (!is.null(y))
+            na <- na | is.na(y)
+        if (!is.null(g1))
+            na <- na | is.na(g1)
+        if (!is.null(g2))
+            na <- na | is.na(g2)
+        if (!is.null(by))
+            na <- na | is.na(by)
+        x <- x[!na]
+        if (!is.null(y))  y  <-  y[!na]
+        if (!is.null(g1)) g1 <- g1[!na]
+        if (!is.null(g2)) g2 <- g2[!na]
+        if (!is.null(by)) by <- by[!na]
+
+      # Add jitter
+        if ("x" %in% strsplit(opts$jitter, '')[[1]])
+            x <- jitter(x)
+        if ("y" %in% strsplit(opts$jitter, '')[[1]])
+            y <- jitter(y)
+                
+      # --------------------------------------------------------------------------- #
+      #                                                                Subset by g2
+
+      # ========================================================================= #
+      # GROUPING VARIABLE 2
+      # -------------------
+      # Simply subset the data so only those corresponding the g2.level
+      # are plotted (if g2.level not given, ignore it).
+      # ========================================================================= #
+        
+        if (!is.null(g2) & !is.null(g2.level)) {
+          # Only use the observations according to g2.level
+            x <- subset(x, g2 == g2.level)
+            if (!is.null(y))
+                y <- subset(y, g2 == g2.level)
+            if (!is.null(by))
+                by <- subset(by, g2 == g2.level)
+        }
+        
+      # --------------------------------------------------------------------------- #
+      #                                                Account for by (legend, ...)
+
+      # ========================================================================= #
+      # LEGEND FOR BY VARIABLE
+      # ----------------------
+      # If by is numeric (continuous), create a factor with 10 levels, and use
+      # heat colours to show this.
+      # Take factor, and create legend list to be passed to a drawLegend()
+      # function.
+      # ========================================================================= #
+        
+      # Get some plotting options that will be used
+        pch      <- opts$pch
+        col.pt   <- opts$col.pt
+        cex      <- opts$cex
+        cex.pt   <- opts$cex.pt
+        cex.lab  <- opts$cex.lab
+
+      # Code up 'by' colours and create necessary legend.
+      # using hcl(), with varying h(ue), and holding
+      # c(olour) and l(ightness) constant
+        if (!is.null(by)) {
+            if (is.factor(by)) {
+              # categorical units for by
+                n.by <- length(levels(by))
+                
+              # set up colours
+                if (length(col.pt) >= n.by) {
+                    col.pt <- col.pt[1:n.by]
+                } else {
+                    col.pt <- hcl((1:n.by) / n.by * 360, c = 80, l = 70)
+                }
+
+              
+            } else {
+              # continuous `by' variable, so use a smooth range of colours
+                n.by <- min(10, floor(0.5 * length(unique(by))))
+                by <- cut(by, n.by, dig.lab = 0)
+                col.pt <- hcl(1:n.by / n.by * 360, c = 80, l = 70)
+            }
+
+            cols <- col.pt[as.numeric(by)]
+
+          # design the legend
+            legend <- list(labs      = levels(by),
+                           cols      = col.pt,
+                           pch       = pch,
+                           cex       = cex.text,
+                           cex.pt    = cex,
+                           cex.title = cex.lab,
+                           title     = varnames$by)
+            leg.grob <- drawLegend(legend)
+        } else {
+            cols <- rep(col.pt, length = length(x))
+        }
+
+      # --------------------------------------------------------------------------- #
+      #                                                             Subdivide by g1
+
+      # ========================================================================= #
+      # GROUPING VARIABLE 1
+      # -------------------
+      # If this variable is numeric, first convert it to a factor with 4 levels.
+      # If g1.level is ALL or NULL, then plot every level in a separate subplot
+      # Otherwise, only plot the requested levels of g1 (can be more than 1, and
+      # plot exactly the same as all levels).
+      # Data becomes a list where each level of each list corresponds to a level
+      # of g1.
+      # ========================================================================= #
+        
+        if (!is.null(g1)) {
+          # Necessary to allow continuous variables to be used to subset
+            if (!is.factor(g1))
+                g1 <- convert.to.factor(g1)
+
+          # If level is supplied as a number, convert to text
+            if (is.numeric(g1.level))
+                g1.level <- ifelse(g1.level == 0,
+                                   "all",
+                                   levels(g1)[g1.level])
+
+          # If plotting all levels, or nothing specified, supply all
+          # levels of the factor
+            if (g1.level == "all" | is.null(g1.level))
+                g1.level <- levels(g1)
+
+          # Create a list for all other variables, for each level of g1
+            x.list <- lapply(g1.level,
+                             function(l) subset(x, g1 == l))
+            names(x.list) <- g1.level
+            
+            if (!is.null(y)) {
+                y.list <- lapply(g1.level,
+                                 function(l) subset(y, g1 == l))
+                names(y.list) <- g1.level
+            }
+            if (!is.null(by)) {
+                by.list <- lapply(g1.level,
+                                  function(l) subset(by, g1 == l))
+                names(by.list) <- g1.level
+            }
+
+            col.list <- lapply(g1.level,
+                               function(l) subset(cols, g1 == l))
+            
+        } else {
+            x.list <- list(all = x)
+            if (!is.null(y))
+                y.list <- list(all = y)
+            if (!is.null(by))
+                by.list <- list(all = by)
+            col.list <- list(all = cols)
+        }
+
+      # --------------------------------------------------------------------------- #
+      #                                            create the top-level plot layout
+
+      # ========================================================================= #
+      # LAYOUT 1  [3 x 4]
+      # -----------------
+      # Every plot has a title row at the top, and a footer row at the bottom.
+      # row 1: if y is numeric, need the space for axis ticks and labels,
+      #        otherwise just the title.
+      # The central row contains everything else.
+      # col 1: if there is a y-variable, this is big enough for the ylabel, and
+      #        the y axis tick marks and values; otherwise, narrow.
+      # col 2: this is as big as possible, containing all of the plots
+      # col 3: if y is numeric, then this is big enough for the axis marks and
+      #        labels; otherwise, narrow like col 1
+      # col 4: if by is provided, then this contains the legend, otherwise
+      #        has no width
+      # ========================================================================= #
+
+      # For some reason, ifelse() doesn't work with units
+        w1 <- if (is.null(y))    unit(0.05, "npc") else unit(4, "lines")
+        w2 <-                    unit(1, "null")
+        w3 <- if (is.numeric(y)) unit(2, "lines")  else unit(0.05, "npc")
+        w4 <- if (is.null(by))   unit(0, "npc")    else convertWidth(grobWidth(leg.grob), "mm")
+        widths <- unit.c(w1, w2, w3, w4 * 1.05)
+
+        h1 <- if (is.numeric(y)) unit(5, "lines")  else unit(3, "lines")
+        h2 <-                    unit(1, "null")
+        h3 <-                    unit(5, "lines")
+        heights <- unit.c(h1, h2, h3)
+        
+        layout1 <- grid.layout(nrow = length(heights),
+                               ncol = length(widths),
+                               widths = widths,
+                               heights = heights)
+
+      # Check for any parameters of interest
+        bg       <- opts$bg
+        cex.text <- opts$cex.text
+        cex.main <- opts$cex.main
+
+        grid.newpage()
+        pushViewport(viewport(layout = layout1, name = "toplevel",
+                              gp = gpar(cex = cex)))
+        grid.rect(gp = gpar(fill = bg))
+
+      # --------------------------------------------------------------------------- #
+      #                                             subdivide plotting region by g2
+
+      # ========================================================================= #
+      # LAYOUT 2
+      # --------
+      # Divide the plot up into N sub-plots
+      # Check the device dimentions and put more plots along the longer axis
+      # IF Y is numeric, then similar layout to lattice::xyplot(),
+      # otherwise have a slight gap between columns and only x-axes
+      # ========================================================================= #
+
+        N    <- ifelse(is.null(g1), 1, length(g1.level))
+        dim1 <- floor(sqrt(N))
+        dim2 <- ceiling(N / dim1)
+
+        if (dev.size()[1] < dev.size()[2]) {
+            nr <- dim2
+            nc <- dim1
+        } else {
+            nr <- dim1
+            nc <- dim2
+        }
+
+      # If y is a factor, have 5% space between columns
+        hspace <- if (is.numeric(y)) unit(0, "npc") else unit(0.01, "npc")
+      # Repeat FULL+SPACE for each column, then remove first FULL
+        widths <- rep(unit.c(hspace, unit(1, "null")), nc)[-1]
+
+      # Never space between rows
+        heights <- rep(unit(1, "null"), nr)
+        
+        layout2 <- grid.layout(ncol = length(widths),
+                               nrow = length(heights),
+                               widths = widths,
+                               heights = heights)
+
+      # Create the layout
+        pushViewport(viewport(layout = layout2,
+                              layout.pos.col = 2,  # position in toplevel VP
+                              layout.pos.row = 2,  #
+                              name = "subdivisionLayout"))
+                
+      # --------------------------------------------------------------------------- #
+      #                                                  Draw the appropriate plots
+
+      # set the axis limits to be the same for all plots
+        xlim <-
+            if (is.numeric(x))
+                range(x) * (1 + c(-1, 1) * 0.04)
+            else
+                c(0, length(levels(x)))
+        ylim <-
+            if (is.numeric(y))
+                range(y) * (1 + c(-1, 1) * 0.04)
+            else
+                c(0, length(levels(y)))
+
+      # Cycle through all N plots. For each, draw the appropriate axes,
+      # as well as a subtitle if g1 is given.
+
+        if (is.null(g1)) {
+            layout3 <- grid.layout(2, 1,
+                                   heights = unit(c(0, 1), "null"))
+        } else {
+            subtitle <- textGrob(levels(g1)[1],
+                                 gp =
+                                 gpar(cex = opts$cex.lab,
+                                      fontface = "bold"))
+            subheight <- convertHeight(grobHeight(subtitle), "mm") * 2
+            layout3 <- grid.layout(2, 1,
+                                   heights = unit.c(subheight, unit(1, "null")))
+
+        }
+        
+        id <- 1  # stop once all plots drawn
+        for (i in nr:1) {  # start at bottom
+            for (j in 1:nc) {
+                pushViewport(viewport(layout.pos.row = i,
+                                      layout.pos.col = j * 2 - 1))
+                grid.rect()
+
+              # Decide which axes to plot:
+                axis <- rep(0, 4)
+                if (i == nr)
+                    axis[1] <- 1
+                if (i == nr & j %% 2 == 1)
+                    axis[1] <- 2
+                if (j == 1)
+                    axis[2] <- 1
+                if (j == 1 & (nr - i) %% 2 == 0)
+                    axis[2] <- 2
+                if (i == 1)
+                    axis[3] <- 1
+                if (i == 1 & j %% 2 == 0)
+                    axis[3] <- 2
+                if (j == nc)
+                    axis[4] <- 1
+                if (j == nc & (nr - i) %% 2 == 1)
+                    axis[4] <- 2
+
+              # Here (and only here) is the logic to decide which type of plot:
+                if (is.numeric(x)) {
+                  # X is a continuous variable
+                    if (is.numeric(y)) {
+                        iNZscatterplot(x.list[[id]], y.list[[id]],
+                                       lab = levels(g1)[id],
+                                       axis = axis, layout = layout3,
+                                       xlim = xlim, ylim = ylim,
+                                       opts = opts)
+                    } else {
+                        y2 <- if (is.null(y)) NULL else y.list[[id]]
+                       # iNZdotplot(x.list[[id]], y2,
+                       #            lab = levels(g1)[id],
+                        grid.text("DOTPLOT")
+                    }
+                } else {
+                  # X is a factor
+                    if (is.numeric(y)) {
+                        grid.text("DOTPLOT")
+                    } else {
+                        y2 <- if (is.null(y)) NULL else y.list[[id]]
+                        grid.text("BARCHART")
+                    }
+                }
+                
+                upViewport()
+
+                id <- id + 1
+            }
+        }
+    
+        upViewport()  # back to toplevel
+        
+      # --------------------------------------------------------------------------- #
+      #                              plot the title, x and y labels, and the legend
+
+      # Title
+      # --- this consists of the names of the variables being plotted
+      # --- Y versus X by G1, for G2 = G2.LEVEL
+        pushViewport(viewport(layout.pos.col = 2, layout.pos.row = 1))
+
+        title1 <- ifelse(is.null(y), '',
+                         paste0(varnames$y, ' versus '))
+        title2 <- varnames$x
+        title3 <- ifelse(is.null(g1), '',
+                         paste0(' by ', varnames$g1))
+        title4 <- ifelse(is.null(g2), '',
+                         ifelse(is.null(g2.level), '',
+                                paste0(', for ', varnames$g2, ' = ', g2.level)))
+        
+        grid.text(paste0(title1, title2, title3, title4),
+                  y = unit(1, "npc") - unit(0.5, "lines"),
+                  just = "top",
+                  gp = gpar(cex = opts$cex.main))
+
+        upViewport()  # return to toplevel layout
+
+
+      # Legend
+        if (!is.null(by)) {
+            pushViewport(viewport(layout.pos.col = 4, layout.pos.row = 2))
+            grid.draw(leg.grob)
+
+            upViewport()  # return to toplevel layout
+        }
+
+      # X axis label
+        pushViewport(viewport(layout.pos.col = 2, layout.pos.row = 3))
+        grid.text(xlab,
+                  y = unit(0.4, "npc"),
+                  gp = gpar(cex = opts$cex.lab))
+
+        upViewport()  # return to toplevel layout
+
+      # Y axis label
+        if (!is.null(y)) {
+            pushViewport(viewport(layout.pos.col = 1, layout.pos.row = 2))
+            grid.text(ylab,
+                      x = unit(0.3, "npc"),
+                      rot = 90,
+                      gp = gpar(cex = opts$cex.lab))
+
+            upViewport()  # return to toplevel layout
+        }
+        
+        
+        
+    }  ### --- end of iNZplot()
