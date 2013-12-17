@@ -1,6 +1,6 @@
 iNZscatterplot <- function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
                            layout, xlim = range(x), ylim = range(y),
-                           opts) {
+                           col = opts$col.pt, opts) {
   # --------------------------------------------------------------------------- #
   # Makes a scatter plot of the supplied X and Y data.
   # Can only be called from the iNZplot() function.
@@ -36,7 +36,7 @@ iNZscatterplot <- function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
     }
 
   # =========================================================================== #
-  # Enter main plot
+  # Start main plot
     pushViewport(viewport(layout.pos.row = 2,
                           xscale = xlim, yscale = ylim))
 
@@ -59,7 +59,7 @@ iNZscatterplot <- function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
 
     grid.points(x, y, pch = opts$pch,
                 gp =
-                gpar(cex = opts$cex.pt, col = opts$col.pt,
+                gpar(cex = opts$cex.pt, col = col,
                      lwd = opts$lwd.pt))
 
   # Connect by dots if they want it ...

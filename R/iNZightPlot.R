@@ -1,4 +1,4 @@
-iNZplot <-
+iNZightPlot <-
     function(x, y = NULL, g1 = NULL, g2 = NULL,
              g1.level = "all", g2.level = NULL,
              varnames = list(), xlab = varnames$x, ylab = varnames$y,
@@ -188,6 +188,7 @@ iNZplot <-
 
             col.list <- lapply(g1.level,
                                function(l) subset(cols, g1 == l))
+            names(col.list) <- g1.level
             
         } else {
             x.list <- list(all = x)
@@ -217,8 +218,39 @@ iNZplot <-
       #        has no width
       # ========================================================================= #
 
-      # For some reason, ifelse() doesn't work with units
-        w1 <- if (is.null(y))    unit(0.05, "npc") else unit(4, "lines")
+      # Calculate the width of the y-axis, so to make it as compact as possible
+        w1 <-
+            if (is.null(y))
+                unit(0.05, "npc")
+            else { # create the axis ... and measure it
+                w11 <- convertHeight(grobHeight(textGrob(ylab, gp =
+                                                         gpar(cex = opts$cex.lab))),
+                                                "mm") * 2
+                w22 <-
+                    if (is.numeric(y)) {
+                      # numbers
+                        wmm <-
+                            max(sapply(range(y),
+                                       function(x)
+                                       convertWidth(grobWidth(textGrob(x, gp =
+                                                                       gpar(cex = 1 *
+                                                                            opts$cex.axis))),
+                                                    "mm")
+                                       ))
+                        unit(wmm, "mm") + unit(1.5, "lines")
+                    } else {
+                      # text labels
+                        wmm <- max(sapply(levels(y),
+                                          function(x)
+                                          convertWidth(grobWidth(textGrob(x, gp =
+                                                                          gpar(cex = 1 *
+                                                                               opts$cex.axis))),
+                                                       "mm")
+                                          ))
+                        unit(wmm, "mm")
+                    }
+                w11 + w22
+            }
         w2 <-                    unit(1, "null")
         w3 <- if (is.numeric(y)) unit(2, "lines")  else unit(0.05, "npc")
         w4 <- if (is.null(by))   unit(0, "npc")    else convertWidth(grobWidth(leg.grob), "mm")
@@ -292,15 +324,34 @@ iNZplot <-
 
       # set the axis limits to be the same for all plots
         xlim <-
-            if (is.numeric(x))
-                range(x) * (1 + c(-1, 1) * 0.04)
-            else
+            if (is.numeric(x)) {
+                r <- range(x)
+                r + c(-1, 1) * 0.04 * r
+            } else
                 c(0, length(levels(x)))
         ylim <-
-            if (is.numeric(y))
-                range(y) * (1 + c(-1, 1) * 0.04)
-            else
-                c(0, length(levels(y)))
+            if (is.numeric(y)) {
+                r <- range(y)
+                r + c(-1, 1) * 0.04 * r
+            } else if (is.null(y)) {
+                r <- range(lapply(x.list, function(x) makePoints(x)$y))
+                r + c(-1, 1) * 0.04 * (r[2] - r[1])
+            } else {
+              # Y is a factor, so need to break x.list down even more:
+                
+                x.list2 <- vector("list", length(x.list))
+                names(x.list2) <- names(x.list)
+                for (i in 1:length(x.list))
+                    x.list2[[i]] <- lapply(levels(y),
+                                           function(l) subset(x.list[[i]],
+                                                              y.list[[i]] == l))
+                r <-
+                    range(lapply(x.list2,
+                                 function(x.list)
+                                 lapply(x.list,
+                                        function(x) makePoints(x)$y)))
+                r + c(-1, 1) * 0.04 * (r[2] - r[1])
+            }
 
       # Cycle through all N plots. For each, draw the appropriate axes,
       # as well as a subtitle if g1 is given.
@@ -350,15 +401,27 @@ iNZplot <-
                   # X is a continuous variable
                     if (is.numeric(y)) {
                         iNZscatterplot(x.list[[id]], y.list[[id]],
+                                       axis = axis,
                                        lab = levels(g1)[id],
-                                       axis = axis, layout = layout3,
+                                       layout = layout3,
                                        xlim = xlim, ylim = ylim,
+                                       col = col.list[[id]],
                                        opts = opts)
                     } else {
                         y2 <- if (is.null(y)) NULL else y.list[[id]]
-                       # iNZdotplot(x.list[[id]], y2,
-                       #            lab = levels(g1)[id],
-                        grid.text("DOTPLOT")
+
+                        axis <- rep(0, 2)
+                        if (i == nr) axis[1] <- 2
+                        if (j == 1)  axis[2] <- 2
+
+                        iNZdotplot(x.list[[id]], y2,
+                                   axis = axis,
+                                   lab = levels(g1)[id],
+                                   xlim = xlim,
+                                   ylim = ylim,
+                                   layout = layout3,
+                                   col = col.list[[id]],
+                                   opts = opts)
                     }
                 } else {
                   # X is a factor
@@ -423,7 +486,7 @@ iNZplot <-
         if (!is.null(y)) {
             pushViewport(viewport(layout.pos.col = 1, layout.pos.row = 2))
             grid.text(ylab,
-                      x = unit(0.3, "npc"),
+                      x = unit(0.5, "lines"),
                       rot = 90,
                       gp = gpar(cex = opts$cex.lab))
 
