@@ -1,7 +1,7 @@
 iNZdotplot <-
-function(x, y = NULL, axis = c(0, 0), lab = NULL,
-                       layout, xlim = range(x), ylim = NULL,
-                       col = opts$col.pt, opts) {
+    function(x, y = NULL, axis = c(0, 0), lab = NULL,
+             layout, xlim = range(x), ylim = NULL,
+             col = opts$col.pt, opts) {
   # --------------------------------------------------------------------------- #
   # Makes a dot plot of the supplied X data, grouped by Y if provided.
   # Can only be called from the iNZplot() function.

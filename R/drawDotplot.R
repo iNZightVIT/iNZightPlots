@@ -3,7 +3,11 @@ function(x, y, xlim, ylim, col, opts) {
   # Draws a dotplot in a selected space. Also draws the boxplot if it
   # is requested.
 
+    makebox <- opts$box & length(x) > 5
+    
   # First step: set up the layout
+  # NOTE: if opts$box is true we will always leave space for the box
+  #       but only plot it if there are more than 5 points
     if (opts$box) {
         h1 <- unit(3, "null")
         h2 <- unit(1, "null")
@@ -18,7 +22,7 @@ function(x, y, xlim, ylim, col, opts) {
     pushViewport(viewport(layout = layout5))
 
   # Draw a box if asked for
-    if (opts$box) {
+    if (makebox) {
         pushViewport(viewport(layout.pos.row = 2,
                               xscale = xlim))
         drawBoxPlot(x, opts)

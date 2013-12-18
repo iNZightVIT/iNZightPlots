@@ -11,7 +11,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
       #    depending on g1, legend, etc.
       # 3.
       # --------------------------------------------------------------------------- #
-
+   
       # Home of all of the plotting options.
         opts <- modifyList(inzPlotDefaults(), list(...))
 
@@ -230,25 +230,38 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
 
       # Calculate the width of the y-axis, so to make it as compact as possible
         w1 <-
-            if (is.null(y))
-                unit(0.05, "npc")
+            if (is.null(y)) {
+                if (is.numeric(x)) {
+                    unit(0.05, "npc")
+                } else {
+                    yy <- makeBars(x)
+                    wmm <- max(sapply(pretty(range(yy)),
+                                      function(yr)
+                                      convertWidth(grobWidth(textGrob(yr, gp =
+                                                                      gpar(cex = 1 *
+                                                                           opts$cex.axis))),
+                                                   "mm")
+                                      ))
+                    unit(wmm, "mm") + unit(1.5, "lines")
+                }
+            }
             else { # create the axis ... and measure it
                 w11 <- convertHeight(grobHeight(textGrob(ylab, gp =
                                                          gpar(cex = opts$cex.lab))),
-                                                "mm") * 2
+                                                "mm")
                 w22 <-
                     if (is.numeric(y)) {
                       # numbers
                         wmm <-
-                            max(sapply(range(y),
-                                       function(x)
-                                       convertWidth(grobWidth(textGrob(x, gp =
+                            max(sapply(pretty(range(y)),
+                                       function(yr)
+                                       convertWidth(grobWidth(textGrob(yr, gp =
                                                                        gpar(cex = 1 *
                                                                             opts$cex.axis))),
                                                     "mm")
                                        ))
                         unit(wmm, "mm") + unit(1.5, "lines")
-                    } else {
+                    } else if (is.numeric(x)) {
                       # text labels
                         wmm <- max(sapply(levels(y),
                                           function(x)
@@ -258,6 +271,17 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                                                        "mm")
                                           ))
                         unit(wmm, "mm")
+                    } else {
+                        yy <- makeBars(x)
+                        wmm <-
+                            max(sapply(pretty(range(yy)),
+                                       function(yr)
+                                       convertWidth(grobWidth(textGrob(yr, gp =
+                                                                       gpar(cex = 1 *
+                                                                            opts$cex.axis))),
+                                                    "mm")
+                                       ))
+                        unit(wmm, "mm") + unit(1.5, "lines")
                     }
                 w11 + w22
             }
@@ -345,7 +369,11 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                 r <- range(y)
                 r + c(-1, 1) * 0.04 * r
             } else if (is.null(y)) {
-                r <- range(lapply(x.list, function(x) makePoints(x)$y))
+                r <- range(lapply(x.list,
+                                  function(x) {
+                                      if (is.numeric(x)) makePoints(x)$y
+                                      else makeBars(x)
+                                  }))
                 r + c(-1, 1) * 0.04 * (r[2] - r[1])
             } else {
               # Y is a factor, so need to break x.list down even more:
@@ -360,7 +388,10 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                     range(lapply(x.list2,
                                  function(x.list)
                                  lapply(x.list,
-                                        function(x) makePoints(x)$y)))
+                                        function(x) {
+                                            if (is.numeric(x)) makePoints(x)$y
+                                            else c(0, makeBars(x))
+                                        })))
                 r + c(-1, 1) * 0.04 * (r[2] - r[1])
             }
 
@@ -437,10 +468,23 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                 } else {
                   # X is a factor
                     if (is.numeric(y)) {
-                        grid.text("DOTPLOT")
+                        grid.text("VERTICAL DOTPLOT")
                     } else {
                         y2 <- if (is.null(y)) NULL else y.list[[id]]
-                        grid.text("BARCHART")
+
+                        axis <- rep(0, 2)
+                        if (i == nr) axis[1] <- 2
+                        if (j == 1) axis[2] <- 2 else if (j == nc) axis[2] <- 1
+                        
+                        iNZbarplot(x.list[[id]], y2,
+                                   axis = axis,
+                                   lab = g1.level[id],
+                                   x.lev <- levels(x),
+                                   y.lev <- if (is.null(y)) NULL else levels(y),
+                                   xlim = xlim, ylim = ylim,
+                                   layout = layout3,
+                                   col = col.list[[id]],
+                                   opts = opts)
                     }
                 }
                 
@@ -503,7 +547,5 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
 
             upViewport()  # return to toplevel layout
         }
-        
-        
         
     }
