@@ -13,7 +13,7 @@ stacking <- function(x, bins, cols = NULL) {
     x <- unlist(xg, use.names = FALSE)
     du <- unlist(xo, use.names = FALSE)
     
-    cols <- if (is.null(cols)) opts$col.pt else cols[oo]
+    cols <- if (is.null(cols)) 1 else cols[oo]
     
     list(x = x, du = du, col = cols)
 }
