@@ -1,5 +1,5 @@
 iNZightPlot <-
-    function(x, y = NULL, g1 = NULL, g2 = NULL,
+function(x, y = NULL, g1 = NULL, g2 = NULL,
              g1.level = NULL, g2.level = NULL,
              varnames = list(), xlab = varnames$x, ylab = varnames$y,
              by = NULL,
@@ -11,8 +11,6 @@ iNZightPlot <-
       #    depending on g1, legend, etc.
       # 3.
       # --------------------------------------------------------------------------- #
-
-        library(grid)
 
       # Home of all of the plotting options.
         opts <- modifyList(inzPlotDefaults(), list(...))
@@ -125,11 +123,7 @@ iNZightPlot <-
             } else {
               # continuous `by' variable, so use a smooth range of colours
                 n.by <- min(10, floor(0.5 * length(unique(by))))
-                by <-
-                    if (all(as.integer(by) == by) & length(d$height) < 20)
-                        cut(by, n.by, dig.lab = 0)
-                    else 
-                        cut(by, n.by)
+                by <- cut(by, n.by)  ### *** needs fixing
                 col.pt <- hcl(1:n.by / n.by * 360, c = 80, l = 70)
             }
 
@@ -512,4 +506,4 @@ iNZightPlot <-
         
         
         
-    }  ### --- end of iNZplot()
+    }

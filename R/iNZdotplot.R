@@ -1,4 +1,5 @@
-iNZdotplot <- function(x, y = NULL, axis = c(0, 0), lab = NULL,
+iNZdotplot <-
+function(x, y = NULL, axis = c(0, 0), lab = NULL,
                        layout, xlim = range(x), ylim = NULL,
                        col = opts$col.pt, opts) {
   # --------------------------------------------------------------------------- #
@@ -122,74 +123,3 @@ iNZdotplot <- function(x, y = NULL, axis = c(0, 0), lab = NULL,
     upViewport()
     
 }
-
-makePoints <- function(x, cols = NULL) {
-  # Returns the X and Y values to make a dotplot
-    if (length(x) > 0) {
-        prettyrange <- range(pretty(x))
-        maxBins = 75
-        if (length(unique(x)) == 1) {
-            xbins = x
-        } else if (min(diff(sort(unique(x)))) >=
-                   diff(prettyrange) / (maxBins - 1)) {
-            xbins = x
-        } else {
-            xbins <- round(maxBins * (x - prettyrange[1]) /
-                           diff(prettyrange))
-        }
-        
-      # Calculate positioning of points
-        v.max   <- 0.5
-        v.add   <- 0.01
-        xbin    <- xbins
-        temp    <- stacking(x, xbin, cols)
-        v.space <- v.max / max(temp$du)
-        cramp   <- v.add / v.space
-        
-        y <- min(v.space, v.add) * (temp$du - 1)
-        out <- list(x = temp$x, y = y, cols = temp$col)
-    } else {
-        out <- NULL
-    }
-    out
-}
-
-drawDotplot <- function(x, y, xlim, ylim, col, opts) {
-  # Draws a dotplot in a selected space. Also draws the boxplot if it
-  # is requested.
-
-  # First step: set up the layout
-    if (opts$box) {
-        h1 <- unit(3, "null")
-        h2 <- unit(1, "null")
-    } else {
-        h1 <- unit(1, "null")
-        h2 <- unit(0, "null")
-    }
-
-    layout5 <- grid.layout(2, 1,
-                           heights = unit.c(h1, h2),
-                           widths = unit(1, "null"))
-    pushViewport(viewport(layout = layout5))
-
-  # Draw a box if asked for
-    if (opts$box) {
-        pushViewport(viewport(layout.pos.row = 2,
-                              xscale = xlim))
-        drawBoxPlot(x, opts)
-        upViewport()
-    }
-
-  # Draw the dotplot in the first row
-    pushViewport(viewport(layout.pos.row = 1,
-                          xscale = xlim,
-                          yscale = ylim))
-    grid.points(x, y, default.units = "native",
-                gp =
-                gpar(cex = opts$cex.pt, col = col, pch = opts$pch,
-                     lwd = opts$lwd.pt, fill = opts$fill.pt))
-    upViewport()  # back to layout5
-
-    upViewport()  # out of layout5
-}
-

@@ -1,4 +1,5 @@
-iNZscatterplot <- function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
+iNZscatterplot <-
+function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
                            layout, xlim = range(x), ylim = range(y),
                            col = opts$col.pt, opts) {
   # --------------------------------------------------------------------------- #
