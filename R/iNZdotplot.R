@@ -70,9 +70,10 @@ iNZdotplot <- function(x, y = NULL, axis = c(0, 0), lab = NULL,
 
     if (is.null(y)) {
       # Calculate x and y values for plotting the stacked dots
-        dat <- makePoints(x)
+        dat <- makePoints(x, cols = col)
         x <- dat$x
         y <- dat$y
+        col <- dat$col
         if (is.null(ylim))
             ylim <- c(0, max(y)) * 1.04
 
@@ -106,9 +107,9 @@ iNZdotplot <- function(x, y = NULL, axis = c(0, 0), lab = NULL,
                 next
             }
 
-            dat <- makePoints(x.list[[k]])
+            dat <- makePoints(x.list[[k]], cols = col.list[[k]])
             drawDotplot(dat$x, dat$y, xlim = xlim, ylim = ylim,
-                        col = col.list[[k]], opts = opts)
+                        col = dat$col, opts = opts)
             upViewport()  # back to layout4
         }
 
@@ -122,7 +123,7 @@ iNZdotplot <- function(x, y = NULL, axis = c(0, 0), lab = NULL,
     
 }
 
-makePoints <- function(x) {
+makePoints <- function(x, cols = NULL) {
   # Returns the X and Y values to make a dotplot
     if (length(x) > 0) {
         prettyrange <- range(pretty(x))
@@ -141,12 +142,12 @@ makePoints <- function(x) {
         v.max   <- 0.5
         v.add   <- 0.01
         xbin    <- xbins
-        temp    <- stacking(x, xbin)
+        temp    <- stacking(x, xbin, cols)
         v.space <- v.max / max(temp$du)
         cramp   <- v.add / v.space
         
         y <- min(v.space, v.add) * (temp$du - 1)
-        out <- list(x = temp$x, y = y)
+        out <- list(x = temp$x, y = y, cols = temp$col)
     } else {
         out <- NULL
     }

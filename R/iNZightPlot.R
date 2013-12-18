@@ -1,6 +1,6 @@
 iNZightPlot <-
     function(x, y = NULL, g1 = NULL, g2 = NULL,
-             g1.level = "all", g2.level = NULL,
+             g1.level = NULL, g2.level = NULL,
              varnames = list(), xlab = varnames$x, ylab = varnames$y,
              by = NULL,
              ...) {
@@ -72,6 +72,9 @@ iNZightPlot <-
       # -------------------
       # Simply subset the data so only those corresponding the g2.level
       # are plotted (if g2.level not given, ignore it).
+      #
+      # TODO: This will become a second dimension for a plot matrix for pairwise
+      #       comparison of two (or even three) factor variables.
       # ========================================================================= #
         
         if (!is.null(g2) & !is.null(g2.level)) {
@@ -101,6 +104,7 @@ iNZightPlot <-
         cex      <- opts$cex
         cex.pt   <- opts$cex.pt
         cex.lab  <- opts$cex.lab
+        cex.text <- opts$cex.text
 
       # Code up 'by' colours and create necessary legend.
       # using hcl(), with varying h(ue), and holding
@@ -121,7 +125,11 @@ iNZightPlot <-
             } else {
               # continuous `by' variable, so use a smooth range of colours
                 n.by <- min(10, floor(0.5 * length(unique(by))))
-                by <- cut(by, n.by, dig.lab = 0)
+                by <-
+                    if (all(as.integer(by) == by) & length(d$height) < 20)
+                        cut(by, n.by, dig.lab = 0)
+                    else 
+                        cut(by, n.by)
                 col.pt <- hcl(1:n.by / n.by * 360, c = 80, l = 70)
             }
 
@@ -160,14 +168,22 @@ iNZightPlot <-
                 g1 <- convert.to.factor(g1)
 
           # If level is supplied as a number, convert to text
-            if (is.numeric(g1.level))
-                g1.level <- ifelse(g1.level == 0,
-                                   "all",
-                                   levels(g1)[g1.level])
+            if (is.numeric(g1.level)) {
+                if (g1.level > length(levels(g1)))
+                    stop("g1.level must not be greater than the number of levels in g1")
+
+                if (as.integer(g1.level) != g1.level) {
+                    g1.level <- as.integer(g1.level)
+                    warning(paste0("g1.level truncated to ", g1.level, "."))
+                }
+                
+                g1.level <- if (g1.level == 0) levels(g1) else levels(g1)[g1.level]
+
+            }
 
           # If plotting all levels, or nothing specified, supply all
           # levels of the factor
-            if (g1.level == "all" | is.null(g1.level))
+            if (is.null(g1.level))
                 g1.level <- levels(g1)
 
           # Create a list for all other variables, for each level of g1
@@ -188,17 +204,17 @@ iNZightPlot <-
 
             col.list <- lapply(g1.level,
                                function(l) subset(cols, g1 == l))
-            names(col.list) <- g1.level
-            
+            names(col.list) <- g1.level            
         } else {
             x.list <- list(all = x)
             if (!is.null(y))
                 y.list <- list(all = y)
             if (!is.null(by))
                 by.list <- list(all = by)
+
             col.list <- list(all = cols)
         }
-
+        
       # --------------------------------------------------------------------------- #
       #                                            create the top-level plot layout
 
@@ -317,7 +333,8 @@ iNZightPlot <-
         pushViewport(viewport(layout = layout2,
                               layout.pos.col = 2,  # position in toplevel VP
                               layout.pos.row = 2,  #
-                              name = "subdivisionLayout"))
+                              name = "subdivisionLayout",
+                              gp = gpar(cex = sqrt(sqrt(N) / N))))
                 
       # --------------------------------------------------------------------------- #
       #                                                  Draw the appropriate plots
@@ -402,7 +419,7 @@ iNZightPlot <-
                     if (is.numeric(y)) {
                         iNZscatterplot(x.list[[id]], y.list[[id]],
                                        axis = axis,
-                                       lab = levels(g1)[id],
+                                       lab = g1.level[id],
                                        layout = layout3,
                                        xlim = xlim, ylim = ylim,
                                        col = col.list[[id]],
@@ -413,10 +430,10 @@ iNZightPlot <-
                         axis <- rep(0, 2)
                         if (i == nr) axis[1] <- 2
                         if (j == 1)  axis[2] <- 2
-
+                        
                         iNZdotplot(x.list[[id]], y2,
                                    axis = axis,
-                                   lab = levels(g1)[id],
+                                   lab = g1.level[id],
                                    xlim = xlim,
                                    ylim = ylim,
                                    layout = layout3,

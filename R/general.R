@@ -1,6 +1,6 @@
 ## A suite of generic functions used by the plotting functions.
 
-stacking <- function(x, bins) {
+stacking <- function(x, bins, cols = NULL) {
   # Takes a univariate, continuous variable and a binning
   # factor, and produces a list.
     
@@ -13,7 +13,9 @@ stacking <- function(x, bins) {
     x <- unlist(xg, use.names = FALSE)
     du <- unlist(xo, use.names = FALSE)
     
-    list(x = x, du = du)
+    cols <- if (is.null(cols)) opts$col.pt else cols[oo]
+    
+    list(x = x, du = du, col = cols)
 }
 
 
@@ -51,7 +53,7 @@ drawLegend <- function(legend) {
                     unit.pmax(unit(2, "lines"),
                               gap + unit(rep(1, n), "strheight", as.list(lab))))
 
-    fg <- frameGrob(layout = legend.layout)#, gp = gpar(cex = cex))
+    fg <- frameGrob(layout = legend.layout) #, gp = gpar(cex = opts$cex))
     
     for (i in 1L:n) {
         fg <- placeGrob(fg, pointsGrob(0.5, 0.5, pch = pch[i],
