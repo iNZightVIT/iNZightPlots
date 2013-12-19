@@ -2,6 +2,7 @@ inzPlotDefaults <-
 function() {
   # Houses all of the default settings for plotting. Alternatively,
   # could edit them (i.e., points to a list in global environment)
+    
     list(pch            = 1,
          col            = "red",
          col.pt         = "grey50",
