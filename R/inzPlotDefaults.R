@@ -33,5 +33,8 @@ function() {
          box            = TRUE,
          box.lwd        = c(2, 0.7),
          box.col        = "black",
-         box.fill       = "grey90")
+         box.fill       = "grey90",
+         bar.lwd        = 1,
+         bar.col        = "black",
+         bar.fill       = "darkgreen")
 }

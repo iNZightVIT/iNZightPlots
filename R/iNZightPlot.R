@@ -77,6 +77,9 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
         
         if (!is.null(g2) & !is.null(g2.level)) {
           # Only use the observations according to g2.level
+            if (is.numeric(g2))
+                g2 <- convert.to.factor(g2)
+            
             x <- subset(x, g2 == g2.level)
             if (!is.null(y))
                 y <- subset(y, g2 == g2.level)
@@ -107,6 +110,11 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
       # Code up 'by' colours and create necessary legend.
       # using hcl(), with varying h(ue), and holding
       # c(olour) and l(ightness) constant
+
+      # For barplots, need to code y as by for colouring:
+        barplot <- is.factor(x) & is.factor(y)
+        if (barplot) by <- y
+        
         if (!is.null(by)) {
             if (is.factor(by)) {
               # categorical units for by
@@ -116,7 +124,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                 if (length(col.pt) >= n.by) {
                     col.pt <- col.pt[1:n.by]
                 } else {
-                    col.pt <- hcl((1:n.by) / n.by * 360, c = 80, l = 70)
+                    col.pt <- hcl((1:n.by) / n.by * 360, c = 80, l = 50)
                 }
 
               
@@ -131,12 +139,13 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
 
           # design the legend
             legend <- list(labs      = levels(by),
-                           cols      = col.pt,
-                           pch       = pch,
+                           cols      = if (barplot) opts$bar.col else cols,
+                           pch       = ifelse(barplot, 22, pch),
                            cex       = cex.text,
                            cex.pt    = cex,
                            cex.title = cex.lab,
-                           title     = varnames$by)
+                           title     = varnames$by,
+                           fill      = col.pt)
             leg.grob <- drawLegend(legend)
         } else {
             cols <- rep(col.pt, length = length(x))
@@ -369,30 +378,35 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                 r <- range(y)
                 r + c(-1, 1) * 0.04 * r
             } else if (is.null(y)) {
-                r <- range(lapply(x.list,
-                                  function(x) {
-                                      if (is.numeric(x)) makePoints(x)$y
-                                      else makeBars(x)
-                                  }))
-                r + c(-1, 1) * 0.04 * (r[2] - r[1])
+                if (is.numeric(x)) {
+                    r <- range(lapply(x.list,
+                                      function(x) makePoints(x)$y))
+                    o <- r + c(-1, 1) * 0.04 * (r[2] - r[1])
+                } else {
+                    o <- c(0, max(sapply(x.list, function(xx) max(makeBars(xx)))))
+                }
+                o
             } else {
               # Y is a factor, so need to break x.list down even more:
-                
-                x.list2 <- vector("list", length(x.list))
-                names(x.list2) <- names(x.list)
-                for (i in 1:length(x.list))
-                    x.list2[[i]] <- lapply(levels(y),
-                                           function(l) subset(x.list[[i]],
-                                                              y.list[[i]] == l))
-                r <-
-                    range(lapply(x.list2,
-                                 function(x.list)
-                                 lapply(x.list,
-                                        function(x) {
-                                            if (is.numeric(x)) makePoints(x)$y
-                                            else c(0, makeBars(x))
-                                        })))
-                r + c(-1, 1) * 0.04 * (r[2] - r[1])
+                if (is.numeric(x)) {
+                    x.list2 <- vector("list", length(x.list))
+                    names(x.list2) <- names(x.list)
+                    for (i in 1:length(x.list))
+                        x.list2[[i]] <- lapply(levels(y),
+                                               function(l) subset(x.list[[i]],
+                                                                  y.list[[i]] == l))
+                    r <-
+                        range(lapply(x.list2,
+                                     function(x.list)
+                                     lapply(x.list,
+                                            function(x) makePoints(x)$y )))
+                    o <- r + c(-1, 1) * 0.04 * (r[2] - r[1])
+                } else {
+                  # need the y-values for the appropriate barplot
+                    o <- c(0, sapply(1:length(x.list),
+                                     function(i) max(makeBars(x.list[[i]], y.list[[i]]))))
+                }
+                o
             }
 
       # Cycle through all N plots. For each, draw the appropriate axes,
@@ -538,7 +552,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
         upViewport()  # return to toplevel layout
 
       # Y axis label
-        if (!is.null(y)) {
+        if (!is.null(y) & is.numeric(y)) {
             pushViewport(viewport(layout.pos.col = 1, layout.pos.row = 2))
             grid.text(ylab,
                       x = unit(0.5, "lines"),

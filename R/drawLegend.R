@@ -12,6 +12,7 @@ function(legend) {
                         legend$cex.title)
     cex.pt    <- legend$cex.pt
     title     <- legend$title
+    fill      <- legend$fill
 
     
 
