@@ -9,20 +9,34 @@ drawBarInference <- function(hgt, i, n, opts) {
     if (length(dim(hgt)) == 1) {
       # dealing with a single X factor
         phat <- hgt[i]
+        tab <- hgt * n
     } else {
       # dealing with an X and Y factor combination
         phat <- hgt[i, ]  #, ]
+        tab <- phat * n
     }
     
     for (i in 1:length(phat)) {
         p <- phat[i]
-        se <- sqrt(p * (1 - p) / n)
         x <- i / (length(phat) + 1)
-        y <- p + c(-1, 1) * se * 1.96
+        
+        if ("conf" %in% opts$inference.type) {
+          # draw confidence intervals
+            y <- p + c(-1, 1) * errorbarsize(proportionCovs(tab)) * 1.96
+            grid.lines(x, unit(y, "native"),
+                       gp =
+                       gpar(col = opts$inf.col.conf,
+                            lwd = 0.5 * opts$inf.lwd.comp / sqrt(length(phat))))
+        }
 
-        grid.lines(x, unit(y, "native"),
-                   gp =
-                   gpar(col = opts$inf.col.comp,
-                        lwd = opts$inf.lwd.comp / sqrt(length(phat))))
+        if ("comp" %in% opts$inference.type) {
+          # draw comparison intervals
+            se <- sqrt(p * (1 - p) / n)
+            y <- p + c(-1, 1) * se * 1.96
+            grid.lines(x, unit(y, "native"),
+                       gp =
+                       gpar(col = opts$inf.col.comp,
+                            lwd = opts$inf.lwd.comp / sqrt(length(phat))))
+        }
     }
 }

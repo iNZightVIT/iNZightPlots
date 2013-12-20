@@ -4,7 +4,8 @@ makeBars <- function(x, y = NULL, cols = NULL) {
     if (is.null(y)) {
         hgt <- table(x) / length(x)
     } else {
-        hgt <- table(x, y) / length(x)
+        tab <- table(x, y)
+        hgt <- apply(tab, 2, function(x) x / sum(x))
     }
 
     hgt

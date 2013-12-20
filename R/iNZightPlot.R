@@ -444,8 +444,8 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                   # need the y-values for the appropriate barplot
                     o <- c(0, max(sapply(1:length(x.list), function(i) {
                       # need to include the error bars!
-                        phat <- table(x.list[[i]], y.list[[i]]) /
-                            length(x.list[[i]])
+                        tab <- table(x.list[[i]], y.list[[i]])
+                        phat <- apply(tab, 2, function(x) x / sum(x))
                         se <- sqrt(phat * (1 - phat) /
                                    length(x.list[[i]]))
                         max(phat + 1.96 * se)
