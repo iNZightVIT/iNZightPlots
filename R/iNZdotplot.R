@@ -32,7 +32,7 @@ iNZdotplot <-
 
   # =========================================================================== #
   #                                                             Start main plot
-    
+
     ylim2 <- c(0, length(levels(y)))  # need a yscale
     pushViewport(viewport(layout.pos.row = 2,
                           xscale = xlim,
@@ -107,7 +107,7 @@ iNZdotplot <-
                 upViewport()
                 next
             }
-
+            
             dat <- makePoints(x.list[[k]], cols = col.list[[k]])
             drawDotplot(dat$x, dat$y, xlim = xlim, ylim = ylim,
                         col = dat$col, opts = opts)

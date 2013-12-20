@@ -100,8 +100,9 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
       # ========================================================================= #
         
       # Get some plotting options that will be used
+        barplot  <- is.factor(x) & is.factor(y)
         pch      <- opts$pch
-        col.pt   <- opts$col.pt
+        col.pt   <- if (barplot) opts$bar.fill else opts$col.pt
         cex      <- opts$cex
         cex.pt   <- opts$cex.pt
         cex.lab  <- opts$cex.lab
@@ -112,8 +113,10 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
       # c(olour) and l(ightness) constant
 
       # For barplots, need to code y as by for colouring:
-        barplot <- is.factor(x) & is.factor(y)
-        if (barplot) by <- y
+        if (barplot) {
+            by <- y
+            varnames$by <- varnames$y
+        }
         
         if (!is.null(by)) {
             if (is.factor(by)) {
@@ -126,31 +129,37 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                 } else {
                     col.pt <- hcl((1:n.by) / n.by * 360, c = 80, l = 50)
                 }
-
               
             } else {
               # continuous `by' variable, so use a smooth range of colours
                 n.by <- min(10, floor(0.5 * length(unique(by))))
                 by <- cut(by, n.by)  ### *** needs fixing
-                col.pt <- hcl(1:n.by / n.by * 360, c = 80, l = 70)
+                col.pt <- hcl(1:n.by / n.by * 360, c = 80, l = 50)
             }
 
-            cols <- col.pt[as.numeric(by)]
+          # every point needs a colour, unless it's a barplot
+            if (!barplot)
+                cols <- col.pt[as.numeric(by)]
+            else
+                cols <- col.pt
 
           # design the legend
             legend <- list(labs      = levels(by),
-                           cols      = if (barplot) opts$bar.col else cols,
+                           cols      = if (barplot) rep(opts$bar.col, length = n.by)
+                                       else col.pt,
                            pch       = ifelse(barplot, 22, pch),
                            cex       = cex.text,
                            cex.pt    = cex,
                            cex.title = cex.lab,
+                           lwd       = ifelse(barplot, opts$bar.lwd, opts$lwd.pt),
                            title     = varnames$by,
-                           fill      = col.pt)
+                           fill      = cols)
+
             leg.grob <- drawLegend(legend)
         } else {
             cols <- rep(col.pt, length = length(x))
         }
-
+        
       # --------------------------------------------------------------------------- #
       #                                                             Subdivide by g1
 
@@ -205,8 +214,14 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                 names(by.list) <- g1.level
             }
 
-            col.list <- lapply(g1.level,
-                               function(l) subset(cols, g1 == l))
+            col.list <-
+                if (barplot) {
+                    col.list <- lapply(g1.level,
+                                       function(l) cols)
+                } else {
+                    lapply(g1.level,
+                           function(l) subset(cols, g1 == l))
+                }
             names(col.list) <- g1.level            
         } else {
             x.list <- list(all = x)
@@ -370,18 +385,35 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
         xlim <-
             if (is.numeric(x)) {
                 r <- range(x)
-                r + c(-1, 1) * 0.04 * r
-            } else
+              # if the x-axis goes negative, then need to ensure it
+              # gets made more negative
+                neg <- r < 0
+                mult <- c(-1, 1) * ifelse(neg, -1, 1)
+                r + mult * 0.04 * r
+            } else {
                 c(0, length(levels(x)))
+            }
+
         ylim <-
             if (is.numeric(y)) {
                 r <- range(y)
-                r + c(-1, 1) * 0.04 * r
+                neg <- r < 0
+                mult <- c(-1, 1) * ifelse(neg, -1, 1)
+                r + mult * 0.04 * r
             } else if (is.null(y)) {
                 if (is.numeric(x)) {
-                    r <- range(lapply(x.list,
+                  # to ensure we account for g1.level being set:
+                    full.x.list <-
+                        if (!is.null(g1))
+                            lapply(levels(g1), function(l) subset(x, g1 == l))
+                        else
+                            list(x)
+                    
+                    r <- range(lapply(full.x.list,
                                       function(x) makePoints(x)$y))
-                    o <- r + c(-1, 1) * 0.04 * (r[2] - r[1])
+                    neg <- r < 0
+                    mult <- c(-1, 1) * ifelse(neg, -1, 1)
+                    o <- r + mult * 0.04 * (r[2] - r[1])
                 } else {
                     o <- c(0, max(sapply(x.list, function(xx) max(makeBars(xx)))))
                 }
@@ -400,11 +432,13 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                                      function(x.list)
                                      lapply(x.list,
                                             function(x) makePoints(x)$y )))
-                    o <- r + c(-1, 1) * 0.04 * (r[2] - r[1])
+                    neg <- r < 0
+                    mult <- c(-1, 1) * ifelse(neg, -1, 1)
+                    o <- r + mult * 0.04 * (r[2] - r[1])
                 } else {
                   # need the y-values for the appropriate barplot
-                    o <- c(0, sapply(1:length(x.list),
-                                     function(i) max(makeBars(x.list[[i]], y.list[[i]]))))
+                    o <- c(0, max(sapply(1:length(x.list),
+                                     function(i) max(makeBars(x.list[[i]], y.list[[i]])))))
                 }
                 o
             }
@@ -429,6 +463,8 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
         id <- 1  # stop once all plots drawn
         for (i in nr:1) {  # start at bottom
             for (j in 1:nc) {
+                if (id > N) break
+                
                 pushViewport(viewport(layout.pos.row = i,
                                       layout.pos.col = j * 2 - 1))
                 grid.rect()

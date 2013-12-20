@@ -30,12 +30,14 @@ function() {
          col.smooth     = c("magenta"),
          col.LOE        = "black",
          lty.LOE        = 2,
-         bs.inference   = FALSE,
          box            = TRUE,
          box.lwd        = c(2, 0.7),
          box.col        = "black",
          box.fill       = "grey90",
          bar.lwd        = 1,
          bar.col        = "black",
-         bar.fill       = "darkgreen")
+         bar.fill       = "darkgreen",
+         inference.type = NULL,
+         inference.par  = NULL,
+         bs.inference   = FALSE)
 }

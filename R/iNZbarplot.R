@@ -44,7 +44,7 @@ iNZbarplot <-
     if (axis[2] == 2) {
         grid.yaxis(gp = gpar(cex = opts$cex.axis))
     } else if (axis[2] == 1) {
-        grid.yaxis(main = FALSE, label = FALSE,
+        grid.yaxis(main = FALSE,  # label = FALSE,
                    gp = gpar(cex = opts$cex.axis))
     }
 
@@ -61,29 +61,32 @@ iNZbarplot <-
         hgt <- makeBars(x)
     }
 
-    print(hgt)
     for (i in 1:length(x.lev)) {
         pushViewport(viewport(layout.pos.col = i,
+                              xscale = c(-0.1, 1.1),
                               yscale = ylim * 1.05))
 
         if (is.null(y)) {
           # Plotting a single bar for each level of g1
             grid.rect(x = 0.5, y = 0,
                       height = unit(hgt[i], "native"),
-                      width = 0.8,
+                      width = unit(1, "native"),
                       just = "bottom",
                       gp =
                       gpar(fill = opts$bar.fill, col = opts$bar.col,
                            lwd = opts$bar.lwd))
-                      
+            if (!is.null(opts$inference.type))
+                drawBarInference(x = 0.5, y = 0, hgt[i], opts)
+                                  
         } else {
           # Plotting a bar for each level of y, for each level of g1
             xx <- 1 / (ncol(hgt) + 1) * (1:ncol(hgt))
             yy <- hgt[i, ]
 
           # sort out the colours
-            cols <- opts$bar.col
-            if (length(cols) < nrow(hgt)) {
+            cols <- if (length(col) < ncol(hgt)) opts$bar.col else col
+
+            if (length(cols) < ncol(hgt)) {
                 col <- hcl(1:nrow(hgt) / nrow(hgt) * 360, c = 80, l = 50)
             } else {
                 col <- cols[1:nrow(hgt)]
@@ -91,11 +94,15 @@ iNZbarplot <-
 
             grid.rect(x = xx, y = 0,
                       height = unit(yy, "native"),
-                      width = 0.8 / (ncol(hgt) + 1),
+                      width = 1 / (ncol(hgt) + 1),
                       just = "bottom",
                       gp =
                       gpar(fill = col, col = opts$bar.col,
                            lwd = opts$bar.lwd))
+
+            if (!is.null(opts$inference.type)) {
+                cat("Inference info ... \n")
+            }
         }
         
         upViewport()

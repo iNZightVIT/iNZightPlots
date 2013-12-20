@@ -103,11 +103,7 @@ inzPlotDefaults()
   \item{lty.LOE}{
     numeric, the line type of the line of equality.
   }
-  \item{bs.inference}{
-    logical, if \code{TRUE}, then bootstrap inference is perfomed of
-    trend and smoothing lines.
-  }
-  \item{box}{
+    \item{box}{
     logical, if \code{TRUE}, then a box plot is drawn below dow plots.
   }
   \item{bow.lwd}{
@@ -129,6 +125,22 @@ inzPlotDefaults()
   }
   \item{bar.fill}{
     character, the fill colour of bar plots.
+  }
+  \item{inference.type}{
+    character vector, the type of inference intervals required. One or
+    both of \code{c("comp", "conf")}. If \code{NULL}, then no inference
+    intervals are drawn.
+  }
+  \item{inference.par}{
+    character, if \code{inference.type} is not \code{NULL}, then the
+    inference is supplied to the desired parameter. One of
+    \code{c("mean", "median")} for dotplots, or \code{c("proportion")}
+    for barplots.
+  }
+  \item{bs.inference}{
+    logical, if \code{TRUE}, then bootstrap inference is perfomed for
+    any inference added to the plot (e.g., trend lines, confidence
+    intervals, etc.).
   }
 }
 \details{

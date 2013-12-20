@@ -5,12 +5,13 @@ function(legend) {
 
     lab       <- legend$lab
     n         <- length(lab)
-    col       <- legend$col
+    col       <- legend$cols
     pch       <- rep(legend$pch, length = n)
     cex       <- legend$cex
     cex.title <- ifelse(is.null(legend$cex.title), 1.2 * cex,
                         legend$cex.title)
     cex.pt    <- legend$cex.pt
+    lwd       <- legend$lwd
     title     <- legend$title
     fill      <- legend$fill
 
@@ -27,7 +28,7 @@ function(legend) {
                    convertWidth(grobWidth(textGrob(x, gp =
                                                    gpar(cex = cex))), "mm")))
     legend.layout <-
-        grid.layout(n, 4,
+        grid.layout(n + 1, 4,
                     widths = unit.c(unit(0, "mm"), unit(2, "lines"),
                         unit(leg.width, "mm"), unit(0.5, "lines")), 
                     heights =
@@ -38,18 +39,21 @@ function(legend) {
     
     for (i in 1L:n) {
         fg <- placeGrob(fg, pointsGrob(0.5, 0.5, pch = pch[i],
-                                       gp = gpar(col = col[i], cex = cex.pt, lwd = 2)),
-                        col = 2, row = i)
+                                       gp =
+                                       gpar(col = col[i], cex = cex.pt, lwd = lwd,
+                                            fill = fill[i])),
+                        col = 2, row = i + 1)
        
         fg <- placeGrob(fg, textGrob(lab[i], x = 0 , y = 0.5,
                                      just = c("left", "center"),
                                      gp = gpar(cex = cex)),
-                        col = 3, row = i)
+                        col = 3, row = i + 1)
     }
 
-    fg <- placeGrob(fg, textGrob(title, x = 0.5, y = 1,
-                                 just = c("center", "bottom"),
-                                 gp = gpar(cex = cex.title)))
+    fg <- placeGrob(fg, textGrob(title, x = 0.5, y = 0.5,
+                                 just = "left",
+                                 gp = gpar(cex = cex.title)),
+                    col = 2, row = 1)
 
     fg
 }
