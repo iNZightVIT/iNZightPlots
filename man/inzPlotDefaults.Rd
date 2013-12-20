@@ -126,6 +126,12 @@ inzPlotDefaults()
   \item{bar.fill}{
     character, the fill colour of bar plots.
   }
+  \item{inf.lwd.comp}{
+    numeric, the width of comparison inference lines.
+  }
+  \item{inf.col.comp}{
+    character, the colour of comparison inference lines.
+  }
   \item{inference.type}{
     character vector, the type of inference intervals required. One or
     both of \code{c("comp", "conf")}. If \code{NULL}, then no inference

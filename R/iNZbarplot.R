@@ -75,9 +75,6 @@ iNZbarplot <-
                       gp =
                       gpar(fill = opts$bar.fill, col = opts$bar.col,
                            lwd = opts$bar.lwd))
-            if (!is.null(opts$inference.type))
-                drawBarInference(x = 0.5, y = 0, hgt[i], opts)
-                                  
         } else {
           # Plotting a bar for each level of y, for each level of g1
             xx <- 1 / (ncol(hgt) + 1) * (1:ncol(hgt))
@@ -99,11 +96,10 @@ iNZbarplot <-
                       gp =
                       gpar(fill = col, col = opts$bar.col,
                            lwd = opts$bar.lwd))
-
-            if (!is.null(opts$inference.type)) {
-                cat("Inference info ... \n")
-            }
         }
+
+        if (!is.null(opts$inference.type))
+            drawBarInference(hgt, i, n = length(x), opts)        
         
         upViewport()
     }

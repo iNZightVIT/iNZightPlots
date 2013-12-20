@@ -37,6 +37,8 @@ function() {
          bar.lwd        = 1,
          bar.col        = "black",
          bar.fill       = "darkgreen",
+         inf.lwd.comp   = 4,
+         inf.col.comp   = "black",
          inference.type = NULL,
          inference.par  = NULL,
          bs.inference   = FALSE)
