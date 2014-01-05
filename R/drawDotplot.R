@@ -34,8 +34,9 @@ function(x, y, xlim, ylim, col, opts) {
                           xscale = xlim,
                           yscale = ylim))
     grid.points(x, y, default.units = "native",
+                pch = opts$pch,
                 gp =
-                gpar(cex = opts$cex.pt, col = col, pch = opts$pch,
+                gpar(cex = opts$cex.pt, col = col,
                      lwd = opts$lwd.pt, fill = opts$fill.pt))
     upViewport()  # back to layout5
 
