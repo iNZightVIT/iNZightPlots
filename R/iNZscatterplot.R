@@ -74,7 +74,7 @@ function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
   #                                          Add any addional plotting features
 
   # Line of Equality (LOE)
-    if (!is.null(opts$LOE)) {
+    if (opts$LOE) {
         addLOE(x, y, col = opts$col.LOE, lty = opts$lty.LOE,
                xlim = xlim, ylim = ylim)
     }
