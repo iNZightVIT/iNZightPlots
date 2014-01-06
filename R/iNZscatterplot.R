@@ -80,9 +80,15 @@ function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
     }
 
   # Smoothers
-    if (!is.null(opts$smooth) & opts$smooth != 0)
-        addSmoother(x, y, f = opts$smooth,
-                    col = opts$col.smooth, bs = opts$bs.inference)
+    if (!is.null(opts$smooth))
+        if (opts$smooth != 0)
+            if (opts$smooth > 1)
+              # !!! Move this error checking to the beginning of the plot
+              # function (otherwise it produces it g1.levels times!
+                warning("Smoothing value must be in the interval [0, 1]")
+            else
+                addSmoother(x, y, f = opts$smooth,
+                            col = opts$col.smooth, bs = opts$bs.inference)
 
   # Trend lines
     if (!is.null(opts$trend))
