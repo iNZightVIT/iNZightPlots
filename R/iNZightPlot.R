@@ -77,17 +77,18 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
 
         if (!is.null(g2) & !is.null(g2.level)) {
           # Check for iNZightCentral value:
-            if (g2.level == "_ALL") break
+            if (g2.level != "_ALL") {
             
-          # Only use the observations according to g2.level
-            if (is.numeric(g2))
-                g2 <- convert.to.factor(g2)
+              # Only use the observations according to g2.level
+                if (is.numeric(g2))
+                    g2 <- convert.to.factor(g2)
 
-            x <- subset(x, g2 == g2.level)
-            if (!is.null(y))
-                y <- subset(y, g2 == g2.level)
-            if (!is.null(by))
-                by <- subset(by, g2 == g2.level)
+                x <- subset(x, g2 == g2.level)
+                if (!is.null(y))
+                    y <- subset(y, g2 == g2.level)
+                if (!is.null(by))
+                    by <- subset(by, g2 == g2.level)
+            }
         }
         
       # --------------------------------------------------------------------------- #
