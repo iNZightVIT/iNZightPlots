@@ -448,7 +448,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                         phat <- apply(tab, 2, function(x) x / sum(x))
                         se <- sqrt(phat * (1 - phat) /
                                    length(x.list[[i]]))
-                        max(phat + 1.96 * se)
+                        max(phat + 1.96 * se, na.rm = TRUE)
                     })))
                 }
                 o
@@ -470,6 +470,12 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                                    heights = unit.c(subheight, unit(1, "null")))
 
         }
+
+      # showLines: TRUE if all counts greater than 0, otherwise FALSE
+        tabs <- lapply(1:length(x.list), function(i)
+                       if (is.null(y)) table(x.list[[i]])
+                       else  table(x.list[[i]], y.list[[i]]))
+        showLines <- any(sapply(tabs, function(x) any(x == 0)))
         
         id <- 1  # stop once all plots drawn
         for (i in nr:1) {  # start at bottom
@@ -545,6 +551,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                                    xlim = xlim, ylim = ylim,
                                    layout = layout3,
                                    col = col.list[[id]],
+                                   showLines = showLines,
                                    opts = opts)
                     }
                 }

@@ -1,6 +1,6 @@
 iNZbarplot <-
     function(x, y = NULL, axis = c(0, 0), lab = NULL, x.lev, y.lev = NULL,
-             layout, xlim, ylim, col = opts$col.bar, opts) {
+             layout, xlim, ylim, col = opts$col.bar, showLines = FALSE, opts) {
   # --------------------------------------------------------------------------- #
   # Makes a bar plot of the supplied X data, possibly broken down by Y
   # Can only be called from the iNZplot() function.
@@ -33,20 +33,21 @@ iNZbarplot <-
 
   # =========================================================================== #
   #                                                             Start main plot
-    
+
+  # COMPARISON INTERVALS: these are essentially phat \pm 1.96 * se(phat)
+  # CONFIDENCE INTERVALS: these are confidence intervals for the phats
+  # For both of these intervals, they are only drawn if there are at
+  # least 5 observations in the group.
+    if (!is.null(opts$inference.type)) {
+        inference.lines <- drawBarInference(x, y, opts = opts)
+        ylim <- c(0, max(inference.lines$max, ylim))
+    } else {
+        ylim <- c(0, ylim[2])
+    }
+
     pushViewport(viewport(layout.pos.row = 2,
                           xscale = xlim,
-                          yscale = c(0, ylim[2])))
-
-  # --------------------------------------------------------------------------- #
-  #                                                               Add the yaxis
-    
-    if (axis[2] == 2) {
-        grid.yaxis(gp = gpar(cex = opts$cex.axis))
-    } else if (axis[2] == 1) {
-        grid.yaxis(main = FALSE,  # label = FALSE,
-                   gp = gpar(cex = opts$cex.axis))
-    }
+                          yscale = ylim))
 
   # --------------------------------------------------------------------------- #
   #                                                      set up layout for bars
@@ -54,21 +55,49 @@ iNZbarplot <-
     layout4 <- grid.layout(nrow = 1, ncol = length(x.lev))
     pushViewport(viewport(layout = layout4))
 
+  # --------------------------------------------------------------------------- #
+  #                                                               Add the yaxis
+
+    pushViewport(viewport(yscale = ylim * 1.05))
+    if (axis[2] == 2) {
+        grid.yaxis(gp = gpar(cex = opts$cex.axis))
+    } else if (axis[2] == 1) {
+        grid.yaxis(main = FALSE,  # label = FALSE,
+                   gp = gpar(cex = opts$cex.axis))
+    }
+    upViewport()
+
+
+    
     if (!is.null(y)) {
       # calculate multiple bars, multiple x-points
         hgt <- makeBars(x, y)
     } else {
         hgt <- makeBars(x)
     }
-
+    
     for (i in 1:length(x.lev)) {
         pushViewport(viewport(layout.pos.col = i,
                               xscale = c(-0.1, 1.1),
                               yscale = ylim * 1.05))
 
+      # For ease of reading, draw thin vertical lines between x-groups if any of
+      # the counts are 0
+        if (showLines)
+            grid.rect(gp = gpar(lwd = 0.1))
+
+   # --------------------------------------------------------------------------- #
+   #                                                                   Draw bars
+
+   # There is a single bar in each plotting region (i going along the
+   # x-axis). If only one bar is drawn, it is drawn in the middle. If
+   # multiple bars are drawn, then the area must be broken into equal
+   # bars for the levels of y. The bars must also be coloured.
+        
         if (is.null(y)) {
           # Plotting a single bar for each level of g1
-            grid.rect(x = 0.5, y = 0,
+            xx <- 0.5
+            grid.rect(x = xx, y = 0,
                       height = unit(hgt[i], "native"),
                       width = unit(1, "native"),
                       just = "bottom",
@@ -77,8 +106,8 @@ iNZbarplot <-
                            lwd = opts$bar.lwd))
         } else {
           # Plotting a bar for each level of y, for each level of g1
-            xx <- 1 / (ncol(hgt) + 1) * (1:ncol(hgt))
-            yy <- hgt[i, ]
+            xx <- 1 / (nrow(hgt) + 1) * (1:nrow(hgt))
+            yy <- hgt[, i]
 
           # sort out the colours
             cols <- if (length(col) < ncol(hgt)) opts$bar.col else col
@@ -91,16 +120,21 @@ iNZbarplot <-
 
             grid.rect(x = xx, y = 0,
                       height = unit(yy, "native"),
-                      width = 1 / (ncol(hgt) + 1),
+                      width = 1 / (nrow(hgt) + 1),
                       just = "bottom",
                       gp =
                       gpar(fill = col, col = opts$bar.col,
                            lwd = opts$bar.lwd))
         }
 
-        if (!is.null(opts$inference.type))
-            drawBarInference(hgt, i, n = length(x), opts)        
-        
+  # --------------------------------------------------------------------------- #
+  #                                       Add inference information to the bars
+
+        if (!is.null(opts$inference.type)) {
+            drawInferenceLines(inference.lines, i, xx, opts)
+          #  print(inference.lines)
+        }
+          
         upViewport()
     }
     
@@ -108,3 +142,4 @@ iNZbarplot <-
     upViewport()  # back to sub plot/layout3
     upViewport()  # back to layout2
 }
+

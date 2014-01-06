@@ -1,6 +1,5 @@
 proportionCovs <- function(tbl, phat = tbl / sum(tbl), n = sum(tbl)) {
     covs <- -outer(phat, phat) / n
-    print(covs)
     diag(covs) <- phat * (1 - phat) / n
     covs
 }
@@ -19,7 +18,7 @@ errorbarsize <- function(Covs) {
     Xr <- row(mat)[keep]
     Xc <- col(mat)[keep]
     X <- outer(1:k2, 1:k, function(x,y) y == Xr[x] | y == Xc[x])
-    Y = sqrt(outer(Vars, Vars, "+") - 2 * Covs)[keep]
+    Y <- sqrt(outer(Vars, Vars, "+") - 2 * Covs)[keep]
     out <- drop(solve(crossprod(X)) %*% t(X) %*% Y)
 
     out
