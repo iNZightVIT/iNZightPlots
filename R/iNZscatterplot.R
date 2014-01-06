@@ -80,7 +80,7 @@ function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
     }
 
   # Smoothers
-    if (!is.null(opts$smooth))
+    if (!is.null(opts$smooth) & opts$smooth != 0)
         addSmoother(x, y, f = opts$smooth,
                     col = opts$col.smooth, bs = opts$bs.inference)
 
