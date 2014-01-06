@@ -74,12 +74,15 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
       # TODO: This will become a second dimension for a plot matrix for pairwise
       #       comparison of two (or even three) factor variables.
       # ========================================================================= #
-        
+
         if (!is.null(g2) & !is.null(g2.level)) {
+          # Check for iNZightCentral value:
+            if (g2.level == "_ALL") break
+            
           # Only use the observations according to g2.level
             if (is.numeric(g2))
                 g2 <- convert.to.factor(g2)
-            
+
             x <- subset(x, g2 == g2.level)
             if (!is.null(y))
                 y <- subset(y, g2 == g2.level)
@@ -175,6 +178,10 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
       # ========================================================================= #
         
         if (!is.null(g1)) {
+          # Check for iNZightCentral value
+            if (!is.null(g1.level))
+                if (g1.level == "_MULTI") g1.level <- NULL
+            
           # Necessary to allow continuous variables to be used to subset
             if (!is.factor(g1))
                 g1 <- convert.to.factor(g1)

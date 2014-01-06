@@ -20,6 +20,7 @@ function() {
          col.line       = "blue",
          col.sub        = "wheat",
          jitter         = "",
+         rugs           = "",
          trend          = NULL,
          smooth         = 0,
          LOE            = FALSE,
