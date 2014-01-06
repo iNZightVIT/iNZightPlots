@@ -21,7 +21,7 @@ function() {
          col.sub        = "wheat",
          jitter         = "",
          trend          = NULL,
-         smooth         = NULL,
+         smooth         = 0,
          LOE            = FALSE,
          join           = FALSE,
          col.trend      = list(linear = "blue",
