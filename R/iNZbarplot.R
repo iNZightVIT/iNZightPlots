@@ -1,5 +1,5 @@
 iNZbarplot <-
-    function(x, y = NULL, axis = c(0, 0), lab = NULL, x.lev, y.lev = NULL,
+    function(x, y = NULL, axis = c(0, 0), by = NULL, lab = NULL, x.lev, y.lev = NULL,
              layout, xlim, ylim, col = opts$col.bar, showLines = FALSE, opts) {
   # --------------------------------------------------------------------------- #
   # Makes a bar plot of the supplied X data, possibly broken down by Y
@@ -94,22 +94,46 @@ iNZbarplot <-
         if (is.null(y)) {
           # Plotting a single bar for each level of g1
             xx <- 0.5
-            grid.rect(x = xx, y = 0,
-                      height = unit(hgt[i], "native"),
-                      width = unit(1, "native"),
-                      just = "bottom",
-                      gp =
-                      gpar(fill = opts$bar.fill, col = opts$bar.col,
-                           lwd = opts$bar.lwd))
+
+          # If by is set, then the bar needs to be segmented!
+            if (is.null(by)) {
+                grid.rect(x = xx, y = 0,
+                          height = unit(hgt[i], "native"),
+                          width = unit(1, "native"),
+                          just = "bottom",
+                          gp =
+                          gpar(fill = opts$bar.fill, col = opts$bar.col,
+                               lwd = opts$bar.lwd))
+            } else {
+              # Calculate the relative proportions for each group:
+                newhgt <- makeBars(by, x)
+                
+                for (s in 1:ncol(newhgt)) {
+                    H <- hgt[i]  # the overall height of the bar
+                    S <- c(0, cumsum(newhgt[i, ]) * H)  # the location of segments
+
+                    for (t in 2:length(S)) {
+                        grid.rect(x = xx,
+                                  y = unit(S[t - 1], "native"),
+                                  height = unit(S[t] - S[t - 1], "native"),
+                                  width = unit(1, "native"),
+                                  just = "bottom",
+                                  gp =
+                                  gpar(fill = col[t - 1], col = opts$bar.col,
+                                       lwd = opts$bar.lwd))
+                    }
+                }
+            }
+            
         } else {
           # Plotting a bar for each level of y, for each level of g1
             xx <- 1 / (nrow(hgt) + 1) * (1:nrow(hgt))
             yy <- hgt[, i]
 
           # sort out the colours
-            cols <- if (length(col) < ncol(hgt)) opts$bar.col else col
-
-            if (length(cols) < ncol(hgt)) {
+            cols <- if (length(col) < nrow(hgt)) opts$bar.col else col
+            
+            if (length(cols) < nrow(hgt)) {
                 col <- hcl(1:nrow(hgt) / nrow(hgt) * 360, c = 80, l = 50)
             } else {
                 col <- cols[1:nrow(hgt)]

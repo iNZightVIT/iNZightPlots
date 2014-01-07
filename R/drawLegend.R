@@ -24,7 +24,7 @@ function(legend) {
     gap <- unit(0.5, "lines")
     
     leg.width <-
-        max(sapply(lab, function(x)
+        max(sapply(c(title, lab), function(x)
                    convertWidth(grobWidth(textGrob(x, gp =
                                                    gpar(cex = cex))), "mm")))
     legend.layout <-
@@ -50,7 +50,7 @@ function(legend) {
                         col = 3, row = i + 1)
     }
 
-    fg <- placeGrob(fg, textGrob(title, x = 0.5, y = 0.5,
+    fg <- placeGrob(fg, textGrob(title, x = 0.5, y = 1,
                                  just = "left",
                                  gp = gpar(cex = cex.title)),
                     col = 2, row = 1)

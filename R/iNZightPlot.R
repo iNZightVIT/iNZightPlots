@@ -104,7 +104,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
       # ========================================================================= #
         
       # Get some plotting options that will be used
-        barplot  <- is.factor(x) & is.factor(y)
+        barplot  <- (is.factor(x) & is.factor(y)) | (is.factor(x) & is.null(y))
         pch      <- opts$pch
         col.pt   <- if (barplot) opts$bar.fill else opts$col.pt
         cex      <- opts$cex
@@ -118,15 +118,14 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
 
       # For barplots, need to code y as by for colouring:
         if (barplot) {
-            by <- y
-            varnames$by <- varnames$y
+            by <- if (!is.null(y)) y else by
+            varnames$by <- if (is.null(by)) varnames$y else varnames$by
         }
-        
+      
         if (!is.null(by)) {
             if (is.factor(by)) {
               # categorical units for by
                 n.by <- length(levels(by))
-                
               # set up colours
                 if (length(col.pt) >= n.by) {
                     col.pt <- col.pt[1:n.by]
@@ -323,6 +322,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
         widths <- unit.c(w1, w2, w3, w4 * 1.05)
 
         h1 <- if (is.numeric(y)) unit(5, "lines")  else unit(3, "lines")
+        if (!is.null(g2.level)) h1 <- h1 + unit(1, "lines")
         h2 <-                    unit(1, "null")
         h3 <-                    unit(5, "lines")
         heights <- unit.c(h1, h2, h3)
@@ -484,6 +484,22 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                        if (is.null(y)) table(x.list[[i]])
                        else  table(x.list[[i]], y.list[[i]]))
         showLines <- any(sapply(tabs, function(x) any(x == 0)))
+
+      # --- FOR BARPLOTS:
+      # If inference is requested, need to ensure all of the scales are the same ...
+        if (barplot) {
+            if (!is.null(opts$inference.type)) {
+                inference.list <- lapply(1:max(1, length(levels(g1))), function(i) {
+                    y2 <- if (is.null(y)) NULL else y.list[[i]]
+                    drawBarInference(x.list[[i]], y2, opts)
+                })
+                ylim <- c(0, min(1, max(sapply(inference.list, function(l) l$max))))
+            } else {
+              # ADD A CONSTANT YLIMIT FOR BARPLOTS HERE  !!!!!!!
+                
+                ylim <- c(0, ylim[2])  # min(1, max(sapply(1:length())))
+            }
+        }
         
         id <- 1  # stop once all plots drawn
         for (i in nr:1) {  # start at bottom
@@ -554,6 +570,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                         iNZbarplot(x.list[[id]], y2,
                                    axis = axis,
                                    lab = g1.level[id],
+                                   by = if (is.null(by)) NULL else by.list[[id]],
                                    x.lev <- levels(x),
                                    y.lev <- if (is.null(y)) NULL else levels(y),
                                    xlim = xlim, ylim = ylim,
@@ -587,7 +604,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                          paste0(' by ', varnames$g1))
         title4 <- ifelse(is.null(g2), '',
                          ifelse(is.null(g2.level), '',
-                                paste0(', for ', varnames$g2, ' = ', g2.level)))
+                                paste0(',\n for ', varnames$g2, ' = ', g2.level)))
         
         grid.text(paste0(title1, title2, title3, title4),
                   y = unit(1, "npc") - unit(0.5, "lines"),
