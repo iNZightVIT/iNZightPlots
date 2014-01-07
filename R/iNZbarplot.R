@@ -40,9 +40,6 @@ iNZbarplot <-
   # least 5 observations in the group.
     if (!is.null(opts$inference.type)) {
         inference.lines <- drawBarInference(x, y, opts = opts)
-        ylim <- c(0, max(inference.lines$max, ylim))
-    } else {
-        ylim <- c(0, ylim[2])
     }
 
     pushViewport(viewport(layout.pos.row = 2,

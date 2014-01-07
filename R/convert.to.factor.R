@@ -1,6 +1,8 @@
 convert.to.factor <-
 function(x) {
     if (is.factor(x)) {
+      # to simplify coding elsewhere, allow convert to factor to simply return
+      # the supplied x vector if it is already a factor.
         x.fact <- x
     } else {
     

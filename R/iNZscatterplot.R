@@ -73,6 +73,20 @@ function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
   # --------------------------------------------------------------------------- #
   #                                          Add any addional plotting features
 
+  # Rugs
+    if ("x" %in% strsplit(opts$rug, '')[[1]]) {
+      # Add marks on the x-axis at the location of every data point
+        grid.polyline(x = unit(rep(x, each = 2), "native"),
+                      y = rep(c(0, 0.02), length(x)),
+                      id.lengths = rep(2, length(x)))
+    }
+    if ("y" %in% strsplit(opts$rug, '')[[1]]) {
+      # Same, but for the y-axis
+        grid.polyline(y = unit(rep(y, each = 2), "native"),
+                      x = rep(c(0, 0.02), length(y)),
+                      id.lengths = rep(2, length(y)))
+    }
+    
   # Line of Equality (LOE)
     if (opts$LOE) {
         addLOE(x, y, col = opts$col.LOE, lty = opts$lty.LOE,

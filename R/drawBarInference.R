@@ -32,6 +32,7 @@ drawBarInference <- function(x, y = NULL, opts) {
 
     size.conf <- 1.96 * se
 
+    Phat <- phat
     phat[tab < 5] <- NA
 
   # Create comparison intervals
@@ -47,7 +48,7 @@ drawBarInference <- function(x, y = NULL, opts) {
         conf <- NULL
 
     list(comp = comp, conf = conf,
-         max  = max(comp$upp, conf$upp, na.rm = TRUE),
+         max  = max(comp$upp, conf$upp, Phat, na.rm = TRUE),
          n    = ncol(as.matrix(phat)))
 }
 
