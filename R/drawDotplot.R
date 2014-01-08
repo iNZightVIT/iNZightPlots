@@ -3,7 +3,7 @@ function(x, y, xlim, ylim, col, opts) {
   # Draws a dotplot in a selected space. Also draws the boxplot if it
   # is requested.
 
-    infmean <- if (is.null(opts$inference.par)) FALSE else "mean" %in% opts$inference.par
+    infmean <- if (is.null(opts$inference.par)) FALSE else opts$inference.par == "mean"
     makebox <- opts$box & length(x) > 5 & !infmean
   # If user wants median inference, then also leave space
     med.inf <- mean.inf <- FALSE
@@ -11,9 +11,9 @@ function(x, y, xlim, ylim, col, opts) {
         if (is.null(opts$inference.par)) {
             med.inf <- TRUE
             opts$inference.par <- "median"
-        } else if ("median" %in% opts$inference.par)
+        } else if (opts$inference.par == "median")
             med.inf <- TRUE
-        else if ("mean" %in% opts$inference.par)
+        else if (opts$inference.par == "mean")
             mean.inf <- TRUE
         else {
             warning("Invalid inference parameter. Using median (default).")
