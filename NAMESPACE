@@ -1,3 +1,4 @@
 import(grid)
+import(boot)
 
 export(iNZightPlot, inzPlotDefaults)
