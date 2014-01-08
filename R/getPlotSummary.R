@@ -57,7 +57,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
     
   # Returns a character string thingy, called o
 
-    o <- ""
+    o <- ""  # empty line at the beginning
 
   # --------------------------------------------------------------------------- #
   #                                                                Subset by g2
@@ -78,8 +78,9 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
         }
 
       # ******************************************************************* #
-        o <- c(o, paste0("For the subset of the data where ",
-                         varnames$g2, " = ", g2.level, "."))
+        msg <- paste0("For the subset of the data where ",
+                      varnames$g2, " = ", g2.level, ".")
+        o <- c(o, msg, paste(rep('-', nchar(msg)), collapse = ''))
     }
 
   # --------------------------------------------------------------------------- #
@@ -150,7 +151,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                 colnames(sum.tab) <- c(names(sum), "Std.dev", "Sample.Size")
                 rownames(sum.tab) <- rep("", nrow(sum.tab))
                 
-                o <- if (i > 1) c(o, '', paste(rep('-', 80), collapse = '')) else c(o, '')
+                o <- if (i > 1) c(o, paste(rep('_', 80), collapse = ''), '') else c(o, '')
                 
                 command <- paste0("Summary of ", varnames$x,
                                   ifelse(is.null(g1), ':',
@@ -171,7 +172,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                 size <- sapply(split(X, Y), length)
                 sum.tab <- cbind(sum.tab, Std.dev = signif(sd.col, 5), Sample.Size = size)
 
-                o <- if (i > 1) c(o, '', paste(rep('-', 80), collapse = '')) else c(o, '')
+                o <- if (i > 1) c(o, paste(rep('_', 80), collapse = ''), '') else c(o, '')
 
                 command <- paste0("Summary of ", varnames$x, " by ", varnames$y,
                                   ifelse(is.null(g1), ':',
@@ -190,7 +191,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
 
                 if (!is.null(opts$trend)) {
                   # Need to add inference information for trend lines:
-                    o <- if (i > 1) c(o, '', paste(rep('-', 80), collapse = '')) else c(o, '')
+                    o <- if (i > 1) c(o, paste(rep('_', 80), collapse = ''), '') else c(o, '')
                     if (!is.null(g1))
                         o <- c(o, paste0("Summary for ", varnames$g1, ' = ', lev[i]), '')
                     
@@ -236,7 +237,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                 X <- x.list[[i]]
                 n <- length(levels(X))
 
-                o <- if (i > 1) c(o, '', paste(rep('-', 80), collapse = '')) else c(o, '')
+                o <- if (i > 1) c(o, paste(rep('_', 80), collapse = ''), '') else c(o, '')
                 
               # Table of counts
                 if (n > 10)
@@ -268,7 +269,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                 X <- x.list[[i]]
                 Y <- y.list[[i]]
 
-                o <- if (i > 1) c(o, '', paste(rep('-', 80), collapse = '')) else c(o, '')
+                o <- if (i > 1) c(o, paste(rep('_', 80), collapse = ''), '') else c(o, '')
 
               # Table of counts
                 if (length(levels(X)) < 10 & length(levels(Y)) < 10)
