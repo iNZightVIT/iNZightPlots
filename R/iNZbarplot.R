@@ -80,8 +80,16 @@ iNZbarplot <-
 
       # For ease of reading, draw thin vertical lines between x-groups if any of
       # the counts are 0
-        if (showLines)
-            grid.rect(gp = gpar(lwd = 0.1))
+      # ALTERNATIVELY show even columns in a light grey
+        if (showLines) {
+           # grid.rect(gp = gpar(lwd = 0.1, lty = 3))
+            if (i %% 2 == 0) {
+                grid.rect(gp = gpar(fill = "grey95", lwd = 0))
+              # need to cover over the border
+                grid.lines(x = c(0, 1), y = 1)
+                grid.lines(x = c(0, 1), y = 0)
+            }
+        }
 
    # --------------------------------------------------------------------------- #
    #                                                                   Draw bars
@@ -153,7 +161,6 @@ iNZbarplot <-
 
         if (!is.null(opts$inference.type)) {
             drawInferenceLines(inference.lines, i, xx, opts)
-          #  print(inference.lines)
         }
           
         upViewport()

@@ -3,12 +3,30 @@ function(x, y, xlim, ylim, col, opts) {
   # Draws a dotplot in a selected space. Also draws the boxplot if it
   # is requested.
 
-    makebox <- opts$box & length(x) > 5
-    
+    infmean <- if (is.null(opts$inference.par)) FALSE else "mean" %in% opts$inference.par
+    makebox <- opts$box & length(x) > 5 & !infmean
+  # If user wants median inference, then also leave space
+    med.inf <- mean.inf <- FALSE
+    if (!is.null(opts$inference.type) & length(x) >= 10) {
+        if (is.null(opts$inference.par)) {
+            med.inf <- TRUE
+            opts$inference.par <- "median"
+        } else if ("median" %in% opts$inference.par)
+            med.inf <- TRUE
+        else if ("mean" %in% opts$inference.par)
+            mean.inf <- TRUE
+        else {
+            warning("Invalid inference parameter. Using median (default).")
+            opts$inference.par <- "median"
+            med.inf <- TRUE
+        }
+    }
+    ex.space <- makebox | med.inf | mean.inf | opts$box
+        
   # First step: set up the layout
   # NOTE: if opts$box is true we will always leave space for the box
   #       but only plot it if there are more than 5 points
-    if (opts$box) {
+    if (ex.space) {
         h1 <- unit(3, "null")
         h2 <- unit(1, "null")
     } else {
@@ -21,14 +39,23 @@ function(x, y, xlim, ylim, col, opts) {
                            widths = unit(1, "null"))
     pushViewport(viewport(layout = layout5))
 
-  # Draw a box if asked for
-    if (makebox) {
+  # Draw a box if asked for (or median inference)
+    if (ex.space) {
+      # Draw mean inference if asked for
         pushViewport(viewport(layout.pos.row = 2,
                               xscale = xlim))
-        drawBoxPlot(x, opts)
+
+        if (mean.inf) {
+            drawMeanInference(x, opts)
+        } else {
+            if (makebox) drawBoxPlot(x, opts)
+            if (med.inf) drawMedianInference(x, opts)
+        }
+
         upViewport()
     }
-
+    
+    
   # Draw the dotplot in the first row
     pushViewport(viewport(layout.pos.row = 1,
                           xscale = xlim,

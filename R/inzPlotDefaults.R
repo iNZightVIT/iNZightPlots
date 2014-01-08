@@ -44,5 +44,6 @@ function() {
          inf.col.conf   = "red",
          inference.type = NULL,
          inference.par  = NULL,
-         bs.inference   = FALSE)
+         bs.inference   = FALSE,
+         n.boot         = 1500)
 }

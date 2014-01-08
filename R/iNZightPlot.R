@@ -2,7 +2,7 @@ iNZightPlot <-
 function(x, y = NULL, g1 = NULL, g2 = NULL,
              g1.level = NULL, g2.level = NULL,
              varnames = list(), xlab = varnames$x, ylab = varnames$y,
-             by = NULL,
+             by = NULL, prop.size = NULL, 
              ...) {
       # --------------------------------------------------------------------------- #
       # 1. Creates lists for each subplot, containing the necessary
@@ -11,7 +11,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
       #    depending on g1, legend, etc.
       # 3.
       # --------------------------------------------------------------------------- #
-   
+
       # Home of all of the plotting options.
         opts <- modifyList(inzPlotDefaults(), list(...))
 
@@ -37,6 +37,20 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
             varnames$g2 <- getName(deparse(substitute(g2)))
         if (!is.null(by) & is.null(varnames$by))
             varnames$by <- getName(deparse(substitute(by)))
+        if (!is.null(prop.size) & is.null(varnames$prop.size))
+            varnames$prop.size <- getName(deparse(substitute(prop.size)))
+
+
+      # This is a temporary fix for a "Vertical Dot Plot"
+      # 
+        if (is.factor(x) & is.numeric(y)) {
+            x.tmp <- x
+            x <- y
+            y <- x.tmp
+            x.name <- varnames$x
+            varnames$x <- varnames$y
+            varnames$y <- x.name
+        }
 
       # --------------------------------------------------------------------------- #
       #                                                       Remove missing values
@@ -50,11 +64,18 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
             na <- na | is.na(g2)
         if (!is.null(by))
             na <- na | is.na(by)
+        if (!is.null(prop.size))
+            if (is.numeric(prop.size))
+                na <- na | is.na(prop.size)
+            else
+                warning("Point sizes can only be made proportional to a numeric variable.")
+        
         x <- x[!na]
         if (!is.null(y))  y  <-  y[!na]
         if (!is.null(g1)) g1 <- g1[!na]
         if (!is.null(g2)) g2 <- g2[!na]
         if (!is.null(by)) by <- by[!na]
+        if (!is.null(prop.size)) prop.size <- prop.size[!na]
 
       # Add jitter
         if ("x" %in% strsplit(opts$jitter, '')[[1]])
@@ -88,6 +109,10 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                     y <- subset(y, g2 == g2.level)
                 if (!is.null(by))
                     by <- subset(by, g2 == g2.level)
+                if (!is.null(g1))
+                    g1 <- subset(g1, g2 == g2.level)
+                if (!is.null(prop.size))
+                    prop.size <- subset(prop.size, g2 == g2.level)
             }
         }
         
@@ -135,7 +160,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
               
             } else {
               # continuous `by' variable, so use a smooth range of colours
-                n.by <- min(10, floor(0.5 * length(unique(by))))
+                n.by <- if (barplot) 4 else min(10, floor(0.5 * length(unique(by))))
                 by <- cut(by, n.by)  ### *** needs fixing
                 col.pt <- hcl(1:n.by / n.by * 360, c = 80, l = 50)
             }
@@ -220,6 +245,11 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                                   function(l) subset(by, g1 == l))
                 names(by.list) <- g1.level
             }
+            if (!is.null(prop.size)) {
+                prop.size.list <- lapply(g1.level,
+                                         function(l) subset(prop.size, g1 == l))
+                names(prop.size.list) <- g1.level
+            }
 
             col.list <-
                 if (barplot) {
@@ -236,6 +266,8 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                 y.list <- list(all = y)
             if (!is.null(by))
                 by.list <- list(all = by)
+            if (!is.null(prop.size))
+                prop.size.list <- list(all = prop.size)
 
             col.list <- list(all = cols)
         }
@@ -479,7 +511,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
 
         }
 
-      # showLines: TRUE if all counts greater than 0, otherwise FALSE
+      # showLines: TRUE if any counts  0, otherwise FALSE
         tabs <- lapply(1:length(x.list), function(i)
                        if (is.null(y)) table(x.list[[i]])
                        else  table(x.list[[i]], y.list[[i]]))
@@ -489,15 +521,41 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
       # If inference is requested, need to ensure all of the scales are the same ...
         if (barplot) {
             if (!is.null(opts$inference.type)) {
+              # We want the axes to be the same for all of the plots, including
+              # if we only draw ONE level of g1 (still needs the same ylimits).
+              # So, we need to create a temporary x/y list containing all of the
+              # levels to get this information.
+
+                x.list.tmp <-
+                    if (is.null(g1)) {
+                        list(all = x)
+                    } else {
+                        tmp <- lapply(levels(g1),
+                                      function(l) subset(x, g1 == l))
+                        names(tmp) <- levels(g1)
+                        tmp
+                    }
+
+                if (!is.null(y)) {
+                    y.list.tmp <-
+                        if (is.null(g1)) {
+                            list(all = y)
+                        } else {
+                            tmp <- lapply(levels(g1),
+                                          function(l) subset(y, g1 == l))
+                            names(tmp) <- levels(g1)
+                            tmp
+                        }
+                }
+                
                 inference.list <- lapply(1:max(1, length(levels(g1))), function(i) {
-                    y2 <- if (is.null(y)) NULL else y.list[[i]]
-                    drawBarInference(x.list[[i]], y2, opts)
+                    y2 <- if (is.null(y)) NULL else y.list.tmp[[i]]
+                    drawBarInference(x.list.tmp[[i]], y2, opts)
                 })
+                
                 ylim <- c(0, min(1, max(sapply(inference.list, function(l) l$max))))
             } else {
-              # ADD A CONSTANT YLIMIT FOR BARPLOTS HERE  !!!!!!!
-                
-                ylim <- c(0, ylim[2])  # min(1, max(sapply(1:length())))
+                ylim <- c(0, ylim[2])
             }
         }
         
@@ -539,6 +597,8 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                                        layout = layout3,
                                        xlim = xlim, ylim = ylim,
                                        col = col.list[[id]],
+                                       prop.size = if (is.null(prop.size)) NULL
+                                                   else prop.size.list[[id]],
                                        opts = opts)
                     } else {
                         y2 <- if (is.null(y)) NULL else y.list[[id]]
@@ -605,8 +665,10 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
         title4 <- ifelse(is.null(g2), '',
                          ifelse(is.null(g2.level), '',
                                 paste0(',\n for ', varnames$g2, ' = ', g2.level)))
+        title5 <- ifelse(is.null(prop.size), '',
+                         paste0(' (sized by ', varnames$prop.size, ')'))
         
-        grid.text(paste0(title1, title2, title3, title4),
+        grid.text(paste0(title1, title2, title3, title4, title5),
                   y = unit(1, "npc") - unit(0.5, "lines"),
                   just = "top",
                   gp = gpar(cex = opts$cex.main))

@@ -140,13 +140,19 @@ inzPlotDefaults()
   \item{inference.par}{
     character, if \code{inference.type} is not \code{NULL}, then the
     inference is supplied to the desired parameter. One of
-    \code{c("mean", "median")} for dotplots, or \code{c("proportion")}
-    for barplots.
+    \code{"mean"} or \code{"median"} for dotplots, or \code{"proportion"}
+    for barplots. If left \code{NULL} when \code{inference.type} is
+    supplied, then uses the median for dotplots and proportion for
+    barplots. NB: This can take a vector of possibilities but it doens't
+    make any difference (at the moment anyway).
   }
   \item{bs.inference}{
     logical, if \code{TRUE}, then bootstrap inference is perfomed for
     any inference added to the plot (e.g., trend lines, confidence
     intervals, etc.).
+  }
+  \item{n.boot}{
+    the number of bootstrap simulations to do.
   }
 }
 \details{

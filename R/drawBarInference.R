@@ -2,7 +2,7 @@ drawBarInference <- function(x, y = NULL, opts) {
   # A function which calculates the inferences lines necessary for the
   # plot. Returns a list of lines (for each bar, essentially) with
   # comparison and confidence intervals.
-
+    
   # Some error checking ... but only send the error message once.
     if (!is.null(opts$inference.par))
         if (opts$inference.par != "proportion" & i == 1)

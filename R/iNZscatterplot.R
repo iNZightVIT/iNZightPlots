@@ -1,7 +1,7 @@
 iNZscatterplot <-
 function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
                            layout, xlim = range(x), ylim = range(y),
-                           col = opts$col.pt, opts) {
+                           col = opts$col.pt, prop.size = NULL, opts) {
   # --------------------------------------------------------------------------- #
   # Makes a scatter plot of the supplied X and Y data.
   # Can only be called from the iNZplot() function.
@@ -58,9 +58,15 @@ function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
                           xscale = xlim,
                           yscale = ylim))  # so nothing goes outside the box
 
+  # Point sizes:
+    if (!is.null(prop.size))
+        cex <- proportionalPointSize(prop.size, opts$cex.pt)
+    else
+        cex <- opts$cex.pt
+    
     grid.points(x, y, pch = opts$pch,
                 gp =
-                gpar(cex = opts$cex.pt, col = col,
+                gpar(cex = cex, col = col,
                      lwd = opts$lwd.pt))
 
   # Connect by dots if they want it ...
