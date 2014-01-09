@@ -1,4 +1,5 @@
 import(grid)
 import(boot)
+import(s20x)
 
 export(iNZightPlot, inzPlotDefaults)
