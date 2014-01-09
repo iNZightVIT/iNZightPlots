@@ -559,10 +559,10 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
             }
         }
         
-        id <- 1  # stop once all plots drawn
+        id <- N  # stop once all plots drawn
         for (i in nr:1) {  # start at bottom
             for (j in 1:nc) {
-                if (id > N) break
+                if (id < 1) break
                 
                 pushViewport(viewport(layout.pos.row = i,
                                       layout.pos.col = j * 2 - 1))
@@ -643,7 +643,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                 
                 upViewport()
 
-                id <- id + 1
+                id <- id - 1
             }
         }
     

@@ -57,7 +57,11 @@ iNZbarplot <-
 
     pushViewport(viewport(yscale = ylim * 1.05))
     if (axis[2] == 2) {
-        grid.yaxis(gp = gpar(cex = opts$cex.axis))
+        ypos <- pretty(ylim)
+        ypos <- ypos[ypos < max(ylim) * 1.05]
+        grid.yaxis(at = ypos,
+                   label = paste0(100 * ypos, '%'),
+                   gp = gpar(cex = opts$cex.axis))
     } else if (axis[2] == 1) {
         grid.yaxis(main = FALSE,  # label = FALSE,
                    gp = gpar(cex = opts$cex.axis))
