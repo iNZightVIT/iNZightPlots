@@ -206,9 +206,9 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                         inf.mat <- capture.output(matprint(as.matrix(inf.df)))
                         o <- c(o, eval(inf.mat))
                     } else {
-                        o <- c(o, paste0("No inference output",
+                        o <- c(o, paste0("No inference output ",
                                          "(number of observations too small for ",
-                                         "bootstrap inference."))
+                                         "bootstrap inference.)"))
                     }
                 } else {
                   # Normal inference
@@ -535,7 +535,7 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
 
                 n1 <- length(levels(Y))
                 tab <- table(Y, X)
-                rsum <- rowSums(tab)
+                tot <- rsum <- rowSums(tab)
                 phat <- sweep(tab, 1, rsum, "/")
                 nr <- nrow(tab)
 
@@ -568,7 +568,6 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                                           " for ", varnames$x, " = ", levels(X)[j],
                                           " (col - row)"))
                             p <- phat[, j]
-                            tot <- rsum
                             n <- length(p)
                             diff.mat <- signif(outer(p[-1], p[-length(p)],
                                                      function(p1, p2) p1 - p2), 3)

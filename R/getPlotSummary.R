@@ -41,7 +41,8 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
 
     # --------------------------------------------------------------------------- #
     #                                                       Remove missing values
-        
+
+
     na <- is.na(x)
     if (!is.null(y))
         na <- na | is.na(y)
@@ -49,13 +50,20 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
         na <- na | is.na(g1)
     if (!is.null(g2))
         na <- na | is.na(g2)
+
+  # Before we remove any missing values, we need to keep track of the original
+  # subsetting variables
+    g2.o <- g2
+    y.o <- if (is.null(g2) & is.null(g2.level)) y else subset(y, g2 == g2.level)
+    g1.o <- if (is.null(g2) & is.null(g2.level)) g1 else subset(g1, g2 == g2.level)
+    missing <- if (is.null(g2) & is.null(g2.level)) na else subset(na, g2 == g2.level)
     
     x <- x[!na]
     if (!is.null(y))  y  <-  y[!na]
     if (!is.null(g1)) g1 <- g1[!na]
     if (!is.null(g2)) g2 <- g2[!na]
-    
-  # Returns a character string thingy, called o
+  
+  # This function returns a character string thingy, called o
 
     o <- ""  # empty line at the beginning
 
@@ -73,8 +81,11 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
             x <- subset(x, g2 == g2.level)
             if (!is.null(y))
                 y <- subset(y, g2 == g2.level)
-            if (!is.null(g1))
+            if (!is.null(g1)) {
                 g1 <- subset(g1, g2 == g2.level)
+                g1.o <- subset(g1.o, g2.o == g2.level)
+            }
+            missing <- subset(missing, g2.o == g2.level)
         }
 
       # ******************************************************************* #
@@ -125,12 +136,16 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
             names(y.list) <- g1.level
         }
 
+      # Still tracking missing values:
+        n.missing <- tapply(missing, g1.o, sum)
+
       # Also need to know the level:
         lev <- g1.level        
     } else {
         x.list <- list(all = x)
         if (!is.null(y))
             y.list <- list(all = y)
+        n.missing <- sum(missing)
         lev <- levels(g1)
     }
 
@@ -142,13 +157,15 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
           # We have x on its own. One summary for each level of g1
             for (i in 1:length(x.list)) {
                 X <- x.list[[i]]
+                M <- if (is.null(g1)) n.missing else n.missing[lev[i]]
+                
                 sum <- summary(X)
                 values <- as.vector(sum)
                 values[c(2:3, 5)] <- fivenum(X)[2:4]
 
                 sum.tab <- cbind(t(matrix(values)), signif(sd(X), 5),
-                                 length(X), deparse.level = 0)
-                colnames(sum.tab) <- c(names(sum), "Std.dev", "Sample.Size")
+                                 length(X), sum(M), deparse.level = 0)
+                colnames(sum.tab) <- c(names(sum), "Std.dev", "Sample.Size", "NA's")
                 rownames(sum.tab) <- rep("", nrow(sum.tab))
                 
                 o <- if (i > 1) c(o, paste(rep('_', 80), collapse = ''), '') else c(o, '')
@@ -158,8 +175,8 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                                          paste0(' for ', varnames$g1, ' = ', lev[i], ':')))
                 o <- c(o, command, '')
 
-                out <- capture.output(eval(sum.tab))
-                o <- c(o, out)
+                out <- capture.output(matprint(sum.tab))
+                o <- c(o, eval(out))
             }
         } else if (is.factor(y)) {
           # X is numeric, Y is a factor
@@ -167,10 +184,18 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                 X <- x.list[[i]]  # numeric
                 Y <- y.list[[i]]  # factor
 
+              # Missing X and Y values:
+                M <-
+                    if (is.null(g1)) tapply(missing, y.o, sum)
+                    else tapply(subset(missing, g1.o == lev[i]),
+                                subset(y.o, g1.o == lev[i]), sum)                              
+
                 sum.tab <- t(sapply(split(X, Y), summary))
                 sd.col <- sapply(split(X, Y), sd)
                 size <- sapply(split(X, Y), length)
-                sum.tab <- cbind(sum.tab, Std.dev = signif(sd.col, 5), Sample.Size = size)
+                sum.tab <- cbind(sum.tab, Std.dev = signif(sd.col, 3),
+                                 Sample.Size = size, "NA's" = M)
+                sum.tab[!is.finite(sum.tab)] <- ''
 
                 o <- if (i > 1) c(o, paste(rep('_', 80), collapse = ''), '') else c(o, '')
 
@@ -178,8 +203,8 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                                   ifelse(is.null(g1), ':',
                                          paste0(' for ', varnames$g1, ' = ', lev[i], ':')))
                 o <- c(o, command, '')
-                out <- capture.output(eval(sum.tab))
-                o <- c(o, out)
+                out <- capture.output(matprint(sum.tab))
+                o <- c(o, eval(out))
 
               # There was originally some ANOVA output ???
             }
@@ -236,7 +261,8 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
             for (i in 1:length(x.list)) {
                 X <- x.list[[i]]
                 n <- length(levels(X))
-
+              #  M <- if (is.null(g1)) n.missing else n.missing[lev[i]]
+                
                 o <- if (i > 1) c(o, paste(rep('_', 80), collapse = ''), '') else c(o, '')
                 
               # Table of counts
@@ -245,7 +271,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                 else
                     sum.tab <- t(verticalTable.1(X, pc = FALSE))
 
-                out <- capture.output(matprint(sum.tab))
+                out <- capture.output(matprint(cbind(sum.tab)))#, N.Missing = M)))
                 o <- c(o, paste0("Table of counts for ", varnames$x,
                                  ifelse(is.null(g1), ':',
                                         paste0(' for ', varnames$g1, ' = ', lev[i], ':'))),
@@ -269,6 +295,11 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                 X <- x.list[[i]]
                 Y <- y.list[[i]]
 
+              #  M <-
+              #      if (is.null(g1)) tapply(missing, y.o, sum)
+              #      else tapply(subset(missing, g1.o == lev[i]),
+              #                  subset(y.o, g1.o == lev[i]), sum)  
+
                 o <- if (i > 1) c(o, paste(rep('_', 80), collapse = ''), '') else c(o, '')
 
               # Table of counts
@@ -277,7 +308,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                 else
                     sum.tab <- t(verticalTable.2(Y, X, pc = FALSE))
 
-                out <- capture.output(matprint(sum.tab))
+                out <- capture.output(matprint(cbind(sum.tab)))#, N.Missing = M)))
                 o <- c(o, paste0("Table of counts for ", varnames$x, " by ", varnames$y,
                                  ifelse(is.null(g1), ':',
                                         paste0(' for ', varnames$g1, ' = ', lev[i], ':'))),
