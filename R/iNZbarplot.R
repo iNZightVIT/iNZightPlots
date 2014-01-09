@@ -56,14 +56,14 @@ iNZbarplot <-
   #                                                               Add the yaxis
 
     pushViewport(viewport(yscale = ylim * 1.05))
+    ypos <- pretty(ylim)
+    ypos <- ypos[ypos < max(ylim) * 1.05]
     if (axis[2] == 2) {
-        ypos <- pretty(ylim)
-        ypos <- ypos[ypos < max(ylim) * 1.05]
-        grid.yaxis(at = ypos,
-                   label = paste0(100 * ypos, '%'),
+        grid.yaxis(at = ypos, label = paste0(100 * ypos, '%'),
                    gp = gpar(cex = opts$cex.axis))
     } else if (axis[2] == 1) {
-        grid.yaxis(main = FALSE,  # label = FALSE,
+        grid.yaxis(at = ypos, label = paste0(100 * ypos, '%'),
+                   main = FALSE,
                    gp = gpar(cex = opts$cex.axis))
     }
     upViewport()
