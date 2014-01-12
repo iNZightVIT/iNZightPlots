@@ -672,8 +672,10 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
         title4 <- ifelse(is.null(g2), '',
                          ifelse(is.null(g2.level), '',
                                 paste0(',\n for ', varnames$g2, ' = ', g2.level)))
-        title5 <- ifelse(is.null(prop.size), '',
-                         paste0(' (sized by ', varnames$prop.size, ')'))
+        if (is.numeric(x) & is.numeric(y)) {
+            title5 <- ifelse(is.null(prop.size), '',
+                             paste0(' (sized by ', varnames$prop.size, ')'))
+        } else title5 <- ''
         
         grid.text(paste0(title1, title2, title3, title4, title5),
                   y = unit(1, "npc") - unit(0.5, "lines"),
