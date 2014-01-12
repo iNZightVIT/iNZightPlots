@@ -6,7 +6,7 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
   # Based on addSumm from chrisfns.R
 
     opts <- modifyList(inzPlotDefaults(), list(...))
-
+    
   # --------------------------------------------------------------------------- #
   #                                              set up required variable names
 
@@ -50,13 +50,19 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
     if (!is.null(g2))
         na <- na | is.na(g2)
     
+  # Before we remove any missing values, we need to keep track of the original
+  # subsetting variables
+    g2.o <- g2
+    y.o <- if (is.null(g2) & is.null(g2.level)) y else subset(y, g2 == g2.level)
+    g1.o <- if (is.null(g2) & is.null(g2.level)) g1 else subset(g1, g2 == g2.level)
+    missing <- if (is.null(g2) & is.null(g2.level)) na else subset(na, g2 == g2.level)
+
     x <- x[!na]
     if (!is.null(y))  y  <-  y[!na]
     if (!is.null(g1)) g1 <- g1[!na]
     if (!is.null(g2)) g2 <- g2[!na]
-    
-  # Returns a character string thingy, called o
 
+  # Returns a character string thingy, called o
     o <- ""  # empty line at the beginning
 
   # Initial message:
@@ -78,8 +84,11 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
             x <- subset(x, g2 == g2.level)
             if (!is.null(y))
                 y <- subset(y, g2 == g2.level)
-            if (!is.null(g1))
+            if (!is.null(g1)) {
                 g1 <- subset(g1, g2 == g2.level)
+                g1.o <- subset(g1.o, g2.o == g2.level)
+            }
+            missing <- subset(missing, g2.o == g2.level)
         }
 
       # ******************************************************************* #
@@ -132,14 +141,19 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
             names(y.list) <- g1.level
         }
 
+      # Still tracking missing values:
+        n.missing <- tapply(missing, g1.o, sum)
+        
       # Also need to know the level:
         lev <- g1.level        
     } else {
         x.list <- list(all = x)
         if (!is.null(y))
             y.list <- list(all = y)
+        n.missing <- sum(missing)
         lev <- levels(g1)
     }
+    n.missing[is.na(n.missing)] <- 0
 
   # --------------------------------------------------------------------------- #
   #                                      Begin creating the summary information
@@ -224,6 +238,14 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                         o <- c(o, "No inference output (not enough observations!)")
                     }
                 }
+
+                o <- c(o, "", paste0("Inference based on ", n, " observation",
+                                     ifelse(n > 1, "s", ""), "."))
+                M <- if (is.null(g1)) n.missing else n.missing[lev[i]]
+                if (M > 0) {
+                    o <- c(o, paste0("(", M, " observation", ifelse(M > 1, "s ", " "),
+                                     "removed due to missing values)"))
+                }
             }
         } else if (is.factor(y)) {
           # X is numeric, Y is a factor
@@ -274,9 +296,9 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                             inf.tab2[j, ] <- c(ci.l.med, med, ci.u.med)
                             inf.tab3[j, ] <- c(ci.l.iqr, iqr, ci.u.iqr)
                         } else {
-                            inf.tab1[j, ] <- c("-", ifelse(is.nan(mu), "-", mu), "-")
-                            inf.tab2[j, ] <- c("-", ifelse(is.nan(med), "-", med), "-")
-                            inf.tab3[j, ] <- c("-", ifelse(is.nan(iqr), "-", iqr), "-")
+                            inf.tab1[j, ] <- c("-", ifelse(!is.finite(mu), "-", mu), "-")
+                            inf.tab2[j, ] <- c("-", ifelse(!is.finite(med), "-", med), "-")
+                            inf.tab3[j, ] <- c("-", ifelse(!is.finite(iqr), "-", iqr), "-")
                         }
                     }
                     
@@ -321,7 +343,7 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                                 inf.tab[j, ] <- c(mu - err, mu, mu + err)
                             } else {
                                 mu <- signif(mean(x.subset), 5)
-                                inf.tab[j, ] <- c("-", ifelse(is.nan(mu), "-", mu), "-")
+                                inf.tab[j, ] <- c("-", ifelse(!is.finite(mu), "-", mu), "-")
                             }
                         }
 
@@ -352,23 +374,38 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                                            "Differences between Group Means (col - row)",
                                            "-------------------------------------------", '')
 
+                                  # the suppressWarnings() is used otherwise R complains
+                                  # about coercing strings to NAs but this is what
+                                  # we want it to do.
                                     mat <- triangularMatrix(levels(Y), mult.tab, "estimates")
+                                    mat[is.na(suppressWarnings(as.numeric(mat))) &
+                                        !upper.tri(mat)] <- '-'
                                     out <- capture.output(matprint(mat))
                                     o <- c(o, "Estimates", out)
 
                                     mat <- triangularMatrix(levels(Y), mult.tab, "ci")
+                                    mat[is.na(suppressWarnings(as.numeric(mat)))] <- ''
                                     out <- capture.output(matprint(mat))
                                     o <- c(o, '', paste("95% Confidence Intervals",
                                                         "(Adjusted for multiple comparison)"),
                                            out)
                                     
                                     mat <- triangularMatrix(levels(Y), mult.tab, "p-values")
+                                    mat[is.na(suppressWarnings(as.numeric(mat)))
+                                        & !upper.tri(mat)] <- '-'
                                     out <- capture.output(matprint(mat))
                                     o <- c(o, '', "p-values", out)
                                 }
                             }
                         }
                     }
+                }
+                o <- c(o, "", paste0("Inference based on ", n, " observation",
+                                     ifelse(n > 1, "s", ""), "."))
+                M <- if (is.null(g1)) n.missing else n.missing[lev[i]]
+                if (M > 0) {
+                    o <- c(o, paste0("(", M, " observation", ifelse(M > 1, "s ", " "),
+                                     "removed due to missing values)"))
                 }
             }
         } else {
@@ -401,8 +438,14 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                                       fit <- lm(d[, 2] ~ d[, 1])
                                       names(fit$coefficients)[2] <- xname
 
+                                      if (any(apply(d, 2, sd) == 0)) {
+                                          corr <- NA
+                                      } else {
+                                          corr <- cor(d[, 2], d[, 1])
+                                      }
+                                      
                                       c(slope = coef(fit)[2], intercept = coef(fit)[1],
-                                        correlation = cor(d[, 2], d[, 1]))
+                                        correlation = corr)
                                   }, R = 1500, xname = varnames$x)
 
                         ci.slope <- boot.ci(b, type = "perc", index = 1)
@@ -455,6 +498,15 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                     if ("cubic" %in% opts$trend) {
                         o <- c(o, "Cubic Trend: No inference included.", '')
                     }
+                }
+                
+                n <- length(X)
+                o <- c(o, "", paste0("Inference based on ", n, " observation",
+                                     ifelse(n > 1, "s", ""), "."))
+                M <- if (is.null(g1)) n.missing else n.missing[lev[i]]
+                if (M > 0) {
+                    o <- c(o, paste0("(", M, " observation", ifelse(M > 1, "s ", " "),
+                                     "removed due to missing values)"))
                 }
             }
         }
@@ -519,19 +571,27 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                         o <- c(o, "No inference output (not enough observations!)")
                     }
                 }
+                o <- c(o, "", paste0("Inference based on ", n, " observation",
+                                     ifelse(n > 1, "s", ""), "."))
+                M <- if (is.null(g1)) n.missing else n.missing[lev[i]]
+                if (M > 0) {
+                    o <- c(o, paste0("(", M, " observation", ifelse(M > 1, "s ", " "),
+                                     "removed due to missing values)"))
+                }
             }
         } else if (is.factor(y)) {
           # X and Y are factors
             for (i in 1:N) {
                 o <- if (i > 1) c(o, paste(rep('_', 80), collapse = ''), '') else c(o)
                 
-                o <- c(o, paste0("Distribution of ", varnames$x, " proportions by ",
+                o <- c(o, paste0("Distribution of ", varnames$x, " by ",
                                  varnames$y,
                                  ifelse(is.null(g1), '',
                                         paste0(" for ", varnames$g1, ' = ', lev[i]))), '')
 
                 X <- x.list[[i]]  # check these are in the correct order (:
                 Y <- y.list[[i]]
+                n <- length(X)
 
                 n1 <- length(levels(Y))
                 tab <- table(Y, X)
@@ -544,8 +604,9 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                     o <- c(o, "Not yet implemented :(")
                 } else {
                   # Normal inference
-                    inf.mat <- capture.output(matprint(signif(phat, 3)))
-                    o <- c(o, "Estimates", inf.mat, '(Rows sum to 1)')
+                    mat <- cbind(phat, Row.sums = rowSums(phat))
+                    inf.mat <- capture.output(matprint(signif(mat, 3)))
+                    o <- c(o, "Estimates", inf.mat)
                     
                     mat <- matrix(NA, nrow = 2 * length(levels(Y)),
                                   ncol = length(levels(X)),
@@ -603,6 +664,16 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                     } else {
                         o <- c(o, "No Inference included")
                     }
+                }
+
+                n <- length(X)
+                o <- c(o, "", paste0("Inference based on ", n, " observation",
+                                     ifelse(n > 1, "s", ""), "."))
+
+                M <- if (is.null(g1)) n.missing else n.missing[lev[i]]
+                if (M > 0) {
+                    o <- c(o, paste0("(", M, " observation", ifelse(M > 1, "s ", " "),
+                                     "removed due to missing values)"))
                 }
             }
         } else {

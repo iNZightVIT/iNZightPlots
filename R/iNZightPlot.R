@@ -657,11 +657,18 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
       # --- Y versus X by G1, for G2 = G2.LEVEL
         pushViewport(viewport(layout.pos.col = 2, layout.pos.row = 1))
 
-        title1 <- ifelse(is.null(y), '',
-                         paste0(varnames$y, ' versus '))
-        title2 <- varnames$x
+        if (is.factor(x)) {
+          # Need a different title for barplots:
+          # Distribution of X by Y
+            title1 <- paste0("Distribution of ", varnames$x)
+            title2 <- ifelse(is.null(y), '', paste0(" by ", varnames$y))
+        } else {
+            title1 <- ifelse(is.null(y), '',
+                             paste0(varnames$y, ' versus '))
+            title2 <- varnames$x
+        }
         title3 <- ifelse(is.null(g1), '',
-                         paste0(' by ', varnames$g1))
+                         paste0(' subset by ', varnames$g1))
         title4 <- ifelse(is.null(g2), '',
                          ifelse(is.null(g2.level), '',
                                 paste0(',\n for ', varnames$g2, ' = ', g2.level)))

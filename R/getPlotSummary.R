@@ -165,7 +165,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
 
                 sum.tab <- cbind(t(matrix(values)), signif(sd(X), 5),
                                  length(X), sum(M), deparse.level = 0)
-                colnames(sum.tab) <- c(names(sum), "Std.dev", "Sample.Size", "NA's")
+                colnames(sum.tab) <- c(names(sum), "Std.dev", "Sample.Size", "n.missing")
                 rownames(sum.tab) <- rep("", nrow(sum.tab))
                 
                 o <- if (i > 1) c(o, paste(rep('_', 80), collapse = ''), '') else c(o, '')
@@ -194,7 +194,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                 sd.col <- sapply(split(X, Y), sd)
                 size <- sapply(split(X, Y), length)
                 sum.tab <- cbind(sum.tab, Std.dev = signif(sd.col, 3),
-                                 Sample.Size = size, "NA's" = M)
+                                 Sample.Size = size, "n.missing" = M)
                 sum.tab[!is.finite(sum.tab)] <- ''
 
                 o <- if (i > 1) c(o, paste(rep('_', 80), collapse = ''), '') else c(o, '')
@@ -213,6 +213,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
             for (i in 1:length(x.list)) {
                 X <- x.list[[i]]
                 Y <- y.list[[i]]
+                M <- if (is.null(g1)) n.missing else n.missing[lev[i]]
 
                 if (!is.null(opts$trend)) {
                   # Need to add inference information for trend lines:
@@ -225,7 +226,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                         fit <- lm(Y ~ X)
                         o <- c(o, paste0(varnames$y, ' = ', signif(coef(fit)[2], 5), ' * ',
                                          varnames$x, ' + ', round(coef(fit)[1], 2)),
-                               paste0("Correlation = ", signif(cor(X, Y), 5)), '', '')
+                               paste0("Correlation = ", signif(cor(X, Y), 5)), '')
                     }
 
                     if ("quadratic" %in% opts$trend) {
@@ -234,7 +235,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                         B <- coef(fit)
                         o <- c(o, paste0(varnames$y, ' = ', signif(B[2], 5), ' * ',
                                          varnames$x, ' + ', signif(B[3], 5), ' * ',
-                                         varnames$y, '^2', ' + ', signif(B[1], 5)), '', '')
+                                         varnames$y, '^2', ' + ', signif(B[1], 5)), '')
                                
                     }
 
@@ -245,8 +246,17 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                         o <- c(o, paste0(varnames$y, ' = ', signif(B[2], 5), ' * ',
                                          varnames$x, ' + ', signif(B[3], 5), ' * ',
                                          varnames$x, '^2', ' + ', signif(B[4], 5), ' * ',
-                                         varnames$x, '^3', ' + ', signif(B[1], 5)), '', '')
+                                         varnames$x, '^3', ' + ', signif(B[1], 5)), '')
                     }
+
+                    o <- c(o, paste0("Sample size: ", length(X)))
+                    if (M > 0) {
+                        o <- c(o, paste0("(", M, " observation", ifelse(M > 1, "s ", " "),
+                                         "removed due to missing values)"), '')
+                    } else {
+                        o <- c(o, '')
+                    }
+                    
                 } else {
                   # Need to add inference information
 
@@ -261,7 +271,8 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
             for (i in 1:length(x.list)) {
                 X <- x.list[[i]]
                 n <- length(levels(X))
-              #  M <- if (is.null(g1)) n.missing else n.missing[lev[i]]
+                M <- if (is.null(g1)) n.missing else n.missing[lev[i]]
+                M[!is.finite(M)] <- ''
                 
                 o <- if (i > 1) c(o, paste(rep('_', 80), collapse = ''), '') else c(o, '')
                 
@@ -271,7 +282,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                 else
                     sum.tab <- t(verticalTable.1(X, pc = FALSE))
 
-                out <- capture.output(matprint(cbind(sum.tab)))#, N.Missing = M)))
+                out <- capture.output(matprint(cbind(sum.tab, n.missing = M)))
                 o <- c(o, paste0("Table of counts for ", varnames$x,
                                  ifelse(is.null(g1), ':',
                                         paste0(' for ', varnames$g1, ' = ', lev[i], ':'))),
@@ -295,10 +306,11 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                 X <- x.list[[i]]
                 Y <- y.list[[i]]
 
-              #  M <-
-              #      if (is.null(g1)) tapply(missing, y.o, sum)
-              #      else tapply(subset(missing, g1.o == lev[i]),
-              #                  subset(y.o, g1.o == lev[i]), sum)  
+                M <-
+                    if (is.null(g1)) tapply(missing, y.o, sum)
+                    else tapply(subset(missing, g1.o == lev[i]),
+                                subset(y.o, g1.o == lev[i]), sum)
+                M[!is.finite(M)] <- 0
 
                 o <- if (i > 1) c(o, paste(rep('_', 80), collapse = ''), '') else c(o, '')
 
@@ -308,7 +320,8 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                 else
                     sum.tab <- t(verticalTable.2(Y, X, pc = FALSE))
 
-                out <- capture.output(matprint(cbind(sum.tab)))#, N.Missing = M)))
+                out <- capture.output(matprint(cbind(sum.tab,
+                                                     n.missing = c(M, sum(as.numeric(M))))))
                 o <- c(o, paste0("Table of counts for ", varnames$x, " by ", varnames$y,
                                  ifelse(is.null(g1), ':',
                                         paste0(' for ', varnames$g1, ' = ', lev[i], ':'))),
