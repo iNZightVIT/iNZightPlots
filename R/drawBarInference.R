@@ -5,7 +5,7 @@ drawBarInference <- function(x, y = NULL, opts) {
     
   # Some error checking ... but only send the error message once.
     if (!is.null(opts$inference.par))
-        if (opts$inference.par != "proportion" & i == 1)
+        if (opts$inference.par != "proportion")
             warning('Invalid inference parameter: please remove inference.par, or set it equal to "proportion".')
 
   # Make a table

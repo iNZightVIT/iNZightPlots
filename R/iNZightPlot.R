@@ -3,7 +3,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
              g1.level = NULL, g2.level = NULL,
              varnames = list(), xlab = varnames$x, ylab = varnames$y,
              by = NULL, prop.size = NULL, 
-             ...) {
+             ...) { 
       # --------------------------------------------------------------------------- #
       # 1. Creates lists for each subplot, containing the necessary
       #    information for the relevant plot.
@@ -40,6 +40,9 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
         if (!is.null(prop.size) & is.null(varnames$prop.size))
             varnames$prop.size <- getName(deparse(substitute(prop.size)))
 
+      # Convert -Inf and Inf values to NA
+        x[is.infinite(x)] <- NA
+        if (!is.null(y)) y[is.infinite(y)] <- NA
 
       # This is a temporary fix for a "Vertical Dot Plot"
       # 
