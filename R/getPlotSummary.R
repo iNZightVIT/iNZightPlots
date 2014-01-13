@@ -27,6 +27,9 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
         varnames$g1 <- getName(deparse(substitute(g1)))
     if (!is.null(g2) & is.null(varnames$g2))
         varnames$g2 <- getName(deparse(substitute(g2)))
+
+    x[is.infinite(x)] <- NA
+    if (!is.null(y)) y[is.infinite(y)] <- NA
     
     # This is a temporary fix for a "Vertical Dot Plot"
     # 
@@ -41,7 +44,6 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
 
     # --------------------------------------------------------------------------- #
     #                                                       Remove missing values
-
 
     na <- is.na(x)
     if (!is.null(y))
