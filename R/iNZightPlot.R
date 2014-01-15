@@ -22,9 +22,11 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
       # the name of the variable
 
         getName <- function(name) {
-            if (grepl("\\$", name))
-                name <- strsplit(name, "\\$")[[1]][2]
-            name
+            name <- gsub("[)]", "", name)
+            fn <- strsplit(name, "[(]")[[1]]
+            paste(sapply(fn, function(x)            
+                         if (grepl("\\$", x)) strsplit(x, "\\$")[[1]][2] else x),
+                  collapse = ".")
         }
         
         if (is.null(varnames$x))

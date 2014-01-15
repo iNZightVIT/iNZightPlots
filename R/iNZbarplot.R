@@ -88,7 +88,7 @@ iNZbarplot <-
         if (showLines) {
            # grid.rect(gp = gpar(lwd = 0.1, lty = 3))
             if (i %% 2 == 0) {
-                grid.rect(gp = gpar(fill = "grey95", lwd = 0))
+              # grid.rect(gp = gpar(fill = "grey95", lwd = 0))
               # need to cover over the border
                 grid.lines(x = c(0, 1), y = 1)
                 grid.lines(x = c(0, 1), y = 0)
@@ -139,7 +139,15 @@ iNZbarplot <-
             
         } else {
           # Plotting a bar for each level of y, for each level of g1
-            xx <- 1 / (nrow(hgt) + 1) * (1:nrow(hgt))
+            
+          # Calculate the barwidths
+            wd <- table(y)
+            wd <- wd / sum(wd) * 0.9      # add spacing between bar groups
+
+            x.right <- cumsum(wd) + 0.05  # shift bars to center of panel
+            x.left <- x.right - wd
+            xx <- x.right - wd / 2        # bar mids
+            
             yy <- hgt[, i]
 
           # sort out the colours
@@ -151,14 +159,19 @@ iNZbarplot <-
                 col <- cols[1:nrow(hgt)]
             }
 
-            grid.rect(x = xx, y = 0,
+            grid.rect(x = x.left, y = 0,
                       height = unit(yy, "native"),
-                      width = 1 / (nrow(hgt) + 1),
-                      just = "bottom",
+                      width = wd,
+                      just = c("left", "bottom"),
                       gp =
-                      gpar(fill = col, col = opts$bar.col,
+                      gpar(fill = col, col = "white", # opts$bar.col,
                            lwd = opts$bar.lwd))
+
         }
+
+      # These two lines just to make it easier to see bar groups
+        grid.lines(c(0, 1), y = 0, gp = gpar(col = "white"))
+        grid.lines(c(0.05, 0.95), y = 0)
 
   # --------------------------------------------------------------------------- #
   #                                       Add inference information to the bars
