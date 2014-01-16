@@ -118,6 +118,8 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                     g1 <- subset(g1, g2 == g2.level)
                 if (!is.null(prop.size))
                     prop.size <- subset(prop.size, g2 == g2.level)
+            } else {
+                g2.level <- NULL
             }
         }
         
