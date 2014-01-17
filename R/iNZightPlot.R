@@ -568,10 +568,10 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
             }
         }
         
-        id <- N  # stop once all plots drawn
+        id <- 1  # stop once all plots drawn
         for (i in nr:1) {  # start at bottom
             for (j in 1:nc) {
-                if (id < 1) break
+                if (id > N) break
                 
                 pushViewport(viewport(layout.pos.row = i,
                                       layout.pos.col = j * 2 - 1))
@@ -591,9 +591,9 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                     axis[3] <- 1
                 if (i == 1 & j %% 2 == 0)
                     axis[3] <- 2
-                if (j == nc)
+                if (j == nc | id == N)
                     axis[4] <- 1
-                if (j == nc & (nr - i) %% 2 == 1)
+                if ((j == nc | id == N) & (nr - i) %% 2 == 1)
                     axis[4] <- 2
 
               # Here (and only here) is the logic to decide which type of plot:
@@ -634,7 +634,10 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
 
                         axis <- rep(0, 2)
                         if (i == nr) axis[1] <- 2
-                        if (j == 1) axis[2] <- 2 else if (j == nc) axis[2] <- 1
+                        if (j == 1)
+                            axis[2] <- 2
+                        else if (j == nc | id == N)
+                            axis[2] <- 1
                         
                         iNZbarplot(x.list[[id]], y2,
                                    axis = axis,
@@ -652,7 +655,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                 
                 upViewport()
 
-                id <- id - 1
+                id <- id + 1
             }
         }
     

@@ -57,6 +57,7 @@ iNZbarplot <-
 
     pushViewport(viewport(yscale = ylim * 1.05))
     ypos <- pretty(ylim)
+    ypos <- ypos[ypos != 0]
     ypos <- ypos[ypos < max(ylim) * 1.05]
     if (axis[2] == 2) {
         grid.yaxis(at = ypos, label = paste0(100 * ypos, '%'),
@@ -178,11 +179,14 @@ iNZbarplot <-
   # --------------------------------------------------------------------------- #
   #                                       Add inference information to the bars
 
+      # We only want guide lines for comparison intervals
         guides <-
             if (is.null(opts$inference.type))
                 "none"
-            else
+            else if ("comp" %in% opts$inference.type)
                 ifelse(is.null(y), "all", "group")
+            else
+                "none"  # nothing for confidence intervals
         
         if (!is.null(opts$inference.type)) {
             drawInferenceLines(inference.lines, i, xx, opts,
@@ -190,12 +194,7 @@ iNZbarplot <-
 
           # If y is null, then we add all guides
             if (guides == "all")
-                g.loc <-
-                    if (is.null(inference.lines$conf)) {
-                        c(inference.lines$comp$low, inference.lines$comp$upp)
-                    } else {
-                        c(inference.lines$conf$low, inference.lines$conf$upp)
-                    }
+                g.loc <- c(inference.lines$comp$low, inference.lines$comp$upp)
         }
         
         upViewport()        
