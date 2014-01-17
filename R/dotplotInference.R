@@ -83,7 +83,7 @@ drawMeanInference <- function(x, opts, guides = NULL) {
                   gp =
                   gpar(fill = comp.col, lwd = 0))
         
-        if (!is.null(guides) & (!"conf" %in% opts$inference.type))
+        if (!is.null(guides) & (!"conf" %in% opts$inference.type | opts$bs.inference == TRUE))
                 guides <- c(guides, inf.x)
     }
   # add the mean line
