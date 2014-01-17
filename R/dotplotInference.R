@@ -52,8 +52,8 @@ drawMeanInference <- function(x, opts, guides = NULL) {
                       gp =
                       gpar(fill = "blue", lwd = 0))
 
-            if (!is.null(guides))
-                guides <- c(guides, inf.x)
+           # if (!is.null(guides))
+           #     guides <- NULL  #c(guides, inf.x)
         }
 
         opts$inference.type <- c("comp", "conf")
@@ -83,8 +83,8 @@ drawMeanInference <- function(x, opts, guides = NULL) {
                   gp =
                   gpar(fill = comp.col, lwd = 0))
         
-        if (!is.null(guides) & (!"conf" %in% opts$inference.type | opts$bs.inference == TRUE))
-                guides <- c(guides, inf.x)
+        if (!is.null(guides))# & (!"conf" %in% opts$inference.type | opts$bs.inference == TRUE))
+            guides <- c(guides, inf.x)
     }
   # add the mean line
     grid.rect(x = unit(inf.mean, "native"),
