@@ -69,7 +69,8 @@ drawInferenceLines <- function(x, i, xx, opts) {
             grid.lines(xx[j], unit(y, "native"),
                        gp =
                        gpar(col = opts$inf.col.conf,
-                            lwd = opts$inf.lwd.conf / sqrt(x$n)))
+                            lwd = opts$inf.lwd.conf / sqrt(x$n),
+                            lineend = "butt"))
         }
     }
 
@@ -84,7 +85,8 @@ drawInferenceLines <- function(x, i, xx, opts) {
             grid.lines(xx[j], unit(y, "native"),
                        gp =
                        gpar(col = opts$inf.col.comp,
-                            lwd = opts$inf.lwd.comp / sqrt(x$n)))
+                            lwd = opts$inf.lwd.comp / sqrt(x$n),
+                            lineend = "butt"))
         }
     }
 }

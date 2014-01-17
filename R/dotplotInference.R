@@ -1,9 +1,8 @@
-drawMedianInference <- function(x, opts) {
+drawMedianInference <- function(x, opts, guides = NULL) {
   # Adds median inference to the plot
 
     if ("conf" %in% opts$inference.type) {
-        warning("not working...")
-
+      # Not yet implemented ...
     }
 
     if ("comp" %in% opts$inference.type) {
@@ -25,10 +24,15 @@ drawMedianInference <- function(x, opts) {
                   just = "left",
                   gp =
                   gpar(fill = comp.col, lwd = 0))
+        
+        if (!is.null(guides))
+            guides <- c(guides, inf.x)
     }
+
+    guides
 }
 
-drawMeanInference <- function(x, opts) {
+drawMeanInference <- function(x, opts, guides = NULL) {
   # Adds mean inference to the plot
 
     mean.col <- "black"
@@ -47,6 +51,9 @@ drawMeanInference <- function(x, opts) {
                       just = "left",
                       gp =
                       gpar(fill = "blue", lwd = 0))
+
+            if (!is.null(guides))
+                guides <- c(guides, inf.x)
         }
 
         opts$inference.type <- c("comp", "conf")
@@ -75,6 +82,9 @@ drawMeanInference <- function(x, opts) {
                   just = "left",
                   gp =
                   gpar(fill = comp.col, lwd = 0))
+        
+        if (!is.null(guides) & (!"conf" %in% opts$inference.type))
+                guides <- c(guides, inf.x)
     }
   # add the mean line
     grid.rect(x = unit(inf.mean, "native"),
@@ -83,5 +93,7 @@ drawMeanInference <- function(x, opts) {
               height = unit.pmax(unit(0.1, "npc"), unit(0.3, "lines")) + unit(2, "points"),
               gp =
               gpar(lwd = 0, fill = mean.col))
+
+    guides
 }
 

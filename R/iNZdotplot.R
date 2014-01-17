@@ -98,6 +98,9 @@ iNZdotplot <-
       # ------------------------------------------------------------------ #
       # Inside layout4
 
+      # Adding guidelines to comparison and confidence intervals
+        guides <- if (is.null(opts$inference.type)) NULL else numeric(0)
+
         for (k in 1:n.y) {
             pushViewport(viewport(layout.pos.row = k))
  
@@ -109,17 +112,23 @@ iNZdotplot <-
             }
             
             dat <- makePoints(x.list[[k]], cols = col.list[[k]])
-            drawDotplot(dat$x, dat$y, xlim = xlim, ylim = ylim,
-                        col = dat$col, opts = opts)
+            guides <- drawDotplot(dat$x, dat$y, xlim = xlim, ylim = ylim,
+                                  col = dat$col, opts = opts, guides = guides)
             upViewport()  # back to layout4
         }
 
       # ------------------------------------------------------------------ #
         
         upViewport()  # out of layout4
+
+      # Draw inference guide lines
+        grid.polyline(x = unit(rep(guides, each = 2), "native"),
+                      y = rep(c(0, 1), length(guides)),
+                      id = rep(1:length(guides), each = 2),
+                      gp = gpar(lty = 3, col = "grey50", lwd = 0.5))
+        
     }
 
     upViewport()
     upViewport()
-    
 }

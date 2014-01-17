@@ -1,5 +1,5 @@
 drawDotplot <-
-function(x, y, xlim, ylim, col, opts) {
+function(x, y, xlim, ylim, col, opts, guides = NULL) {
   # Draws a dotplot in a selected space. Also draws the boxplot if it
   # is requested.
 
@@ -46,10 +46,10 @@ function(x, y, xlim, ylim, col, opts) {
                               xscale = xlim))
 
         if (mean.inf) {
-            drawMeanInference(x, opts)
+            guides <- drawMeanInference(x, opts, guides)
         } else {
             if (makebox) drawBoxPlot(x, opts)
-            if (med.inf) drawMedianInference(x, opts)
+            if (med.inf) guides <- drawMedianInference(x, opts, guides)
         }
 
         upViewport()
@@ -68,4 +68,6 @@ function(x, y, xlim, ylim, col, opts) {
     upViewport()  # back to layout5
 
     upViewport()  # out of layout5
+
+    guides
 }
