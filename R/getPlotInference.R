@@ -414,67 +414,90 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
             }
         } else {
           # X and Y are numeric
-            for (i in 1:N) {
-                if (!is.null(g1)) {
-                    o <- if (i > 1) c(o, paste(rep('_', 80), collapse = ''), '') else c(o)
-                    o <- c(o, paste0("Inference for ", varnames$g1, ' = ', lev[i]), '')
-                }
-
-                X <- x.list[[i]]
-                Y <- y.list[[i]]
-
-                if (is.null(opts$trend)) {
-                  # Nothing to get inference of ...
-                    o <- c(o, paste("Add trend lines to the scatter plot in order",
-                                    "to get an inference"),
-                           paste("(Use the Add To Plot feature at the bottom",
-                                 "of the graphics window)"))
-                } else if (opts$bs.inference) {
-                  # Bootstrap inference
-                    if ("linear" %in% opts$trend) {
-                        fit <- lm(Y ~ X)
-                        names(fit$coefficients)[2] <- varnames$x
-                        o <- c(o, "Linear Trend", '')
-
-                        b <- boot(data.frame(X, Y),
-                                  function(data, id, xname) {
-                                      d <- data[id, ]
-                                      fit <- lm(d[, 2] ~ d[, 1])
-                                      names(fit$coefficients)[2] <- xname
-
-                                      if (any(apply(d, 2, sd) == 0)) {
-                                          corr <- NA
-                                      } else {
-                                          corr <- cor(d[, 2], d[, 1])
-                                      }
-                                      
-                                      c(slope = coef(fit)[2], intercept = coef(fit)[1],
-                                        correlation = corr)
-                                  }, R = 1500, xname = varnames$x)
-
-                        ci.slope <- boot.ci(b, type = "perc", index = 1)
-                        ci.int   <- boot.ci(b, type = "perc", index = 2)
-                        ci.corr  <- boot.ci(b, type = "perc", index = 3)
-
-                        ci.l.slope <- signif(ci.slope$percent[1, 4], 5)
-                        ci.u.slope <- signif(ci.slope$percent[1, 5], 5)
-                        ci.l.int   <- signif(ci.int$percent[1, 4], 5)
-                        ci.u.int   <- signif(ci.int$percent[1, 5], 5)
-                        ci.l.corr  <- signif(ci.corr$percent[1, 4], 5)
-                        ci.u.corr  <- signif(ci.corr$percent[1, 5], 5)
-
-                        inf.df <-
-                            data.frame(ci.lower = c(ci.l.slope, ci.l.int, ci.l.corr),
-                                       estimate = c(signif(coef(fit)[2], 5),
-                                                    signif(coef(fit)[1], 5),
-                                                    signif(cor(Y, X), 5)),
-                                       ci.upper = c(ci.u.slope, ci.u.int, ci.u.corr),
-                                       row.names = c("slope", "intercept", "correlation"))
-                        inf.mat <- capture.output(matprint(as.matrix(inf.df)))
-
-                        o <- c(o, "Estimates with Percentile Bootstrap Confidence Intervals",
-                               '', eval(inf.mat), '')
-
+            
+            if (is.null(opts$trend)) {
+              # Nothing to get inference of ...
+                o <- c(o, paste("Add trend lines to the scatter plot in order",
+                                "to get an inference"),
+                       paste("(Use the Add To Plot feature at the bottom",
+                             "of the graphics window)"))
+            } else {
+                for (i in 1:N) {
+                    if (!is.null(g1)) {
+                        o <- if (i > 1) c(o, paste(rep('_', 80), collapse = ''), '') else c(o)
+                        o <- c(o, paste0("Inference for ", varnames$g1, ' = ', lev[i]), '')
+                    }
+                    
+                    X <- x.list[[i]]
+                    Y <- y.list[[i]]
+                    
+                    if (opts$bs.inference) {
+                      # Bootstrap inference
+                        if ("linear" %in% opts$trend) {
+                            fit <- lm(Y ~ X)
+                            names(fit$coefficients)[2] <- varnames$x
+                            o <- c(o, "Linear Trend", '')
+                            
+                            b <- boot(data.frame(X, Y),
+                                      function(data, id, xname) {
+                                          d <- data[id, ]
+                                          fit <- lm(d[, 2] ~ d[, 1])
+                                          names(fit$coefficients)[2] <- xname
+                                          
+                                          if (any(apply(d, 2, sd) == 0)) {
+                                              corr <- NA
+                                          } else {
+                                              corr <- cor(d[, 2], d[, 1])
+                                          }
+                                          
+                                          c(slope = coef(fit)[2], intercept = coef(fit)[1],
+                                            correlation = corr)
+                                      }, R = 1500, xname = varnames$x)
+                            
+                            ci.slope <- boot.ci(b, type = "perc", index = 1)
+                            ci.int   <- boot.ci(b, type = "perc", index = 2)
+                            ci.corr  <- boot.ci(b, type = "perc", index = 3)
+                            
+                            ci.l.slope <- signif(ci.slope$percent[1, 4], 5)
+                            ci.u.slope <- signif(ci.slope$percent[1, 5], 5)
+                            ci.l.int   <- signif(ci.int$percent[1, 4], 5)
+                            ci.u.int   <- signif(ci.int$percent[1, 5], 5)
+                            ci.l.corr  <- signif(ci.corr$percent[1, 4], 5)
+                            ci.u.corr  <- signif(ci.corr$percent[1, 5], 5)
+                            
+                            inf.df <-
+                                data.frame(ci.lower = c(ci.l.slope, ci.l.int, ci.l.corr),
+                                           estimate = c(signif(coef(fit)[2], 5),
+                                               signif(coef(fit)[1], 5),
+                                               signif(cor(Y, X), 5)),
+                                           ci.upper = c(ci.u.slope, ci.u.int, ci.u.corr),
+                                           row.names = c("slope", "intercept", "correlation"))
+                            inf.mat <- capture.output(matprint(as.matrix(inf.df)))
+                            
+                            o <- c(o, "Estimates with Percentile Bootstrap Confidence Intervals",
+                                   '', eval(inf.mat), '')
+                            
+                            if ("quadratic" %in% opts$trend) {
+                                o <- c(o, "Quadratic Trend: No inference included.", '')
+                            }
+                            if ("cubic" %in% opts$trend) {
+                                o <- c(o, "Cubic Trend: No inference included.", '')
+                            }
+                        }
+                    } else {
+                      # Normal inference
+                        if ("linear" %in% opts$trend) {
+                            fit <- lm(Y ~ X)
+                          # Need to set the correct names:
+                            names(fit$coefficients)[2] <- varnames$x
+                            B <- coef(summary(fit))
+                            o <- c(o, "Linear Trend", '',
+                                   paste0("Slope = ", signif(B[2, 1], 5),
+                                          "   p-value = ", signif(B[2, 4], 5)),
+                                   paste0("Intercept = ", signif(B[1, 1], 5)), '',
+                                   "Confidence Intervals:", capture.output(ciReg(fit)), '')
+                        }
+                        
                         if ("quadratic" %in% opts$trend) {
                             o <- c(o, "Quadratic Trend: No inference included.", '')
                         }
@@ -482,35 +505,15 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                             o <- c(o, "Cubic Trend: No inference included.", '')
                         }
                     }
-                } else {
-                  # Normal inference
-                    if ("linear" %in% opts$trend) {
-                        fit <- lm(Y ~ X)
-                      # Need to set the correct names:
-                        names(fit$coefficients)[2] <- varnames$x
-                        B <- coef(summary(fit))
-                        o <- c(o, "Linear Trend", '',
-                               paste0("Slope = ", signif(B[2, 1], 5),
-                                      "   p-value = ", signif(B[2, 4], 5)),
-                               paste0("Intercept = ", signif(B[1, 1], 5)), '',
-                               "Confidence Intervals:", capture.output(ciReg(fit)), '')
-                    }
-
-                    if ("quadratic" %in% opts$trend) {
-                        o <- c(o, "Quadratic Trend: No inference included.", '')
-                    }
-                    if ("cubic" %in% opts$trend) {
-                        o <- c(o, "Cubic Trend: No inference included.", '')
-                    }
-                }
                 
-                n <- length(X)
-                o <- c(o, "", paste0("Inference based on ", n, " observation",
-                                     ifelse(n > 1, "s", ""), "."))
-                M <- if (is.null(g1)) n.missing else n.missing[lev[i]]
-                if (M > 0) {
-                    o <- c(o, paste0("(", M, " observation", ifelse(M > 1, "s ", " "),
-                                     "removed due to missing values)"))
+                    n <- length(X)
+                    o <- c(o, "", paste0("Inference based on ", n, " observation",
+                                         ifelse(n > 1, "s", ""), "."))
+                    M <- if (is.null(g1)) n.missing else n.missing[lev[i]]
+                    if (M > 0) {
+                        o <- c(o, paste0("(", M, " observation", ifelse(M > 1, "s ", " "),
+                                         "removed due to missing values)"))
+                    }
                 }
             }
         }

@@ -178,7 +178,12 @@ iNZbarplot <-
   # --------------------------------------------------------------------------- #
   #                                       Add inference information to the bars
 
-        guides <- ifelse(is.null(y), "all", "group")
+        guides <-
+            if (is.null(opts$inference.type))
+                "none"
+            else
+                ifelse(is.null(y), "all", "group")
+        
         if (!is.null(opts$inference.type)) {
             drawInferenceLines(inference.lines, i, xx, opts,
                                guides = guides)

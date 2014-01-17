@@ -212,12 +212,16 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
             }
         } else {
           # X and Y are numeric
-            for (i in 1:length(x.list)) {
-                X <- x.list[[i]]
-                Y <- y.list[[i]]
-                M <- if (is.null(g1)) n.missing else n.missing[lev[i]]
 
-                if (!is.null(opts$trend)) {
+            if (is.null(opts$trend)) {
+                o <- c(o, "Add trend lines to the scatter plot in order to get a summary.",
+                       "(Use the Add To Plot feature at the bottom of the graphics window)")
+            } else {
+                for (i in 1:length(x.list)) {
+                    X <- x.list[[i]]
+                    Y <- y.list[[i]]
+                    M <- if (is.null(g1)) n.missing else n.missing[lev[i]]
+                    
                   # Need to add inference information for trend lines:
                     o <- if (i > 1) c(o, paste(rep('_', 80), collapse = ''), '') else c(o, '')
                     if (!is.null(g1))
@@ -230,7 +234,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                                          varnames$x, ' + ', round(coef(fit)[1], 2)),
                                paste0("Correlation = ", signif(cor(X, Y), 5)), '')
                     }
-
+                    
                     if ("quadratic" %in% opts$trend) {
                         o <- c(o, "Quadratic Trend", '')
                         fit <- lm(Y ~ X + I(X^2))
@@ -238,9 +242,8 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                         o <- c(o, paste0(varnames$y, ' = ', signif(B[2], 5), ' * ',
                                          varnames$x, ' + ', signif(B[3], 5), ' * ',
                                          varnames$y, '^2', ' + ', signif(B[1], 5)), '')
-                               
                     }
-
+                    
                     if ("cubic" %in% opts$trend) {
                         o <- c(o, "Cubic Trend", '')
                         fit <- lm(Y ~ X + I(X^2) + I(X^3))
@@ -250,7 +253,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                                          varnames$x, '^2', ' + ', signif(B[4], 5), ' * ',
                                          varnames$x, '^3', ' + ', signif(B[1], 5)), '')
                     }
-
+                    
                     o <- c(o, paste0("Sample size: ", length(X)))
                     if (M > 0) {
                         o <- c(o, paste0("(", M, " observation", ifelse(M > 1, "s ", " "),
@@ -258,12 +261,6 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                     } else {
                         o <- c(o, '')
                     }
-                    
-                } else {
-                  # Need to add inference information
-
-                    o <- c(o, "Add trend lines to the scatter plot in order to get a summary.",
-                           "(Use the Add To Plot feature at the bottom of the graphics window)")
                 }
             }
         }
