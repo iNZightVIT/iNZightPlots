@@ -178,32 +178,36 @@ iNZbarplot <-
   # --------------------------------------------------------------------------- #
   #                                       Add inference information to the bars
 
+        guides <- ifelse(is.null(y), "all", "group")
         if (!is.null(opts$inference.type)) {
-            guides <-
-                if (is.null(inference.lines$conf)) {
-                    c(inference.lines$comp$low, inference.lines$comp$upp)
-                } else {
-                    c(inference.lines$conf$low, inference.lines$conf$upp)
-                }
-            
-            drawInferenceLines(inference.lines, i, xx, opts)
-        } else {
-            guides <- NULL
+            drawInferenceLines(inference.lines, i, xx, opts,
+                               guides = guides)
+
+          # If y is null, then we add all guides
+            if (guides == "all")
+                g.loc <-
+                    if (is.null(inference.lines$conf)) {
+                        c(inference.lines$comp$low, inference.lines$comp$upp)
+                    } else {
+                        c(inference.lines$conf$low, inference.lines$conf$upp)
+                    }
         }
-          
+        
         upViewport()        
     }
 
-  # Draw inference guide lines
-    pushViewport(viewport(yscale = ylim * 1.05))
-    guides <- guides[!is.na(guides)]
-
-    grid.polyline(x = rep(c(0, 1), length(guides)),
-                  y = unit(rep(guides, each = 2), "native"),
-                  id = rep(1:length(guides), each = 2),
-                  gp = gpar(lty = 3, col = "grey50", lwd = 0.5))
-                      
-    upViewport()
+    if (guides == "all") {
+      # Draw inference guide lines
+        pushViewport(viewport(yscale = ylim * 1.05))
+        guides <- g.loc[!is.na(g.loc)]
+        
+        grid.polyline(x = rep(c(0, 1), length(guides)),
+                      y = unit(rep(guides, each = 2), "native"),
+                      id = rep(1:length(guides), each = 2),
+                      gp = gpar(lty = 3, col = "grey50", lwd = 0.5))
+        
+        upViewport()
+    }
     
     upViewport()  # back to layout4
     upViewport()  # back to sub plot/layout3
