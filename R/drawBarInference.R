@@ -71,12 +71,6 @@ drawInferenceLines <- function(x, i, xx, opts, guides) {
                        gpar(col = opts$inf.col.conf,
                             lwd = opts$inf.lwd.conf / sqrt(x$n),
                             lineend = "butt"))
-
-          #  if (guides == 'group')
-          #      grid.polyline(rep(c(0.05, 0.95), 2),
-          #                    unit(rep(y, each = 2), "native"),
-          #                    id = rep(1:2, each = 2),
-          #                    gp = gpar(lty = 3, col = c("grey50"), lwd = 1))
         }
     }
 

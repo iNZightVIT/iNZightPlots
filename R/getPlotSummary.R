@@ -287,14 +287,14 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                                         paste0(' for ', varnames$g1, ' = ', lev[i], ':'))),
                        '', out, '')
 
-              # Frequency table
+              # Percentage table
                 if (n > 10)
                     sum.tab <- verticalTable.1(X, pc = TRUE)
                 else
                     sum.tab <- t(verticalTable.1(X, pc = TRUE))
 
                 out <- capture.output(matprint(sum.tab))
-                o <- c(o, paste0("Frequency table for ", varnames$x,
+                o <- c(o, paste0("Table of Percentages for ", varnames$x,
                                 ifelse(is.null(g1), ':',
                                        paste0(' for ', varnames$g1, ' = ', lev[i], ':'))),
                        '', out, '')
@@ -326,14 +326,14 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                                         paste0(' for ', varnames$g1, ' = ', lev[i], ':'))),
                        '', out, '')
 
-              # Frequency table
+              # Percentage table
                 if (length(levels(X)) < 10 & length(levels(Y)) < 10)
                     sum.tab <- verticalTable.2(Y, X, pc = TRUE)
                 else
                     sum.tab <- t(verticalTable.2(Y, X, pc = TRUE))
 
                 out <- capture.output(matprint(sum.tab))
-                o <- c(o, paste0("Frequency table for ", varnames$x, " by ", varnames$y,
+                o <- c(o, paste0("Table of Percentages for ", varnames$x, " by ", varnames$y,
                                  ifelse(is.null(g1), ':',
                                         paste0(' for ', varnames$g1, ' = ', lev[i], ':'))),
                        '', out, '')

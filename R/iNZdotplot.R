@@ -122,7 +122,7 @@ iNZdotplot <-
         upViewport()  # out of layout4
 
       # Draw inference guide lines
-        if (!is.null(guides))
+        if (length(guides) > 0)
             grid.polyline(x = unit(rep(guides, each = 2), "native"),
                           y = rep(c(0, 1), length(guides)),
                           id = rep(1:length(guides), each = 2),

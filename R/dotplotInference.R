@@ -17,14 +17,12 @@ drawMedianInference <- function(x, opts, guides = NULL) {
             comp.col <- "blue"
         }
 
-        grid.rect(x = unit(inf.x[1], "native"),
-                  y = unit(0.5, "npc"),
-                  width = unit(inf.x[2] - inf.x[1], "native"),
-                  height = unit.pmax(unit(0.1, "npc"), unit(0.3, "lines")),
-                  just = "left",
-                  gp =
-                  gpar(fill = comp.col, lwd = 0))
-        
+        grid.lines(x = unit(inf.x, "native",), y = 0.5,
+                   gp =
+                   gpar(col = comp.col,
+                        lwd = opts$inf.lwd.comp,
+                        lineend = "butt"))
+
         if (!is.null(guides))
             guides <- c(guides, inf.x)
     }
@@ -34,7 +32,6 @@ drawMedianInference <- function(x, opts, guides = NULL) {
 
 drawMeanInference <- function(x, opts, guides = NULL) {
   # Adds mean inference to the plot
-
     mean.col <- "black"
 
     if ("conf" %in% opts$inference.type) {
@@ -43,17 +40,13 @@ drawMeanInference <- function(x, opts, guides = NULL) {
             inf.wd <- qt(0.975, df = length(x) - 1,) * sd(x) / sqrt(length(x))
             inf.mean <- mean(x)
             inf.x <- inf.mean + c(-1, 1) * inf.wd
-          # Draw the inference "bar"
-            grid.rect(x = unit(inf.x[1], "native"),
-                      y = unit(0.5, "npc"),
-                      width = unit(inf.x[2] - inf.x[1], "native"),
-                      height = unit.pmax(unit(0.03, "npc"), unit(0.1, "lines")),
-                      just = "left",
-                      gp =
-                      gpar(fill = "blue", lwd = 0))
 
-           # if (!is.null(guides))
-           #     guides <- NULL  #c(guides, inf.x)
+            grid.lines(x = unit(inf.x, "native"),
+                       y = 0.5,
+                       gp =
+                       gpar(col = "red",
+                            lwd = opts$inf.lwd.conf,
+                            lineend = "butt"))
         }
 
         opts$inference.type <- c("comp", "conf")
@@ -70,30 +63,21 @@ drawMeanInference <- function(x, opts, guides = NULL) {
             inf.wd <- (1 / sqrt(2)) * (sd(x) / sqrt(length(x)))
             inf.x <- mean(x) + c(-1, 1) * inf.wd
             inf.mean <- mean(x)
-            comp.col <- "red"
+            comp.col <- "blue"
             mean.col <- "black"
         }
 
-      # Draw the inference "bar"
-        grid.rect(x = unit(inf.x[1], "native"),
-                  y = unit(0.5, "npc"),
-                  width = unit(inf.x[2] - inf.x[1], "native"),
-                  height = unit.pmax(unit(0.1, "npc"), unit(0.3, "lines")),
-                  just = "left",
-                  gp =
-                  gpar(fill = comp.col, lwd = 0))
+        grid.lines(x = unit(inf.x, "native"),
+                   y = 0.5,
+                   gp =
+                   gpar(col = comp.col,
+                        lwd = opts$inf.lwd.comp,
+                        lineend = "butt"))
         
-        if (!is.null(guides))# & (!"conf" %in% opts$inference.type | opts$bs.inference == TRUE))
+        if (!is.null(guides))
             guides <- c(guides, inf.x)
     }
-  # add the mean line
-    grid.rect(x = unit(inf.mean, "native"),
-              y = unit(0.5, "npc"),
-              width = unit(1, "points"),
-              height = unit.pmax(unit(0.1, "npc"), unit(0.3, "lines")) + unit(2, "points"),
-              gp =
-              gpar(lwd = 0, fill = mean.col))
-
+    
     guides
 }
 
