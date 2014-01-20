@@ -148,10 +148,12 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
       # using hcl(), with varying h(ue), and holding
       # c(olour) and l(ightness) constant
 
-      # For barplots, need to code y as by for colouring:
+      # For barplots, need to code y as by for colouring & legend:
         if (barplot) {
-            by <- if (!is.null(y)) y else by
-            varnames$by <- if (is.null(by)) varnames$y else varnames$by
+            if (!is.null(y)) {
+                by <- y
+                varnames$by <- varnames$y
+            }
         }
       
         if (!is.null(by)) {
@@ -178,6 +180,11 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
             else
                 cols <- col.pt
 
+          # decide on a scaling factor for the legend
+            cex.mult <- ifelse(is.null(g1), 1,
+                               ifelse(is.null(g1.level),
+                                      ifelse(length(levels(g1)) >= 6, 0.7, 1), 1))
+
           # design the legend
             legend <- list(labs      = levels(by),
                            cols      = if (barplot) rep(opts$bar.col, length = n.by)
@@ -186,6 +193,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                            cex       = cex.text,
                            cex.pt    = cex,
                            cex.title = cex.lab,
+                           cex.mult  = cex.mult,
                            lwd       = ifelse(barplot, opts$bar.lwd, opts$lwd.pt),
                            title     = varnames$by,
                            fill      = cols)
