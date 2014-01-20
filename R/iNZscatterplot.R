@@ -70,7 +70,8 @@ function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
         grid.points(x, y, pch = opts$pch,
                     gp =
                     gpar(cex = cex, col = col,
-                         lwd = opts$lwd.pt))
+                         lwd = opts$lwd.pt,
+                         alpha = opts$alpha))
 
      # Connect by dots if they want it ...
         if (opts$join)
