@@ -75,11 +75,12 @@ function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
 
      # Connect by dots if they want it ...
         if (opts$join)
-            grid.lines(x, y, default.units = "native",
-                       gp =
-                       gpar(lwd = opts$lwd, lty = opts$lty,
-                            col = opts$col.line))
-
+            grid.polyline(x, y, default.units = "native",
+                          id = as.numeric(as.factor(col)),
+                          gp =
+                          gpar(lwd = opts$lwd, lty = opts$lty,
+                               col = opts$col.line))
+        
   # --------------------------------------------------------------------------- #
   #                                          Add any addional plotting features
 
