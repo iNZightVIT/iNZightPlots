@@ -608,15 +608,26 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                 if (is.numeric(x)) {
                   # X is a continuous variable
                     if (is.numeric(y)) {
-                        iNZscatterplot(x.list[[id]], y.list[[id]],
-                                       axis = axis,
-                                       lab = g1.level[id],
-                                       layout = layout3,
-                                       xlim = xlim, ylim = ylim,
-                                       col = col.list[[id]],
-                                       prop.size = if (is.null(prop.size)) NULL
-                                                   else prop.size.list[[id]],
-                                       opts = opts)
+                        if (length(x.list[[i]]) < 1000)
+                            iNZscatterplot(x.list[[id]], y.list[[id]],
+                                           axis = axis,
+                                           lab = g1.level[id],
+                                           layout = layout3,
+                                           xlim = xlim, ylim = ylim,
+                                           col = col.list[[id]],
+                                           prop.size = if (is.null(prop.size)) NULL
+                                                       else prop.size.list[[id]],
+                                           opts = opts)
+                        else 
+                            iNZgridplot(x.list[[id]], y.list[[id]],
+                                        axis = axis,
+                                        lab = g1.level[id],
+                                        layout = layout3,
+                                        xlim = xlim, ylim = ylim,
+                                        col = col.list[[id]],
+                                        prop.size = if (is.null(prop.size)) NULL
+                                                    else prop.size.list[[id]],
+                                        opts = opts)
                     } else {
                         y2 <- if (is.null(y)) NULL else y.list[[id]]
 

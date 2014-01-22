@@ -65,40 +65,34 @@ iNZgridplot <-
         yy <- cut(y, Npt)
         scatter.grid <- as.matrix(table(yy, xx))[Npt:1, ]
 
-        shade <- heat.colors(n = max(scatter.grid) + 1)[c(scatter.grid) + 1]
+       # hcols <- rev(heat.colors(n = max(scatter.grid) + 1))
+       # hcols <- rainbow(n = max(scatter.grid) + 1)[c(scatter.grid) + 1]
+        hcols <- hcl(0, 0, seq(100, 0, length = max(scatter.grid) + 1))
+        shade <- hcols[c(scatter.grid) + 1]
 
         xv = (rep(1:Npt, each = Npt) - 0.5) / Npt
         yv = (rep(Npt:1, Npt) - 0.5) / Npt
-     #   zv = 
 
         grid.xaxis()
         grid.yaxis()
 
-      #  grid.points(unit(xv, "npc"), unit(yv, "npc"),
-      #              size = unit(1 / Npt, "npc"), pch = 15,
-      #              gp = gpar(col = shade))
-        grid.rect(gp = gpar(fill = levels(as.factor(shade))[1]))
-        invisible(lapply((1:length(xv))[c(scatter.grid) != 0], function(i) {
-            grid.rect(unit(xv[i], "npc"), unit(yv[i], "npc"),
-                      width = unit(1 / Npt, "npc"), height = unit(1 / Npt, "npc"),
-                      gp = gpar(fill = shade[i], lwd = 0))
-        }))
+        is0 <- c(scatter.grid) == 0
 
-       # for (i in 1:100) {
-       #     for (j in 100:1) {
-       #         if (shade[i, j] == 0) next
-       #         grid.rect(x = (i - 1) / 100, y = j / 100,
-       #                   width = 0.01, height = 0.01,
-       #                   just = c("left", "top"),
-       #                   gp =
-       #                   gpar(fill = rgb(1 - shade[i, j], 1-shade[i,j], 1-shade[i,j]),
-       #                        lwd = 0))
-       #     }
-       # }
+        grid.rect(gp = gpar(fill = hcols[1]))
+        grid.points(unit(xv[!is0], "npc"), unit(yv[!is0], "npc"),
+                    size = unit(1 / Npt, "npc") * 1.35, pch = 15,
+                    gp = gpar(col = shade[!is0]))
 
         upViewport()  # end clipping
     }
     
     upViewport()  # end main plot
     upViewport()  # end this subplot
+}
+
+test <- function() {
+    d <- read.csv("~/iNZight/data/Census at School-500.csv")
+    x = d$armspan
+    y = d$height
+    iNZgridplot(x, y)
 }
