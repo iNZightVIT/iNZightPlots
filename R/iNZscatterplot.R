@@ -114,13 +114,37 @@ function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
                     addSmoother(x, y, f = opts$smooth,
                                 col = opts$col.smooth, bs = opts$bs.inference)
 
-      # Trend lines
-        if (!is.null(opts$trend))
-            lapply(opts$trend, function(o) {
-                order = which(c("linear", "quadratic", "cubic") == o)
-                addTrend(x, y, order = order, xlim = xlim,
-                         col = opts$col.trend[[o]], bs = opts$bs.inference)
-            })
+      # Trend lines:
+      # ------------------------------------------------------------- #
+      # If the `by` variable has been set, then the points are        
+      # coloured by the levels of `by`. Thus, there is more than one
+      # level of `unique(col)`. In this case, we need to add the
+      # trend lines for each level of by (i.e., each colour). The
+      # colours of these lines are darker versions of the points.
+      # ------------------------------------------------------------- #
+        
+        if (!is.null(opts$trend)) {
+            if (length(unique(col)) == 1 | !opts$trend.by) {
+                lapply(opts$trend, function(o) {
+                    order = which(c("linear", "quadratic", "cubic") == o)  # gives us 1,
+                    addTrend(x, y, order = order, xlim = xlim,
+                             col = opts$col.trend[[o]], bs = opts$bs.inference)
+                })
+            } else {
+                byy <- as.factor(col)  # pseudo-by-variable
+                xtmp <- lapply(levels(byy), function(c) subset(x, col == c))
+                ytmp <- lapply(levels(byy), function(c) subset(y, col == c))
+
+                for (b in 1:length(levels(byy)))
+                    lapply(opts$trend, function(o) {
+                        order = which(c("linear", "quadratic", "cubic") == o)
+                        addTrend(xtmp[[b]], ytmp[[b]],
+                                 order = order, xlim = xlim,
+                                 col = darken(levels(byy)[b]),
+                                 bs = FALSE)  # opts$bs.inference)
+                    })
+            }
+        }
 
         upViewport()  # end clipping
     }
