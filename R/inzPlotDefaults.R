@@ -26,6 +26,7 @@ function() {
          smooth         = 0,
          LOE            = FALSE,
          join           = FALSE,
+         lines.by       = FALSE,
          col.trend      = list(linear = "blue",
                                quadratic = "red",
                                cubic ="green4"),
