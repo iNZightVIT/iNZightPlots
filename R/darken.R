@@ -1,4 +1,4 @@
-darken <- function(x = "#FFFFFF") {
+Darken <- function(x = "#FFFFFF") {
     x <- gsub('#', '', x)
     if (nchar(x) == 3)
         x <- paste(rep(strsplit(x, '')[[1]], each = 2), collapse = '')
@@ -16,3 +16,5 @@ darken <- function(x = "#FFFFFF") {
     
     rgb(dark[1], dark[2], dark[3])
 }
+
+darken <- Vectorize(Darken)

@@ -1,9 +1,9 @@
 addSmoother <-
-function(x, y, f, col, bs) {
+function(x, y, f, col, bs, lty = 1) {
     sm <- lowess(x, y, f = f)
     grid.lines(sm$x, sm$y,
                default.units = "native",
-               gp = gpar(col = col, lwd = 2))
+               gp = gpar(col = col, lwd = 2, lty = lty))
 
     if (bs) {
         for (i in 1:30) {

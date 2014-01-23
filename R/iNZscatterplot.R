@@ -74,12 +74,24 @@ function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
                          alpha = opts$alpha))
 
      # Connect by dots if they want it ...
-        if (opts$join)
-            grid.polyline(x, y, default.units = "native",
-                          id = {if (opts$lines.by) as.numeric(as.factor(col)) else NULL},
-                          gp =
-                          gpar(lwd = opts$lwd, lty = opts$lty,
-                               col = opts$col.line))
+        if (opts$join) {
+            if (length(unique(col)) == 1 | !opts$lines.by) {
+                grid.lines(x, y, default.units = "native",
+                           gp =
+                           gpar(lwd = opts$lwd, lty = opts$lty,
+                                col = opts$col.line))
+            } else {
+                byy <- as.factor(col)  # pseudo-by-variable
+                xtmp <- lapply(levels(byy), function(c) subset(x, col == c))
+                ytmp <- lapply(levels(byy), function(c) subset(y, col == c))
+
+                for (b in 1:length(levels(byy)))
+                    grid.lines(xtmp[[b]], ytmp[[b]], default.units = "native",
+                               gp =
+                               gpar(lwd = opts$lwd, lty = opts$lty,
+                                    col = levels(byy)[b]))
+            }
+        }
         
   # --------------------------------------------------------------------------- #
   #                                          Add any addional plotting features
@@ -105,16 +117,30 @@ function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
         }
 
       # Smoothers
-        if (!is.null(opts$smooth))
-            if (opts$smooth != 0)
-                if (opts$smooth > 1)
-                  # !!! Move this error checking to the beginning of the plot
-                  # function (otherwise it produces it g1.levels times!
-                    warning("Smoothing value must be in the interval [0, 1]")
-                else
-                    addSmoother(x, y, f = opts$smooth,
-                                col = opts$col.smooth, bs = opts$bs.inference)
+        if (!is.null(opts$smooth)) {
+            if (opts$smooth != 0) {
+                if (opts$smooth > 1) {
+                     warning("Smoothing value must be in the interval [0, 1]")
+                } else {
+                    if (length(unique(col)) == 1 | !opts$trend.by) {
+                        addSmoother(x, y, f = opts$smooth,
+                                    col = opts$col.smooth, bs = opts$bs.inference)
+                    } else {
+                        byy <- as.factor(col)  # pseudo-by-variable
+                        xtmp <- lapply(levels(byy), function(c) subset(x, col == c))
+                        ytmp <- lapply(levels(byy), function(c) subset(y, col == c))
+                        
+                        for (b in 1:length(levels(byy)))
+                            addSmoother(xtmp[[b]], ytmp[[b]],
+                                        f = opts$smooth,
+                                        col = darken(levels(byy)[b]),
+                                        bs = FALSE, lty = 2)
+                    }
+                }
+            }
+        }
 
+        
       # Trend lines:
       # ------------------------------------------------------------- #
       # If the `by` variable has been set, then the points are        
@@ -142,7 +168,7 @@ function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
                         addTrend(xtmp[[b]], ytmp[[b]],
                                  order = order, xlim = xlim,
                                  col = darken(levels(byy)[b]),
-                                 bs = FALSE)  # opts$bs.inference)
+                                 bs = FALSE)
                     })
             }
         }
