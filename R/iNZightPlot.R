@@ -465,8 +465,8 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                             list(x)
                     
                     r <- range(lapply(full.x.list,
-                                      function(x) makePoints(x)$y))
-                    r[2] <- max(0.2, r[2])
+                                      function(x) makePoints(x, opts = opts)$y))
+                    r[2] <- max(0.001, r[2])
                     neg <- r < 0
                     mult <- c(-1, 1) * ifelse(neg, -1, 1)
                     o <- r + mult * 0.04 * (r[2] - r[1])
@@ -492,7 +492,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                         range(lapply(x.list2,
                                      function(x.list)
                                      lapply(x.list,
-                                            function(x) makePoints(x)$y )))
+                                            function(x) makePoints(x, opts = opts)$y )))
                     r[2] <- max(0.2, r[2])
                     neg <- r < 0
                     mult <- c(-1, 1) * ifelse(neg, -1, 1)

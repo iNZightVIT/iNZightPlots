@@ -48,5 +48,8 @@ function() {
          inference.type = NULL,
          inference.par  = NULL,
          bs.inference   = FALSE,
-         n.boot         = 1500)
+         n.boot         = 1500,
+         large.sample.size = 2000,
+         scatter.grid.bins = 200,
+         hist.bins      = 100)
 }

@@ -1,7 +1,7 @@
 iNZscatterplot <-
-function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
-                           layout, xlim = range(x), ylim = range(y),
-                           col = opts$col.pt, prop.size = NULL, opts) {
+    function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
+             layout, xlim = range(x), ylim = range(y),
+             col = opts$col.pt, prop.size = NULL, opts) {
   # --------------------------------------------------------------------------- #
   # Makes a scatter plot of the supplied X and Y data.
   # Can only be called from the iNZplot() function.
@@ -61,36 +61,66 @@ function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
                               xscale = xlim,
                               yscale = ylim))  # so nothing goes outside the box
 
-      # Point sizes:
-        if (!is.null(prop.size))
-            cex <- proportionalPointSize(prop.size, opts$cex.pt)
-        else
-            cex <- opts$cex.pt
-
-        grid.points(x, y, pch = opts$pch,
-                    gp =
-                    gpar(cex = cex, col = col,
-                         lwd = opts$lwd.pt,
-                         alpha = opts$alpha))
-
-     # Connect by dots if they want it ...
-        if (opts$join) {
-            if (length(unique(col)) == 1 | !opts$lines.by) {
-                grid.lines(x, y, default.units = "native",
-                           gp =
-                           gpar(lwd = opts$lwd, lty = opts$lty,
-                                col = opts$col.line))
-            } else {
-                byy <- as.factor(col)  # pseudo-by-variable
-                xtmp <- lapply(levels(byy), function(c) subset(x, col == c))
-                ytmp <- lapply(levels(byy), function(c) subset(y, col == c))
-
-                for (b in 1:length(levels(byy)))
-                    grid.lines(xtmp[[b]], ytmp[[b]], default.units = "native",
+      # Draw a scatter plot:
+        if (length(x) < opts$large.sample.size) {
+          # Point sizes:
+            if (!is.null(prop.size))
+                cex <- proportionalPointSize(prop.size, opts$cex.pt)
+            else
+                cex <- opts$cex.pt
+            
+            grid.points(x, y, pch = opts$pch,
+                        gp =
+                        gpar(cex = cex, col = col,
+                             lwd = opts$lwd.pt,
+                             alpha = opts$alpha))
+            
+          # Connect by dots if they want it ...
+            if (opts$join) {
+                if (length(unique(col)) == 1 | !opts$lines.by) {
+                    grid.lines(x, y, default.units = "native",
                                gp =
                                gpar(lwd = opts$lwd, lty = opts$lty,
-                                    col = levels(byy)[b]))
+                                    col = opts$col.line))
+                } else {
+                    byy <- as.factor(col)  # pseudo-by-variable
+                    xtmp <- lapply(levels(byy), function(c) subset(x, col == c))
+                    ytmp <- lapply(levels(byy), function(c) subset(y, col == c))
+
+                    for (b in 1:length(levels(byy)))
+                        grid.lines(xtmp[[b]], ytmp[[b]], default.units = "native",
+                                   gp =
+                                   gpar(lwd = opts$lwd, lty = opts$lty,
+                                        col = levels(byy)[b]))
+                }
             }
+        } else {
+          # draw grid plot
+            
+          # Set up the grid
+            Npt <- opts$scatter.grid.bins
+            scatter.grid <- matrix(0, nrow = Npt, ncol = Npt)
+            xx <- cut(x, Npt)
+            yy <- cut(y, Npt)
+            scatter.grid <- as.matrix(table(yy, xx))[Npt:1, ]
+            
+           # hcols <- rev(heat.colors(n = max(scatter.grid) + 1))
+           # hcols <- rainbow(n = max(scatter.grid) + 1)[c(scatter.grid) + 1]
+            hcols <- hcl(0, 0, seq(50, 0, length = max(scatter.grid) + 1))
+            shade <- hcols[c(scatter.grid) + 1]
+            
+            xv = (rep(1:Npt, each = Npt) - 0.5) / Npt
+            yv = (rep(Npt:1, Npt) - 0.5) / Npt
+            
+            grid.xaxis()
+            grid.yaxis()
+            
+            is0 <- c(scatter.grid) == 0
+            
+    #        grid.rect(gp = gpar(fill = hcols[1]))
+            grid.points(unit(xv[!is0], "npc"), unit(yv[!is0], "npc"),
+                        size = unit(1 / Npt, "npc") * 1.35, pch = 15,
+                        gp = gpar(col = shade[!is0]))
         }
         
   # --------------------------------------------------------------------------- #
@@ -140,7 +170,6 @@ function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
             }
         }
 
-        
       # Trend lines:
       # ------------------------------------------------------------- #
       # If the `by` variable has been set, then the points are        
@@ -153,7 +182,7 @@ function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
         if (!is.null(opts$trend)) {
             if (length(unique(col)) == 1 | !opts$trend.by) {
                 lapply(opts$trend, function(o) {
-                    order = which(c("linear", "quadratic", "cubic") == o)  # gives us 1,
+                    order = which(c("linear", "quadratic", "cubic") == o)  # gives us 1, 2, or 3
                     addTrend(x, y, order = order, xlim = xlim,
                              col = opts$col.trend[[o]], bs = opts$bs.inference)
                 })
@@ -168,7 +197,7 @@ function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
                         addTrend(xtmp[[b]], ytmp[[b]],
                                  order = order, xlim = xlim,
                                  col = darken(levels(byy)[b]),
-                                 bs = FALSE)
+                                 bs = FALSE)  # opts$bs.inference)
                     })
             }
         }
