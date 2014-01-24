@@ -465,8 +465,8 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                             list(x)
                     
                     r <- range(lapply(full.x.list,
-                                      function(x) makePoints(x)$y))
-                    r[2] <- max(0.2, r[2])
+                                      function(x) makePoints(x, opts = opts)$y))
+                    r[2] <- max(0.001, r[2])
                     neg <- r < 0
                     mult <- c(-1, 1) * ifelse(neg, -1, 1)
                     o <- r + mult * 0.04 * (r[2] - r[1])
@@ -492,7 +492,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                         range(lapply(x.list2,
                                      function(x.list)
                                      lapply(x.list,
-                                            function(x) makePoints(x)$y )))
+                                            function(x) makePoints(x, opts = opts)$y )))
                     r[2] <- max(0.2, r[2])
                     neg <- r < 0
                     mult <- c(-1, 1) * ifelse(neg, -1, 1)
@@ -608,26 +608,15 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                 if (is.numeric(x)) {
                   # X is a continuous variable
                     if (is.numeric(y)) {
-                        if (length(x.list[[i]]) < 1000)
-                            iNZscatterplot(x.list[[id]], y.list[[id]],
-                                           axis = axis,
-                                           lab = g1.level[id],
-                                           layout = layout3,
-                                           xlim = xlim, ylim = ylim,
-                                           col = col.list[[id]],
-                                           prop.size = if (is.null(prop.size)) NULL
-                                                       else prop.size.list[[id]],
-                                           opts = opts)
-                        else 
-                            iNZgridplot(x.list[[id]], y.list[[id]],
-                                        axis = axis,
-                                        lab = g1.level[id],
-                                        layout = layout3,
-                                        xlim = xlim, ylim = ylim,
-                                        col = col.list[[id]],
-                                        prop.size = if (is.null(prop.size)) NULL
-                                                    else prop.size.list[[id]],
-                                        opts = opts)
+                        iNZscatterplot(x.list[[id]], y.list[[id]],
+                                       axis = axis,
+                                       lab = g1.level[id],
+                                       layout = layout3,
+                                       xlim = xlim, ylim = ylim,
+                                       col = col.list[[id]],
+                                       prop.size = if (is.null(prop.size)) NULL
+                                                   else prop.size.list[[id]],
+                                       opts = opts)
                     } else {
                         y2 <- if (is.null(y)) NULL else y.list[[id]]
 

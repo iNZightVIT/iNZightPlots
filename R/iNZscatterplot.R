@@ -61,24 +61,54 @@ iNZscatterplot <-
                               xscale = xlim,
                               yscale = ylim))  # so nothing goes outside the box
 
-      # Point sizes:
-        if (!is.null(prop.size))
-            cex <- proportionalPointSize(prop.size, opts$cex.pt)
-        else
-            cex <- opts$cex.pt
+      # Draw a scatter plot:
+        if (length(x) < opts$large.sample.size) {
+          # Point sizes:
+            if (!is.null(prop.size))
+                cex <- proportionalPointSize(prop.size, opts$cex.pt)
+            else
+                cex <- opts$cex.pt
+            
+            grid.points(x, y, pch = opts$pch,
+                        gp =
+                        gpar(cex = cex, col = col,
+                             lwd = opts$lwd.pt,
+                             alpha = opts$alpha))
+            
+          # Connect by dots if they want it ...
+            if (opts$join)
+                grid.lines(x, y, default.units = "native",
+                           gp =
+                           gpar(lwd = opts$lwd, lty = opts$lty,
+                                col = opts$col.line))
+        } else {
+          # draw grid plot
 
-        grid.points(x, y, pch = opts$pch,
-                    gp =
-                    gpar(cex = cex, col = col,
-                         lwd = opts$lwd.pt,
-                         alpha = opts$alpha))
-
-     # Connect by dots if they want it ...
-        if (opts$join)
-            grid.lines(x, y, default.units = "native",
-                       gp =
-                       gpar(lwd = opts$lwd, lty = opts$lty,
-                            col = opts$col.line))
+          # Set up the grid
+            Npt <- opts$scatter.grid.bins
+            scatter.grid <- matrix(0, nrow = Npt, ncol = Npt)
+            xx <- cut(x, Npt)
+            yy <- cut(y, Npt)
+            scatter.grid <- as.matrix(table(yy, xx))[Npt:1, ]
+            
+           # hcols <- rev(heat.colors(n = max(scatter.grid) + 1))
+           # hcols <- rainbow(n = max(scatter.grid) + 1)[c(scatter.grid) + 1]
+            hcols <- hcl(0, 0, seq(50, 0, length = max(scatter.grid) + 1))
+            shade <- hcols[c(scatter.grid) + 1]
+            
+            xv = (rep(1:Npt, each = Npt) - 0.5) / Npt
+            yv = (rep(Npt:1, Npt) - 0.5) / Npt
+            
+            grid.xaxis()
+            grid.yaxis()
+            
+            is0 <- c(scatter.grid) == 0
+            
+    #        grid.rect(gp = gpar(fill = hcols[1]))
+            grid.points(unit(xv[!is0], "npc"), unit(yv[!is0], "npc"),
+                        size = unit(1 / Npt, "npc") * 1.35, pch = 15,
+                        gp = gpar(col = shade[!is0]))
+        }
 
   # --------------------------------------------------------------------------- #
   #                                          Add any addional plotting features
