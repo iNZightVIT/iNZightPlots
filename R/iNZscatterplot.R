@@ -87,7 +87,7 @@ iNZscatterplot <-
                     byy <- as.factor(col)  # pseudo-by-variable
                     xtmp <- lapply(levels(byy), function(c) subset(x, col == c))
                     ytmp <- lapply(levels(byy), function(c) subset(y, col == c))
-
+                    
                     for (b in 1:length(levels(byy)))
                         grid.lines(xtmp[[b]], ytmp[[b]], default.units = "native",
                                    gp =
@@ -151,7 +151,7 @@ iNZscatterplot <-
         if (!is.null(opts$smooth)) {
             if (opts$smooth != 0) {
                 if (opts$smooth > 1) {
-                     warning("Smoothing value must be in the interval [0, 1]")
+                    warning("Smoothing value must be in the interval [0, 1]")
                 } else {
                     if (length(unique(col)) == 1 | !opts$trend.by) {
                         addSmoother(x, y, f = opts$smooth,
@@ -192,27 +192,6 @@ iNZscatterplot <-
                 xtmp <- lapply(levels(byy), function(c) subset(x, col == c))
                 ytmp <- lapply(levels(byy), function(c) subset(y, col == c))
 
-      # Trend lines:
-      # ------------------------------------------------------------- #
-      # If the `by` variable has been set, then the points are        
-      # coloured by the levels of `by`. Thus, there is more than one
-      # level of `unique(col)`. In this case, we need to add the
-      # trend lines for each level of by (i.e., each colour). The
-      # colours of these lines are darker versions of the points.
-      # ------------------------------------------------------------- #
-        
-        if (!is.null(opts$trend)) {
-            if (length(unique(col)) == 1 | !opts$trend.by) {
-                lapply(opts$trend, function(o) {
-                    order = which(c("linear", "quadratic", "cubic") == o)  # gives us 1, 2, or 3
-                    addTrend(x, y, order = order, xlim = xlim,
-                             col = opts$col.trend[[o]], bs = opts$bs.inference)
-                })
-            } else {
-                byy <- as.factor(col)  # pseudo-by-variable
-                xtmp <- lapply(levels(byy), function(c) subset(x, col == c))
-                ytmp <- lapply(levels(byy), function(c) subset(y, col == c))
-
                 for (b in 1:length(levels(byy)))
                     lapply(opts$trend, function(o) {
                         order = which(c("linear", "quadratic", "cubic") == o)
@@ -230,3 +209,4 @@ iNZscatterplot <-
     upViewport()  # end main plot
     upViewport()  # end this subplot
 }
+    
