@@ -44,29 +44,46 @@ function(x, y, xlim, ylim, col, opts, guides = NULL) {
       # Draw mean inference if asked for
         pushViewport(viewport(layout.pos.row = 2,
                               xscale = xlim))
-
         if (mean.inf) {
             guides <- drawMeanInference(x, opts, guides)
         } else {
             if (makebox) drawBoxPlot(x, opts)
             if (med.inf) guides <- drawMedianInference(x, opts, guides)
         }
-
+        
         upViewport()
     }
-    
-    
-  # Draw the dotplot in the first row
+
     pushViewport(viewport(layout.pos.row = 1,
                           xscale = xlim,
                           yscale = ylim))
-    grid.points(x, y, default.units = "native",
-                pch = opts$pch,
-                gp =
-                gpar(cex = opts$cex.pt, col = col,
-                     lwd = opts$lwd.pt, fill = opts$fill.pt))
-    upViewport()  # back to layout5
 
+    if (length(x) > opts$large.sample.size) {
+      # Draw a histogram if sample size is large:
+        h <- hist(x, opts$hist.bins, plot = FALSE)
+
+        grid.rect()
+        xx <- h$breaks
+        yy <- h$density
+        for (b in 1:length(yy)) {
+            grid.rect(xx[b], 0,
+                      width = xx[b + 1] - xx[b],
+                      height = yy[b],
+                      default.units = "native",
+                      just = c("left", "bottom"),
+                      gp = gpar(fill = col))
+        }
+    } else {
+      # Draw the dotplot in the first row
+        grid.points(x, y, default.units = "native",
+                    pch = opts$pch,
+                    gp =
+                    gpar(cex = opts$cex.pt, col = col,
+                         lwd = opts$lwd.pt, fill = opts$fill.pt))
+    }
+
+    upViewport()  # back to layout5
+    
     upViewport()  # out of layout5
 
     guides

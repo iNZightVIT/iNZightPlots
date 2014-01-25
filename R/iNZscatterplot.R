@@ -61,25 +61,68 @@ iNZscatterplot <-
                               xscale = xlim,
                               yscale = ylim))  # so nothing goes outside the box
 
-      # Point sizes:
-        if (!is.null(prop.size))
-            cex <- proportionalPointSize(prop.size, opts$cex.pt)
-        else
-            cex <- opts$cex.pt
+      # Draw a scatter plot:
+        if (length(x) < opts$large.sample.size) {
+          # Point sizes:
+            if (!is.null(prop.size))
+                cex <- proportionalPointSize(prop.size, opts$cex.pt)
+            else
+                cex <- opts$cex.pt
+            
+            grid.points(x, y, pch = opts$pch,
+                        gp =
+                        gpar(cex = cex, col = col,
+                             lwd = opts$lwd.pt,
+                             alpha = opts$alpha))
+            
+          # Connect by dots if they want it ...
+            if (opts$join) {
+                if (length(unique(col)) == 1 | !opts$lines.by) {
+                    grid.lines(x, y, default.units = "native",
+                               gp =
+                               gpar(lwd = opts$lwd, lty = opts$lty,
+                                    col = opts$col.line))
+                } else {
+                    byy <- as.factor(col)  # pseudo-by-variable
+                    xtmp <- lapply(levels(byy), function(c) subset(x, col == c))
+                    ytmp <- lapply(levels(byy), function(c) subset(y, col == c))
 
-        grid.points(x, y, pch = opts$pch,
-                    gp =
-                    gpar(cex = cex, col = col,
-                         lwd = opts$lwd.pt,
-                         alpha = opts$alpha))
-
-     # Connect by dots if they want it ...
-        if (opts$join)
-            grid.lines(x, y, default.units = "native",
-                       gp =
-                       gpar(lwd = opts$lwd, lty = opts$lty,
-                            col = opts$col.line))
-
+                    for (b in 1:length(levels(byy)))
+                        grid.lines(xtmp[[b]], ytmp[[b]], default.units = "native",
+                                   gp =
+                                   gpar(lwd = opts$lwd, lty = opts$lty,
+                                        col = levels(byy)[b]))
+                }
+            }
+        } else {
+          # draw grid plot
+            
+          # Set up the grid
+            Npt <- opts$scatter.grid.bins
+            scatter.grid <- matrix(0, nrow = Npt, ncol = Npt)
+            xx <- cut(x, Npt)
+            yy <- cut(y, Npt)
+            scatter.grid <- as.matrix(table(yy, xx))[Npt:1, ]
+            
+           # hcols <- rev(heat.colors(n = max(scatter.grid) + 1))
+           # hcols <- rainbow(n = max(scatter.grid) + 1)[c(scatter.grid) + 1]
+            hcols <- hcl(0, 0, seq(50, 0, length = max(scatter.grid) + 1))
+            shade <- hcols[c(scatter.grid) + 1]
+            
+            xv = (rep(1:Npt, each = Npt) - 0.5) / Npt
+            yv = (rep(Npt:1, Npt) - 0.5) / Npt
+            
+            grid.xaxis()
+            grid.yaxis()
+            
+            is0 <- c(scatter.grid) == 0
+            
+    #        grid.rect(gp = gpar(fill = hcols[1]))
+            grid.points(unit(xv[!is0], "npc"), unit(yv[!is0], "npc"),
+                        size = unit(1 / Npt, "npc") * 1.35, pch = 15,
+                        gp = gpar(col = shade[!is0]))
+        }
+        
   # --------------------------------------------------------------------------- #
   #                                          Add any addional plotting features
 
@@ -104,15 +147,49 @@ iNZscatterplot <-
         }
 
       # Smoothers
-        if (!is.null(opts$smooth))
-            if (opts$smooth != 0)
-                if (opts$smooth > 1)
-                  # !!! Move this error checking to the beginning of the plot
-                  # function (otherwise it produces it g1.levels times!
-                    warning("Smoothing value must be in the interval [0, 1]")
-                else
-                    addSmoother(x, y, f = opts$smooth,
-                                col = opts$col.smooth, bs = opts$bs.inference)
+        if (!is.null(opts$smooth)) {
+            if (opts$smooth != 0) {
+                if (opts$smooth > 1) {
+                     warning("Smoothing value must be in the interval [0, 1]")
+                } else {
+                    if (length(unique(col)) == 1 | !opts$trend.by) {
+                        addSmoother(x, y, f = opts$smooth,
+                                    col = opts$col.smooth, bs = opts$bs.inference)
+                    } else {
+                        byy <- as.factor(col)  # pseudo-by-variable
+                        xtmp <- lapply(levels(byy), function(c) subset(x, col == c))
+                        ytmp <- lapply(levels(byy), function(c) subset(y, col == c))
+                        
+                        for (b in 1:length(levels(byy)))
+                            addSmoother(xtmp[[b]], ytmp[[b]],
+                                        f = opts$smooth,
+                                        col = darken(levels(byy)[b]),
+                                        bs = FALSE, lty = 2)
+                    }
+                }
+            }
+        }
+
+      # Trend lines:
+      # ------------------------------------------------------------- #
+      # If the `by` variable has been set, then the points are        
+      # coloured by the levels of `by`. Thus, there is more than one
+      # level of `unique(col)`. In this case, we need to add the
+      # trend lines for each level of by (i.e., each colour). The
+      # colours of these lines are darker versions of the points.
+      # ------------------------------------------------------------- #
+        
+        if (!is.null(opts$trend)) {
+            if (length(unique(col)) == 1 | !opts$trend.by) {
+                lapply(opts$trend, function(o) {
+                    order = which(c("linear", "quadratic", "cubic") == o)  # gives us 1, 2, or 3
+                    addTrend(x, y, order = order, xlim = xlim,
+                             col = opts$col.trend[[o]], bs = opts$bs.inference)
+                })
+            } else {
+                byy <- as.factor(col)  # pseudo-by-variable
+                xtmp <- lapply(levels(byy), function(c) subset(x, col == c))
+                ytmp <- lapply(levels(byy), function(c) subset(y, col == c))
 
       # Trend lines:
       # ------------------------------------------------------------- #
