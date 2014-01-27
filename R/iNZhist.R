@@ -10,7 +10,7 @@ function(x, nbins = 20, xlim = range(x, na.rm = TRUE)) {
   # Return a list containing the necessary information for plotting (similar
   # to that of the hist() function).
   # ----------------------------------------------------------------------- #
-
+    print(nbins)
   # Create even cut points in the given data range
     range <- xlim
     cuts <- seq(range[1], range[2], length = nbins + 1)

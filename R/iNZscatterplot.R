@@ -98,7 +98,8 @@ iNZscatterplot <-
           # draw grid plot
             
           # Set up the grid
-            Npt <- opts$scatter.grid.bins
+          # (for now, we will scale the bin size by point size)
+            Npt <- opts$scatter.grid.bins / (opts$cex.pt * 2)
             scatter.grid <- matrix(0, nrow = Npt, ncol = Npt)
             xx <- cut(x, Npt)
             yy <- cut(y, Npt)

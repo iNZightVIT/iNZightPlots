@@ -7,7 +7,7 @@ function() {
          col            = "red",
          col.pt         = "grey50",
          cex            = 1,
-         cex.pt         = 0.6,
+         cex.pt         = 1.0,
          cex.lab        = 1,
          cex.axis       = 0.8,
          cex.main       = 1.2,

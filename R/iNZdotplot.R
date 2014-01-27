@@ -71,7 +71,7 @@ iNZdotplot <-
 
     if (is.null(y)) {
       # Calculate x and y values for plotting the stacked dots
-        dat <- makePoints(x, cols = col, xlim = xlim)
+        dat <- makePoints(x, cols = col, xlim = xlim, opts = opts)
         x <- dat$x
         y <- dat$y
         col <- dat$col
@@ -111,7 +111,8 @@ iNZdotplot <-
                 next
             }
             
-            dat <- makePoints(x.list[[k]], cols = col.list[[k]], xlim = xlim)
+            dat <- makePoints(x.list[[k]], cols = col.list[[k]], xlim = xlim,
+                              opts = opts)
             guides <- drawDotplot(dat$x, dat$y, xlim = xlim, ylim = ylim,
                                   col = dat$col, opts = opts, guides = guides)
             upViewport()  # back to layout4

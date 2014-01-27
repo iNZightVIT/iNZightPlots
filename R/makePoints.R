@@ -20,8 +20,8 @@ function(x, cols = NULL, xlim = range(x, na.rm = TRUE),
       # Do a histogram: we only care about the y-values,
       # althuogh the x-values are returned because they are also
       # used somewhere.
-        
-        h <- iNZhist(x, opts$hist.bins, xlim = xlim)
+
+        h <- iNZhist(x, opts$hist.bins / (2 * opts$cex.pt), xlim = xlim)
         out <- list(x = x, y = h$density, cols = cols)
         
     } else if (length(x) > 0) {
@@ -52,8 +52,8 @@ function(x, cols = NULL, xlim = range(x, na.rm = TRUE),
         y <- min(v.space, v.add) * (temp$du - 1)
 
       # Now we want to scale the y-values to the same scale as hist() gives
-        y.h <- iNZhist(x, opts$hist.bins, xlim = xlim)$density
-        print(y.h)
+        y.h <- iNZhist(x, opts$hist.bins / (2 * opts$cex.pt),
+                       xlim = xlim)$density
         factor <- max(y.h) / max(y)
         
         out <- list(x = temp$x, y = y * factor, cols = temp$col)
