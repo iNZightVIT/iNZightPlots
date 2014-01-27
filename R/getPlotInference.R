@@ -532,7 +532,32 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
 
                 if (opts$bs.inference) {
                   # Bootstrap inference
-                    o <- c(o, "Bootstrap inference not yet implemented :(")
+                    if (n > 10) {
+                        b <- boot(X,
+                                  function(x, d) {
+                                      tab <- table(x[d])
+                                      tab / sum(tab)
+                                  },
+                                  R = opts$n.boot)
+                        phat <- as.numeric(b$t0)
+                        ci.p <- apply(b$t, 2, quantile, probs = c(0.025, 0.975))
+                        ci.l <- signif(ci.p[1, ], 5)
+                        ci.u <- signif(ci.p[2, ], 5)
+
+                        o <- c(o, "Proportions with percentile Bootstrap Confidence Intervals")
+
+                        inf.df <- data.frame(ci.lower = ci.l,
+                                             estimate = signif(phat, 5),
+                                             ci.upper = ci.u)
+                        rownames(inf.df) <- levels(X)
+                        inf.mat <- capture.output(matprint(as.matrix(inf.df)))
+                        o <- c(o, eval(inf.mat), '')
+                        
+                    } else {
+                        o <- c(o, paste0("No inference output ",
+                                         "(number of observations too small for ",
+                                         "bootstrap inference.)"))
+                    }
                 } else {
                   # Normal inference
                     if (n > 1) {
@@ -608,7 +633,15 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
 
                 if (opts$bs.inference) {
                   # Bootstrap inference
-                    o <- c(o, "Not yet implemented :(")
+                    
+
+
+
+
+
+
+                    
+                 # o <- c(o, "Not yet implemented :(")
                 } else {
                   # Normal inference
                     mat <- cbind(phat, Row.sums = rowSums(phat))

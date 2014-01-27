@@ -62,7 +62,8 @@ iNZscatterplot <-
                               yscale = ylim))  # so nothing goes outside the box
 
       # Draw a scatter plot:
-        if (length(x) < opts$large.sample.size) {
+       # if (length(x) < opts$large.sample.size) {
+        if (TRUE) {  # temp. disable grid plot for release
           # Point sizes:
             if (!is.null(prop.size))
                 cex <- proportionalPointSize(prop.size, opts$cex.pt)
@@ -86,7 +87,7 @@ iNZscatterplot <-
                     byy <- as.factor(col)  # pseudo-by-variable
                     xtmp <- lapply(levels(byy), function(c) subset(x, col == c))
                     ytmp <- lapply(levels(byy), function(c) subset(y, col == c))
-
+                    
                     for (b in 1:length(levels(byy)))
                         grid.lines(xtmp[[b]], ytmp[[b]], default.units = "native",
                                    gp =
@@ -151,7 +152,7 @@ iNZscatterplot <-
         if (!is.null(opts$smooth)) {
             if (opts$smooth != 0) {
                 if (opts$smooth > 1) {
-                     warning("Smoothing value must be in the interval [0, 1]")
+                    warning("Smoothing value must be in the interval [0, 1]")
                 } else {
                     if (length(unique(col)) == 1 | !opts$trend.by) {
                         addSmoother(x, y, f = opts$smooth,
@@ -209,3 +210,4 @@ iNZscatterplot <-
     upViewport()  # end main plot
     upViewport()  # end this subplot
 }
+    
