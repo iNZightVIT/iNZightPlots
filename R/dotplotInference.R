@@ -17,7 +17,7 @@ drawMedianInference <- function(x, opts, guides = NULL) {
             comp.col <- "blue"
         }
 
-        grid.lines(x = unit(inf.x, "native",), y = 0.5,
+        grid.lines(x = unit(inf.x, "native"), y = 0.5,
                    gp =
                    gpar(col = comp.col,
                         lwd = opts$inf.lwd.comp,

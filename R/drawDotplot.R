@@ -60,7 +60,7 @@ function(x, y, xlim, ylim, col, opts, guides = NULL) {
 
     if (length(x) > opts$large.sample.size) {
       # Draw a histogram if sample size is large:
-        h <- hist(x, opts$hist.bins, plot = FALSE)
+        h <- iNZhist(x, opts$hist.bins, xlim = xlim)
 
         xx <- h$breaks
         yy <- h$density
@@ -70,7 +70,7 @@ function(x, y, xlim, ylim, col, opts, guides = NULL) {
                       height = yy[b],
                       default.units = "native",
                       just = c("left", "bottom"),
-                      gp = gpar(fill = col))
+                      gp = gpar(fill = col, col = col))
         }
     } else {
       # Draw the dotplot in the first row
