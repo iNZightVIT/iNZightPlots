@@ -103,10 +103,11 @@ iNZscatterplot <-
             xx <- cut(x, Npt)
             yy <- cut(y, Npt)
             scatter.grid <- as.matrix(table(yy, xx))[Npt:1, ]
-            
-           # hcols <- rev(heat.colors(n = max(scatter.grid) + 1))
-           # hcols <- rainbow(n = max(scatter.grid) + 1)[c(scatter.grid) + 1]
-            hcols <- hcl(0, 0, seq(50, 0, length = max(scatter.grid) + 1))
+
+          # Different possible colouration patterns for the grid plot.
+            # hcols <- rev(heat.colors(n = max(scatter.grid) + 1))
+            # hcols <- rainbow(n = max(scatter.grid) + 1)[c(scatter.grid) + 1]
+            hcols <- hcl(0, 0, seq(60, 0, length = max(scatter.grid) + 1))
             shade <- hcols[c(scatter.grid) + 1]
             
             xv = (rep(1:Npt, each = Npt) - 0.5) / Npt

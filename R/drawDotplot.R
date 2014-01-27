@@ -62,7 +62,6 @@ function(x, y, xlim, ylim, col, opts, guides = NULL) {
       # Draw a histogram if sample size is large:
         h <- hist(x, opts$hist.bins, plot = FALSE)
 
-        grid.rect()
         xx <- h$breaks
         yy <- h$density
         for (b in 1:length(yy)) {

@@ -36,19 +36,23 @@ drawMeanInference <- function(x, opts, guides = NULL) {
 
     if ("conf" %in% opts$inference.type) {
       # Quick fix because currently if bootstrap, only show ci
-        if (!opts$bs.inference) {
+        if (opts$bs.inference) {
+            b <- boot(x, function(x, d) mean(x[d]), R = opts$n.boot)
+            inf.x <- boot.ci(b, type = "norm")$norm[1, 2:3]
+            inf.mean <- mean(b$t)
+        } else {
             inf.wd <- qt(0.975, df = length(x) - 1,) * sd(x) / sqrt(length(x))
             inf.mean <- mean(x)
             inf.x <- inf.mean + c(-1, 1) * inf.wd
-
-            grid.lines(x = unit(inf.x, "native"),
-                       y = 0.5,
-                       gp =
-                       gpar(col = "red",
-                            lwd = opts$inf.lwd.conf,
-                            lineend = "butt"))
         }
 
+        grid.lines(x = unit(inf.x, "native"),
+                   y = 0.5,
+                   gp =
+                   gpar(col = "red",
+                        lwd = opts$inf.lwd.conf,
+                        lineend = "butt"))
+        
         opts$inference.type <- c("comp", "conf")
     }
 
