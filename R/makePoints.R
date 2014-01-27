@@ -1,8 +1,7 @@
 makePoints <-
 function(x, cols = NULL, opts = inzPlotDefaults()) {
   # Returns the X and Y values to make a dotplot
-   # if (length(x) > opts$large.sample.size) {
-    if (FALSE) {  # temp disable
+    if (length(x) > opts$large.sample.size) {
       # Do a histogram: we only care about the y-values
         h <- hist(x, opts$hist.bins, plot = FALSE)
         out <- list(x = x, y = h$density, cols = cols)

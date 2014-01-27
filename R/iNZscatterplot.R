@@ -62,8 +62,7 @@ iNZscatterplot <-
                               yscale = ylim))  # so nothing goes outside the box
 
       # Draw a scatter plot:
-       # if (length(x) < opts$large.sample.size) {
-        if (TRUE) {  # temp. disable grid plot for release
+        if (length(x) < opts$large.sample.size) {
           # Point sizes:
             if (!is.null(prop.size))
                 cex <- proportionalPointSize(prop.size, opts$cex.pt)

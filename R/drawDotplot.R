@@ -58,8 +58,7 @@ function(x, y, xlim, ylim, col, opts, guides = NULL) {
                           xscale = xlim,
                           yscale = ylim))
 
-   # if (length(x) > opts$large.sample.size) {
-    if (FALSE) {  # temp. disable for release
+    if (length(x) > opts$large.sample.size) {
       # Draw a histogram if sample size is large:
         h <- hist(x, opts$hist.bins, plot = FALSE)
 
