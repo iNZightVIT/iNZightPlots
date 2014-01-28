@@ -443,11 +443,12 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
               # if the x-axis goes negative, then need to ensure it
               # gets made more negative
                 neg <- r < 0
-                mult <- c(-1, 1) * ifelse(neg, -1, 1)
+                mult <- ifelse(neg, -1, 1)
                 r + mult * 0.04 * diff(r)
             } else {
                 c(0, length(levels(x)))
             }
+        print(xlim)
 
         ylim <-
             if (is.numeric(y)) {
