@@ -29,5 +29,5 @@ function(x, nbins = 20, xlim = range(x, na.rm = TRUE)) {
          counts = as.numeric(tab),
          density = as.numeric(den),
          mids = mids,
-         x = order(x))
+         x = sort(x))
 }
