@@ -63,15 +63,17 @@ function(x, y, xlim, ylim, col, opts, guides = NULL) {
         h <- iNZhist(x, opts$hist.bins / (2 * opts$cex.pt), xlim = xlim)
 
         xx <- h$breaks
-        yy <- h$density
-        for (b in 1:length(yy)) {
-            grid.rect(xx[b], 0,
-                      width = xx[b + 1] - xx[b],
-                      height = yy[b],
-                      default.units = "native",
-                      just = c("left", "bottom"),
-                      gp = gpar(fill = col))#, col = col))
-        }
+        yy <- h$counts
+
+      # Need to make a vector of points for corners of polygons
+        wx <- diff(xx)[1] / 2
+        x.mid <- xx[-length(xx)] + wx
+        xmat <- sapply(x.mid, function(x) x + c(-1, -1, 1, 1) * wx)
+        ymat <- sapply(yy, function(y) y * c(0, 1, 1, 0))
+        matid <- matrix(rep(1:ncol(xmat), each = 4), nrow = 4)
+
+        grid.polygon(xmat, ymat, id = matid, default.units = "native",
+                     gp = gpar(fill = col))
     } else {
       # Draw the dotplot in the first row
         grid.points(x, y, default.units = "native",

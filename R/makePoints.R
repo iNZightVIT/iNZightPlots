@@ -22,7 +22,7 @@ function(x, cols = NULL, xlim = range(x, na.rm = TRUE),
       # used somewhere.
 
         h <- iNZhist(x, opts$hist.bins / (2 * opts$cex.pt), xlim = xlim)
-        out <- list(x = x, y = h$density, cols = cols)
+        out <- list(x = x, y = h$counts, cols = cols)
         
     } else if (length(x) > 0) {
       # ---------------------------------------------------------- #
@@ -40,7 +40,7 @@ function(x, cols = NULL, xlim = range(x, na.rm = TRUE),
             xbins <- round(maxBins * (x - prettyrange[1]) /
                            diff(prettyrange))
         }
-        
+
       # Calculate positioning of points
         v.max   <- 0.5
         v.add   <- 0.01
@@ -53,7 +53,7 @@ function(x, cols = NULL, xlim = range(x, na.rm = TRUE),
 
       # Now we want to scale the y-values to the same scale as hist() gives
         y.h <- iNZhist(x, opts$hist.bins / (2 * opts$cex.pt),
-                       xlim = xlim)$density
+                       xlim = xlim)$counts
         factor <- max(y.h) / max(y)
         
         out <- list(x = temp$x, y = y * factor, cols = temp$col)

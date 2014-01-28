@@ -28,5 +28,6 @@ function(x, nbins = 20, xlim = range(x, na.rm = TRUE)) {
     list(breaks = cuts,
          counts = as.numeric(tab),
          density = as.numeric(den),
-         mids = mids)
+         mids = mids,
+         x = order(x))
 }
