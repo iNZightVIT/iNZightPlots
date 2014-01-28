@@ -390,7 +390,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
         grid.rect(gp = gpar(fill = bg))
 
       # --------------------------------------------------------------------------- #
-      #                                             subdivide plotting region by g2
+      #                                             subdivide plotting region by g1
 
       # ========================================================================= #
       # LAYOUT 2
@@ -436,19 +436,35 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
       # --------------------------------------------------------------------------- #
       #                                                  Draw the appropriate plots
 
+      # Cycle through all N plots. For each, draw the appropriate axes,
+      # as well as a subtitle if g1 is given.
+
+        if (is.null(g1)) {
+            layout3 <- grid.layout(2, 1,
+                                   heights = unit(c(0, 1), "null"))
+        } else {
+            subtitle <- textGrob(levels(g1)[1],
+                                 gp =
+                                 gpar(cex = opts$cex.lab,
+                                      fontface = "bold"))
+            subheight <- convertHeight(grobHeight(subtitle), "mm") * 2
+            layout3 <- grid.layout(2, 1,
+                                   heights = unit.c(subheight, unit(1, "null")))
+
+        }
+              
       # set the axis limits to be the same for all plots
         xlim <-
             if (is.numeric(x)) {
                 r <- range(x)
               # if the x-axis goes negative, then need to ensure it
               # gets made more negative
-                neg <- r < 0
-                mult <- ifelse(neg, -1, 1)
+               # neg <- r < 0
+                mult <- c(-1, 1)
                 r + mult * 0.04 * diff(r)
             } else {
                 c(0, length(levels(x)))
             }
-        print(xlim)
 
         ylim <-
             if (is.numeric(y)) {
@@ -513,27 +529,14 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                 o
             }
 
-      # Cycle through all N plots. For each, draw the appropriate axes,
-      # as well as a subtitle if g1 is given.
-
-        if (is.null(g1)) {
-            layout3 <- grid.layout(2, 1,
-                                   heights = unit(c(0, 1), "null"))
-        } else {
-            subtitle <- textGrob(levels(g1)[1],
-                                 gp =
-                                 gpar(cex = opts$cex.lab,
-                                      fontface = "bold"))
-            subheight <- convertHeight(grobHeight(subtitle), "mm") * 2
-            layout3 <- grid.layout(2, 1,
-                                   heights = unit.c(subheight, unit(1, "null")))
-
-        }
-
       # showLines: TRUE if any counts  0, otherwise FALSE
-        tabs <- lapply(1:length(x.list), function(i)
-                       if (is.null(y)) table(x.list[[i]])
-                       else  table(x.list[[i]], y.list[[i]]))
+        tabs <- lapply(1:length(x.list),
+                       function(i) {
+                           if (is.null(y))
+                               table(x.list[[i]])
+                           else
+                               table(x.list[[i]], y.list[[i]])
+                       })
         showLines <- any(sapply(tabs, function(x) any(x == 0)))
 
       # --- FOR BARPLOTS:
