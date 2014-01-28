@@ -459,7 +459,6 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                 r <- range(x)
               # if the x-axis goes negative, then need to ensure it
               # gets made more negative
-               # neg <- r < 0
                 mult <- c(-1, 1)
                 r + mult * 0.04 * diff(r)
             } else {
@@ -480,6 +479,8 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                             lapply(levels(g1), function(l) subset(x, g1 == l))
                         else
                             list(x)
+                  # Got a dotplot: need to make the viewport sizes correct
+                    
                     r <- range(lapply(full.x.list,
                                       function(x) makePoints(x, xlim = xlim,
                                                              opts = opts)$y))
