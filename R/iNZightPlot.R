@@ -734,5 +734,16 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
 
             upViewport()  # return to toplevel layout
         }
-        
+
+
+      # --------------------------------------------------------------------------- #
+      #                                         returning information from the plot
+
+        ret <-
+            list(x = x, y = y, g1 = g1, g2 = g2, g1.level = g1.level,
+                 g2.level = g2.level, varnames = varnames, xlab = xlab,
+                 ylab = ylab, by = by, prop.size = prop.size,
+                 other = list(...))
+        class(ret) <- "iNZightObject"
+        invisible(ret)
     }
