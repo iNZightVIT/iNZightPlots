@@ -584,7 +584,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                 
                 pushViewport(viewport(layout.pos.row = i,
                                       layout.pos.col = j * 2 - 1))
-                grid.rect()
+               
 
               # Decide which axes to plot:
                 axis <- rep(0, 4)
@@ -661,6 +661,8 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                                    opts = opts)
                     }
                 }
+
+                grid.rect()
                 
                 upViewport()
 

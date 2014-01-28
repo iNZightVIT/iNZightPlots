@@ -108,21 +108,42 @@ iNZscatterplot <-
           # Different possible colouration patterns for the grid plot.
             # hcols <- rev(heat.colors(n = max(scatter.grid) + 1))
             # hcols <- rainbow(n = max(scatter.grid) + 1)[c(scatter.grid) + 1]
-            hcols <- hcl(0, 0, seq(60, 0, length = max(scatter.grid) + 1))
-            shade <- hcols[c(scatter.grid) + 1]
-            
-            xv = (rep(1:Npt, each = Npt) - 0.5) / Npt
-            yv = (rep(Npt:1, Npt) - 0.5) / Npt
-            
+            hcols <- hcl(0, 0, seq(80, 0, length = max(scatter.grid) + 1))
+            shade <- matrix(hcols[scatter.grid + 1], nrow = nrow(scatter.grid))
+
             grid.xaxis()
             grid.yaxis()
             
             is0 <- c(scatter.grid) == 0
+
+          # centers of all grid boxes
+            xv = (rep(1:Npt, each = Npt) - 0.5) / Npt
+            yv = (rep(Npt:1, Npt) - 0.5) / Npt
+            xv <- xv[!is0]
+            yv <- yv[!is0]
+
+        # -------------------------------------------------------------- #
+        #                                                       OLD CODE
+        # -------------------------------------------------------------- #
+        #                
+        # # grid.rect(gp = gpar(fill = hcols[1]))
+        # grid.points(unit(xv[!is0], "npc"), unit(yv[!is0], "npc"),
+        #             size = unit(1 / Npt, "npc") * 1.35, pch = 15,
+        #             gp = gpar(col = shade[!is0]))
+        # ============================================================== #
+
+          # We will attempt to use grid.polygon() to draw all of the
+          # grid squares at the same time!
             
-    #        grid.rect(gp = gpar(fill = hcols[1]))
-            grid.points(unit(xv[!is0], "npc"), unit(yv[!is0], "npc"),
-                        size = unit(1 / Npt, "npc") * 1.35, pch = 15,
-                        gp = gpar(col = shade[!is0]))
+            wx <- 0.5 / Npt
+            wy <- 0.5 / Npt
+            xmat <- sapply(xv, function(x) x + c(-1, -1, 1, 1) * wx)
+            ymat <- sapply(yv, function(y) y + c(-1, 1, 1, -1) * wy)
+            id <- matrix(rep((1:Npt^2)[!is0], each = 4), nrow = 4)
+
+            grid.polygon(xmat, ymat, id = id, default.units = "npc",
+                         gp = gpar(fill = shade[!is0], col = shade[!is0]))
+                        
         }
         
   # --------------------------------------------------------------------------- #
