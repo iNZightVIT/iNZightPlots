@@ -73,7 +73,7 @@ function(x, y, xlim, ylim, col, opts, guides = NULL) {
         matid <- matrix(rep(1:ncol(xmat), each = 4), nrow = 4)
 
         grid.polygon(xmat, ymat, id = matid, default.units = "native",
-                     gp = gpar(fill = col))
+                     gp = gpar(fill = opts$col.pt))
     } else {
       # Draw the dotplot in the first row
         grid.points(x, y, default.units = "native",
