@@ -99,7 +99,8 @@ iNZscatterplot <-
             
           # Set up the grid
           # (for now, we will scale the bin size by point size)
-            Npt <- opts$scatter.grid.bins / (opts$cex.pt * 2)
+            Npt <- floor(opts$scatter.grid.bins / (opts$cex.pt * 2))
+            
             scatter.grid <- matrix(0, nrow = Npt, ncol = Npt)
             xx <- cut(x, Npt)
             yy <- cut(y, Npt)
@@ -119,8 +120,6 @@ iNZscatterplot <-
           # centers of all grid boxes
             xv = (rep(1:Npt, each = Npt) - 0.5) / Npt
             yv = (rep(Npt:1, Npt) - 0.5) / Npt
-            xv <- xv[!is0]
-            yv <- yv[!is0]
 
         # -------------------------------------------------------------- #
         #                                                       OLD CODE
@@ -139,11 +138,17 @@ iNZscatterplot <-
             wy <- 0.5 / Npt
             xmat <- sapply(xv, function(x) x + c(-1, -1, 1, 1) * wx)
             ymat <- sapply(yv, function(y) y + c(-1, 1, 1, -1) * wy)
-            id <- matrix(rep((1:Npt^2)[!is0], each = 4), nrow = 4)
+            id <- matrix(rep((1:Npt^2), each = 4), nrow = 4)
+
+          # Remove zero-count cells:
+            xmat <- xmat[, !is0]
+            ymat <- ymat[, !is0]
+            id <- id[, !is0]
+            shade <- shade[!is0]
 
             grid.polygon(xmat, ymat, id = id, default.units = "npc",
-                         gp = gpar(fill = shade[!is0], col = shade[!is0]))
-                        
+                         gp = gpar(fill = shade, col = shade))
+        
         }
         
   # --------------------------------------------------------------------------- #
