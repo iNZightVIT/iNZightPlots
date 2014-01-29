@@ -69,7 +69,7 @@ iNZscatterplot <-
             else
                 cex <- opts$cex.pt
             
-            grid.points(x, y, pch = opts$pch,
+            grid.points(x, y, pch = if (opts$alpha == 1) opts$pch else 19,
                         gp =
                         gpar(cex = cex, col = col,
                              lwd = opts$lwd.pt,
@@ -109,7 +109,8 @@ iNZscatterplot <-
           # Different possible colouration patterns for the grid plot.
             # hcols <- rev(heat.colors(n = max(scatter.grid) + 1))
             # hcols <- rainbow(n = max(scatter.grid) + 1)[c(scatter.grid) + 1]
-            hcols <- hcl(0, 0, seq(80, 0, length = max(scatter.grid) + 1))
+            hcols <- hcl(0, 0, seq(100 * (1 - opts$alpha / 2), 0,
+                                   length = max(scatter.grid) + 1))
             shade <- matrix(hcols[scatter.grid + 1], nrow = nrow(scatter.grid))
 
             grid.xaxis()
