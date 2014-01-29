@@ -50,13 +50,13 @@ function(x, cols = NULL, xlim = range(x, na.rm = TRUE),
 
         ## this was originally (temp$du - 1), but this results in y-values
         ## of 0 which gives NaN's when calculating `factor` later.
-        y <- min(v.space, v.add) * (temp$du - 0.5)
+        y <- min(v.space, v.add) * (temp$du - 1)
 
       # Now we want to scale the y-values to the same scale as hist() gives
         y.h <- iNZhist(x, opts$hist.bins / (2 * opts$cex.pt),
                        xlim = xlim)$counts
 
-        factor <- max(y.h) / max(y)
+        factor <- max(y.h) / (if (all(y == 0)) 1 else max(y))
         
         out <- list(x = temp$x, y = y * factor, cols = temp$col)
     } else {
