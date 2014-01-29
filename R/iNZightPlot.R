@@ -675,7 +675,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                     }
                 }
 
-                grid.rect()
+                grid.rect(gp = gpar(fill = "transparent"))
                 
                 upViewport()
 
