@@ -465,6 +465,12 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                 c(0, length(levels(x)))
             }
 
+     # Fake a viewport that will be used to plot:
+     # # vp1 <- viewport(layout.pos.row = 1, layout.pos.col = 1)
+     # # vp2 <- viewport(layout = layout3, vp = vp1)
+     # # vp3 <- viewport(layout.pos.row = 2, xscale = xlim, vp = vp2)
+      # This will be used later when dotplot is fixed up.
+        
         ylim <-
             if (is.numeric(y)) {
                 r <- range(y)
@@ -530,6 +536,8 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                 o
             }
 
+        seekViewport("subdivisionLayout")
+        
       # showLines: TRUE if any counts  0, otherwise FALSE
         tabs <- lapply(1:length(x.list),
                        function(i) {

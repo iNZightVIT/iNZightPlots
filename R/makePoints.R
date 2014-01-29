@@ -1,7 +1,7 @@
 makePoints <-
 function(x, cols = NULL, xlim = range(x, na.rm = TRUE),
          useHist = length(x) > opts$large.sample.size,
-         opts = inzPlotDefaults()) {
+         opts = inzPlotDefaults(), vp = NULL) {
     
   # ----------------------------------------------------------------------- #
   # This function should be renamed at some point, but I'll get around
@@ -12,8 +12,7 @@ function(x, cols = NULL, xlim = range(x, na.rm = TRUE),
   # Otherwise, it will output the original x values and the densities
   # in the bins (this is for y-axis scaling only!).
   # ----------------------------------------------------------------------- #
-    
-    
+
     if (useHist) {
       # ---------------------------------------------------------- #
       #                                                  HISTOGRAM
@@ -48,12 +47,15 @@ function(x, cols = NULL, xlim = range(x, na.rm = TRUE),
         temp    <- stacking(x, xbin, cols)
         v.space <- v.max / max(temp$du)
         cramp   <- v.add / v.space
-        
-        y <- min(v.space, v.add) * (temp$du - 1)
+
+        ## this was originally (temp$du - 1), but this results in y-values
+        ## of 0 which gives NaN's when calculating `factor` later.
+        y <- min(v.space, v.add) * (temp$du - 0.5)
 
       # Now we want to scale the y-values to the same scale as hist() gives
         y.h <- iNZhist(x, opts$hist.bins / (2 * opts$cex.pt),
                        xlim = xlim)$counts
+
         factor <- max(y.h) / max(y)
         
         out <- list(x = temp$x, y = y * factor, cols = temp$col)
