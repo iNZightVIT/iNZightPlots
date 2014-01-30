@@ -18,3 +18,22 @@ function(x, y, f, col, bs, lty = 1) {
         }
     }
 }
+
+addQuantileSmoother <-
+function(x, y, quantile, col, lty, lwd) {
+  # Draws quantiles on a plot.
+    if (quantile < 0.5)  # symmetry
+        quantile <- c(quantile, 1 - quantile)
+
+  # Because we are using the `svysmooth()` function from the `survey` package,
+  # we need to supply a design (here, everything is IID)
+    des <- suppressWarnings(svydesign(ids = ~1, data = data.frame(x = x, y = y)))
+    
+    invisible(sapply(quantile,
+                     function(a) {
+                         s <- svysmooth(y ~ x, design = des,
+                                        method = "quantreg", quantile = a)$x
+                         grid.lines(s$x, s$y, default.units = "native",
+                                    gp = gpar(col = col, lty = lty, lwd = lwd))
+                     }))
+}

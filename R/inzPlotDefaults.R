@@ -24,6 +24,7 @@ function() {
          rugs           = "",
          trend          = NULL,
          smooth         = 0,
+         quant.smooth   = NULL,
          LOE            = FALSE,
          join           = FALSE,
          lines.by       = TRUE,
@@ -51,5 +52,6 @@ function() {
          n.boot         = 1500,
          large.sample.size = 2000,
          scatter.grid.bins = 200,
-         hist.bins      = 100)
+         hist.bins      = 100,
+         quant.cutoff   = c(200, 1000))
 }

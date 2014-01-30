@@ -77,6 +77,16 @@ inzPlotDefaults()
     numeric, the smoothing required (an \code{f} value between 0 and
     1). If \code{NULL}, no smoothing line is drawn.
   }
+  \item{quant.smooth}{
+    numeric, the quantiles to add to the plot. e.g., `c(0.1, 0.25, 0.5)`
+    for median, quartiles, and 90th percentiles. Plots symmetrical
+    quantiles (i.e., specifying 0.1 plots 0.1 and 0.9 quantiles).
+
+    It can also take the value "default", in which case the quantiles
+    are drawn with regards to the sample size. Under 200, only the 50\% quantile;
+    up to 1000, the 50\%, 25 and 75\% quantiles, and anything over this
+    adds the 10\% and 90\% quantiles.
+  }
   \item{LOE}{
     logical, the Line of Equality, \code{x = y}.
   }
@@ -153,6 +163,22 @@ inzPlotDefaults()
   }
   \item{n.boot}{
     the number of bootstrap simulations to do.
+  }
+  \item{large.sample.size}{
+    numeric, the cut-off point for drawing dot plots and scatter plots;
+    for large sample sizes, we switch to histograms and grid density plots.
+  }
+  \item{scatter.grid.bins}{
+    numeric, the number of grids (per axis, i.e., the total number of
+    squares is the square of this value). Currently, this value is
+    divided by half of the `cex` value (so the default number of bins is
+    100).
+  }
+  \item{hist.bins}{
+    numeric, the number of bins in the histogram.
+  }
+  \item{quant.cutoff}{
+    numeric, the two cutoff values for the `default` setting of `quant.smooth`.
   }
 }
 \details{
