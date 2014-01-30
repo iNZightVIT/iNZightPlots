@@ -103,12 +103,16 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
 
         if (!is.null(g2) & !is.null(g2.level)) {
           # Check for iNZightCentral value:
-            if (g2.level != "_ALL") {
-            
+            if (g2.level == "_MULTI") {
+              # We want to plot levels of g1 by g2
+            } else if (g2.level != "_ALL") {
               # Only use the observations according to g2.level
                 if (is.numeric(g2))
                     g2 <- convert.to.factor(g2)
 
+                if (is.numeric(g2.level))
+                    g2.level <- levels(g2)[g2.level]
+                
                 x <- subset(x, g2 == g2.level)
                 if (!is.null(y))
                     y <- subset(y, g2 == g2.level)
