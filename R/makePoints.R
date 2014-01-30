@@ -27,6 +27,24 @@ function(x, cols = NULL, xlim = range(x, na.rm = TRUE),
       # ---------------------------------------------------------- #
       #                                                    DOTPLOT
       # Returns the X and Y values to make a dotplot
+
+      # This may become reality... but complicated.
+       # r <- range(x)
+       # xlim2 <- r + c(-1, 1) * diff(r) * 0.04
+        
+       # pushViewport(viewport(0.5, 0.5, width = 0.5, height = 0.5,
+                              xscale = xlim, yscale = c(-0.04, 1.04)))
+       # grid.rect()
+        
+       # wd <- convertWidth(unit(1, "char"), "native",
+       #                    valueOnly = TRUE)
+       # n <- floor(diff(range(x)) / wd / 0.8)
+       # ny <- floor(convertWidth(unit(1, "npc"), "native", valueOnly = TRUE) / wd / 0.9)
+        
+       # h <- iNZhist(round(x, 2), nbins = n)
+       # yy <- unlist(sapply(h$counts[h$counts != 0], function(c) 1:c))
+       # yy2 <- y / ny - 1/ny
+        
         
         prettyrange <- range(pretty(x))
         maxBins = 75
