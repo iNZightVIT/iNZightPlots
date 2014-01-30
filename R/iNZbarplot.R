@@ -19,7 +19,13 @@ iNZbarplot <-
         grid.text(x.lev,
                   x = unit((0:length(x.lev))[-1] - 0.5, "native"),
                   y = unit(-1, "lines"),
-                  gp = gpar(cex = opts$cex.axis))
+                  gp = gpar(cex = opts$cex.axis),
+                  name = "labelText")  # label is important!
+
+        wm <- which.max(nchar(as.character(x.lev)))
+        tt <- textGrob(levels(x)[wm])
+      # save label widths
+        labwid <- convertWidth(grobWidth(tt), "mm", valueOnly = TRUE)  
     }
 
   # --------------------------------------------------------------------------- #
@@ -110,6 +116,9 @@ iNZbarplot <-
           # Plotting a single bar for each level of g1
             xx <- 0.5
 
+            if (i == 1)  # save the width of bars
+                barwid <- convertWidth(unit(1, "npc"), "mm", valueOnly = TRUE)
+
           # If by is set, then the bar needs to be segmented!
             if (is.null(by)) {
                 grid.rect(x = xx, y = 0,
@@ -199,6 +208,20 @@ iNZbarplot <-
         
         upViewport()        
     }
+
+  # Rotate labels maybe; and make them smaller if they still don't fit in the axis space
+    if (labwid > barwid) {
+        grid.edit("labelText", y = unit(-0.5, "mm"),
+                  rot = 30, just = c("right", "top"))
+        labheight <- convertHeight(grobHeight("labelText"), "lines", valueOnly = TRUE)
+        if (labheight > 2.7)
+            grid.edit("labelText",
+                      gp = gpar(cex = 2.7 / labheight * opts$cex.axis))
+        
+      ### where did the 2.7 come from? Trial and error. Future iNZighters, feel free
+        # to make this more than a guess. ###
+    }
+
 
     if (guides == "all") {
       # Draw inference guide lines
