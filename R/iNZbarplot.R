@@ -214,10 +214,9 @@ iNZbarplot <-
         grid.edit("labelText", y = unit(-0.5, "mm"),
                   rot = 30, just = c("right", "top"))
         labheight <- convertHeight(grobHeight("labelText"), "lines", valueOnly = TRUE)
-        if (labheight > 2.7)
+        if (labheight > 5)
             grid.edit("labelText",
-                      gp = gpar(cex = 2.7 / labheight * opts$cex.axis))
-        
+                      gp = gpar(cex = 5 / labheight * opts$cex.axis))
       ### where did the 2.7 come from? Trial and error. Future iNZighters, feel free
         # to make this more than a guess. ###
     }
