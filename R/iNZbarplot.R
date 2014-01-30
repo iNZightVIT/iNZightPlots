@@ -112,12 +112,12 @@ iNZbarplot <-
    # multiple bars are drawn, then the area must be broken into equal
    # bars for the levels of y. The bars must also be coloured.
         
+        if (i == 1)  # save the width of bars
+            barwid <- convertWidth(unit(1, "npc"), "mm", valueOnly = TRUE)
+        
         if (is.null(y)) {
           # Plotting a single bar for each level of g1
             xx <- 0.5
-
-            if (i == 1)  # save the width of bars
-                barwid <- convertWidth(unit(1, "npc"), "mm", valueOnly = TRUE)
 
           # If by is set, then the bar needs to be segmented!
             if (is.null(by)) {
