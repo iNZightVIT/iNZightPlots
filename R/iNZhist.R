@@ -13,7 +13,9 @@ function(x, nbins = 20, xlim = range(x, na.rm = TRUE)) {
 
   # Create even cut points in the given data range
     range <- xlim
-    cuts <- seq(range[1], range[2], length = nbins + 1)
+    range <- range + c(-1, 1) * 0.01 * diff(range)  # include boundary values!
+    cuts <- seq(range[1] - 0.1, range[2] + 0.1,
+                length = nbins + 1)
     bin.min <- cuts[-(nbins + 1)]
     bin.max <- cuts[-1]
 

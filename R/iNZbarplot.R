@@ -27,7 +27,7 @@ iNZbarplot <-
       # save label widths
         labwid <- convertWidth(grobWidth(tt), "mm", valueOnly = TRUE)  
     }
-
+    
   # --------------------------------------------------------------------------- #
   #                                                            Add the subtitle
     if (!is.null(lab)) {
@@ -210,15 +210,17 @@ iNZbarplot <-
     }
 
   # Rotate labels maybe; and make them smaller if they still don't fit in the axis space
-    if (labwid > barwid) {
-        grid.edit("labelText", y = unit(-0.5, "mm"),
-                  rot = 30, just = c("right", "top"))
-        labheight <- convertHeight(grobHeight("labelText"), "lines", valueOnly = TRUE)
-        if (labheight > 5)
-            grid.edit("labelText",
-                      gp = gpar(cex = 5 / labheight * opts$cex.axis))
+    if (axis[1] == 2) {
+        if (labwid > barwid) {
+            grid.edit("labelText", y = unit(-0.5, "mm"),
+                      rot = 30, just = c("right", "top"))
+            labheight <- convertHeight(grobHeight("labelText"), "lines", valueOnly = TRUE)
+            if (labheight > 5)
+                grid.edit("labelText",
+                          gp = gpar(cex = 5 / labheight * opts$cex.axis))
       ### where did the 2.7 come from? Trial and error. Future iNZighters, feel free
         # to make this more than a guess. ###
+        }
     }
 
 
