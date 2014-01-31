@@ -105,7 +105,15 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
           # Check for iNZightCentral value:
             if (g2.level == "_MULTI") {
               # We want to plot levels of g1 by g2
-            } else if (g2.level != "_ALL") {
+                ret <- iNZmatrix(x = x, y = y, g1 = g1, g2 = g2,
+                                 g1.level = g1.level, g2.level = g2.level,
+                                 varnames = varnames, xlab = xlab, ylab = ylab,
+                                 by = by, prop.size = prop.size,
+                                 opts = opts)
+                return(invisible(ret))
+            }
+            
+            if (g2.level != "_ALL") {
               # Only use the observations according to g2.level
                 if (is.numeric(g2))
                     g2 <- convert.to.factor(g2)

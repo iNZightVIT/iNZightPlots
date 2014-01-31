@@ -1,5 +1,5 @@
 iNZscatterplot <-
-    function(x, y, axis = c(0, 0, 0, 0), lab = NULL,
+    function(x, y, axis = c(0, 0, 0, 0), ax.add = 0, lab = NULL,
              layout, xlim = range(x), ylim = range(y),
              col = opts$col.pt, prop.size = NULL, opts) {
   # --------------------------------------------------------------------------- #
@@ -22,10 +22,14 @@ iNZscatterplot <-
         grid.xaxis(label = FALSE, gp = agp)
     if (axis[1] == 2)
         grid.xaxis(gp = agp)
+
+    pushViewport(viewport(0.5, 1, height = ax.add, width = 1,
+                          default.units = "npc", just = "bottom"))
     if (axis[3] == 1)
         grid.xaxis(main = FALSE, label = FALSE, gp = agp)
     if (axis[3] == 2)
         grid.xaxis(main = FALSE, gp = agp)
+    upViewport()
 
   # --------------------------------------------------------------------------- #
   #                                                            Add the subtitle

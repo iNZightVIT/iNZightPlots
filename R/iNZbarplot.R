@@ -16,11 +16,11 @@ iNZbarplot <-
   # --------------------------------------------------------------------------- #
   #                                                             Draw the x-axes
     if (axis[1] == 2) {
-        grid.text(x.lev,
-                  x = unit((0:length(x.lev))[-1] - 0.5, "native"),
-                  y = unit(-1, "lines"),
-                  gp = gpar(cex = opts$cex.axis),
-                  name = "labelText")  # label is important!
+        labText <- textGrob(x.lev,
+                            x = unit((0:length(x.lev))[-1] - 0.5, "native"),
+                            y = unit(-1, "lines"),
+                            gp = gpar(cex = opts$cex.axis),
+                            name = "labelText")  # label is important!
 
         wm <- which.max(nchar(as.character(x.lev)))
         tt <- textGrob(levels(x)[wm])
@@ -212,15 +212,23 @@ iNZbarplot <-
   # Rotate labels maybe; and make them smaller if they still don't fit in the axis space
     if (axis[1] == 2) {
         if (labwid > barwid) {
-            grid.edit("labelText", y = unit(-0.5, "mm"),
-                      rot = 30, just = c("right", "top"))
-            labheight <- convertHeight(grobHeight("labelText"), "lines", valueOnly = TRUE)
+            labText <- editGrob(labText, y = unit(-0.5, "mm"),
+                                rot = 30, just = c("right", "top"))
+          #  grid.edit("labelText", y = unit(-0.5, "mm"),
+          #            rot = 30, just = c("right", "top"))
+            labheight <- convertHeight(grobHeight(labText), "lines", valueOnly = TRUE)
             if (labheight > 5)
-                grid.edit("labelText",
-                          gp = gpar(cex = 5 / labheight * opts$cex.axis))
+                labText <- editGrob(labText,
+                                    gp = gpar(cex = 5 / labheight * opts$cex.axis))
+               # grid.edit("labelText",
+               #           gp = gpar(cex = 5 / labheight * opts$cex.axis))
       ### where did the 2.7 come from? Trial and error. Future iNZighters, feel free
         # to make this more than a guess. ###
         }
+
+        pushViewport(viewport(xscale = xlim))
+        grid.draw(labText)
+        upViewport()
     }
 
 
