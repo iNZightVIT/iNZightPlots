@@ -101,6 +101,15 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
       #       comparison of two (or even three) factor variables.
       # ========================================================================= #
 
+      
+        if (!is.null(g2)) { if (is.numeric(g2)) g2 <- convert.to.factor(g2) }
+
+      # Fix up a little bug that occurs when users specify the same
+      # variable for `g2` and `by`:
+        if (!is.null(g2) & !is.null(by))
+            if (varnames$g2 == varnames$by)
+                by <- g2  # i.e., if g2 is converted to a factor already.
+        
         if (!is.null(g2) & !is.null(g2.level)) {
           # Check for iNZightCentral value:
             if (g2.level == "_MULTI") {
@@ -115,9 +124,6 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
             
             if (g2.level != "_ALL") {
               # Only use the observations according to g2.level
-                if (is.numeric(g2))
-                    g2 <- convert.to.factor(g2)
-
                 if (is.numeric(g2.level))
                     g2.level <- levels(g2)[g2.level]
                 
