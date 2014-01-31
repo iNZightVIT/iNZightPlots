@@ -69,7 +69,6 @@ function(x, cols = NULL, xlim = range(x, na.rm = TRUE),
       # Now we want to scale the y-values to the same scale as hist() gives
         y.h <- iNZhist(x, opts$hist.bins / (2 * opts$cex.pt),
                        xlim = xlim)$counts
-        print(ny)
 
       # Sort out colours D:
         o <- order(x)
