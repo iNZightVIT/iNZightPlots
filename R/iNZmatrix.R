@@ -162,6 +162,9 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
   # col 4: if by is provided, then this contains the legend, otherwise
   #        has no width
   # ========================================================================= #
+
+    grid.newpage()
+    pushViewport(viewport(gp = gpar(cex = 0.8)))
     
   # Calculate the width of the y-axis, so to make it as compact as possible
     w1 <-
@@ -241,7 +244,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
     cex.text <- opts$cex.text
     cex.main <- opts$cex.main
     
-    grid.newpage()
+    upViewport()
     pushViewport(viewport(layout = layout1, name = "toplevel",
                           gp = gpar(cex = cex)))
     grid.rect(gp = gpar(fill = bg))
@@ -526,7 +529,8 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
   # Title
   # --- this consists of the names of the variables being plotted
   # --- Y versus X by G1, for G2 = G2.LEVEL
-    pushViewport(viewport(layout.pos.col = 2, layout.pos.row = 1))
+    pushViewport(viewport(layout.pos.col = 2, layout.pos.row = 1,
+                          gp = gpar(cex = 0.8)))
     
     if (is.factor(x)) {
       # Need a different title for barplots:
@@ -555,14 +559,16 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
 
   # Legend
     if (!is.null(by)) {
-        pushViewport(viewport(layout.pos.col = 4, layout.pos.row = 2))
+        pushViewport(viewport(layout.pos.col = 4, layout.pos.row = 2,
+                              gp = gpar(cex = 0.8)))
         grid.draw(leg.grob)
         
         upViewport()  # return to toplevel layout
     }
     
   # X axis label
-    pushViewport(viewport(layout.pos.col = 2, layout.pos.row = 3))
+    pushViewport(viewport(layout.pos.col = 2, layout.pos.row = 3,
+                          gp = gpar(cex = 0.8)))
     grid.text(xlab,
               y = unit(0.4, "npc"),
               gp = gpar(cex = opts$cex.lab))
@@ -571,7 +577,8 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
     
   # Y axis label
     if (!is.null(y) & is.numeric(y)) {
-        pushViewport(viewport(layout.pos.col = 1, layout.pos.row = 2))
+        pushViewport(viewport(layout.pos.col = 1, layout.pos.row = 2,
+                              gp = gpar(cex = 0.8)))
         grid.text(ylab,
                   x = unit(0.5, "lines"),
                   rot = 90,
