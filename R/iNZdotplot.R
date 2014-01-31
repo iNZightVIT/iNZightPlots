@@ -102,7 +102,8 @@ iNZdotplot <-
         guides <- if (is.null(opts$inference.type)) NULL else numeric(0)
 
         for (k in 1:n.y) {
-            pushViewport(viewport(layout.pos.row = k))
+            CEX <- sqrt(sqrt(n.y) / n.y)
+            pushViewport(viewport(layout.pos.row = k, gp = gpar(cex = CEX)))
  
             if (length(x.list[[k]]) == 0) {
               # This is the case when there are no observations in the

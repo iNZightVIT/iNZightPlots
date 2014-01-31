@@ -100,7 +100,6 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
       # TODO: This will become a second dimension for a plot matrix for pairwise
       #       comparison of two (or even three) factor variables.
       # ========================================================================= #
-
       
         if (!is.null(g2)) { if (is.numeric(g2)) g2 <- convert.to.factor(g2) }
 
@@ -140,7 +139,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                 g2.level <- NULL
             }
         }
-        
+
       # --------------------------------------------------------------------------- #
       #                                                Account for by (legend, ...)
 
@@ -483,10 +482,8 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                 c(0, length(levels(x)))
             }
 
-     # Fake a viewport that will be used to plot:
-     # # vp1 <- viewport(layout.pos.row = 1, layout.pos.col = 1)
-     # # vp2 <- viewport(layout = layout3, vp = vp1)
-     # # vp3 <- viewport(layout.pos.row = 2, xscale = xlim, vp = vp2)
+      # Fake a viewport that will be used to plot:
+        
       # This will be used later when dotplot is fixed up.
         
         ylim <-
@@ -503,11 +500,16 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                             lapply(levels(g1), function(l) subset(x, g1 == l))
                         else
                             list(x)
-                  # Got a dotplot: need to make the viewport sizes correct
                     
-                    r <- range(lapply(full.x.list,
-                                      function(x) makePoints(x, xlim = xlim,
-                                                             opts = opts)$y))
+                  # Got a dotplot: need to make the viewport sizes correct
+                    pushViewport(viewport(layout.pos.row = 1, layout.pos.col = 1))
+                    pushViewport(viewport(layout = layout3))
+                    pushViewport(viewport(layout.pos.row = 2, xscale = xlim))
+                    r <- c(0, max(sapply(full.x.list,
+                                         function(x) makePoints(x, xlim = xlim,
+                                                                opts = opts)$ymax)))
+                    seekViewport("subdivisionLayout")
+
                     r[2] <- max(0.001, r[2])
                     neg <- r < 0
                     mult <- c(-1, 1) * ifelse(neg, -1, 1)
@@ -530,12 +532,23 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                         x.list2[[i]] <- lapply(levels(y),
                                                function(l) subset(x.list[[i]],
                                                                   y.list[[i]] == l))
+
+                    pushViewport(viewport(layout.pos.row = 1, layout.pos.col = 1))
+                    pushViewport(viewport(layout = layout3))
+                    pushViewport(viewport(layout.pos.row = 2, xscale = xlim))
+                    pushViewport(viewport(layout = grid.layout(length(levels(y)), 1)))
+                    NY <- length(levels(y))
+                    CEX <- sqrt(sqrt(NY) / NY)
+                    pushViewport(viewport(layout.pos.row = 1, gp = gpar(cex = CEX)))
+
                     r <-
-                        range(lapply(x.list2,
-                                     function(x.list)
-                                     lapply(x.list,
-                                            function(x) makePoints(x, xlim = xlim,
-                                                                   opts = opts)$y )))
+                        c(0, max(sapply(x.list2,
+                                        function(x.list)
+                                        max(sapply(x.list,
+                                                   function(x) makePoints(x, xlim = xlim,
+                                                                          opts = opts)$ymax)))))
+                    seekViewport("subdivisionLayout")
+                    
                     r[2] <- max(0.001, r[2])
                     neg <- r < 0
                     mult <- c(-1, 1) * ifelse(neg, -1, 1)
