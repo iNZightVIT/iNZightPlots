@@ -1,7 +1,8 @@
 iNZightPlot <-
-function(x, y = NULL, g1 = NULL, g2 = NULL,
+    function(x, y = NULL, g1 = NULL, g2 = NULL,
              g1.level = NULL, g2.level = NULL,
              varnames = list(), xlab = varnames$x, ylab = varnames$y,
+             main = NULL,
              by = NULL, prop.size = NULL, 
              ...) { 
       # --------------------------------------------------------------------------- #
@@ -724,27 +725,34 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
       # --- Y versus X by G1, for G2 = G2.LEVEL
         pushViewport(viewport(layout.pos.col = 2, layout.pos.row = 1))
 
-        if (is.factor(x)) {
-          # Need a different title for barplots:
-          # Distribution of X by Y
-            title1 <- paste0("Distribution of ", varnames$x)
-            title2 <- ifelse(is.null(y), '', paste0(" by ", varnames$y))
+        if (is.null(main)) {
+            if (is.factor(x)) {
+              # Need a different title for barplots:
+              # Distribution of X by Y
+                title1 <- paste0("Distribution of ", varnames$x)
+                title2 <- ifelse(is.null(y), '', paste0(" by ", varnames$y))
+            } else {
+                title1 <- ifelse(is.null(y), '',
+                                 paste0(varnames$y, ' versus '))
+                title2 <- varnames$x
+            }
+            title3 <- ifelse(is.null(g1), '',
+                             paste0(' subset by ', varnames$g1))
+            title4 <- ifelse(is.null(g2), '',
+                             ifelse(is.null(g2.level), '',
+                                    paste0(',\n for ', varnames$g2, ' = ', g2.level)))
+            if (is.numeric(x) & is.numeric(y)) {
+                title5 <- ifelse(is.null(prop.size), '',
+                                 paste0(' (sized by ', varnames$prop.size, ')'))
+            } else {
+                title5 <- ''
+            }
+            title <- paste0(title1, title2, title3, title4, title5)
         } else {
-            title1 <- ifelse(is.null(y), '',
-                             paste0(varnames$y, ' versus '))
-            title2 <- varnames$x
+            title <- main
         }
-        title3 <- ifelse(is.null(g1), '',
-                         paste0(' subset by ', varnames$g1))
-        title4 <- ifelse(is.null(g2), '',
-                         ifelse(is.null(g2.level), '',
-                                paste0(',\n for ', varnames$g2, ' = ', g2.level)))
-        if (is.numeric(x) & is.numeric(y)) {
-            title5 <- ifelse(is.null(prop.size), '',
-                             paste0(' (sized by ', varnames$prop.size, ')'))
-        } else title5 <- ''
         
-        grid.text(paste0(title1, title2, title3, title4, title5),
+        grid.text(title,
                   y = unit(1, "npc") - unit(0.5, "lines"),
                   just = "top",
                   gp = gpar(cex = opts$cex.main))
