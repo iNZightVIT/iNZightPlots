@@ -21,7 +21,7 @@ function(x, cols = NULL, xlim = range(x, na.rm = TRUE),
       # used somewhere.
 
         h <- iNZhist(x, opts$hist.bins / (2 * opts$cex.pt), xlim = xlim)
-        out <- list(x = x, y = h$counts, cols = cols)
+        out <- list(x = x, y = h$counts, cols = cols, ymax = max(h$counts))
         
     } else if (length(x) > 0) {
       # ---------------------------------------------------------- #
