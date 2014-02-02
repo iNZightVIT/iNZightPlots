@@ -47,6 +47,8 @@ function(x) {
                       paste(c("(", x.quantiles[4], " - ", x.quantiles[5], "]"), collapse = ""))
         }
     }
-    
+
+  # Remove any empty levels -_-
+    x.fact <- as.factor(as.character(x.fact))
     x.fact
 }
