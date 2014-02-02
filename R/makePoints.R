@@ -13,6 +13,16 @@ function(x, cols = NULL, xlim = range(x, na.rm = TRUE),
   # in the bins (this is for y-axis scaling only!).
   # ----------------------------------------------------------------------- #
 
+    wd <- convertWidth(unit(1 * opts$cex.pt, "char"),
+                       "npc", valueOnly = TRUE)
+    ht <- convertHeight(unit(1 * opts$cex.pt, "char"),
+                        "npc", valueOnly = TRUE)
+    nx <- floor(1 / (wd * 0.8))
+    ny <- floor(convertHeight(unit(1, "npc"),
+                              "npc", valueOnly = TRUE) / ht)
+    
+    h <- iNZhist(x, nbins = nx, xlim = xlim)
+    
     if (useHist) {
       # ---------------------------------------------------------- #
       #                                                  HISTOGRAM
@@ -20,7 +30,7 @@ function(x, cols = NULL, xlim = range(x, na.rm = TRUE),
       # althuogh the x-values are returned because they are also
       # used somewhere.
 
-        h <- iNZhist(x, opts$hist.bins / (2 * opts$cex.pt), xlim = xlim)
+    #    h <- iNZhist(x, opts$hist.bins / (2 * opts$cex.pt), xlim = xlim)
         out <- list(x = x, y = h$counts, cols = cols, ymax = max(h$counts))
         
     } else if (length(x) > 0) {
@@ -28,20 +38,13 @@ function(x, cols = NULL, xlim = range(x, na.rm = TRUE),
       #                                                    DOTPLOT
       # Returns the X and Y values to make a dotplot
         
-        wd <- convertWidth(unit(1 * opts$cex.pt, "char"),
-                           "native", valueOnly = TRUE)
-        ht <- convertHeight(unit(1 * opts$cex.pt, "char"),
-                            "npc", valueOnly = TRUE)
-        nx <- floor(diff(range(x)) / wd / 0.8)
-        ny <- floor(convertHeight(unit(1, "npc"),
-                                  "npc", valueOnly = TRUE) / ht)
-
-        h <- iNZhist(x, nbins = nx)
+        
         y <- unlist(sapply(h$counts[h$counts != 0], function(c) 1:c))
 
       # Now we want to scale the y-values to the same scale as hist() gives
-        y.h <- iNZhist(x, opts$hist.bins / (2 * opts$cex.pt),
-                       xlim = xlim)$counts
+      #  y.h <- iNZhist(x, opts$hist.bins / (2 * opts$cex.pt),
+      #                 xlim = xlim)$counts
+        
 
       # Sort out colours D:
         o <- order(x)
