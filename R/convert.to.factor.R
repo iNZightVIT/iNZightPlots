@@ -49,6 +49,5 @@ function(x) {
     }
 
   # Remove any empty levels -_-
-    x.fact <- as.factor(as.character(x.fact))
-    x.fact
+    factor(x.fact) 
 }
