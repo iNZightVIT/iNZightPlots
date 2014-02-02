@@ -1,7 +1,8 @@
 iNZightPlot <-
-function(x, y = NULL, g1 = NULL, g2 = NULL,
+    function(x, y = NULL, g1 = NULL, g2 = NULL,
              g1.level = NULL, g2.level = NULL,
              varnames = list(), xlab = varnames$x, ylab = varnames$y,
+             main = NULL,
              by = NULL, prop.size = NULL, 
              ...) { 
       # --------------------------------------------------------------------------- #
@@ -100,7 +101,15 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
       # TODO: This will become a second dimension for a plot matrix for pairwise
       #       comparison of two (or even three) factor variables.
       # ========================================================================= #
+      
+        if (!is.null(g2)) { if (is.numeric(g2)) g2 <- convert.to.factor(g2) }
 
+      # Fix up a little bug that occurs when users specify the same
+      # variable for `g2` and `by`:
+        if (!is.null(g2) & !is.null(by))
+            if (varnames$g2 == varnames$by)
+                by <- g2  # i.e., if g2 is converted to a factor already.
+        
         if (!is.null(g2) & !is.null(g2.level)) {
           # Check for iNZightCentral value:
             if (g2.level == "_MULTI") {
@@ -115,9 +124,6 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
             
             if (g2.level != "_ALL") {
               # Only use the observations according to g2.level
-                if (is.numeric(g2))
-                    g2 <- convert.to.factor(g2)
-
                 if (is.numeric(g2.level))
                     g2.level <- levels(g2)[g2.level]
                 
@@ -134,7 +140,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                 g2.level <- NULL
             }
         }
-        
+
       # --------------------------------------------------------------------------- #
       #                                                Account for by (legend, ...)
 
@@ -476,12 +482,6 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
             } else {
                 c(0, length(levels(x)))
             }
-
-     # Fake a viewport that will be used to plot:
-     # # vp1 <- viewport(layout.pos.row = 1, layout.pos.col = 1)
-     # # vp2 <- viewport(layout = layout3, vp = vp1)
-     # # vp3 <- viewport(layout.pos.row = 2, xscale = xlim, vp = vp2)
-      # This will be used later when dotplot is fixed up.
         
         ylim <-
             if (is.numeric(y)) {
@@ -497,11 +497,16 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                             lapply(levels(g1), function(l) subset(x, g1 == l))
                         else
                             list(x)
-                  # Got a dotplot: need to make the viewport sizes correct
                     
-                    r <- range(lapply(full.x.list,
-                                      function(x) makePoints(x, xlim = xlim,
-                                                             opts = opts)$y))
+                  # Got a dotplot: need to make the viewport sizes correct
+                    pushViewport(viewport(layout.pos.row = 1, layout.pos.col = 1))
+                    pushViewport(viewport(layout = layout3))
+                    pushViewport(viewport(layout.pos.row = 2, xscale = xlim))
+                    r <- c(0, max(sapply(full.x.list,
+                                         function(x) makePoints(x, xlim = xlim,
+                                                                opts = opts)$ymax)))
+                    seekViewport("subdivisionLayout")
+
                     r[2] <- max(0.001, r[2])
                     neg <- r < 0
                     mult <- c(-1, 1) * ifelse(neg, -1, 1)
@@ -524,12 +529,23 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                         x.list2[[i]] <- lapply(levels(y),
                                                function(l) subset(x.list[[i]],
                                                                   y.list[[i]] == l))
+
+                    pushViewport(viewport(layout.pos.row = 1, layout.pos.col = 1))
+                    pushViewport(viewport(layout = layout3))
+                    pushViewport(viewport(layout.pos.row = 2, xscale = xlim))
+                    pushViewport(viewport(layout = grid.layout(length(levels(y)), 1)))
+                    NY <- length(levels(y))
+                    CEX <- sqrt(sqrt(NY) / NY)
+                    pushViewport(viewport(layout.pos.row = 1, gp = gpar(cex = CEX)))
+
                     r <-
-                        range(lapply(x.list2,
-                                     function(x.list)
-                                     lapply(x.list,
-                                            function(x) makePoints(x, xlim = xlim,
-                                                                   opts = opts)$y )))
+                        c(0, max(sapply(x.list2,
+                                        function(x.list)
+                                        max(sapply(x.list,
+                                                   function(x) makePoints(x, xlim = xlim,
+                                                                          opts = opts)$ymax)))))
+                    seekViewport("subdivisionLayout")
+                    
                     r[2] <- max(0.001, r[2])
                     neg <- r < 0
                     mult <- c(-1, 1) * ifelse(neg, -1, 1)
@@ -705,27 +721,34 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
       # --- Y versus X by G1, for G2 = G2.LEVEL
         pushViewport(viewport(layout.pos.col = 2, layout.pos.row = 1))
 
-        if (is.factor(x)) {
-          # Need a different title for barplots:
-          # Distribution of X by Y
-            title1 <- paste0("Distribution of ", varnames$x)
-            title2 <- ifelse(is.null(y), '', paste0(" by ", varnames$y))
+        if (is.null(main)) {
+            if (is.factor(x)) {
+              # Need a different title for barplots:
+              # Distribution of X by Y
+                title1 <- paste0("Distribution of ", varnames$x)
+                title2 <- ifelse(is.null(y), '', paste0(" by ", varnames$y))
+            } else {
+                title1 <- ifelse(is.null(y), '',
+                                 paste0(varnames$y, ' versus '))
+                title2 <- varnames$x
+            }
+            title3 <- ifelse(is.null(g1), '',
+                             paste0(' subset by ', varnames$g1))
+            title4 <- ifelse(is.null(g2), '',
+                             ifelse(is.null(g2.level), '',
+                                    paste0(',\n for ', varnames$g2, ' = ', g2.level)))
+            if (is.numeric(x) & is.numeric(y)) {
+                title5 <- ifelse(is.null(prop.size), '',
+                                 paste0(' (sized by ', varnames$prop.size, ')'))
+            } else {
+                title5 <- ''
+            }
+            title <- paste0(title1, title2, title3, title4, title5)
         } else {
-            title1 <- ifelse(is.null(y), '',
-                             paste0(varnames$y, ' versus '))
-            title2 <- varnames$x
+            title <- main
         }
-        title3 <- ifelse(is.null(g1), '',
-                         paste0(' subset by ', varnames$g1))
-        title4 <- ifelse(is.null(g2), '',
-                         ifelse(is.null(g2.level), '',
-                                paste0(',\n for ', varnames$g2, ' = ', g2.level)))
-        if (is.numeric(x) & is.numeric(y)) {
-            title5 <- ifelse(is.null(prop.size), '',
-                             paste0(' (sized by ', varnames$prop.size, ')'))
-        } else title5 <- ''
         
-        grid.text(paste0(title1, title2, title3, title4, title5),
+        grid.text(title,
                   y = unit(1, "npc") - unit(0.5, "lines"),
                   just = "top",
                   gp = gpar(cex = opts$cex.main))

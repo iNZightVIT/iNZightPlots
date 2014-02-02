@@ -24,7 +24,8 @@ iNZscatterplot <-
         grid.xaxis(gp = agp)
 
     pushViewport(viewport(0.5, 1, height = ax.add, width = 1,
-                          default.units = "npc", just = "bottom"))
+                          default.units = "npc", just = "bottom",
+                          xscale = xlim))
     if (axis[3] == 1)
         grid.xaxis(main = FALSE, label = FALSE, gp = agp)
     if (axis[3] == 2)

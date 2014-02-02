@@ -74,7 +74,7 @@ function(x, y, xlim, ylim, col, opts, guides = NULL) {
 
         grid.polygon(xmat, ymat, id = matid, default.units = "native",
                      gp = gpar(fill = opts$col.pt))
-    } else {
+    } else if (length(x) > 0) {
       # Draw the dotplot in the first row
         grid.points(x, y, default.units = "native",
                     pch = opts$pch,
