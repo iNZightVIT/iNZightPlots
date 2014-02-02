@@ -482,10 +482,6 @@ iNZightPlot <-
             } else {
                 c(0, length(levels(x)))
             }
-
-      # Fake a viewport that will be used to plot:
-        
-      # This will be used later when dotplot is fixed up.
         
         ylim <-
             if (is.numeric(y)) {
