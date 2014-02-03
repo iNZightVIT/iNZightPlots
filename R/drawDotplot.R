@@ -59,8 +59,18 @@ function(x, y, xlim, ylim, col, opts, guides = NULL) {
                           yscale = ylim))
 
     if (length(x) > opts$large.sample.size) {
+        wd <- convertWidth(unit(1 * opts$cex.pt, "char"),
+                           "npc", valueOnly = TRUE)
+        ht <- convertHeight(unit(1 * opts$cex.pt, "char"),
+                            "npc", valueOnly = TRUE)
+        nx <- floor(1 / (wd * 0.8))
+        ny <- floor(convertHeight(unit(1, "npc"),
+                                  "npc", valueOnly = TRUE) / ht)
+
+        h <- iNZhist(x, nbins = nx, xlim = xlim)
+        
       # Draw a histogram if sample size is large:
-        h <- iNZhist(x, opts$hist.bins / (2 * opts$cex.pt), xlim = xlim)
+      #  h <- iNZhist(x, opts$hist.bins / (2 * opts$cex.pt), xlim = xlim)
 
         xx <- h$breaks
         yy <- h$counts
@@ -77,10 +87,11 @@ function(x, y, xlim, ylim, col, opts, guides = NULL) {
     } else if (length(x) > 0) {
       # Draw the dotplot in the first row
         grid.points(x, y, default.units = "native",
-                    pch = opts$pch,
+                    pch = if (opts$alpha == 1) opts$pch else 19,
                     gp =
                     gpar(cex = opts$cex.pt, col = col,
-                         lwd = opts$lwd.pt, fill = opts$fill.pt))
+                         lwd = opts$lwd.pt, fill = opts$fill.pt,
+                         alpha = opts$alpha))
     }
 
     upViewport()  # back to layout5

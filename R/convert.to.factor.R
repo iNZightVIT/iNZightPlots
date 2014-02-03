@@ -47,6 +47,7 @@ function(x) {
                       paste(c("(", x.quantiles[4], " - ", x.quantiles[5], "]"), collapse = ""))
         }
     }
-    
-    x.fact
+
+  # Remove any empty levels -_-
+    factor(x.fact) 
 }

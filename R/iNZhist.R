@@ -1,5 +1,5 @@
 iNZhist <-
-function(x, nbins = 20, xlim = range(x, na.rm = TRUE)) {
+function(x, nbins = 20, xlim = range(x, na.rm = TRUE), scale.width = TRUE) {
 
   # ----------------------------------------------------------------------- #
   # Rather than using the hist() function in the base R installation,
@@ -28,7 +28,7 @@ function(x, nbins = 20, xlim = range(x, na.rm = TRUE)) {
     den <- tab / sum(tab)
 
     list(breaks = cuts,
-         counts = as.numeric(tab),
+         counts = as.numeric(tab),  
          density = as.numeric(den),
          mids = mids,
          x = sort(x))

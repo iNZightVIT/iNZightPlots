@@ -766,6 +766,7 @@ iNZightPlot <-
 
       # X axis label
         pushViewport(viewport(layout.pos.col = 2, layout.pos.row = 3))
+        if (is.null(xlab)) xlab <- varnames$x
         grid.text(xlab,
                   y = unit(0.4, "npc"),
                   gp = gpar(cex = opts$cex.lab))
@@ -775,6 +776,7 @@ iNZightPlot <-
       # Y axis label
         if (!is.null(y) & is.numeric(y)) {
             pushViewport(viewport(layout.pos.col = 1, layout.pos.row = 2))
+            if (is.null(ylab)) ylab <- varnames$y
             grid.text(ylab,
                       x = unit(0.5, "lines"),
                       rot = 90,
