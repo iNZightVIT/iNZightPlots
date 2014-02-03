@@ -1,9 +1,10 @@
 iNZmatrix <-
 function(x, y = NULL, g1 = NULL, g2 = NULL,
-             g1.level = NULL, g2.level = NULL,
-             varnames = list(), xlab = varnames$x, ylab = varnames$y,
-             by = NULL, prop.size = NULL, 
-             opts) {
+         g1.level = NULL, g2.level = NULL,
+         varnames = list(), xlab = NULL, ylab = NULL,
+         main = NULL,
+         by = NULL, prop.size = NULL, 
+         opts) {
   # --------------------------------------------------------------------------- #
   # Produces a matrix of each level of g1 plotted against each level of g2
   # Checking: - if g1.level is a single level, then send back with g2 = g1
@@ -19,6 +20,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
             arglist <- c(list(x = x, y = y, g1 = g2, g2 = g1,
                               g1.level = g2.level, g2.level = g1.level,
                               varnames = v, xlab = xlab, ylab = ylab,
+                              main = main,
                               by = by, prop.size = prop.size),
                          opts)
             do.call(iNZightPlot, arglist)
@@ -109,12 +111,12 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
 
   # --------------------------------------------------------------------------- #
   #                                                      Subdivide by g1 and g2
-
+    
     if (is.numeric(g1)) g1 <- convert.to.factor(g1)
     if (is.numeric(g2)) g2 <- convert.to.factor(g2)
     if (length(g2.level) == 1) g2.level <- levels(g2)
     if (length(g1.level) == 1) g1.level <- levels(g1)
-
+    
     x.list <- structure(vector("list", length(g1.level)),
                         .Names = g1.level)
     x.list <- lapply(x.list,
@@ -228,7 +230,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
     w4 <- if (is.null(by))   unit(0, "npc")    else convertWidth(grobWidth(leg.grob), "mm")
     widths <- unit.c(w1, w2, w3, w4 * 1.05)
     
-    h1 <- if (is.numeric(y)) unit(3, "lines")  else unit(3, "lines")
+    h1 <- if (is.numeric(y)) unit(3, "lines")  else unit(2, "lines")
     if (!is.null(g2.level)) h1 <- h1 + unit(1, "lines")
     h2 <-                    unit(1, "null")
     h3 <-                    unit(5, "lines")
@@ -311,7 +313,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
         } else {
             c(0, length(levels(x)))
         }
-    
+
     ylim <-
         if (is.numeric(y)) {
             r <- range(y)
@@ -321,14 +323,21 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
         } else if (is.null(y)) {
             if (is.numeric(x)) {
               # to ensure we account for g1.level being set:
-                r <- range(lapply(x.list,
-                                  function(X) {
-                                      lapply(X,
-                                             function(x) {
-                                                 makePoints(x, xlim = xlim,
-                                                            opts = opts)$y
-                                             })
-                                  }))
+
+                pushViewport(viewport(layout.pos.row = 2, layout.pos.col = 1))
+                pushViewport(viewport(layout = layout3))
+                pushViewport(viewport(layout.pos.row = 2, xscale = xlim))
+                
+                r <- c(0, max(sapply(x.list,
+                                     function(X) {
+                                         max(sapply(X,
+                                                    function(x) {
+                                                        ff <- makePoints(x, xlim = xlim,
+                                                                         opts = opts)$ymax
+                                                    }))
+                                         })))
+                seekViewport("subdivisionLayout")
+                
                 r[2] <- max(0.001, r[2])
                 neg <- r < 0
                 mult <- c(-1, 1) * ifelse(neg, -1, 1)
@@ -349,18 +358,29 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
         } else {
           # Y is a factor, so need to break x.list down even more:
             if (is.numeric(x)) {
+
+                pushViewport(viewport(layout.pos.row = 2, layout.pos.col = 1))
+                pushViewport(viewport(layout = layout3))
+                pushViewport(viewport(layout.pos.row = 2, xscale = xlim))
+                pushViewport(viewport(layout = grid.layout(length(levels(y)), 1)))
+                NY <- length(levels(y))
+                CEX <- sqrt(sqrt(NY) / NY)
+                pushViewport(viewport(layout.pos.row = 1, gp = gpar(cex = CEX)))
+                
                 r <- c(0, 0)                
                 for (i in 1:length(x.list)) {
                     for (j in 1:length(x.list[[i]])) {
                         xl <- x.list[[i]][[j]]
                         yl <- y.list[[i]][[j]]
                         x.tmp <- lapply(levels(y), function(l) subset(xl, yl == l))
-                        rr <- range(lapply(x.tmp,
+                        rr <- range(sapply(x.tmp,
                                            function(x) makePoints(x, xlim = xlim,
-                                                                  opts = opts)$y))
+                                                                  opts = opts)$ymax))
                         r <- range(rr, r)
                     }
                 }
+
+                seekViewport("subdivisionLayout")
                                  
                 r[2] <- max(0.001, r[2])
                 neg <- r < 0
@@ -370,12 +390,13 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
               # need the y-values for the appropriate barplot
                 up <- 0
                 for (i in 1:length(x.list)) {
+                    print(x.list)
                     for (j in 1:length(x.list[[i]])) {
                         tab <- table(x.list[[i]][[j]], y.list[[i]][[j]])
                         phat <- apply(tab, 2, function(x) x / sum(x))
                         se <- sqrt(phat * (1 - phat) /
                                    length(x.list[[i]][[j]]))
-                        up <- max(up, max(phat + 1.96 * se, na.rm = TRUE))
+                        up <- try(max(up, max(phat + 1.96 * se, na.rm = TRUE)))
                     }
                 }
                 o <- c(0, up)
@@ -427,7 +448,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
             ylim <- c(0, ylim[2])
         }
     }
-    
+
     for (i in 1:nr) {
         pushViewport(viewport(layout.pos.row = (i * 2) - 1))
         grid.rect(gp = gpar(fill = "lightblue"))  # the g1 level subtitle
@@ -548,8 +569,11 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
         title5 <- ifelse(is.null(prop.size), '',
                          paste0('\n(sized by ', varnames$prop.size, ')'))
     } else title5 <- ''
-    
-    grid.text(paste0(title1, title2, title3, title4, title5),
+
+    title <-
+        if (is.null(main)) paste0(title1, title2, title3, title4, title5)
+        else main
+    grid.text(title,
               y = unit(1, "npc") - unit(0.5, "lines"),
               just = "top",
               gp = gpar(cex = opts$cex.main))
@@ -569,6 +593,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
   # X axis label
     pushViewport(viewport(layout.pos.col = 2, layout.pos.row = 3,
                           gp = gpar(cex = 0.8)))
+    if (is.null(xlab)) xlab <- varnames$x
     grid.text(xlab,
               y = unit(0.4, "npc"),
               gp = gpar(cex = opts$cex.lab))
@@ -579,6 +604,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
     if (!is.null(y) & is.numeric(y)) {
         pushViewport(viewport(layout.pos.col = 1, layout.pos.row = 2,
                               gp = gpar(cex = 0.8)))
+        if (is.null(ylab)) ylab <- varnames$y
         grid.text(ylab,
                   x = unit(0.5, "lines"),
                   rot = 90,

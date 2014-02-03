@@ -5,6 +5,10 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
   # Returns summary information relating to the plot.
   # Based on addSumm from chrisfns.R
 
+    if (!is.null(g2.level))
+        if (g2.level == "_MULTI")
+            return("Not yet implemented.")
+    
     opts <- modifyList(inzPlotDefaults(), list(...))
 
   # --------------------------------------------------------------------------- #

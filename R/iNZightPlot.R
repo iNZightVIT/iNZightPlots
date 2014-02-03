@@ -103,6 +103,7 @@ iNZightPlot <-
       # ========================================================================= #
       
         if (!is.null(g2)) { if (is.numeric(g2)) g2 <- convert.to.factor(g2) }
+        if (!is.null(g1)) { if (is.numeric(g1)) g1 <- convert.to.factor(g1) }
 
       # Fix up a little bug that occurs when users specify the same
       # variable for `g2` and `by`:
@@ -117,6 +118,7 @@ iNZightPlot <-
                 ret <- iNZmatrix(x = x, y = y, g1 = g1, g2 = g2,
                                  g1.level = g1.level, g2.level = g2.level,
                                  varnames = varnames, xlab = xlab, ylab = ylab,
+                                 main = main,
                                  by = by, prop.size = prop.size,
                                  opts = opts)
                 return(invisible(ret))
