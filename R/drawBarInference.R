@@ -2,7 +2,7 @@ drawBarInference <- function(x, y = NULL, opts) {
   # A function which calculates the inferences lines necessary for the
   # plot. Returns a list of lines (for each bar, essentially) with
   # comparison and confidence intervals.
-    
+
   # Some error checking ... but only send the error message once.
     if (!is.null(opts$inference.par))
         if (opts$inference.par != "proportion")
@@ -87,7 +87,7 @@ drawInferenceLines <- function(x, i, xx, opts, guides) {
                        gpar(col = opts$inf.col.comp,
                             lwd = opts$inf.lwd.comp / sqrt(x$n),
                             lineend = "butt"))
-
+            
             if (guides == 'group') {
                 grid.polyline(rep(c(0.05, 0.95), 2),
                               unit(rep(y, each = 2), "native"),

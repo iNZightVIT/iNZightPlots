@@ -390,7 +390,6 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
               # need the y-values for the appropriate barplot
                 up <- 0
                 for (i in 1:length(x.list)) {
-                    print(x.list)
                     for (j in 1:length(x.list[[i]])) {
                         tab <- table(x.list[[i]][[j]], y.list[[i]][[j]])
                         phat <- apply(tab, 2, function(x) x / sum(x))
@@ -410,40 +409,21 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
   # --- FOR BARPLOTS:
   # If inference is requested, need to ensure all of the scales are the same ...
     if (barplot) {
-        if (!is.null(opts$inference.type)) {
-          # We want the axes to be the same for all of the plots, including
-          # if we only draw ONE level of g1 (still needs the same ylimits).
-          # So, we need to create a temporary x/y list containing all of the
-          # levels to get this information.
-
-            x.list.tmp <-
-                if (is.null(g1)) {
-                    list(all = x)
-                } else {
-                    tmp <- lapply(levels(g1),
-                                  function(l) subset(x, g1 == l))
-                    names(tmp) <- levels(g1)
-                    tmp
-                }
+        if (!is.null(opts$inference.type)) {            
+            inference.list <-
+                lapply(1:length(x.list),
+                       function(i) {
+                           lapply(1:length(x.list[[i]]),
+                                  function(j) {
+                                      y2 <- if (is.null(y)) NULL else y.list[[i]][[j]]
+                                      try(drawBarInference(x.list[[i]][[j]], y2, opts))
+                                  })
+                       })
             
-            if (!is.null(y)) {
-                y.list.tmp <-
-                    if (is.null(g1)) {
-                        list(all = y)
-                    } else {
-                        tmp <- lapply(levels(g1),
-                                      function(l) subset(y, g1 == l))
-                        names(tmp) <- levels(g1)
-                        tmp
-                    }
-            }
-            
-            inference.list <- lapply(1:max(1, length(levels(g1))), function(i) {
-                y2 <- if (is.null(y)) NULL else y.list.tmp[[i]]
-                drawBarInference(x.list.tmp[[i]], y2, opts)
-            })
-            
-            ylim <- c(0, min(1, max(sapply(inference.list, function(l) l$max))))
+            ylim <- c(0, min(1, max(sapply(inference.list,
+                                           function(l1)
+                                           max(sapply(l1,
+                                                      function(l) l$max))))))
         } else {
             ylim <- c(0, ylim[2])
         }

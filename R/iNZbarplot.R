@@ -220,10 +220,6 @@ iNZbarplot <-
             if (labheight > 5)
                 labText <- editGrob(labText,
                                     gp = gpar(cex = 5 / labheight * opts$cex.axis))
-               # grid.edit("labelText",
-               #           gp = gpar(cex = 5 / labheight * opts$cex.axis))
-      ### where did the 2.7 come from? Trial and error. Future iNZighters, feel free
-        # to make this more than a guess. ###
         }
 
         pushViewport(viewport(xscale = xlim))
@@ -237,10 +233,11 @@ iNZbarplot <-
         pushViewport(viewport(yscale = ylim * 1.05))
         guides <- g.loc[!is.na(g.loc)]
         
-        grid.polyline(x = rep(c(0, 1), length(guides)),
-                      y = unit(rep(guides, each = 2), "native"),
-                      id = rep(1:length(guides), each = 2),
-                      gp = gpar(lty = 3, col = "grey50", lwd = 0.5))
+        if (length(guides) > 0)
+            grid.polyline(x = rep(c(0, 1), length(guides)),
+                          y = unit(rep(guides, each = 2), "native"),
+                          id = rep(1:length(guides), each = 2),
+                          gp = gpar(lty = 3, col = "grey50", lwd = 0.5))
         
         upViewport()
     }

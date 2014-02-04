@@ -103,7 +103,21 @@ iNZightPlot <-
       # ========================================================================= #
       
         if (!is.null(g2)) { if (is.numeric(g2)) g2 <- convert.to.factor(g2) }
-        if (!is.null(g1)) { if (is.numeric(g1)) g1 <- convert.to.factor(g1) }
+        if (!is.null(g1)) {
+            if (is.numeric(g1)) g1 <- convert.to.factor(g1)
+        } else {
+          # g1 is null! Check that g2 is not set to _MULTI:
+            if (!is.null(g2.level)) {
+                if (g2.level == "_MULTI") {
+                    v <- varnames
+                    v$g1 <- varnames$g2
+                    v$g2 <- varnames$g1
+                    g1.tmp <- g2
+                    g2 <- g1
+                    g1 <- g1.tmp
+                }
+            }
+        }
 
       # Fix up a little bug that occurs when users specify the same
       # variable for `g2` and `by`:
