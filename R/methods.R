@@ -32,3 +32,7 @@ print.iNZightObject <- function(o) {
     cat("An object of class `iNZightObject`, with the following methods:\n\n")
     cat("- plot()\n- summary()\n- inference()\n\n")
 }
+
+
+print.iNZightPlotSummary <- function(o)
+    cat(o, sep = "\n")
