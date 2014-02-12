@@ -36,3 +36,6 @@ print.iNZightObject <- function(o) {
 
 print.iNZightPlotSummary <- function(o)
     cat(o, sep = "\n")
+
+print.iNZightPlotInference <- function(o)
+    cat(o, sep = "\n")
