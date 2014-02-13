@@ -421,7 +421,7 @@ iNZightPlot <-
         grid.newpage()
         pushViewport(viewport(layout = layout1, name = "toplevel",
                               gp = gpar(cex = cex)))
-        grid.rect(gp = gpar(fill = bg))
+        grid.rect(gp = gpar(fill = bg, lwd = 0))
 
       # --------------------------------------------------------------------------- #
       #                                             subdivide plotting region by g1
