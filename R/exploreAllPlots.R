@@ -1,8 +1,5 @@
 exploreAllPlots <- function(data) {
     ## Runs iNZightPlot on all of the variables, with a click-for-next thing.
-
-    dev.new()
-    
     
     grid.newpage()
     pushViewport(viewport())
@@ -17,6 +14,5 @@ exploreAllPlots <- function(data) {
         dev.flush()
     }
     devAskNewPage(oask)
-
-    invisible(NULL)
+    grid.newpage()
 }
