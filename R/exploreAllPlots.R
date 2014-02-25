@@ -16,4 +16,7 @@ exploreAllPlots <- function(data) {
         iNZightPlot(data[, i], varnames = list(x = colnames(data)[i]))
         dev.flush()
     }
+    devAskNewPage(oask)
+
+    invisible(NULL)
 }
