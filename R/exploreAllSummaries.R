@@ -1,4 +1,4 @@
-exploreAllSummaries <- function(data, gui = NULL) {
+exploreAllSummaries <- function(data) {
     ## Runs getPlotSummary() on all variables.
     
     sums <- lapply(colnames(data),
