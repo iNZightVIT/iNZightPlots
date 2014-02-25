@@ -3,7 +3,8 @@ import(boot)
 import(s20x)
 import(survey)
 
-export(iNZightPlot, inzPlotDefaults, resetPlot, inference, convert.to.factor)
+export(iNZightPlot, inzPlotDefaults, resetPlot, inference, convert.to.factor,
+       exploreAllPlots)
 
 S3method(print, iNZightObject)
 S3method(plot, iNZightObject)
