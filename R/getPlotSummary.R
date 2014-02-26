@@ -170,8 +170,9 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                 values[c(2:3, 5)] <- fivenum(X)[2:4]
 
                 sum.tab <- cbind(t(matrix(values)), signif(sd(X), 5),
-                                 length(X), sum(M), deparse.level = 0)
-                colnames(sum.tab) <- c(names(sum), "Std.dev", "Sample.Size", "n.missing")
+                                 length(X), sum(M), length(unique(X)), deparse.level = 0)
+                colnames(sum.tab) <- c(names(sum), "Std.dev", "Sample.Size",
+                                       "n.missing", "n.distinct")
                 rownames(sum.tab) <- rep("", nrow(sum.tab))
                 
                 o <- if (i > 1) c(o, paste(rep('_', 80), collapse = ''), '') else c(o, '')
