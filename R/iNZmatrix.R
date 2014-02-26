@@ -166,6 +166,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
   # ========================================================================= #
 
     grid.newpage()
+    dev.hold()
     pushViewport(viewport(gp = gpar(cex = 0.8)))
     
   # Calculate the width of the y-axis, so to make it as compact as possible
@@ -592,7 +593,8 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
         
         upViewport()  # return to toplevel layout
     }
-    
+
+    dev.flush()
 
   # --------------------------------------------------------------------------- #
   #                                                                Return value

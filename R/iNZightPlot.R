@@ -419,6 +419,7 @@ iNZightPlot <-
         cex.main <- opts$cex.main
 
         grid.newpage()
+        dev.hold()
         pushViewport(viewport(layout = layout1, name = "toplevel",
                               gp = gpar(cex = cex)))
         grid.rect(gp = gpar(fill = bg, lwd = 0))
@@ -800,6 +801,8 @@ iNZightPlot <-
 
             upViewport()  # return to toplevel layout
         }
+
+        dev.flush()
 
 
       # --------------------------------------------------------------------------- #
