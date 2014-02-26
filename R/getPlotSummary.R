@@ -319,10 +319,10 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                 o <- if (i > 1) c(o, paste(rep('_', 80), collapse = ''), '') else c(o, '')
 
               # Table of counts
-                if (length(levels(X)) < 10 & length(levels(Y)) < 10)
+              #  if (length(levels(X)) < 10 & length(levels(Y)) < 10)
                     sum.tab <- verticalTable.2(Y, X, pc = FALSE)
-                else
-                    sum.tab <- t(verticalTable.2(Y, X, pc = FALSE))
+              #  else
+              #      sum.tab <- t(verticalTable.2(Y, X, pc = FALSE))
 
                 out <- capture.output(matprint(cbind(sum.tab,
                                                      n.missing = c(M, sum(as.numeric(M))))))
@@ -332,10 +332,10 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                        '', out, '')
 
               # Percentage table
-                if (length(levels(X)) < 10 & length(levels(Y)) < 10)
+              #  if (length(levels(X)) < 10 & length(levels(Y)) < 10)
                     sum.tab <- verticalTable.2(Y, X, pc = TRUE)
-                else
-                    sum.tab <- t(verticalTable.2(Y, X, pc = TRUE))
+              #  else
+              #      sum.tab <- t(verticalTable.2(Y, X, pc = TRUE))
 
                 out <- capture.output(matprint(sum.tab))
                 o <- c(o, paste0("Table of Percentages for ", varnames$x, " by ", varnames$y,
