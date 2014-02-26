@@ -59,7 +59,7 @@ iNZightPlot <-
         }
 
       # Need a limit for the number of bars to draw ...
-        max.levels <- 30
+        max.levels <- 60
         if (is.factor(x)) {
             if (is.null(y)) {
                 if (length(levels(x)) > max.levels) {
