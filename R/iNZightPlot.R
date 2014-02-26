@@ -58,6 +58,22 @@ iNZightPlot <-
             varnames$y <- x.name
         }
 
+      # Need a limit for the number of bars to draw ...
+        max.levels <- 30
+        if (is.factor(x)) {
+            if (is.null(y)) {
+                if (length(levels(x)) > max.levels) {
+                    stopPlot("Too many levels in x to draw a barchart.")
+                    return()
+                }
+            } else if (is.factor(y)) {
+                if (length(levels(x)) * length(levels(y)) > max.levels) {
+                    stopPlot("Too many levels in x and y to draw a barchart.")
+                    return()
+                }
+            }
+        }
+
       # --------------------------------------------------------------------------- #
       #                                                       Remove missing values
         
