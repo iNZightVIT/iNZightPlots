@@ -168,6 +168,11 @@ inzPlotDefaults()
     numeric, the cut-off point for drawing dot plots and scatter plots;
     for large sample sizes, we switch to histograms and grid density plots.
   }
+  \item{largesample}{
+    logical or NULL, if \code{TRUE} then large-sample plot is used, if
+    \code{FALSE} then small sample plot is used, otherwise if
+    \code{NULL} it is based on \code{large.sample.size}.
+  }
   \item{scatter.grid.bins}{
     numeric, the number of grids (per axis, i.e., the total number of
     squares is the square of this value). Currently, this value is

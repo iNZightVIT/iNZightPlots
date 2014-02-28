@@ -51,6 +51,7 @@ function() {
          bs.inference   = FALSE,
          n.boot         = 1500,
          large.sample.size = 2000,
+         largesample    = NULL,
          scatter.grid.bins = 200,
          hist.bins      = 100,
          quant.cutoff   = c(200, 1000))

@@ -67,7 +67,13 @@ iNZscatterplot <-
                               yscale = ylim))  # so nothing goes outside the box
 
       # Draw a scatter plot:
-        if (length(x) < opts$large.sample.size) {
+        largesample <-
+            if (is.null(opts$largesample))
+                length(x) > opts$large.sample.size
+            else
+                opts$largesample
+        
+        if (!largesample) {
           # Point sizes:
             if (!is.null(prop.size))
                 cex <- proportionalPointSize(prop.size, opts$cex.pt)
