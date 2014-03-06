@@ -37,8 +37,7 @@ function(x, cols = NULL, xlim = range(x, na.rm = TRUE),
       # ---------------------------------------------------------- #
       #                                                    DOTPLOT
       # Returns the X and Y values to make a dotplot
-        
-        
+                
         y <- unlist(sapply(h$counts[h$counts != 0], function(c) 1:c))
 
       # Now we want to scale the y-values to the same scale as hist() gives

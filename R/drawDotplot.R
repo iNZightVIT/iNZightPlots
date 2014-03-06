@@ -56,7 +56,8 @@ function(x, y, xlim, ylim, col, opts, guides = NULL) {
 
     pushViewport(viewport(layout.pos.row = 1,
                           xscale = xlim,
-                          yscale = ylim))
+                          yscale = ylim,
+                          name = "DOTPLOTVP"))
 
     if (length(x) > opts$large.sample.size) {
         wd <- convertWidth(unit(1 * opts$cex.pt, "char"),

@@ -820,7 +820,12 @@ iNZightPlot <-
 
         dev.flush()
 
-
+      # Now return to the viewport
+        
+        pushViewport(viewport(layout = layout1))
+        pushViewport(viewport(layout.pos.row = 2, layout.pos.col = 2,
+                              xscale = xlim, yscale = ylim))
+        
       # --------------------------------------------------------------------------- #
       #                                         returning information from the plot
 
