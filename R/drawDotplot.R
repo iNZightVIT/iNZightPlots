@@ -59,7 +59,13 @@ function(x, y, xlim, ylim, col, opts, guides = NULL) {
                           yscale = ylim,
                           name = "DOTPLOTVP"))
 
-    if (length(x) > opts$large.sample.size) {
+    largesample <-
+        if (is.null(opts$largesample))
+            length(x) > opts$large.sample.size
+        else
+            opts$largesample
+
+    if (largesample) {
         wd <- convertWidth(unit(1 * opts$cex.pt, "char"),
                            "npc", valueOnly = TRUE)
         ht <- convertHeight(unit(1 * opts$cex.pt, "char"),

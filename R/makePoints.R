@@ -1,6 +1,7 @@
 makePoints <-
 function(x, cols = NULL, xlim = range(x, na.rm = TRUE),
-         useHist = length(x) > opts$large.sample.size,
+         useHist = if (is.null(opts$largesample))
+             length(x) > opts$large.sample.size  else opts$largesample,
          opts = inzPlotDefaults()) {
 
   # ----------------------------------------------------------------------- #
