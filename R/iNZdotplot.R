@@ -71,6 +71,7 @@ iNZdotplot <-
 
     if (is.null(y)) {
       # Calculate x and y values for plotting the stacked dots
+
         dat <- makePoints(x, cols = col, xlim = xlim, opts = opts)
         x <- dat$x
         y <- dat$y
