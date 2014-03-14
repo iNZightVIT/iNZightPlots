@@ -64,7 +64,8 @@ iNZscatterplot <-
     if (length(x) > 0) {
         pushViewport(viewport(clip = "on",
                               xscale = xlim,
-                              yscale = ylim))  # so nothing goes outside the box
+                              yscale = ylim,
+                              name = "SCATTERVP"))  # so nothing goes outside the box
 
       # Draw a scatter plot:
         largesample <-
