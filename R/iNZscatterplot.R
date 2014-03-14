@@ -85,7 +85,8 @@ iNZscatterplot <-
                         gp =
                         gpar(cex = cex, col = col,
                              lwd = opts$lwd.pt,
-                             alpha = opts$alpha))
+                             alpha = opts$alpha),
+                        name = "SCATTERPOINTS")
             
           # Connect by dots if they want it ...
             if (opts$join) {
