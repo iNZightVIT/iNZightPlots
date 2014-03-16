@@ -270,12 +270,14 @@ iNZightPlot <-
         if (is.numeric(x) & is.numeric(y)) {
           # Legend for trend curves
             lines.list <- list()
-            if (!is.null(opts$trend)) {
-                for (i in 1:length(opts$trend)) {
-                    lines.list <- c(lines.list,
-                                    list(c(opts$trend[i],
-                                           opts$col.trend[[opts$trend[i]]],
-                                           opts$lty, opts$lwd)))
+            if (length(opts$trend) > 0) {
+                if (opts$trend != FALSE) {
+                    for (i in 1:length(opts$trend)) {
+                        lines.list <- c(lines.list,
+                                        list(c(opts$trend[i],
+                                               opts$col.trend[[opts$trend[i]]],
+                                               opts$lty, opts$lwd)))
+                    }
                 }
             }
             if (length(opts$quant.smooth) > 0) {
@@ -287,7 +289,7 @@ iNZightPlot <-
                                                       ifelse(qs$qp[i] != 0.5,
                                                              paste0(" - ", (1 - qs$qp[i]) * 100),
                                                              ""),
-                                                      "% quantiles"),
+                                                      "%"),
                                                opts$col.smooth,
                                                qs$lty[i], qs$lwd[i])))
                                     }
@@ -310,11 +312,12 @@ iNZightPlot <-
                 cex <- cex.text
                 cex.mult <- cex.mult * 0.8
                 cex.title <- cex.lab
+                title <- ""
                 lty <- as.numeric(sapply(lines.list, function(x) x[3]))
                 lwd <- as.numeric(sapply(lines.list, function(x) x[4]))
     
                 leg.width <-
-                    max(sapply(lab, function(x)
+                    max(sapply(c(title, lab), function(x)
                                convertWidth(grobWidth(textGrob(x, gp =
                                                                gpar(cex = cex * cex.mult))),
                                             "mm")))
@@ -340,6 +343,11 @@ iNZightPlot <-
                                                  gp = gpar(cex = cex * cex.mult)),
                                     col = 3, row = i + 1)
                 }
+
+                fg <- placeGrob(fg, textGrob(title, x = 0.5, y = 1,
+                                 just = "left",
+                                 gp = gpar(cex = cex.title * cex.mult)),
+                    col = 2, row = 1)
                 
                 leg.grob2 <- fg
             } else {
