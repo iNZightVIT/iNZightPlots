@@ -59,7 +59,7 @@ iNZightPlot <-
         }
 
       # Need a limit for the number of bars to draw ...
-        max.levels <- 60
+        max.levels <- 101
         if (is.factor(x)) {
             if (is.null(y)) {
                 if (length(levels(x)) > max.levels) {
@@ -215,6 +215,11 @@ iNZightPlot <-
                 varnames$by <- varnames$y
             }
         }
+
+        # decide on a scaling factor for the legend
+        cex.mult <- ifelse(is.null(g1), 1,
+                           ifelse(is.null(g1.level),
+                                  ifelse(length(levels(g1)) >= 6, 0.7, 1), 1))
       
         if (!is.null(by)) {
             if (is.factor(by)) {
@@ -240,10 +245,7 @@ iNZightPlot <-
             else
                 cols <- col.pt
 
-          # decide on a scaling factor for the legend
-            cex.mult <- ifelse(is.null(g1), 1,
-                               ifelse(is.null(g1.level),
-                                      ifelse(length(levels(g1)) >= 6, 0.7, 1), 1))
+          
 
           # design the legend
             legend <- list(labs      = levels(by),
@@ -261,6 +263,90 @@ iNZightPlot <-
             leg.grob <- drawLegend(legend)
         } else {
             cols <- rep(col.pt, length = length(x))
+            leg.grob <- NULL
+        }
+
+        ## Legend stuff for trend lines
+        if (is.numeric(x) & is.numeric(y)) {
+          # Legend for trend curves
+            lines.list <- list()
+            if (!is.null(opts$trend)) {
+                for (i in 1:length(opts$trend)) {
+                    lines.list <- c(lines.list,
+                                    list(c(opts$trend[i],
+                                           opts$col.trend[[opts$trend[i]]],
+                                           opts$lty, opts$lwd)))
+                }
+            }
+            if (length(opts$quant.smooth) > 0) {
+                qs <- calcQSmooth(x, opts$quant.smooth, opts)
+                if (!is.null(qs)) {
+                    for (i in 1:length(qs$qp)) {
+                        lines.list <- c(lines.list,
+                                        list(c(paste0(qs$qp[i] * 100,
+                                                      ifelse(qs$qp[i] != 0.5,
+                                                             paste0(" - ", (1 - qs$qp[i]) * 100),
+                                                             ""),
+                                                      "% quantiles"),
+                                               opts$col.smooth,
+                                               qs$lty[i], qs$lwd[i])))
+                                    }
+                }
+            } else {
+                if (!is.null(opts$smooth)) {
+                    if (opts$smooth != 0) {
+                        lines.list <- c(lines.list,
+                                        list(c("smoother", opts$col.smooth,
+                                               opts$lty, opts$lwd)))
+                    }
+                }
+            }
+
+            if (length(lines.list) > 0) {
+                gap <- unit(0.5, "lines")
+                lab <- sapply(lines.list, function(x) x[1])
+                n <- length(lab)
+                col <- sapply(lines.list, function(x) x[2])
+                cex <- cex.text
+                cex.mult <- cex.mult * 0.8
+                cex.title <- cex.lab
+                lty <- as.numeric(sapply(lines.list, function(x) x[3]))
+                lwd <- as.numeric(sapply(lines.list, function(x) x[4]))
+    
+                leg.width <-
+                    max(sapply(lab, function(x)
+                               convertWidth(grobWidth(textGrob(x, gp =
+                                                               gpar(cex = cex * cex.mult))),
+                                            "mm")))
+                legend.layout <-
+                    grid.layout(n + 1, 4,
+                                widths = unit.c(unit(0, "mm"), unit(2, "lines"),
+                                    unit(leg.width, "mm"), unit(0.5, "lines")), 
+                                heights =
+                                unit.pmax(unit(2, "lines"),
+                                          gap + unit(rep(1, n), "strheight", as.list(lab))))
+                
+                fg <- frameGrob(layout = legend.layout)
+                
+                for (i in 1L:n) {
+                    fg <- placeGrob(fg, linesGrob(c(0.2, 0.8), 0.5,
+                                                  gp =
+                                                  gpar(col = col[i],
+                                                       lty = lty[i], lwd = lwd[i])),
+                                    col = 2, row = i + 1)
+                    
+                    fg <- placeGrob(fg, textGrob(lab[i], x = 0 , y = 0.5,
+                                                 just = c("left", "center"),
+                                                 gp = gpar(cex = cex * cex.mult)),
+                                    col = 3, row = i + 1)
+                }
+                
+                leg.grob2 <- fg
+            } else {
+                leg.grob2 <- NULL
+            }
+        } else {
+            leg.grob2 <- NULL
         }
         
       # --------------------------------------------------------------------------- #
@@ -425,7 +511,20 @@ iNZightPlot <-
             }
         w2 <-                    unit(1, "null")
         w3 <- if (is.numeric(y)) unit(2, "lines")  else unit(0.05, "npc")
-        w4 <- if (is.null(by))   unit(0, "npc")    else convertWidth(grobWidth(leg.grob), "mm")
+        w4 <-
+            if (is.null(leg.grob) & is.null(leg.grob2))
+                unit(0, "npc")
+            else if (!is.null(leg.grob2) & !is.null(leg.grob))
+                max(convertWidth(grobWidth(leg.grob), "mm"),
+                    convertWidth(grobWidth(leg.grob2), "mm"))
+            else if (is.null(leg.grob))
+                convertWidth(grobWidth(leg.grob2), "mm")
+            else
+                convertWidth(grobWidth(leg.grob), "mm")
+               
+            
+                
+        
         widths <- unit.c(w1, w2, w3, w4 * 1.05)
 
         h1 <- if (is.numeric(y)) unit(5, "lines")  else unit(3, "lines")
@@ -800,12 +899,32 @@ iNZightPlot <-
 
 
       # Legend
+        pushViewport(viewport(layout.pos.col = 4, layout.pos.row = 2))
+        if (!is.null(leg.grob) & !is.null(leg.grob2)) {
+            leglayout <- grid.layout(2, 1,
+                                     heights =
+                                     unit.c(grobHeight(leg.grob),
+                                            grobHeight(leg.grob2)))
+        } else {
+            leglayout <- grid.layout(1, 1)
+        }
+        LR <- 1
+        pushViewport(viewport(layout = leglayout))
         if (!is.null(by)) {
-            pushViewport(viewport(layout.pos.col = 4, layout.pos.row = 2))
+            pushViewport(viewport(layout.pos.row = LR))
             grid.draw(leg.grob)
-
+            LR <- LR + 1
             upViewport()  # return to toplevel layout
         }
+        if (!is.null(leg.grob2)) {
+            pushViewport(viewport(layout.pos.row = LR))
+          # Legend for trend curves
+            if (!is.null(leg.grob2)) {
+                grid.draw(leg.grob2)
+            }
+            upViewport()
+        }
+        upViewport(2)
 
       # X axis label
         pushViewport(viewport(layout.pos.col = 2, layout.pos.row = 3))

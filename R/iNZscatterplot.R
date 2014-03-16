@@ -190,42 +190,16 @@ iNZscatterplot <-
 
       # Smoothers + Quantile curves
         if (length(opts$quant.smooth) > 0) {
-          # check quantiles are correct:
-            if (opts$quant.smooth[1] == "default") {
-                qp <- 0.5
-                if (length(x) > opts$quant.cutoff[1]) qp <- c(qp, 0.25)
-                if (length(x) > opts$quant.cutoff[2]) qp <- c(qp, 0.1)
-            } else {
-                qp <- opts$quant.smooth
-            }
-            
-            if (any(qp < 1 & qp > 0)) {
-                qp <- qp[qp > 0 & qp < 1]  # remove invalid quantiles
-
-                qp[qp > 0.5] <- qp[qp > 0.5] - 0.5  # symmetry!
-              # incase user gives c(0.25, 0.75), remove duplicates
-                qp <- sort(unique(qp), decreasing = TRUE)
-
-              # Sort out the line type and width:
-                nn <- length(qp)
-              # bb: the base number of repeats for each unit
-                bb <- rep(nn %/% 3, 3)
-                be <- nn %% 3  # which units repeated once more
-                q.reps <- bb
-                if (be != 0) q.reps[1:be] <- q.reps[1:be] + 1
-                lty <- rep(1:3, q.reps)
-
-              # Line width (less complicated! ...)
-                lwd <- rep(1, length(qp))
-                lwd[1] <- 2
-                if (length(x) > opts$large.sample.size)
-                    lwd <- lwd + 1
-                
+            qs <- calcQSmooth(x, opts$quant.smooth, opts)
+            if (!is.null(qs)) {
+                qp <- qs$qp
+                lty <- qs$lty
+                lwd <- qs$lwd
                 for (q in 1:length(qp))
                     addQuantileSmoother(x, y, quantile = qp[q],
                                         col = opts$col.smooth,
                                         lty = lty[q], lwd = lwd[q])
-            }  # else we can't draw anything ...
+            }
         } else if (!is.null(opts$smooth)) {
           # Smoothers
             if (opts$smooth != 0) {
