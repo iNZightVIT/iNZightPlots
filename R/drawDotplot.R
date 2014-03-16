@@ -98,7 +98,8 @@ function(x, y, xlim, ylim, col, opts, guides = NULL) {
                     gp =
                     gpar(cex = opts$cex.pt, col = col,
                          lwd = opts$lwd.pt, fill = opts$fill.pt,
-                         alpha = opts$alpha))
+                         alpha = opts$alpha),
+                    name = "DOTPOINTS")
     }
 
     upViewport()  # back to layout5

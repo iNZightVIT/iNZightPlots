@@ -64,7 +64,8 @@ iNZscatterplot <-
     if (length(x) > 0) {
         pushViewport(viewport(clip = "on",
                               xscale = xlim,
-                              yscale = ylim))  # so nothing goes outside the box
+                              yscale = ylim,
+                              name = "SCATTERVP"))  # so nothing goes outside the box
 
       # Draw a scatter plot:
         largesample <-
@@ -84,7 +85,8 @@ iNZscatterplot <-
                         gp =
                         gpar(cex = cex, col = col,
                              lwd = opts$lwd.pt,
-                             alpha = opts$alpha))
+                             alpha = opts$alpha),
+                        name = "SCATTERPOINTS")
             
           # Connect by dots if they want it ...
             if (opts$join) {

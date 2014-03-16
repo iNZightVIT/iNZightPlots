@@ -63,11 +63,21 @@ iNZightPlot <-
         if (is.factor(x)) {
             if (is.null(y)) {
                 if (length(levels(x)) > max.levels) {
-                    stopPlot("Too many levels in x to draw a barchart.")
+                    msg <- paste0("Too many levels in ", varnames$x,
+                                  " to draw a barchart.\n",
+                                  "(", varnames$x, " has ",
+                                  length(levels(x)), " levels.)")
+                    stopPlot(msg)
                     return()
                 }
             } else if (is.factor(y)) {
                 if (length(levels(x)) * length(levels(y)) > max.levels) {
+                    msg <- paste0("Too many levels in ", varnames$x, " and ",
+                                  varnames$y, " to draw a barchart.\n",
+                                  "(", varnames$x, " has ",
+                                  length(levels(x)), " levels, ",
+                                  varnames$y, " has ", length(levels(y)),
+                                  "levels.)")
                     stopPlot("Too many levels in x and y to draw a barchart.")
                     return()
                 }
@@ -821,10 +831,9 @@ iNZightPlot <-
         dev.flush()
 
       # Now return to the viewport
-        
         pushViewport(viewport(layout = layout1))
         pushViewport(viewport(layout.pos.row = 2, layout.pos.col = 2,
-                              xscale = xlim, yscale = ylim))
+                              xscale = xlim, yscale = ylim, name = "MAINVP"))
         
       # --------------------------------------------------------------------------- #
       #                                         returning information from the plot
