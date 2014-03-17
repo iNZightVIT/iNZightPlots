@@ -124,9 +124,15 @@ iNZscatterplot <-
           # Different possible colouration patterns for the grid plot.
             # hcols <- rev(heat.colors(n = max(scatter.grid) + 1))
             # hcols <- rainbow(n = max(scatter.grid) + 1)[c(scatter.grid) + 1]
+
+          # If a point has very high density, it dominates. So instead, shade by quantiles.
+            nquants <- max(3, length(x) / 100)
+            br <- unique(quantile(c(scatter.grid), seq(0, 1, length = nquants)))
+            which.quant <- as.numeric(cut(c(scatter.grid), breaks = c(-1, br)))
+
             hcols <- hcl(0, 0, seq(100 * (1 - opts$alpha / 2), 0,
-                                   length = max(scatter.grid) + 1))
-            shade <- matrix(hcols[scatter.grid + 1], nrow = nrow(scatter.grid))
+                                   length = length(br)))
+            shade <- matrix(hcols[which.quant], nrow = nrow(scatter.grid))
 
             grid.xaxis()
             grid.yaxis()
