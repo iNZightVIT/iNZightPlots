@@ -115,8 +115,10 @@ iNZscatterplot <-
             Npt <- min(250, floor(opts$scatter.grid.bins / (opts$cex.pt * 2)))
             
             scatter.grid <- matrix(0, nrow = Npt, ncol = Npt)
-            xx <- cut(x, Npt)
-            yy <- cut(y, Npt)
+            xbrk <- seq(xlim[1], xlim[2], length = Npt + 1)
+            ybrk <- seq(ylim[1], ylim[2], length = Npt + 1)
+            xx <- cut(x, xbrk)
+            yy <- cut(y, ybrk)
             scatter.grid <- as.matrix(table(yy, xx))[Npt:1, ]
 
           # Different possible colouration patterns for the grid plot.
