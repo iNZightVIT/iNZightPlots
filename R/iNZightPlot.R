@@ -3,7 +3,7 @@ iNZightPlot <-
              g1.level = NULL, g2.level = NULL,
              varnames = list(), xlab = varnames$x, ylab = varnames$y,
              main = NULL,
-             by = NULL, prop.size = NULL, 
+             by = NULL, prop.size = NULL, new = TRUE,
              ...) { 
       # --------------------------------------------------------------------------- #
       # 1. Creates lists for each subplot, containing the necessary
@@ -551,7 +551,9 @@ iNZightPlot <-
         cex.text <- opts$cex.text
         cex.main <- opts$cex.main
 
-        grid.newpage()
+        if (new)
+            grid.newpage()
+        
         dev.hold()
         pushViewport(viewport(layout = layout1, name = "toplevel",
                               gp = gpar(cex = cex)))
