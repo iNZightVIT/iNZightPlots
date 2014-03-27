@@ -43,6 +43,13 @@ iNZightPlot <-
         if (!is.null(prop.size) & is.null(varnames$prop.size))
             varnames$prop.size <- getName(deparse(substitute(prop.size)))
 
+      # Make sure "non-numeric" is factor
+        if (!is.numeric(x))
+            x <- as.factor(x)
+        if (!is.null(y))
+            if (!is.numeric(y))
+                y <- as.factor(y)
+        
       # Convert -Inf and Inf values to NA
         x[is.infinite(x)] <- NA
         if (!is.null(y)) y[is.infinite(y)] <- NA
