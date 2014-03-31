@@ -246,7 +246,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                         B <- coef(fit)
                         o <- c(o, paste0(varnames$y, ' = ', signif(B[2], 5), ' * ',
                                          varnames$x, ' + ', signif(B[3], 5), ' * ',
-                                         varnames$y, '^2', ' + ', signif(B[1], 5)), '')
+                                         varnames$x, '^2', ' + ', signif(B[1], 5)), '')
                     }
                     
                     if ("cubic" %in% opts$trend) {
