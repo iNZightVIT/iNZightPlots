@@ -32,9 +32,17 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
     if (!is.null(g2) & is.null(varnames$g2))
         varnames$g2 <- getName(deparse(substitute(g2)))
 
+  # Make sure "non-numeric" is factor
+    if (!is.numeric(x))
+        x <- as.factor(x)
+    if (!is.null(y))
+        if (!is.numeric(y))
+            y <- as.factor(y)
+    
+  # Convert -Inf and Inf values to NA
     x[is.infinite(x)] <- NA
     if (!is.null(y)) y[is.infinite(y)] <- NA
-    
+
     # This is a temporary fix for a "Vertical Dot Plot"
     # 
     if (is.factor(x) & is.numeric(y)) {
@@ -75,10 +83,40 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
 
   # --------------------------------------------------------------------------- #
   #                                                                Subset by g2
-   
+
+    if (!is.null(g2)) { if (is.numeric(g2)) g2 <- convert.to.factor(g2) }
+    if (!is.null(g1)) {
+        if (is.numeric(g1)) g1 <- convert.to.factor(g1)
+    } else {
+      # g1 is null! Check that g2 is not set to _MULTI:
+        if (!is.null(g2.level)) {
+            if (g2.level == "_MULTI") {
+                v <- varnames
+                v$g1 <- varnames$g2
+                v$g2 <- varnames$g1
+                g1.tmp <- g2
+                g2 <- g1
+                g1 <- g1.tmp
+            }
+        }
+    }
+    
     if (!is.null(g2) & !is.null(g2.level)) {
+        if (is.numeric(g2.level)) {
+            if (g2.level > length(levels(g2)))
+                stop("g2.level must not be greater than the number of levels in g2")
+
+            if (as.integer(g2.level) != g2.level) {
+                g2.level <- as.integer(g2.level)
+                warning(paste0("g2.level truncated to ", g2.level, "."))
+            }
+            
+            g2.level <- if (g2.level == 0) "_ALL" else levels(g2)[g2.level]
+            
+        }
+        
       # Check for iNZightCentral value:
-        if (g2.level != "_ALL") {
+        if (g2.level[1] != "_ALL") {
             
           # Only use the observations according to g2.level
             if (is.numeric(g2))
@@ -92,12 +130,16 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                 g1.o <- subset(g1.o, g2.o == g2.level)
             }
             missing <- subset(missing, g2.o == g2.level)
+        } else {
+            g2.level <- NULL
         }
 
       # ******************************************************************* #
-        msg <- paste0("For the subset of the data where ",
-                      varnames$g2, " = ", g2.level, ".")
-        o <- c(o, msg, paste(rep('-', nchar(msg)), collapse = ''))
+        if (!is.null(g2.level)) {
+            msg <- paste0("For the subset of the data where ",
+                          varnames$g2, " = ", g2.level, ".")
+            o <- c(o, msg, paste(rep('-', nchar(msg)), collapse = ''))
+        }
     }
 
   # --------------------------------------------------------------------------- #

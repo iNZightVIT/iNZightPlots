@@ -170,8 +170,20 @@ iNZightPlot <-
                                  opts = opts)
                 return(invisible(ret))
             }
+
+            if (is.numeric(g2.level)) {
+                if (g2.level > length(levels(g2)))
+                    stop("g2.level must not be greater than the number of levels in g2")
+
+                if (as.integer(g2.level) != g2.level) {
+                    g2.level <- as.integer(g2.level)
+                    warning(paste0("g2.level truncated to ", g2.level, "."))
+                }
+                
+                g2.level <- if (g2.level == 0) "_ALL" else levels(g2)[g2.level]
+            }
             
-            if (g2.level != "_ALL") {
+            if (g2.level[1] != "_ALL") {
               # Only use the observations according to g2.level
                 if (is.numeric(g2.level))
                     g2.level <- levels(g2)[g2.level]

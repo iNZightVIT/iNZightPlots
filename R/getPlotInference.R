@@ -80,8 +80,38 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
 
   # --------------------------------------------------------------------------- #
   #                                                                Subset by g2
-   
+
+    if (!is.null(g2)) { if (is.numeric(g2)) g2 <- convert.to.factor(g2) }
+    if (!is.null(g1)) {
+        if (is.numeric(g1)) g1 <- convert.to.factor(g1)
+    } else {
+      # g1 is null! Check that g2 is not set to _MULTI:
+        if (!is.null(g2.level)) {
+            if (g2.level == "_MULTI") {
+                v <- varnames
+                v$g1 <- varnames$g2
+                v$g2 <- varnames$g1
+                g1.tmp <- g2
+                g2 <- g1
+                g1 <- g1.tmp
+            }
+        }
+    }
+    
     if (!is.null(g2) & !is.null(g2.level)) {
+        if (is.numeric(g2.level)) {
+            if (g2.level > length(levels(g2)))
+                stop("g2.level must not be greater than the number of levels in g2")
+
+            if (as.integer(g2.level) != g2.level) {
+                g2.level <- as.integer(g2.level)
+                warning(paste0("g2.level truncated to ", g2.level, "."))
+            }
+            
+            g2.level <- if (g2.level == 0) "_ALL" else levels(g2)[g2.level]
+            
+        }
+        
       # Check for iNZightCentral value:
         if (g2.level != "_ALL") {
             
@@ -100,9 +130,11 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
         }
 
       # ******************************************************************* #
-        msg <- paste0("For the subset of the data where ",
-                      varnames$g2, " = ", g2.level, ".")
-        o <- c(o, msg)
+        if (!is.null(g2.level)) {
+            msg <- paste0("For the subset of the data where ",
+                          varnames$g2, " = ", g2.level, ".")
+            o <- c(o, msg, paste(rep('-', nchar(msg)), collapse = ''))
+        }
     }
 
     o <- c(o, paste(rep('_', 80), collapse = ''), '')
