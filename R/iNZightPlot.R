@@ -29,7 +29,8 @@ iNZightPlot <-
                          if (grepl("\\$", x)) strsplit(x, "\\$")[[1]][2] else x),
                   collapse = ".")
         }
-        
+
+             
         if (is.null(varnames$x))
             varnames$x <- getName(deparse(substitute(x)))
         if (!is.null(y) & is.null(varnames$y))
@@ -42,6 +43,13 @@ iNZightPlot <-
             varnames$by <- getName(deparse(substitute(by)))
         if (!is.null(prop.size) & is.null(varnames$prop.size))
             varnames$prop.size <- getName(deparse(substitute(prop.size)))
+
+       # Frequency argument
+        if (is.numeric(x) & is.numeric(y) & !is.null(freq)) {
+            prop.size <- freq
+            varnames$prop.size <- "frequency"
+            freq <- NULL
+        }
 
       # Make sure "non-numeric" is factor
         if (!is.numeric(x))
