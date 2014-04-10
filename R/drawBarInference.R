@@ -1,4 +1,4 @@
-drawBarInference <- function(x, y = NULL, opts) {
+drawBarInference <- function(x, y = NULL, freq = NULL, opts) {
   # A function which calculates the inferences lines necessary for the
   # plot. Returns a list of lines (for each bar, essentially) with
   # comparison and confidence intervals.
@@ -9,11 +9,22 @@ drawBarInference <- function(x, y = NULL, opts) {
             warning('Invalid inference parameter: please remove inference.par, or set it equal to "proportion".')
 
   # Make a table
-    tab <- if (is.null(y)) table(x) else table(y, x)
+    tab <-
+        if (is.null(y)) {
+            if (is.null(freq))
+                table(x)
+            else
+                xtabs(freq ~ x)
+        } else {
+            if (is.null(freq))
+                table(y, x)
+            else
+                xtabs(freq ~ y + x)
+        }
    
     if (length(dim(tab)) == 1) {
       # dealing with a single X factor
-        phat <- matrix(makeBars(x), nrow = 1)
+        phat <- matrix(makeBars(x, freq = freq), nrow = 1)
         n <- sum(tab)
 
         size.comp <- matrix(1.96 * errorbarsize(proportionCovs(tab)),
@@ -21,7 +32,7 @@ drawBarInference <- function(x, y = NULL, opts) {
         se <- matrix(sqrt(phat * (1 - phat) / n), nrow = 1)
     } else {
       # dealing with an X and Y factor combination
-        phat <- makeBars(x, y)
+        phat <- makeBars(x, y, freq = freq)
         n <- rowSums(tab)
         
         size.comp <- 1.96 *

@@ -1,6 +1,6 @@
 iNZmatrix <-
 function(x, y = NULL, g1 = NULL, g2 = NULL,
-         g1.level = NULL, g2.level = NULL,
+         g1.level = NULL, g2.level = NULL, freq = NULL,
          varnames = list(), xlab = NULL, ylab = NULL,
          main = NULL,
          by = NULL, prop.size = NULL, 
@@ -123,7 +123,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                      function(x) structure(vector("list", length(g2.level)),
                                            .Names = g2.level))
 
-    y.list <- by.list <- col.list <- prop.size.list <- x.list
+    y.list <- by.list <- col.list <- freq.list <- prop.size.list <- x.list
 
     for (G1 in g1.level) {
         for (G2 in g2.level) {
@@ -143,6 +143,9 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
           # ---
             if (!is.null(prop.size))
                 prop.size.list[[G1]][[G2]] <- prop.size[w]
+          # ---
+            if (!is.null(freq))
+                freq.list[[G1]][[G2]] <- freq[w]
         }
     }
 
@@ -175,7 +178,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
             if (is.numeric(x)) {
                 unit(0.05, "npc")
             } else {
-                yy <- makeBars(x)
+                yy <- makeBars(x, freq = freq)
                 wmm <- max(sapply(pretty(range(yy)),
                                   function(yr)
                                   convertWidth(grobWidth(textGrob(yr, gp =
@@ -213,7 +216,7 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                                       ))
                     unit(wmm, "mm")
                 } else {
-                    yy <- makeBars(x)
+                    yy <- makeBars(x, freq = freq)
                     wmm <-
                         max(sapply(pretty(range(yy)),
                                    function(yr)
@@ -344,16 +347,21 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                 mult <- c(-1, 1) * ifelse(neg, -1, 1)
                 o <- r + mult * 0.04 * (r[2] - r[1])
             } else {
-                o <- c(0, max(sapply(x.list,
-                                     function(X) {
-                                         max(sapply(X,
-                                                function(x) {
-                                                  # need to include the error bars!
-                                                    phat <- table(x) / length(x)
-                                                    se <- sqrt(phat * (1 - phat) / length(x))
-                                                    max(phat + 1.96 * se)
-                                                }))
-                                         })))
+                up <- 0
+                for (i in 1:length(x.list)) {
+                    for (j in 1:length(x.list[[i]])) {
+                        tab <-
+                            if (is.null(freq)) table(x.list[[i]][[j]])
+                            else xtabs(freq.list[[i]][[j]] ~ x.list[[i]][[j]])
+                        phat <- if (sum(tab) == 0) rep(0, length(tab)) else tab / sum(tab)
+                        se <-
+                            if (sum(tab) == 0) rep(0, length(tab))
+                            else sqrt(phat * (1 - phat) / sum(tab))
+                        up <- try(max(up, max(phat + 1.96 * se, na.rm = TRUE)))
+                    }
+                }
+                
+                o <- c(0, up)
             }
             o
         } else {
@@ -392,10 +400,16 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                 up <- 0
                 for (i in 1:length(x.list)) {
                     for (j in 1:length(x.list[[i]])) {
-                        tab <- table(x.list[[i]][[j]], y.list[[i]][[j]])
-                        phat <- apply(tab, 2, function(x) x / sum(x))
-                        se <- sqrt(phat * (1 - phat) /
-                                   length(x.list[[i]][[j]]))
+                        tab <-
+                            if (is.null(freq)) table(x.list[[i]][[j]], y.list[[i]][[j]])
+                            else xtabs(freq.list[[i]][[j]] ~
+                                       x.list[[i]][[j]] + y.list[[i]][[j]])
+                        phat <- apply(tab, 2,
+                                      function(x)
+                                      if (sum(x) == 0) rep(0, length(x))
+                                      else x / sum(x))
+                        se <- ifelse(colSums(tab) == 0, 0,
+                                     sqrt(phat * (1 - phat) / colSums(tab)))
                         up <- try(max(up, max(phat + 1.96 * se, na.rm = TRUE)))
                     }
                 }
@@ -417,7 +431,9 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                            lapply(1:length(x.list[[i]]),
                                   function(j) {
                                       y2 <- if (is.null(y)) NULL else y.list[[i]][[j]]
-                                      try(drawBarInference(x.list[[i]][[j]], y2, opts))
+                                      f2 <- if (is.null(freq)) NULL else freq.list[[i]][[j]]
+                                      try(drawBarInference(x.list[[i]][[j]], y2,
+                                                           freq = f2, opts))
                                   })
                        })
             
@@ -501,14 +517,15 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                     if (j == 1)
                         axis[2] <- 2
                     else if (j == nc)
-                        axis[2] <- 1
+                        axis[2] <- 1                    
                     
                     iNZbarplot(x.list[[i]][[j]], y2,
                                axis = axis,
                                lab = g2.level[j],
                                by = if (is.null(by)) NULL else by.list[[i]][[j]],
-                               x.lev <- levels(x),
-                               y.lev <- if (is.null(y)) NULL else levels(y),
+                               x.lev = levels(x),
+                               y.lev = if (is.null(y)) NULL else levels(y),
+                               freq = if (is.null(freq)) NULL else freq.list[[i]][[j]],
                                xlim = xlim, ylim = ylim,
                                layout = layout3,
                                col = col.list[[i]][[j]],

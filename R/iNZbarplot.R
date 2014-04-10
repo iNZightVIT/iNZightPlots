@@ -1,6 +1,7 @@
 iNZbarplot <-
-    function(x, y = NULL, axis = c(0, 0), by = NULL, lab = NULL, x.lev, y.lev = NULL,
-             layout, xlim, ylim, col = opts$col.bar, showLines = FALSE, opts) {
+    function(x, y = NULL, axis = c(0, 0), by = NULL, freq = NULL,
+             lab = NULL, x.lev, y.lev = NULL, layout, xlim, ylim,
+             col = opts$col.bar, showLines = FALSE, opts) {
   # --------------------------------------------------------------------------- #
   # Makes a bar plot of the supplied X data, possibly broken down by Y
   # Can only be called from the iNZplot() function.
@@ -37,7 +38,7 @@ iNZbarplot <-
         upViewport()
     }
 
-  # =========================================================================== #
+  # ===========================b================================================ #
   #                                                             Start main plot
 
   # COMPARISON INTERVALS: these are essentially phat \pm 1.96 * se(phat)
@@ -74,14 +75,12 @@ iNZbarplot <-
                    gp = gpar(cex = opts$cex.axis))
     }
     upViewport()
-
-
     
     if (!is.null(y)) {
       # calculate multiple bars, multiple x-points
-        hgt <- makeBars(x, y)
+        hgt <- makeBars(x, y, freq = freq)
     } else {
-        hgt <- makeBars(x)
+        hgt <- makeBars(x, freq = freq)
     }
     
     for (i in 1:length(x.lev)) {
@@ -130,7 +129,7 @@ iNZbarplot <-
                                lwd = opts$bar.lwd))
             } else {
               # Calculate the relative proportions for each group:
-                newhgt <- makeBars(by, x)
+                newhgt <- makeBars(by, x, freq = freq)
                 
                 for (s in 1:ncol(newhgt)) {
                     H <- hgt[i]  # the overall height of the bar
@@ -153,7 +152,7 @@ iNZbarplot <-
           # Plotting a bar for each level of y, for each level of g1
             
           # Calculate the barwidths
-            wd <- table(y)
+            wd <- if(is.null(freq)) table(y) else xtabs(freq ~ y)
             wd <- wd / sum(wd) * 0.9      # add spacing between bar groups
 
             x.right <- cumsum(wd) + 0.05  # shift bars to center of panel
@@ -226,7 +225,6 @@ iNZbarplot <-
         grid.draw(labText)
         upViewport()
     }
-
 
     if (guides == "all") {
       # Draw inference guide lines

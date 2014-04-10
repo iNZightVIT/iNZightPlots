@@ -1,6 +1,6 @@
 iNZightPlot <-
     function(x, y = NULL, g1 = NULL, g2 = NULL,
-             g1.level = NULL, g2.level = NULL,
+             g1.level = NULL, g2.level = NULL, freq = NULL,
              varnames = list(), xlab = varnames$x, ylab = varnames$y,
              main = NULL,
              by = NULL, prop.size = NULL, new = TRUE,
@@ -115,6 +115,7 @@ iNZightPlot <-
         if (!is.null(g2)) g2 <- g2[!na]
         if (!is.null(by)) by <- by[!na]
         if (!is.null(prop.size)) prop.size <- prop.size[!na]
+        if (!is.null(freq)) freq <- freq[!na]
 
       # Add jitter
         if ("x" %in% strsplit(opts$jitter, '')[[1]])
@@ -162,7 +163,7 @@ iNZightPlot <-
           # Check for iNZightCentral value:
             if (g2.level == "_MULTI") {
               # We want to plot levels of g1 by g2
-                ret <- iNZmatrix(x = x, y = y, g1 = g1, g2 = g2,
+                ret <- iNZmatrix(x = x, y = y, g1 = g1, g2 = g2, freq = freq,
                                  g1.level = g1.level, g2.level = g2.level,
                                  varnames = varnames, xlab = xlab, ylab = ylab,
                                  main = main,
@@ -197,6 +198,8 @@ iNZightPlot <-
                     g1 <- subset(g1, g2 == g2.level)
                 if (!is.null(prop.size))
                     prop.size <- subset(prop.size, g2 == g2.level)
+                if (!is.null(freq))
+                    freq <- subset(freq, g2 == g2.level)
             } else {
                 g2.level <- NULL
             }
@@ -389,7 +392,7 @@ iNZightPlot <-
       # Data becomes a list where each level of each list corresponds to a level
       # of g1.
       # ========================================================================= #
-        
+
         if (!is.null(g1)) {
           # Check for iNZightCentral value
             if (!is.null(g1.level))
@@ -438,6 +441,11 @@ iNZightPlot <-
                                          function(l) subset(prop.size, g1 == l))
                 names(prop.size.list) <- g1.level
             }
+            if (!is.null(freq)) {
+                freq.list <- lapply(g1.level,
+                                    function(l) subset(freq, g1 == l))
+                names(freq.list) <- g1.level
+            }
 
             col.list <-
                 if (barplot) {
@@ -456,10 +464,11 @@ iNZightPlot <-
                 by.list <- list(all = by)
             if (!is.null(prop.size))
                 prop.size.list <- list(all = prop.size)
+            if (!is.null(freq))
+                freq.list <- list(all = freq)
 
             col.list <- list(all = cols)
         }
-        
       # --------------------------------------------------------------------------- #
       #                                            create the top-level plot layout
 
@@ -485,7 +494,7 @@ iNZightPlot <-
                 if (is.numeric(x)) {
                     unit(0.05, "npc")
                 } else {
-                    yy <- makeBars(x)
+                    yy <- makeBars(x, freq = freq)
                     wmm <- max(sapply(pretty(range(yy)),
                                       function(yr)
                                       convertWidth(grobWidth(textGrob(yr, gp =
@@ -523,7 +532,7 @@ iNZightPlot <-
                                           ))
                         unit(wmm, "mm")
                     } else {
-                        yy <- makeBars(x)
+                        yy <- makeBars(x, freq = freq)
                         wmm <-
                             max(sapply(pretty(range(yy)),
                                        function(yr)
@@ -683,10 +692,13 @@ iNZightPlot <-
                     mult <- c(-1, 1) * ifelse(neg, -1, 1)
                     o <- r + mult * 0.04 * (r[2] - r[1])
                 } else {
-                    o <- c(0, max(sapply(x.list, function(x) {
+                    o <- c(0, max(sapply(1:length(x.list), function(i) {
                       # need to include the error bars!
-                        phat <- table(x) / length(x)
-                        se <- sqrt(phat * (1 - phat) / length(x))
+                        tab <-
+                            if (is.null(freq)) table(x.list[[i]])
+                            else xtabs(freq.list[[i]] ~ x.list[[i]])
+                        phat <- tab / sum(tab)
+                        se <- sqrt(phat * (1 - phat) / sum(tab))
                         max(phat + 1.96 * se)
                     })))
                 }
@@ -725,10 +737,11 @@ iNZightPlot <-
                   # need the y-values for the appropriate barplot
                     o <- c(0, max(sapply(1:length(x.list), function(i) {
                       # need to include the error bars!
-                        tab <- table(x.list[[i]], y.list[[i]])
+                        tab <-
+                            if (is.null(freq)) table(x.list[[i]], y.list[[i]])
+                            else xtabs(freq.list[[i]] ~ x.list[[i]] + y.list[[i]])
                         phat <- apply(tab, 2, function(x) x / sum(x))
-                        se <- sqrt(phat * (1 - phat) /
-                                   length(x.list[[i]]))
+                        se <- sqrt(phat * (1 - phat) / sum(tab))
                         max(phat + 1.96 * se, na.rm = TRUE)
                     })))
                 }
@@ -739,7 +752,7 @@ iNZightPlot <-
         
       # showLines: TRUE if any counts  0, otherwise FALSE
         tabs <- lapply(1:length(x.list),
-                       function(i) {
+                       function(i) {                      ######### PLACE TO ADD FREQS
                            if (is.null(y))
                                table(x.list[[i]])
                            else
@@ -777,10 +790,21 @@ iNZightPlot <-
                             tmp
                         }
                 }
-                
+
+                if (!is.null(freq)) {
+                    freq.list.tmp <-
+                        if (is.null(g1)) {
+                            list(all = freq)
+                        } else {
+                            tmp <- lapply(levels(g1),
+                                          function(l) subset(freq, g1 == l))
+                            names(tmp) <- levels(g1)
+                            tmp
+                        }
+                }
                 inference.list <- lapply(1:max(1, length(levels(g1))), function(i) {
                     y2 <- if (is.null(y)) NULL else y.list.tmp[[i]]
-                    drawBarInference(x.list.tmp[[i]], y2, opts)
+                    drawBarInference(x.list.tmp[[i]], y2, freq = freq.list.tmp[[i]], opts)
                 })
                 
                 ylim <- c(0, min(1, max(sapply(inference.list, function(l) l$max))))
@@ -788,7 +812,6 @@ iNZightPlot <-
                 ylim <- c(0, ylim[2])
             }
         }
-        
         id <- 1  # stop once all plots drawn
         for (i in nr:1) {  # start at bottom
             for (j in 1:nc) {
@@ -859,13 +882,14 @@ iNZightPlot <-
                             axis[2] <- 2
                         else if (j == nc | id == N)
                             axis[2] <- 1
-                        
+
                         iNZbarplot(x.list[[id]], y2,
                                    axis = axis,
                                    lab = g1.level[id],
                                    by = if (is.null(by)) NULL else by.list[[id]],
                                    x.lev <- levels(x),
                                    y.lev <- if (is.null(y)) NULL else levels(y),
+                                   freq = if (is.null(freq)) NULL else freq.list[[id]],
                                    xlim = xlim, ylim = ylim,
                                    layout = layout3,
                                    col = col.list[[id]],
