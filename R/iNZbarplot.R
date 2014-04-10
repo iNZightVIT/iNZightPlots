@@ -46,7 +46,7 @@ iNZbarplot <-
   # For both of these intervals, they are only drawn if there are at
   # least 5 observations in the group.
     if (!is.null(opts$inference.type)) {
-        inference.lines <- drawBarInference(x, y, opts = opts)
+        inference.lines <- drawBarInference(x, y, freq = freq, opts = opts)
     }
 
     pushViewport(viewport(layout.pos.row = 2,
