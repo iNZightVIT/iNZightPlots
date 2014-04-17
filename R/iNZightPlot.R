@@ -290,7 +290,7 @@ iNZightPlot <-
           # Legend for trend curves
             lines.list <- list()
             if (length(opts$trend) > 0) {
-                if (opts$trend != FALSE) {
+                if (all(opts$trend != FALSE)) {
                     for (i in 1:length(opts$trend)) {
                         lines.list <- c(lines.list,
                                         list(c(opts$trend[i],
