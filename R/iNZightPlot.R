@@ -511,7 +511,7 @@ iNZightPlot <-
                                                                             opts$cex.axis))),
                                                     "mm")
                                        ))
-                        unit(wmm, "mm") + unit(1.5, "lines")
+                        unit(wmm, "mm") + unit(3, "lines")
                     } else if (is.numeric(x)) {
                       # text labels
                         wmm <- max(sapply(levels(y),
