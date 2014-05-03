@@ -18,6 +18,9 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level,
                 stop("Structural information doesn't match the data (different lengths).")
 
             df$`(freqs)` <- f
+            if ("sizeby" %in% colnames(df)) {
+                df$sizeby <- NULL
+            }
         } else {
             
         }

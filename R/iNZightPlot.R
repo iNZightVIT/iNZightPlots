@@ -1,7 +1,8 @@
 iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         g2 = NULL, g2.level = NULL, varnames = list(),
                         colby = NULL, sizeby = NULL,
-                        data = NULL, structure = NULL) {
+                        data = NULL, structure = NULL,
+                        inzpars = inzpar(), ...) {
 
   # ------------------------------------------------------------------------------------ #
   #   iNZightPlots 1.1.0, written by Tom Elliott (2014, University of Auckland)
@@ -160,13 +161,6 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     # `missing` constains the number of observations lost by
     # subsetting g2 due to missing values of g2.
 
-  # ------------------------------------------------------------------------------------ #
-  # 2. The plot setup step
-  # ----------------------
-
-    # The aim of this step is to produce a list of things to plot, each element pertaining to a
-    # level of g1.
-
     if ("g1" %in% colnames(df)) {
         # take two methods of specifying g1.level (numeric or level names), and convert to a vector
         # of only character names to be plotted
@@ -180,15 +174,29 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
         # track missing values due to missingness in g1
         missing$g1 <- sum(is.na(df$g1))
-        
-        cat("G1: ", varnames$g1, " = ", paste(g1.level, collapse = ", "), "\n", sep = "")
     } else {
         g1.level <- "all"
     }
-    
-    df.list <- lapply(g1.level, function(x) createPlot(df, x))
+
+    # this converts the single dataframe into a list of dataframes
+    df.list <- lapply(g1.level, function(x) inzDataList(df, x))
     names(df.list) <- g1.level
-                          
-    
-    invisible(list(data = df.list, missing = missing))
+
+    # now, everything simply gets applied to the list of dataframes to
+    # generate the necessary plots
+
+  # ------------------------------------------------------------------------------------ #
+  # 2. The plot setup step
+  # ----------------------
+
+    # The aim of this step is to produce a list of things to plot, each element pertaining to a
+    # level of g1.
+
+    dots <- list(...)  # capture the additional arguments
+    opts <- inzpars
+    wopt <- names(dots) %in% names(opts)  # which additional settings have been specified
+    opts <- modifyList(opts, dots[wopt])
+    plot.list <- lapply(df.list, createPlot, opts)
+
+    invisible(list(toplot = plot.list, missing = missing, inzpar = opts))
 }
