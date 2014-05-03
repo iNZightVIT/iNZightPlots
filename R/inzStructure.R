@@ -30,3 +30,7 @@ inzStructure <- function(type, vars, data = NULL) {
     class(st) <- "inz.structure"
     st
 }
+
+getName <- function(x) {           
+    if (grepl("\\$", x)) strsplit(x, "\\$")[[1]][2] else x
+}

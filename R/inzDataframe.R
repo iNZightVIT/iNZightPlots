@@ -26,7 +26,7 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level,
     # convert anything that isn't a numeric variable to a factor
     # NOTE: this is just precautionary; as.data.frame should set any
     # character strings to factors by default.
-    makeF <- sapply(p, function(x) !is.numeric(x) & !is.factor(x))
+    makeF <- sapply(df, function(x) !is.numeric(x) & !is.factor(x))
     if (any(makeF))
         for (i in colnames(df)[makeF])
             df[[i]] <- as.factor(df[[i]])
@@ -38,6 +38,7 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level,
     for (i in colnames(df))
         df[[i]][is.infinite(df[[i]])] <- NA
 
+
     # convert numeric grouping variables to factors
     if ("g2" %in% colnames(df))
         if (is.numeric(df$g2))
@@ -47,6 +48,10 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level,
             df$g1 <- convert.to.factor(g1)
     } else {
         if (!is.null(g2.level)) {
+            # g2.level can only be of length 1
+            if (length(g2.level) > 1)
+                stop("g2.level must be of length 1 or NULL")
+        
             if (g2.level %in% c(length(levels(df$g2)) + 1, "_MULTI")) {
                 # need to replace g1 with g2
                 varnames$g1 <- varnames$g2

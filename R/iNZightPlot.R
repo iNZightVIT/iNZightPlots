@@ -37,7 +37,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
   # 1. The data step:
   #    - organise the data into a data.frame, which will allow for much simpler use later
   #      on.
-  #    - subset the data according to g2(.level) --- this *only* shows the specifid
+  #    - subset the data according to g2(.level) --- this *only* shows the specified
   #      level(s), unless it is set to "_MULTI" in which case we do a matrix plot.
   #
   # 2. The plot setup step
@@ -95,7 +95,33 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     df <- inzDataframe(m, data = md, names = varnames, g1.level, g2.level,
                        structure = structure, env = env)
     varnames <- as.list(attr(df, "varnames"))
+    missing <- list()  # a container to save missing value information
 
+    # check the number of levels for a barchart:
+    if (is.factor(df$x)) {
+        if (is.null(df$y)) {
+            if (length(levels(df$x)) > params("max.levels")) {
+                msg <- paste0("Too many levels in ", varnames$x,
+                              " to draw a barchart.\n",
+                              "(", varnames$x, " has ",
+                              length(levels(df$x)), " levels.)")
+                stopPlot(msg)
+                return()
+            }
+        } else if (is.factor(df$y)) {
+            if (length(levels(df$x)) * length(levels(df$y)) > params("max.levels")) {
+                msg <- paste0("Too many levels in ", varnames$x, " and ",
+                              varnames$y, " to draw a barchart.\n",
+                              "(", varnames$x, " has ",
+                              length(levels(df$x)), " levels, ",
+                              varnames$y, " has ", length(levels(df$y)),
+                              "levels.)")
+                stopPlot("Too many levels in x and y to draw a barchart.")
+                return()
+            }
+        }
+    }
+    
     # subset the data by g2
     # g2 can take values (0 = "_ALL", 1:ng2, ng2+1 = "_MULTI")
     if ("g2" %in% colnames(df)) {
@@ -122,8 +148,47 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         if (g2.level == "_MULTI")
             return(iNZmatrix(df, ...))
 
+        # subset by g2 if it isn't set to _ALL
+        if (g2.level != "_ALL") {
+            missing$g2 <- sum(is.na(df$g2))
+            df <- subset(df, df$g2 == g2.level)
+            df <- df[, colnames(df) != "g2"]
+        }
+    }
+
+    # now, `df` is a data.frame of the specified level of g2.level.
+    # `missing` constains the number of observations lost by
+    # subsetting g2 due to missing values of g2.
+
+  # ------------------------------------------------------------------------------------ #
+  # 2. The plot setup step
+  # ----------------------
+
+    # The aim of this step is to produce a list of things to plot, each element pertaining to a
+    # level of g1.
+
+    if ("g1" %in% colnames(df)) {
+        # take two methods of specifying g1.level (numeric or level names), and convert to a vector
+        # of only character names to be plotted
+        if (is.null(g1.level)) g1.level <- "_MULTI"
         
+        if (is.numeric(g1.level))
+            g1.level <- if (any(g1.level == 0)) "_MULTI" else levels(df$g1)[g1.level]
+
+        if (any(g1.level == "_MULTI"))
+            g1.level <- levels(df$g1)
+
+        # track missing values due to missingness in g1
+        missing$g1 <- sum(is.na(df$g1))
+        
+        cat("G1: ", varnames$g1, " = ", paste(g1.level, collapse = ", "), "\n", sep = "")
+    } else {
+        g1.level <- "all"
     }
     
-    df
+    df.list <- lapply(g1.level, function(x) createPlot(df, x))
+    names(df.list) <- g1.level
+                          
+    
+    invisible(list(data = df.list, missing = missing))
 }

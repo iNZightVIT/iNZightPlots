@@ -1,6 +1,6 @@
-params <- function(x) {
-    if (is.null(x)) {
-        parameters[[x]]
+params <- function(x = NULL) {
+    if (!is.null(x)) {
+        params()[[x]]
     } else {
         list(max.levels = 101)
     }
