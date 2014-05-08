@@ -30,12 +30,16 @@ create.inz.scatterplot <- function(obj) {
         pt.col <- opts$col.pt[1]
     }
 
+    ## --- this is where FREQUENCY or SURVEY information is used to control sizes of points
     # size of points
     if ("(freqs)" %in% v) {
         propsize <- df$`(freqs)`
+    } else if ("(weights)" %in% v) {
+        propsize <- df$`(weights)`
+    } else if ("sizeby" %in% v) {
+        propsize <- df$sizeby
     } else {
-        if ("sizeby" %in% v)
-            propsize <- df$sizeby
+        propsize <- NULL
     }
     if (!is.null(propsize))
         propsize <- rescale(propsize)

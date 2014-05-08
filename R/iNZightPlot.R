@@ -5,7 +5,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         inzpars = inzpar(), ...) {
 
   # ------------------------------------------------------------------------------------ #
-  #   iNZightPlots 1.1.0, written by Tom Elliott (2014, University of Auckland)
+  #   iNZightPlots v1.1, written by Tom Elliott (2014, University of Auckland)
   #
   # This function will `attempt` to take a large variety of data configurations and
   # attempt to make a suitable plot. It can take into account the data structure (for
@@ -45,7 +45,6 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
   #    - now create a list, one element for every level of g1 (if g1 is NULL, simply a
   #      list with one level) --- the plot methods will take a list argument.
   #    - remove missing values, *keeping a record of them for the summary function*
-  #    - create the plots using grid *without plotting them* i.e., save them in a list
   #    - use the list of plot objects to calculate axis limits etc.
   #    - now figure out all the necessary sizing of margins, number of plots for subsets,
   #      and spacing for the legend(s).
@@ -82,6 +81,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
   ########################################################################################
   ########################################################################################
 
+    dev.hold()  # wait until finished drawing, THEN plot
+    
   # ------------------------------------------------------------------------------------ #
   # 1. The data step
   # ----------------
@@ -198,5 +199,34 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     opts <- modifyList(opts, dots[wopt])
     plot.list <- lapply(df.list, createPlot, opts)
 
-    invisible(list(toplot = plot.list, missing = missing, inzpar = opts))
+    # sort out the axis limits
+    xlim <- range(sapply(plot.list, function(x) x$xlim))
+    ylim <- range(sapply(plot.list, function(x) x$ylim))
+    
+    
+    # Set up the plot layout
+
+    ## --- The Main Viewport: this one is simply the canvas, and global CEX value
+    grid.newpage()
+    pushViewport(viewport(gp =
+                          gpar(bg = opts$bg, cex = opts$cex)))
+
+    ## --- there will be some fancy stuff here designing and implementing a grid which adds titles,
+    ## labels, and optionally legends
+
+    # --- here --- #
+
+    
+    ## --- next, it will break the plot into subregions for g1 (unless theres only one, then it
+    ## wont)
+
+    # --- here --- #
+
+    ## --- within each of these regions, we simply plot!
+
+    plot(plot.list[[1]], inzpar = opts)
+
+    dev.flush()
+    out <- list(data = df.list, toplot = plot.list, missing = missing, inzpar = opts)
+    invisible(out)
 }
