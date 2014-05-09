@@ -9,4 +9,5 @@ inzDataList <- function(d, x) {
     }
 
     df <- df[, colnames(df) != "g1", drop = FALSE]
+    df
 }
