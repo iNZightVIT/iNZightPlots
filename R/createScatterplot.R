@@ -30,6 +30,9 @@ create.inz.scatterplot <- function(obj) {
         pt.col <- opts$col.pt[1]
     }
 
+    ## The plotting symbol:
+    pch <- ifelse(opts$alpha == 1, opts$pch, 19)
+
     ## --- this is where FREQUENCY or SURVEY information is used to control sizes of points
     # size of points
     if ("(freqs)" %in% v) {
@@ -43,9 +46,14 @@ create.inz.scatterplot <- function(obj) {
     }
     if (!is.null(propsize))
         propsize <- rescale(propsize)
+    else
+        propsize <- 1
+
+    ## The plotting symbol:
+    pch <- ifelse(opts$alpha == 1, opts$pch, 19)
 
     # Combine everything together into a classed list which will have a `plot` method
-    out <- list(x = df$x, y = df$y, cols = pt.col, propsize = propsize,
+    out <- list(x = df$x, y = df$y, cols = pt.col, propsize = propsize, pch = pch,
                 n.missing = n.missing,
                 xlim = range(df$x), ylim = range(df$y))
     class(out) <- "inzscatter"

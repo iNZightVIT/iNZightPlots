@@ -380,7 +380,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     g1id <- 1  # keep track of plot levels
     g2id <- 1
     NG2 <- length(plot.list)
-    NG1 <- length(plot.list[[1]])                
+    NG1 <- length(plot.list[[1]])
     
     for (r in nr:1) {
         R <- r * 2  # skip the gaps between rows
@@ -420,9 +420,9 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 axis[4] <- 1
             if ((c == nc) & (nr - r) %% 2 == 1)
                 axis[4] <- 2
-
+            print(sub.hgt)
             plot(plot.list[[g2id]][[g1id]], inzpar = opts,
-                 axis = axis, title = g1.level[g1id], sub = sub.hgt)
+                 axis = axis, title = g1.level[g1id], sub = vspace)
 
             ## update the counters
             if (g1id < NG1) {
