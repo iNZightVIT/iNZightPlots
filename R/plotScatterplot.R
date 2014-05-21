@@ -12,17 +12,23 @@ plot.inzscatter <- function(obj, inzpar = inzpar(),
             yax <- editGrob(yax, edits = gEdit("labels", rot = 90, hjust = 0.5, vjust = 0))
         grid.draw(yax)
     }
-    if (axis[3] > 0)
-        grid.xaxis(gp = gpar(cex = inzpar$cex.axis), label = (axis[3] == 2), main = FALSE,
-                   edits = gEdit(hjust = unit(sub, "in")))
+    if (axis[3] > 0) {
+        pushViewport(viewport(x = 0.5, y = 1, height = unit(sub, "in"), just = "bottom",
+                              xscale = xlim))
+        grid.xaxis(gp = gpar(cex = inzpar$cex.axis), label = (axis[3] == 2), main = FALSE)
+        upViewport()
+    }
     if (axis[4] > 0) {
         yax <- yaxisGrob(gp = gpar(cex = inzpar$cex.axis), label = (axis[4] == 2), main = FALSE)
         if (axis[4] == 2)
             yax <- editGrob(yax, edits = gEdit("labels", rot = 270, hjust = 0.5, vjust = -0.5))
         grid.draw(yax)
     }
-    
-    grid.points(obj$x, obj$y)
+
+    grid.points(obj$x, obj$y, pch = obj$pch, 
+                gp =
+                gpar(col = obj$cols, cex = obj$propsize * inzpar$cex.pt,
+                     lwd = inzpar$lwd.pt, alpha = inzpar$alpha))
 
     invisible(NULL)
 }
