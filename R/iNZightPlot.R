@@ -285,10 +285,10 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     }
 
     # -- xaxis marks
-    XAX.height <- convertWidth(unit(1, "lines"), "in", TRUE) * 2
+    XAX.height <- convertWidth(unit(1, "lines"), "in", TRUE) * 2 * opts$cex.axis
 
     # -- yaxis marks
-    YAX.width <- convertWidth(unit(1, "lines"), "in", TRUE) * 2
+    YAX.width <- convertWidth(unit(1, "lines"), "in", TRUE) * 2 * opts$cex.axis
     
 
     ## --- CREATE the main LAYOUT for the titles + main plot window
