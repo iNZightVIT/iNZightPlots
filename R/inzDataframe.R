@@ -17,13 +17,17 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level,
             if (length(f <- structure$freqs) != nrow(df))
                 stop("Structural information doesn't match the data (different lengths).")
 
-            df$`(freqs)` <- f
+            df$`(freqs)` <- rescale(f)
             if ("sizeby" %in% colnames(df)) {
                 df$sizeby <- NULL
             }
         } else {
             
         }
+    }
+
+    if (!is.null(df$sizeby)) {
+        df$sizeby <- rescale(df$sizeby)
     }
 
     # convert anything that isn't a numeric variable to a factor
@@ -45,10 +49,10 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level,
     # convert numeric grouping variables to factors
     if ("g2" %in% colnames(df))
         if (is.numeric(df$g2))
-            df$g2 <- convert.to.factor(g2)
+            df$g2 <- convert.to.factor(df$g2)
     if ("g1" %in% colnames(df)) {
         if (is.numeric(df$g1))
-            df$g1 <- convert.to.factor(g1)
+            df$g1 <- convert.to.factor(df$g1)
     } else {
         if (!is.null(g2.level)) {
             # g2.level can only be of length 1

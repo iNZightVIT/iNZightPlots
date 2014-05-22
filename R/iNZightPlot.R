@@ -289,8 +289,42 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     # -- yaxis marks
     YAX.width <- convertWidth(unit(1, "lines"), "in", TRUE) * 2 * opts$cex.axis
-    
 
+    # -- legend(s)
+    if ("colby" %in% names(varnames)) {
+        if (is.factor(df$colby)) {
+            nby <- length(levels(as.factor(df$colby)))
+            if (length(opts$col.pt) >= nby) {
+                ptcol <- opts$col.pt[1:nby]
+            } else {
+                ptcol <- hcl((1:nby) / nby * 360, c = 80, l = 50)
+            }
+
+            barplot <- FALSE
+            legend <- list(labs = levels(as.factor(df$colby)),
+                           cols = ptcol, pch = ifelse(barplot, 22, opts$pch),
+                           cex = opts$cex.text, cex.pt = opts$cex,
+                           cex.title = opts$cex.lab,
+                           cex.mult = ifelse("g1" %in% df.vs, 1,
+                               ifelse("g1.level" %in% df.vs,
+                                      ifelse(length(levels(df$g1.level)) >= 6, 0.7, 1), 1)),
+                           lwd = ifelse(barplot, opts$bar.lwd, opts$lwd.pt),
+                           title = varnames$colby, fill = ptcol) 
+            leg.grob <- drawLegend(legend)            
+        } else {                        
+            legend <- list(var = df$colby, title = varnames$colby,
+                           cex = opts$cex.text, cex.title = opts$cex.lab,
+                           cex.axis = opts$cex.axis,
+                           cex.mult = ifelse("g1" %in% df.vs, 1,
+                               ifelse("g1.level" %in% df.vs,
+                                      ifelse(length(levels(df$g1.level)) >= 6, 0.7, 1), 1)))
+
+            leg.grob <- drawContLegend(legend)
+        }
+    } else {
+        leg.grob <- NULL
+    }
+    
     ## --- CREATE the main LAYOUT for the titles + main plot window
     MAIN.hgt <- unit(MAIN.height, "in")
     XAX.hgt <- unit(XAX.height, "in")
@@ -301,10 +335,13 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     YLAB.wd <- unit(YLAB.width, "in")
     YAX.wd <- unit(YAX.width, "in")
     PLOT.wd <- unit(1, "null")
-    LEG.wd <- unit(0, "null")
+    LEG.wd <-
+        if (!is.null(leg.grob)) convertWidth(grobWidth(leg.grob), "in") + unit(1, "char")
+        else unit(0, "null") 
     
     TOPlayout <- grid.layout(nrow = 6, ncol = 5,
-                             heights = unit.c(MAIN.hgt, XAX.hgt, PLOT.hgt, XAX.hgt, XLAB.hgt, SUB.hgt),
+                             heights = unit.c(MAIN.hgt, XAX.hgt, PLOT.hgt,
+                                 XAX.hgt, XLAB.hgt, SUB.hgt),
                              widths = unit.c(YLAB.wd, YAX.wd, PLOT.wd, YAX.wd, LEG.wd))
 
     ## Send the layout to the plot window
@@ -322,6 +359,13 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     seekViewport("VP:TOPlayout")
     pushViewport(viewport(layout.pos.row = 5, layout.pos.col = 3))
     grid.draw(xlab.grob)
+
+    ## place the legend
+    if (!is.null(leg.grob)) {
+        seekViewport("VP:TOPlayout")
+        pushViewport(viewport(layout.pos.col = 5, layout.pos.row = 3))
+        grid.draw(leg.grob)
+    }
     
     ## --- next, it will break the plot into subregions for g1 (unless theres only one, then it
     ## wont)
@@ -381,7 +425,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     g2id <- 1
     NG2 <- length(plot.list)
     NG1 <- length(plot.list[[1]])
-    
+
     for (r in nr:1) {
         R <- r * 2  # skip the gaps between rows
         if (matrix.plot) {
@@ -389,7 +433,9 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             seekViewport("VP:PLOTlayout")
             pushViewport(viewport(layout.pos.row = R - 1, gp = gpar(cex = multi.cex)))
             grid.rect(gp = gpar(fill = "lightblue"))
-            grid.text(g2.level[r], gp = gpar(cex = opts$cex.lab))
+            print(r)
+            print(g2.level)
+            grid.text(g2.level[g2id], gp = gpar(cex = opts$cex.lab))
         }
 
         for (c in 1:nc) {
@@ -420,9 +466,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 axis[4] <- 1
             if ((c == nc) & (nr - r) %% 2 == 1)
                 axis[4] <- 2
-            print(sub.hgt)
-            plot(plot.list[[g2id]][[g1id]], inzpar = opts,
-                 axis = axis, title = g1.level[g1id], sub = vspace)
+
+            subt <- g1.level[g1id]
+            plot(plot.list[[g2id]][[g1id]], opts = opts,
+                 axis = axis, title = if (subt == "all") NULL else subt,
+                 mcex = multi.cex, sub = vspace)
 
             ## update the counters
             if (g1id < NG1) {
@@ -433,13 +481,6 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             }
         }
     }
-    
-    ## pushViewport(viewport(xscale = xlim, yscale = ylim))
-    ## grid.xaxis(gp = ax.gp)
-    ## grid.xaxis(main = FALSE, label = FALSE, gp = ax.gp)
-    ## grid.yaxis(name = "gyaxis", gp = ax.gp)
-    ## grid.yaxis(main = FALSE, label = FALSE, gp = ax.gp)
-    ## grid.edit("gyaxis", edits = gEdit("labels", rot = 90, hjust = 0.5, vjust = 0))
 
     dev.flush()
     out <- list(data = df.list, toplot = plot.list, missing = missing, inzpar = opts)

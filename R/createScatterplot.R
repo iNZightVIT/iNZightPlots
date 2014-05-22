@@ -19,7 +19,7 @@ create.inz.scatterplot <- function(obj) {
 
     # colour of points
     if ("colby" %in% v) {
-        nby <- length(levels(df$colby))
+        nby <- length(levels(as.factor(df$colby)))
         if (length(opts$col.pt) >= nby) {
             pt.col <- opts$col.pt[1:nby]
         } else {
@@ -42,12 +42,9 @@ create.inz.scatterplot <- function(obj) {
     } else if ("sizeby" %in% v) {
         propsize <- df$sizeby
     } else {
-        propsize <- NULL
-    }
-    if (!is.null(propsize))
-        propsize <- rescale(propsize)
-    else
         propsize <- 1
+    }
+
 
     ## The plotting symbol:
     pch <- ifelse(opts$alpha == 1, opts$pch, 19)
