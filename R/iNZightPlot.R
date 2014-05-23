@@ -233,7 +233,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                                      function(pl) range(sapply(pl,
                                                                function(x) x$ylim)))),
                         f = 0.04)
-    
+
     # Set up the plot layout
 
     ## --- The Main Viewport: this one is simply the canvas, and global CEX value
@@ -241,14 +241,17 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     pushViewport(viewport(gp = gpar(cex = opts$cex), name = "container"))
     grid.rect(gp = gpar(fill = opts$bg, col = opts$bg))
 
+    PAGE.height <- convertHeight(current.viewport()$height, "in", TRUE)  # essentially the height of the window
+
     ## --- there will be some fancy stuff here designing and implementing a grid which adds titles,
     ## labels, and optionally legends
 
     # --- first, need to make all of the labels/legends/etc:
     titles <- list()
+    print(varnames)
     titles$main <-
         if ("main" %in% names(dots)) dots$main
-        else makeTitle(varnames, vartypes, g1.level, g2.level)
+        else makeTitle(varnames, vartypes, g1.level, g2.level)#, sizeby = varnames$sizeby)
     titles$xlab <- if ("xlab" %in% names(dots)) dots$xlab else varnames$x
     if (!ynull) titles$ylab <- if ("ylab" %in% names(dots)) dots$ylab else varnames$y    
     if ("colby" %in% df.vs) titles$legend <- varnames$colby
@@ -268,6 +271,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     }
     if (MAIN.width > 0.9 * VPcontainer.width) {
         titles$main <- gsub("subset", "\nsubset", titles$main)
+        main.grob <- textGrob(titles$main, gp = gpar(cex = opts$cex.main))
+        MAIN.width <- convertWidth(grobWidth(main.grob), "in", TRUE)
+    }
+    if (MAIN.width > 0.9 * VPcontainer.width) {
+        titles$main <- gsub(" (size prop", "\n (size prop", titles$main, fixed = TRUE)
         main.grob <- textGrob(titles$main, gp = gpar(cex = opts$cex.main))
         MAIN.width <- convertWidth(grobWidth(main.grob), "in", TRUE)
     }
@@ -302,47 +310,26 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             if (length(opts$col.pt) >= nby) {
                 ptcol <- opts$col.pt[1:nby]
             } else {
-                ptcol <- hcl((1:nby) / nby * 360, c = 80, l = 50)
+                ptcol <- rainbow(nby, v = 0.7, start = 1/6)  #hcl((1:nby) / nby * 360, c = 80, l = 50)
             }
-            
-            legend <- list(labs = levels(as.factor(df$colby)),
-                           cols = ptcol, pch = ifelse(barplot, 22, opts$pch),
-                           cex = opts$cex.text, cex.pt = opts$cex,
-                           cex.title = opts$cex.lab,
-                           cex.mult = cex.mult,
-                           lwd = ifelse(barplot, opts$bar.lwd, opts$lwd.pt),
-                           title = varnames$colby, fill = ptcol) 
-            leg.grob1 <- drawLegend(legend)            
+            misscol <- any(sapply(plot.list, function(x) sapply(x, function(x2) x2$nacol)))
+            leg.grob1 <- drawLegend(levels(as.factor(df$colby)), col = ptcol,
+                                    pch = ifelse(barplot, 22, opts$pch),
+                                    title = varnames$colby, any.missing = misscol, opts = opts)
         } else {
             misscol <- any(sapply(plot.list, function(x) sapply(x, function(x2) x2$nacol)))
-            legend <- list(var = df$colby, title = varnames$colby,
-                           cex = opts$cex.text, cex.title = opts$cex.lab,
-                           cex.axis = opts$cex.axis,
-                           cex.mult = cex.mult,
-                           missCOL = misscol, cex.pt = opts$cex.pt, lwd = opts$lwd.pt)
-         #   print(df)
-
-            leg.grob1 <- drawContLegend(legend)
+            leg.grob1 <- drawContLegend(df$colby, title = varnames$colby,
+                                        height = 0.4 * PAGE.height, cex.mult = cex.mult,
+                                        any.missing = misscol, opts = opts)
         }
     }
 
     if ("sizeby" %in% names(varnames)) {
         misssize <- any(sapply(plot.list, function(x) sapply(x, function(x2) x2$nasize)))
         if (misssize) {
-            misstext <- textGrob(paste0("missing\n", varnames$sizeby), x = 0, y = 0.5,
-                                 just = "left",
-                                 gp = gpar(cex = opts$cex * cex.mult))
-            leg.grob2 <- frameGrob(layout = grid.layout(1, 4,
-                                       widths = unit.c(unit(0, "mm"), unit(2, "lines"),
-                                           grobWidth(misstext), unit(0.5, "lines")),
-                                       heights = unit(2, "lines")))
-            
-            leg.grob2 <- placeGrob(leg.grob2,
-                                   pointsGrob(0.5, 0.5, pch = 4,
-                                              gp = gpar(col = "grey50",
-                                                  cex = opts$cex.pt * cex.mult, lwd = opts$lwd.pt)),
-                                   col = 2)
-            leg.grob2 <- placeGrob(leg.grob2, misstext, col = 3)
+            misstext <- paste0("missing ", varnames$sizeby)
+            leg.grob2 <- drawLegend(misstext, col = "grey50", pch = 4,
+                                    cex.mult = cex.mult * 0.8, opts = opts)
         }        
     }
 
@@ -399,8 +386,6 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     ## place the legend
     if (wdth > 0) {
-        print(hgts)
-        
         seekViewport("VP:TOPlayout")
         pushViewport(viewport(layout.pos.col = 5, layout.pos.row = 3))
         leg.layout <- grid.layout(3, heights = unit(hgts, "in"))
@@ -409,13 +394,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         if (hgts[1] > 0) {
             seekViewport("VP:LEGlayout")
             pushViewport(viewport(layout.pos.row = 1))
-            grid.rect()
             grid.draw(leg.grob1)
         }
         if (hgts[2] > 0) {
             seekViewport("VP:LEGlayout")
             pushViewport(viewport(layout.pos.row = 2))
-            grid.rect()
             grid.draw(leg.grob2)
         }
          if (hgts[3] > 0) {

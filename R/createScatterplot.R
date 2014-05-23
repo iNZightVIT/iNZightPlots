@@ -24,9 +24,9 @@ create.inz.scatterplot <- function(obj) {
             if (length(opts$col.pt) >= nby) {
                 pt.col <- opts$col.pt[1:nby]
             } else {
-                pt.col <- hcl((1:nby) / nby * 360, c = 80, l = 50)
+                pt.col <- rainbow(nby, v = 0.7, start = 1/6) #hcl((1:nby) / nby * 360, c = 70, l = 30)
             }
-            pt.col <- pt.col[as.numeric(df$colby)]
+            pt.col <- ifelse(is.na(df$colby), "grey50", pt.col[as.numeric(df$colby)])
         } else {
             ## rescale the colour-by variable on a scale from 1-200 and then use rainbow colours
             cb <- df$colby
@@ -39,8 +39,7 @@ create.inz.scatterplot <- function(obj) {
 
     ## The plotting symbol:
     pch <- rep(ifelse(opts$alpha == 1, opts$pch, 19), nrow(df))
-   # if ("colby" %in% v)
-   #     pch[is.na(df$colby)] <- 5
+
 
     ## --- this is where FREQUENCY or SURVEY information is used to control sizes of points
     # size of points
