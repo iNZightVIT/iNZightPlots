@@ -291,6 +291,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     YAX.width <- convertWidth(unit(1, "lines"), "in", TRUE) * 2 * opts$cex.axis
 
     # -- legend(s)
+    barplot <- FALSE
+    leg.grob1 <- leg.grob2 <- leg.grob3 <- NULL
+    cex.mult = ifelse("g1" %in% df.vs, 1,
+        ifelse("g1.level" %in% df.vs,
+               ifelse(length(levels(df$g1.level)) >= 6, 0.7, 1), 1))
     if ("colby" %in% names(varnames)) {
         if (is.factor(df$colby)) {
             nby <- length(levels(as.factor(df$colby)))
@@ -299,32 +304,64 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             } else {
                 ptcol <- hcl((1:nby) / nby * 360, c = 80, l = 50)
             }
-
-            barplot <- FALSE
+            
             legend <- list(labs = levels(as.factor(df$colby)),
                            cols = ptcol, pch = ifelse(barplot, 22, opts$pch),
                            cex = opts$cex.text, cex.pt = opts$cex,
                            cex.title = opts$cex.lab,
-                           cex.mult = ifelse("g1" %in% df.vs, 1,
-                               ifelse("g1.level" %in% df.vs,
-                                      ifelse(length(levels(df$g1.level)) >= 6, 0.7, 1), 1)),
+                           cex.mult = cex.mult,
                            lwd = ifelse(barplot, opts$bar.lwd, opts$lwd.pt),
                            title = varnames$colby, fill = ptcol) 
-            leg.grob <- drawLegend(legend)            
-        } else {                        
+            leg.grob1 <- drawLegend(legend)            
+        } else {
+            misscol <- any(sapply(plot.list, function(x) sapply(x, function(x2) x2$nacol)))
             legend <- list(var = df$colby, title = varnames$colby,
                            cex = opts$cex.text, cex.title = opts$cex.lab,
                            cex.axis = opts$cex.axis,
-                           cex.mult = ifelse("g1" %in% df.vs, 1,
-                               ifelse("g1.level" %in% df.vs,
-                                      ifelse(length(levels(df$g1.level)) >= 6, 0.7, 1), 1)))
+                           cex.mult = cex.mult,
+                           missCOL = misscol, cex.pt = opts$cex.pt, lwd = opts$lwd.pt)
+         #   print(df)
 
-            leg.grob <- drawContLegend(legend)
+            leg.grob1 <- drawContLegend(legend)
         }
-    } else {
-        leg.grob <- NULL
     }
+
+    if ("sizeby" %in% names(varnames)) {
+        misssize <- any(sapply(plot.list, function(x) sapply(x, function(x2) x2$nasize)))
+        if (misssize) {
+            misstext <- textGrob(paste0("missing\n", varnames$sizeby), x = 0, y = 0.5,
+                                 just = "left",
+                                 gp = gpar(cex = opts$cex * cex.mult))
+            leg.grob2 <- frameGrob(layout = grid.layout(1, 4,
+                                       widths = unit.c(unit(0, "mm"), unit(2, "lines"),
+                                           grobWidth(misstext), unit(0.5, "lines")),
+                                       heights = unit(2, "lines")))
+            
+            leg.grob2 <- placeGrob(leg.grob2,
+                                   pointsGrob(0.5, 0.5, pch = 4,
+                                              gp = gpar(col = "grey50",
+                                                  cex = opts$cex.pt * cex.mult, lwd = opts$lwd.pt)),
+                                   col = 2)
+            leg.grob2 <- placeGrob(leg.grob2, misstext, col = 3)
+        }        
+    }
+
+    hgts <- numeric(3)
+    wdth <- 0
     
+    if (!is.null(leg.grob1)) {
+        hgts[1] <- convertHeight(grobHeight(leg.grob1), "in", TRUE)
+        wdth <- max(wdth, convertWidth(grobWidth(leg.grob1), "in", TRUE))
+    }
+    if (!is.null(leg.grob2)) {
+        hgts[2] <- convertHeight(grobHeight(leg.grob2), "in", TRUE)
+        wdth <- max(wdth, convertWidth(grobWidth(leg.grob2), "in", TRUE))
+    }
+    if (!is.null(leg.grob3)) {
+        hgts[3] <- convertHeight(grobHeight(leg.grob3), "in", TRUE)
+        wdth <- max(wdth, convertWidth(grobWidth(leg.grob3), "in", TRUE))
+    }  
+        
     ## --- CREATE the main LAYOUT for the titles + main plot window
     MAIN.hgt <- unit(MAIN.height, "in")
     XAX.hgt <- unit(XAX.height, "in")
@@ -336,7 +373,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     YAX.wd <- unit(YAX.width, "in")
     PLOT.wd <- unit(1, "null")
     LEG.wd <-
-        if (!is.null(leg.grob)) convertWidth(grobWidth(leg.grob), "in") + unit(1, "char")
+        if (wdth > 0) unit(wdth, "in") + unit(1, "char")
         else unit(0, "null") 
     
     TOPlayout <- grid.layout(nrow = 6, ncol = 5,
@@ -361,10 +398,31 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     grid.draw(xlab.grob)
 
     ## place the legend
-    if (!is.null(leg.grob)) {
+    if (wdth > 0) {
+        print(hgts)
+        
         seekViewport("VP:TOPlayout")
         pushViewport(viewport(layout.pos.col = 5, layout.pos.row = 3))
-        grid.draw(leg.grob)
+        leg.layout <- grid.layout(3, heights = unit(hgts, "in"))
+        pushViewport(viewport(layout = leg.layout, name = "VP:LEGlayout"))
+
+        if (hgts[1] > 0) {
+            seekViewport("VP:LEGlayout")
+            pushViewport(viewport(layout.pos.row = 1))
+            grid.rect()
+            grid.draw(leg.grob1)
+        }
+        if (hgts[2] > 0) {
+            seekViewport("VP:LEGlayout")
+            pushViewport(viewport(layout.pos.row = 2))
+            grid.rect()
+            grid.draw(leg.grob2)
+        }
+         if (hgts[3] > 0) {
+            seekViewport("VP:LEGlayout")
+            pushViewport(viewport(layout.pos.row = 3))
+            grid.draw(leg.grob3)
+        }
     }
     
     ## --- next, it will break the plot into subregions for g1 (unless theres only one, then it
@@ -431,10 +489,9 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         if (matrix.plot) {
             # add that little thingy
             seekViewport("VP:PLOTlayout")
-            pushViewport(viewport(layout.pos.row = R - 1, gp = gpar(cex = multi.cex)))
+            pushViewport(viewport(layout.pos.row = R - 1,
+                                  gp = gpar(cex = multi.cex, fontface = "bold")))
             grid.rect(gp = gpar(fill = "lightblue"))
-            print(r)
-            print(g2.level)
             grid.text(g2.level[g2id], gp = gpar(cex = opts$cex.lab))
         }
 

@@ -1,5 +1,8 @@
-rescale <- function(x)
-    5 * (x - min(x, na.rm = TRUE)) / diff(range(x, na.rm = TRUE)) + 0.5
+rescale <- function(x) {
+    r <- 4 * (x - min(x, na.rm = TRUE)) / diff(range(x, na.rm = TRUE)) + 0.5
+    r[is.na(x)] <- NA
+    r
+}
 
 Darken <- function(x = "#FFFFFF") {
     x <- gsub('#', '', x)

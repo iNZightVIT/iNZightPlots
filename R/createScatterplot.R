@@ -5,7 +5,7 @@ create.inz.scatterplot <- function(obj) {
     v <- colnames(df)
 
     # first need to remove missing values
-    missing <- apply(df, 1, function(x) any(is.na(x)))
+    missing <- apply(df[ , v %in% c("x", "y")], 1, function(x) any(is.na(x)))
     n.missing <- sum(missing)
     df <- df[!missing, ]
     
@@ -19,19 +19,28 @@ create.inz.scatterplot <- function(obj) {
 
     # colour of points
     if ("colby" %in% v) {
-        nby <- length(levels(as.factor(df$colby)))
-        if (length(opts$col.pt) >= nby) {
-            pt.col <- opts$col.pt[1:nby]
+        if (is.factor(df$colby)) {
+            nby <- length(levels(df$colby))
+            if (length(opts$col.pt) >= nby) {
+                pt.col <- opts$col.pt[1:nby]
+            } else {
+                pt.col <- hcl((1:nby) / nby * 360, c = 80, l = 50)
+            }
+            pt.col <- pt.col[as.numeric(df$colby)]
         } else {
-            pt.col <- hcl((1:nby) / nby * 360, c = 80, l = 50)
+            ## rescale the colour-by variable on a scale from 1-200 and then use rainbow colours
+            cb <- df$colby
+            cbsc <- as.integer(199 * ((cb - min(cb, na.rm = TRUE)) / diff(range(cb, na.rm = TRUE))) + 1)
+            pt.col <- ifelse(is.na(cb), "grey50", rainbow(200, start = 1/6)[cbsc])
         }
-        pt.col <- pt.col[as.numeric(df$colby)]
     } else {
         pt.col <- opts$col.pt[1]
     }
 
     ## The plotting symbol:
-    pch <- ifelse(opts$alpha == 1, opts$pch, 19)
+    pch <- rep(ifelse(opts$alpha == 1, opts$pch, 19), nrow(df))
+   # if ("colby" %in% v)
+   #     pch[is.na(df$colby)] <- 5
 
     ## --- this is where FREQUENCY or SURVEY information is used to control sizes of points
     # size of points
@@ -44,14 +53,16 @@ create.inz.scatterplot <- function(obj) {
     } else {
         propsize <- 1
     }
+    
+    pch[is.na(propsize)] <- 4
+    propsize[is.na(propsize)] <- 1
 
-
-    ## The plotting symbol:
-    pch <- ifelse(opts$alpha == 1, opts$pch, 19)
 
     # Combine everything together into a classed list which will have a `plot` method
     out <- list(x = df$x, y = df$y, cols = pt.col, propsize = propsize, pch = pch,
                 n.missing = n.missing,
+                nacol = if ("colby" %in% v) any(is.na(df$colby)) else FALSE,
+                nasize = if ("sizeby" %in% v) any(is.na(df$sizeby)) else FALSE,
                 xlim = range(df$x), ylim = range(df$y))
     class(out) <- "inzscatter"
 
