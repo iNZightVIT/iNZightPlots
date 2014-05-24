@@ -104,50 +104,82 @@ drawContLegend <- function(var, title = "", height = NULL, cex.mult = 1,
 }
 
 
+drawLinesLegend <- function(x, opts = inzpar(), cex.mult = 1) {
+
+    lines.list <- list()
+    if (length(opts$trend) > 0) {
+        if (all(opts$trend != FALSE)) {
+            for (i in 1:length(opts$trend)) {
+                lines.list <- c(lines.list,
+                                list(c(opts$trend[i],
+                                       opts$col.trend[[opts$trend[i]]],
+                                       opts$lty, opts$lwd)))
+            }
+        }
+    }
+    if (length(opts$quant.smooth) > 0) {
+        qs <- calcQSmooth(x, opts$quant.smooth, opts)
+        if (!is.null(qs)) {
+            for (i in 1:length(qs$qp)) {
+                lines.list <- c(lines.list,
+                                list(c(paste0(qs$qp[i] * 100,
+                                              ifelse(qs$qp[i] != 0.5,
+                                                     paste0(" - ", (1 - qs$qp[i]) * 100),
+                                                     ""),
+                                              "%"),
+                                       opts$col.smooth,
+                                       qs$lty[i], qs$lwd[i])))
+            }
+        }
+    } else {
+        if (!is.null(opts$smooth)) {
+            if (opts$smooth != 0) {
+                lines.list <- c(lines.list,
+                                list(c("smoother", opts$col.smooth,
+                                       opts$lty, opts$lwd)))
+            }
+        }
+    }
+    if (opts$LOE) {
+        lines.list <- c(lines.list,
+                        list(c("x=y line", opts$col.LOE, opts$lty.LOE, opts$lwd)))
+    }
 
 
-oldFun <- function(...){
-
-
-   
-
-  # Set up a viewport in the middle of the plotting area
-
-  # Line position for each label
-  # *** This is modified from the grid.legend() function in the Grid package ***
-    gap <- unit(0.5, "lines")
+    ## if there aren't any lines, return nothing, otherwise return legend grob
+    if (length(lines.list) == 0)
+        return(NULL)
     
-    leg.width <-
-        max(sapply(c(title, lab), function(x)
-                   convertWidth(grobWidth(textGrob(x, gp =
-                                                   gpar(cex = cex * cex.mult))), "mm")))
-    legend.layout <-
-        grid.layout(n + 1, 4,
-                    widths = unit.c(unit(0, "mm"), unit(2, "lines"),
-                        unit(leg.width, "mm"), unit(0.5, "lines")), 
-                    heights =
-                    unit.pmax(unit(2, "lines"),
-                              gap + unit(rep(1, n), "strheight", as.list(lab))))
-
-    fg <- frameGrob(layout = legend.layout)
+    legcex <- opts$cex.text * cex.mult
+    lab <- sapply(lines.list, function(x) x[1])
+    col <- sapply(lines.list, function(x) x[2])
+    lty <- as.numeric(sapply(lines.list, function(x) x[3]))
+    lwd <- as.numeric(sapply(lines.list, function(x) x[4]))
     
-    for (i in 1L:n) {
-        fg <- placeGrob(fg, pointsGrob(0.5, 0.5, pch = pch[i],
+    lab.width <- max(sapply(lab, function(x)
+                            convertWidth(grobWidth(textGrob(x, gp = gpar(cex = legcex))),
+                                         "in", TRUE)))
+    lab.height <- convertHeight(grobHeight(textGrob(lab[1], gp = gpar(cex = legcex))),
+                                "in", TRUE) * 2
+
+    n <- length(lab)
+    leg.layout <- grid.layout(n + 1, 3,
+                              widths = unit.c(unit(2, "lines"), unit(lab.width, "in"), unit(0.5, "lines")),
+                              heights = unit.c(unit(2, "lines"), unit(rep(lab.height, n), "in")))
+    
+    fg <- frameGrob(layout = leg.layout)
+
+    for (i in 1:n) {
+        fg <- placeGrob(fg, linesGrob(c(0.2, 0.8), 0.5,
                                        gp =
-                                       gpar(col = col[i], cex = cex.pt * cex.mult, lwd = lwd,
-                                            fill = fill[i])),
-                        col = 2, row = i + 1)
+                                       gpar(col = col[i], lty = lty[i], lwd = lwd[i])),
+                        col = 1, row = i + 1)
        
         fg <- placeGrob(fg, textGrob(lab[i], x = 0 , y = 0.5,
                                      just = c("left", "center"),
-                                     gp = gpar(cex = cex * cex.mult)),
-                        col = 3, row = i + 1)
+                                     gp = gpar(cex = legcex)),
+                        col = 2, row = i + 1)
     }
-
-    fg <- placeGrob(fg, textGrob(title, x = 0.5, y = 1,
-                                 just = "left",
-                                 gp = gpar(cex = cex.title * cex.mult)),
-                    col = 2, row = 1)
-
+    
     fg
 }

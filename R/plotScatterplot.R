@@ -48,6 +48,26 @@ plot.inzscatter <- function(obj, opts = inzpar(), axis = c(2, 2, 1, 1),
                 gp =
                 gpar(col = obj$cols, cex = obj$propsize * opts$cex.pt,
                      lwd = opts$lwd.pt, alpha = opts$alpha))
+
+    # Connect by dots if they want it ...
+    if (opts$join) {
+        if (length(unique(obj$cols)) == 1 | !opts$lines.by) {
+            grid.lines(obj$x, obj$y, default.units = "native",
+                       gp =
+                       gpar(lwd = opts$lwd, lty = opts$lty,
+                            col = opts$col.line))
+        } else {
+            byy <- as.factor(obj$cols)  # pseudo-by-variable
+            xtmp <- lapply(levels(byy), function(c) subset(obj$x, obj$cols == c))
+            ytmp <- lapply(levels(byy), function(c) subset(obj$y, obj$cols == c))
+            
+            for (b in 1:length(levels(byy)))
+                grid.lines(xtmp[[b]], ytmp[[b]], default.units = "native",
+                           gp =
+                           gpar(lwd = opts$lwd, lty = opts$lty,
+                                col = levels(byy)[b]))
+        }
+    }
     
 
     ## ---------------------------------------------------------------------------- ##
@@ -76,15 +96,15 @@ plot.inzscatter <- function(obj, opts = inzpar(), axis = c(2, 2, 1, 1),
 
     # Smoothers and quantiles:
     if (length(opts$quant.smooth) > 0) {
-        qs <- calcQSmooth(obj$x, opts$quant.smooth, opts)
+        try(qs <- calcQSmooth(obj$x, opts$quant.smooth, opts), TRUE)
         if (!is.null(qs)) {
             qp <- qs$qp
             lty <- qs$lty
             lwd <- qs$lwd
             for (q in 1:length(qp))
-                addQuantileSmoother(obj$x, obj$y, quantile = qp[q],
-                                    col = opts$col.smooth,
-                                    lty = lty[q], lwd = lwd[q])
+                try(addQuantileSmoother(obj$x, obj$y, quantile = qp[q],
+                                        col = opts$col.smooth,
+                                        lty = lty[q], lwd = lwd[q]), TRUE)
         }
     } else if (!is.null(opts$smooth)) {
       # Smoothers
@@ -93,18 +113,18 @@ plot.inzscatter <- function(obj, opts = inzpar(), axis = c(2, 2, 1, 1),
                 warning("Smoothing value must be in the interval [0, 1]")
             } else {
                 if (length(unique(obj$col)) == 1 | !opts$trend.by) {
-                    addSmoother(obj$x, obj$y, f = opts$smooth,
-                                col = opts$col.smooth, bs = opts$bs.inference)
+                    try(addSmoother(obj$x, obj$y, f = opts$smooth,
+                                    col = opts$col.smooth, bs = opts$bs.inference), TRUE)
                 } else {
                     byy <- as.factor(obj$col)  # pseudo-by-variable
                     xtmp <- lapply(levels(byy), function(c) subset(obj$x, obj$col == c))
                     ytmp <- lapply(levels(byy), function(c) subset(obj$y, obj$col == c))
                     
                     for (b in 1:length(levels(byy)))
-                        addSmoother(xtmp[[b]], ytmp[[b]],
-                                    f = opts$smooth,
-                                    col = darken(levels(byy)[b]),
-                                    bs = FALSE, lty = 2)
+                        try(addSmoother(xtmp[[b]], ytmp[[b]],
+                                        f = opts$smooth,
+                                        col = darken(levels(byy)[b]),
+                                        bs = FALSE, lty = 2), TRUE)
                 }
             }
         }

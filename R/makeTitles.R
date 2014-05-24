@@ -22,7 +22,6 @@ makeTitle <- function(names, types, g1.level = NULL, g2.level = NULL) {
                                    paste0(', for ', names$g2, ' = ', g2.level))))
 
     if ("y" %in% varnames) {
-        print(types)
         if (types$x == "numeric" & types$y == "numeric") {
             title5 <- ifelse(!"sizeby" %in% varnames, '',
                              paste0(' (size proportional to ', names$sizeby, ')'))

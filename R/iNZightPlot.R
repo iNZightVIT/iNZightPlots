@@ -2,6 +2,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         g2 = NULL, g2.level = NULL, varnames = list(),
                         colby = NULL, sizeby = NULL,
                         data = NULL, structure = NULL,
+                        missing.info = TRUE,
                         inzpars = inzpar(), ...) {
 
   # ------------------------------------------------------------------------------------ #
@@ -80,8 +81,6 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
   ########################################################################################
   ########################################################################################
-
-   # dev.hold()  # wait until finished drawing, THEN plot
     
   # ------------------------------------------------------------------------------------ #
   # 1. The data step
@@ -237,6 +236,10 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     # Set up the plot layout
 
     ## --- The Main Viewport: this one is simply the canvas, and global CEX value
+    dd <- dev.flush()
+    while(dd > 0) dd <- dev.flush()     # incase something is held
+    
+    dev.hold()
     grid.newpage()
     pushViewport(viewport(gp = gpar(cex = opts$cex), name = "container"))
     grid.rect(gp = gpar(fill = opts$bg, col = opts$bg))
@@ -248,7 +251,6 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     # --- first, need to make all of the labels/legends/etc:
     titles <- list()
-    print(varnames)
     titles$main <-
         if ("main" %in% names(dots)) dots$main
         else makeTitle(varnames, vartypes, g1.level, g2.level)#, sizeby = varnames$sizeby)
@@ -333,6 +335,10 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         }        
     }
 
+    if (is.numeric(df$x) & is.numeric(df$y)) {
+        leg.grob3 <- drawLinesLegend(df$x, opts = opts, cex.mult = cex.mult * 0.8)
+    }
+
     hgts <- numeric(3)
     wdth <- 0
     
@@ -347,14 +353,27 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     if (!is.null(leg.grob3)) {
         hgts[3] <- convertHeight(grobHeight(leg.grob3), "in", TRUE)
         wdth <- max(wdth, convertWidth(grobWidth(leg.grob3), "in", TRUE))
-    }  
+    }
+
+
+    ## --- Figure out a subtitle for the plot:
+    if ("subtitle" %in% names(dots)) {
+        SUB <- textGrob(dots$subtitle, gp = gpar(cex = opts$cex.text * 0.8))
+    } else if (missing.info & length(missing) > 0) {
+        total.missing <- sum(sapply(missing, sum))
+        subtitle <- paste(total.missing, "observations dropped due to missingness")
+        SUB <- textGrob(subtitle, gp = gpar(cex = opts$cex.text * 0.8))
+    } else {
+        SUB <- NULL
+    }
+    
         
     ## --- CREATE the main LAYOUT for the titles + main plot window
     MAIN.hgt <- unit(MAIN.height, "in")
     XAX.hgt <- unit(XAX.height, "in")
     XLAB.hgt <- unit(XLAB.height, "in")
     PLOT.hgt <- unit(1, "null")
-    SUB.hgt <- unit(0, "null")
+    SUB.hgt <- if (is.null(SUB)) unit(0, "null") else convertUnit(grobHeight(SUB) * 1.5, "in")
 
     YLAB.wd <- unit(YLAB.width, "in")
     YAX.wd <- unit(YAX.width, "in")
@@ -373,6 +392,13 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ## place the title
     pushViewport(viewport(layout.pos.row = 1))
     grid.draw(main.grob)
+
+    ## and subtitle
+    if (!is.null(SUB)) {
+        seekViewport("VP:TOPlayout")
+        pushViewport(viewport(layout.pos.row = 6, layout.pos.col = 3))
+        grid.draw(SUB)
+    }
     
     ## place axis labels
     if (!ynull) {
@@ -475,7 +501,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             pushViewport(viewport(layout.pos.row = R - 1,
                                   gp = gpar(cex = multi.cex, fontface = "bold")))
             grid.rect(gp = gpar(fill = "lightblue"))
-            grid.text(g2.level[g2id], gp = gpar(cex = opts$cex.lab))
+            grid.text(paste(varnames$g2, "=", g2.level[g2id]), gp = gpar(cex = opts$cex.lab))
         }
 
         for (c in 1:nc) {

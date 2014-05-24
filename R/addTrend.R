@@ -10,8 +10,10 @@ function(x, y, order, xlim, col, bs) {
         grid.lines(xx, yy,
                    default.units = "native",
                    gp = gpar(col = col, lwd = 2))
-        
+
         if (bs) {
+            bs.lines <- vector("list", 30)
+            
             for (i in 1:30) {
               # User wants bootstrap inference for this line.
                 id <- sample(1:length(x), replace = TRUE)
@@ -23,11 +25,14 @@ function(x, y, order, xlim, col, bs) {
 
               # Some bootstraps can have less than `order` unique points:
                 if (inherits(yy, "try-error")) next
-                
-                grid.lines(xx, yy,
-                           default.units = "native",
-                           gp = gpar(col = col, lwd = 1, lty = 3))
+
+                bs.lines[[i]] <- cbind(xx, yy, rep(i, length(yy)))
             }
+
+            all.lines <- do.call(rbind, bs.lines)
+            grid.polyline(all.lines[, 1], all.lines[, 2], id = all.lines[, 3],
+                          default.units = "native",
+                          gp = gpar(col = col, lwd = 1, lty = 3))
         }
     }
 }
