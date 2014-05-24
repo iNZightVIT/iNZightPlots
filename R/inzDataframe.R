@@ -69,11 +69,22 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level,
         }
     }
 
+    ## another check that there aren't too many levels of colby:
+    if ("colby" %in% colnames(df)) {
+        if (is.factor(df$colby)) {
+            if (length(levels(df$colby)) > 10) {
+                warning("Ignoring colby argument: too many factor levels.")
+                df$colby <- NULL
+                varnames$colby <- NULL
+            }
+        }
+    }
+
     # fix a bug that ensures colby grouping variable is the same as g2 if both specified
     if ("g2" %in% colnames(df) & "colby" %in% colnames(df))
         if (varnames$g2 == varnames$colby)
             df$colby <- df$g2
-    
+
     attr(df, "varnames") <- sapply(varnames,
                                    function(x) ifelse(!is.character(x), deparse(x), x))
     df

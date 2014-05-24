@@ -21,7 +21,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
   # ------------------------------------------------------------------------------------ #
   # ++++++++ FOR (future) DEVELOPERS ++++++++
   #
-  # First of all, welcome to the iNZight team!
+  # First of all, welcome to the iNZight team!3
   # Second, have fun reading through all the code :D
   #
   # +++ How iNZightPlots works +++
@@ -95,6 +95,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     # of g1, g2, colby etc. to ensure everything is cross-compatible
     df <- inzDataframe(m, data = md, names = varnames, g1.level, g2.level,
                        structure = structure, env = env)
+    
     varnames <- as.list(attr(df, "varnames"))
     vartypes <- lapply(df, function(x) ifelse(is.factor(x), "factor", "numeric"))
     names(vartypes) <- colnames(df)
