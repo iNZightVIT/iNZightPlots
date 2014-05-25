@@ -9,6 +9,14 @@ Darken <- function(x = "#FFFFFF") {
     if (nchar(x) == 3)
         x <- paste(rep(strsplit(x, '')[[1]], each = 2), collapse = '')
 
+    ## catch any transparency added to the colours
+    if (nchar(x) == 8) {
+        alpha <- substr(x, 7, 8)
+        x <- substr(x, 1, 6)
+    } else {
+        alpha <- ""
+    }
+
     if (nchar(x) != 6)
         stop("Not a valid hexadecimal code!")
 
@@ -20,10 +28,10 @@ Darken <- function(x = "#FFFFFF") {
 
     dark <- strtoi(c(r, g, b), base = 16) * 0.6 / 255
     
-    rgb(dark[1], dark[2], dark[3])
+    paste0(rgb(dark[1], dark[2], dark[3]), alpha)
 }
 
-darken <- Vectorize(Darken)
+darken <- Vectorize(Darken)  # allow it to work on a vector of Xs
 
 
 convert.to.factor <-
