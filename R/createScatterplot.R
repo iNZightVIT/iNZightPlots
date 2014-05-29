@@ -2,13 +2,14 @@ create.inz.scatterplot <- function(obj) {
     # take the dataframe and settings from the object
     df <- obj$df
     opts <- obj$opts
+    xattr <- obj$xattr
     v <- colnames(df)
 
     # first need to remove missing values
     missing <- apply(df[ , v %in% c("x", "y")], 1, function(x) any(is.na(x)))
     n.missing <- sum(missing)
     df <- df[!missing, ]
-    
+
     # --- look through inzpar for settings
 
     # Jitter on x and y
@@ -44,7 +45,7 @@ create.inz.scatterplot <- function(obj) {
     ## --- this is where FREQUENCY or SURVEY information is used to control sizes of points
     # size of points
     if ("(freqs)" %in% v) {
-        propsize <- df$`(freqs)`
+        propsize <- df$`(freqs)` / xattr$max.freq * 4 + 0.5
     } else if ("(weights)" %in% v) {
         propsize <- df$`(weights)`
     } else if ("sizeby" %in% v) {

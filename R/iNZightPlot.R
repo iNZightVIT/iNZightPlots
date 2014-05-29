@@ -222,7 +222,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     opts <- inzpars
     wopt <- names(dots) %in% names(opts)  # which additional settings have been specified
     opts <- modifyList(opts, dots[wopt])
-    plot.list <- lapply(df.list, function(df) lapply(df, createPlot, opts))
+    xattr <- list()
+    if (!is.null(attr(df, "max.freq")))
+        xattr$max.freq <- attr(df, "max.freq")
+    
+    plot.list <- lapply(df.list, function(df) lapply(df, createPlot, opts, xattr))
 
     # sort out the axis limits
     xlim <- extendrange(range(sapply(plot.list,
@@ -494,7 +498,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     NG2 <- length(plot.list)
     NG1 <- length(plot.list[[1]])
 
-    for (r in nr:1) {
+    for (r in nr:1) {        
         R <- r * 2  # skip the gaps between rows
         if (matrix.plot) {
             # add that little thingy
@@ -506,6 +510,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         }
 
         for (c in 1:nc) {
+            if (g2id > NG2) next()
             C <- c * 2 - 1
             seekViewport("VP:PLOTlayout")
             pushViewport(viewport(layout.pos.row = R, layout.pos.col = C,

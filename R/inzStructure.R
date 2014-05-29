@@ -1,3 +1,5 @@
+
+
 inzStructure <- function(type, vars, data = NULL) {
   # Creates an object of class `inz.structure`, which accompanies a
   # dataset, and contains information of the data structure.
@@ -13,6 +15,12 @@ inzStructure <- function(type, vars, data = NULL) {
         }
 
         fr <- eval(m$vars, md, env)
+
+        if (any(is.na(fr))) {
+            fr[is.na(fr)] <- 0
+            warning("Missing frequencies treated as 0")
+        }
+        
         if (any(fr %% 1 > 0))
             stop(paste0("Frequencies should be integers. Use `as.integer` to\n",
                         "coerce non-integer values before calling `inzStructure`."))

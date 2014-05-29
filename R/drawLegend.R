@@ -37,11 +37,15 @@ function(lab, col, pch = opts$pch, cex.mult = 1,
     fg <- frameGrob(layout = leg.layout)
     fg <- placeGrob(fg, title.grob, row = 1, col = 1:2)
 
+    ## change pch into filled in one:
+    if (pch %in% c(1, 2, 5, 6))
+        pch <- switch(which(pch == c(1, 2, 5, 6)), 21, 24, 23, 25)
+
     for (i in 1:n) {
         fg <- placeGrob(fg, pointsGrob(0.5, 0.5, pch = pch,
                                        gp =
                                        gpar(col = col[i], cex = legcex, lwd = opts$lwd.pt,
-                                            fill = opts$fill)),
+                                            fill = col[i])),
                         col = 1, row = i + 2)
        
         fg <- placeGrob(fg, textGrob(lab[i], x = 0 , y = 0.5,
@@ -92,8 +96,9 @@ drawContLegend <- function(var, title = "", height = NULL, cex.mult = 1,
     fg <- placeGrob(fg, yax, row = 3, col = 1)
 
     if (any.missing) {
-        fg <- placeGrob(fg, pointsGrob(0.5, 0.5, gp =
-                                       gpar(col = "grey50", cex = legcex, lwd = opts$lwd.pt)),
+        fg <- placeGrob(fg, pointsGrob(0.5, 0.5, pch = 21, gp =
+                                       gpar(col = "grey50", cex = legcex,
+                                            lwd = opts$lwd.pt, fill = "grey50")),
                         row = 5, col = 1)
         fg <- placeGrob(fg, textGrob("missing", x = unit(1, "lines"), y = 0.5, just = c("left", "center"),
                                      gp = gpar(cex = legcex * opts$cex.axis)),

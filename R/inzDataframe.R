@@ -17,7 +17,8 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level,
             if (length(f <- structure$freqs) != nrow(df))
                 stop("Structural information doesn't match the data (different lengths).")
 
-            df$`(freqs)` <- rescale(f)
+            df$`(freqs)` <- f
+            attr(df, "max.freq") <- max(f)
             if ("sizeby" %in% colnames(df)) {
                 df$sizeby <- NULL
             }
@@ -89,3 +90,4 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level,
                                    function(x) ifelse(!is.character(x), deparse(x), x))
     df
 }
+    

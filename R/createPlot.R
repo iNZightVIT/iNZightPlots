@@ -1,4 +1,4 @@
-createPlot <- function(df, opts) {
+createPlot <- function(df, opts, xattr) {
   # This function takes a data.frame object and creates the necessary object which will have a
   # `plot` method.
     
@@ -15,7 +15,7 @@ createPlot <- function(df, opts) {
     # which will use the correct method, and create the required plot.
     
     pclass <- paste("inz", type, sep = ".")
-    obj <- structure(.Data = list(df = df, opts = opts))
+    obj <- structure(.Data = list(df = df, opts = opts, xattr = xattr))
     class(obj) <- pclass
 
     create(obj)
