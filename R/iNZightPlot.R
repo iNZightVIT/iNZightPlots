@@ -208,6 +208,12 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         df3
     })
 
+    ## sum up all of the missing values
+    missing$x <- sum(sapply(df.list, function(df) sum(sapply(df, function(d) sum(is.na(d$x))))))
+    if ("y" %in% df.vs)
+        missing$y <- sum(sapply(df.list, function(df)
+                                sum(sapply(df, function(d) sum(is.na(d$y))))))
+    
     # now, everything simply gets applied to the list of dataframes to
     # generate the necessary plots
 
@@ -231,11 +237,13 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     # sort out the axis limits
     xlim <- extendrange(range(sapply(plot.list,
                                      function(pl) range(sapply(pl,
-                                                               function(x) x$xlim)))),
+                                                               function(x) x$xlim),
+                                                        finite = TRUE)), finite = TRUE),
                         f = 0.04)  # add 4% to each axis
     ylim <- extendrange(range(sapply(plot.list,
                                      function(pl) range(sapply(pl,
-                                                               function(x) x$ylim)))),
+                                                               function(x) x$ylim),
+                                                        finite = TRUE)), finite = TRUE),
                         f = 0.04)
 
     # Set up the plot layout
@@ -317,7 +325,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             if (length(opts$col.pt) >= nby) {
                 ptcol <- opts$col.pt[1:nby]
             } else {
-                ptcol <- rainbow(nby, v = 0.7, start = 1/6)  #hcl((1:nby) / nby * 360, c = 80, l = 50)
+                ptcol <- rainbow(nby, v = 0.7, start = 1/6)
             }
             misscol <- any(sapply(plot.list, function(x) sapply(x, function(x2) x2$nacol)))
             leg.grob1 <- drawLegend(levels(as.factor(df$colby)), col = ptcol,
@@ -365,8 +373,12 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     if ("subtitle" %in% names(dots)) {
         SUB <- textGrob(dots$subtitle, gp = gpar(cex = opts$cex.text * 0.8))
     } else if (missing.info & length(missing) > 0) {
+        names(missing) <- unlist(varnames[match(names(missing), names(varnames))])
+        missing <- missing[missing != 0]
         total.missing <- sum(sapply(missing, sum))
-        subtitle <- paste(total.missing, "observations dropped due to missingness")
+        missinfo <- paste0(missing, " in ", names(missing), collapse = ", ")
+        subtitle <- paste0(total.missing, " observations dropped due to missingness (",
+                           missinfo, ")")
         SUB <- textGrob(subtitle, gp = gpar(cex = opts$cex.text * 0.8))
     } else {
         SUB <- NULL

@@ -19,7 +19,7 @@ create.inz.scatterplot <- function(obj) {
         df$y <- jitter(df$y)
 
     # colour of points
-    if ("colby" %in% v) {
+    if ("colby" %in% v & nrow(df) > 0) {
         if (is.factor(df$colby)) {
             nby <- length(levels(df$colby))
             if (length(opts$col.pt) >= nby) {
@@ -31,7 +31,8 @@ create.inz.scatterplot <- function(obj) {
         } else {
             ## rescale the colour-by variable on a scale from 1-200 and then use rainbow colours
             cb <- df$colby
-            cbsc <- as.integer(199 * ((cb - min(cb, na.rm = TRUE)) / diff(range(cb, na.rm = TRUE))) + 1)
+            cbsc <- as.integer(199 * ((cb - min(cb, na.rm = TRUE)) /
+                                      diff(range(cb, na.rm = TRUE))) + 1)
             pt.col <- ifelse(is.na(cb), "grey50", rainbow(200, start = 1/6)[cbsc])
         }
     } else {
@@ -57,7 +58,6 @@ create.inz.scatterplot <- function(obj) {
     pch[is.na(propsize)] <- 4
     propsize[is.na(propsize)] <- 1
 
-
     # Combine everything together into a classed list which will have a `plot` method
     out <- list(x = df$x, y = df$y, cols = pt.col, propsize = propsize, pch = pch,
                 n.missing = n.missing,
@@ -66,7 +66,8 @@ create.inz.scatterplot <- function(obj) {
                 else opts$largesample,
                 nacol = if ("colby" %in% v) any(is.na(df$colby)) else FALSE,
                 nasize = if ("sizeby" %in% v) any(is.na(df$sizeby)) else FALSE,
-                xlim = range(df$x), ylim = range(df$y))
+                xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
+                ylim = if (nrow(df) > 0) range(df$y, na.rm = TRUE) else c(-Inf, Inf))
 
     
     if (out$grid.plot) {
