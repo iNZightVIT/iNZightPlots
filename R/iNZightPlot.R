@@ -131,6 +131,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             }
         }
     }
+
+    
     
     # subset the data by g2 (keep everything, so xlims can be calculated)
     # g2 can take values (0 = "_ALL", 1:ng2, ng2+1 = "_MULTI")
@@ -159,6 +161,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         # separate function for drawing the matrix version
         if (g2.level == "_ALL") {
             df1 <- list(all = df)
+            g2.level <- NULL
         } else {
             if (g2.level == "_MULTI") {
                 matrix.plot <- TRUE
@@ -209,9 +212,13 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     })
 
     ## sum up all of the missing values
-    missing$x <- sum(sapply(df.list, function(df) sum(sapply(df, function(d) sum(is.na(d$x))))))
+    print(g2.level)
+    w.df <- if (is.null(g2.level)) "all" else if (g2.level == "_MULTI") 1:length(df.list)
+    else g2.level
+    missing$x <- sum(sapply(df.list[w.df], function(df)
+                            sum(sapply(df, function(d) sum(is.na(d$x))))))
     if ("y" %in% df.vs)
-        missing$y <- sum(sapply(df.list, function(df)
+        missing$y <- sum(sapply(df.list[w.df], function(df)
                                 sum(sapply(df, function(d) sum(is.na(d$y))))))
     
     # now, everything simply gets applied to the list of dataframes to
@@ -390,7 +397,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     XAX.hgt <- unit(XAX.height, "in")
     XLAB.hgt <- unit(XLAB.height, "in")
     PLOT.hgt <- unit(1, "null")
-    SUB.hgt <- if (is.null(SUB)) unit(0, "null") else convertUnit(grobHeight(SUB) * 1.5, "in")
+    SUB.hgt <- if (is.null(SUB)) unit(0, "null") else convertUnit(grobHeight(SUB) * 2, "in")
 
     YLAB.wd <- unit(YLAB.width, "in")
     YAX.wd <- unit(YAX.width, "in")
@@ -409,14 +416,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ## place the title
     pushViewport(viewport(layout.pos.row = 1))
     grid.draw(main.grob)
-
-    ## and subtitle
-    if (!is.null(SUB)) {
-        seekViewport("VP:TOPlayout")
-        pushViewport(viewport(layout.pos.row = 6, layout.pos.col = 3))
-        grid.draw(SUB)
-    }
-    
+       
     ## place axis labels
     if (!ynull) {
         seekViewport("VP:TOPlayout")
@@ -462,6 +462,13 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     
     plot.list <- lapply(plot.list, function(x) x[g1.level])
 
+    ## and subtitle
+    if (!is.null(SUB)) {
+        seekViewport("VP:TOPlayout")
+        pushViewport(viewport(layout.pos.row = 6, layout.pos.col = 3))
+        grid.draw(SUB)
+    }
+
     ## create a layout
     N <- sum(sapply(plot.list, length))
     if (matrix.plot) {
@@ -479,8 +486,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             nc <- dim2
         }
     }
-    multi.cex <- sqrt(sqrt(N) / N)  # this has absolutely no theoretical reasoning, it just does a
-                                    # reasonably acceptable job (:
+    multi.cex <- sqrt(sqrt(N) / N)  # this has absolutely no theoretical reasoning,
+                                    # it just does a reasonably acceptable job (:
 
     ## if the plots are DOTPLOTS or BARPLOTS, then leave a little bit of space between each
     plot.type <- class(plot.list[[1]][[1]])
