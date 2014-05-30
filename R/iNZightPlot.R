@@ -102,6 +102,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     df.vs <- colnames(df)
     missing <- list()  # a container to save missing value information
 
+    ## ensure it matches what comes back from inzDataframe()
+    g.level <- attr(df, "glevels")
+    g1.level <- g.level$g1.level
+    g2.level <- g.level$g2.level
+
     # do some type checks
     xfact <- is.factor(df$x)
     ynull <- ! "y" %in% df.vs
@@ -189,9 +194,12 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         # of only character names to be plotted
         g1l <- levels(df$g1)  # all levels of variable
         if (is.null(g1.level)) g1.level <- "_MULTI"
+
         
-        if (is.numeric(g1.level))
+        if (is.numeric(g1.level)) {
+            if (any(g1.level > length(levels(df$g1)))) g1.level <- 0
             g1.level <- if (any(g1.level == 0)) "_MULTI" else levels(df$g1)[g1.level]
+        }
 
         if (any(g1.level == "_MULTI"))
             g1.level <- levels(df$g1)
@@ -212,9 +220,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     })
 
     ## sum up all of the missing values
-    print(g2.level)
-    w.df <- if (is.null(g2.level)) "all" else if (g2.level == "_MULTI") 1:length(df.list)
-    else g2.level
+    w.df <-
+        if (is.null(g2.level)) "all"
+        else if (g2.level == "_MULTI") 1:length(df.list)
+        else g2.level
+    
     missing$x <- sum(sapply(df.list[w.df], function(df)
                             sum(sapply(df, function(d) sum(is.na(d$x))))))
     if ("y" %in% df.vs)
@@ -377,11 +387,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
 
     ## --- Figure out a subtitle for the plot:
+    missing <- missing[missing != 0]
     if ("subtitle" %in% names(dots)) {
         SUB <- textGrob(dots$subtitle, gp = gpar(cex = opts$cex.text * 0.8))
     } else if (missing.info & length(missing) > 0) {
         names(missing) <- unlist(varnames[match(names(missing), names(varnames))])
-        missing <- missing[missing != 0]
         total.missing <- sum(sapply(missing, sum))
         missinfo <- paste0(missing, " in ", names(missing), collapse = ", ")
         subtitle <- paste0(total.missing, " observations dropped due to missingness (",

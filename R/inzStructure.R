@@ -1,10 +1,10 @@
 
 
-inzStructure <- function(type, vars, data = NULL) {
+inzStructure <- function(type, vars, data = NULL, force.to.int = FALSE) {
   # Creates an object of class `inz.structure`, which accompanies a
   # dataset, and contains information of the data structure.
 
-    # grab the arguments and the data frame is supplied:
+    # grab the arguments and the data frame if supplied:
     m <- match.call(expand.dots = FALSE)
     env <- parent.frame()
     md <- eval(m$data, env)
@@ -15,15 +15,19 @@ inzStructure <- function(type, vars, data = NULL) {
         }
 
         fr <- eval(m$vars, md, env)
-
-        if (any(is.na(fr))) {
-            fr[is.na(fr)] <- 0
+        
+        if (any(!is.finite(fr))) {
+            fr[!is.finite(fr)] <- 0
             warning("Missing frequencies treated as 0")
         }
-        
-        if (any(fr %% 1 > 0))
-            stop(paste0("Frequencies should be integers. Use `as.integer` to\n",
-                        "coerce non-integer values before calling `inzStructure`."))
+
+        if (any(fr %% 1 > 0)) {
+            if (force.to.int)
+                fr <- as.integer(fr)
+            else
+                stop(paste0("Frequencies should be integers. Use `force.to.int = TRUE` to force ",
+                            "values to integers."))
+        }
 
         fr.name <- getName(deparse(substitute(vars)))
         

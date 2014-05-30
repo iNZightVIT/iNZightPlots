@@ -66,6 +66,8 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level,
                 varnames$g2 <- NULL
                 df$g1 <- df$g2
                 df$g2 <- NULL
+                g1.level <- g2.level
+                g2.level <- NULL
             }
         }
     }
@@ -88,6 +90,7 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level,
 
     attr(df, "varnames") <- sapply(varnames,
                                    function(x) ifelse(!is.character(x), deparse(x), x))
+    attr(df, "glevels") <- list(g1.level = g1.level, g2.level = g2.level)
     df
 }
     
