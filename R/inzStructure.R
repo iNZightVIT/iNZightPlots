@@ -1,20 +1,18 @@
-
-
-inzStructure <- function(type, vars, data = NULL, force.to.int = FALSE) {
+inzStructure <- function(arglist = list(id = 1:nrow(data)),
+                         data = NULL, force.to.int = FALSE) {
   # Creates an object of class `inz.structure`, which accompanies a
   # dataset, and contains information of the data structure.
+
+  # arglist: a list containing any of `freq`, OR `ids`, `probs`, `strata`, `fpc`, `weights`
 
     # grab the arguments and the data frame if supplied:
     m <- match.call(expand.dots = FALSE)
     env <- parent.frame()
     md <- eval(m$data, env)
-    
-    if (type %in% c("freq", "frequency")) {
-        if (length(m$vars) != 1L) {
-            stop("Frequency data structure requires 1 variable.")
-        }
 
-        fr <- eval(m$vars, md, env)
+    if ("freq" %in% names(m$arglist)) {
+        type = "frequency"
+        fr <- eval(m$arglist$freq, md, env)
         
         if (any(!is.finite(fr))) {
             fr[!is.finite(fr)] <- 0
@@ -29,14 +27,15 @@ inzStructure <- function(type, vars, data = NULL, force.to.int = FALSE) {
                             "values to integers."))
         }
 
-        fr.name <- getName(deparse(substitute(vars)))
+        fr.name <- getName(deparse(m$arglist$freq))
         
         st <- list(type = type,
                    freqs = fr,
                    varname = eval(fr.name))
         
-    } else if (type %in% c("survey")) {
-        stop("Survey structure not yet implemented.")
+    } else {
+        type = "survey"
+        stop("Survey design not yet implemented for iNZightPlots. Try using `freq` = `weights` for now.")
     }
 
     class(st) <- "inz.structure"
