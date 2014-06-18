@@ -1,7 +1,7 @@
 iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         g2 = NULL, g2.level = NULL, varnames = list(),
                         colby = NULL, sizeby = NULL,
-                        data = NULL, structure = NULL,
+                        data = NULL, design = NULL,
                         missing.info = TRUE,
                         inzpars = inzpar(), ...) {
 
@@ -89,12 +89,15 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     # grab the arguments and the data frame is supplied:
     m <- match.call(expand.dots = FALSE)
     env <- parent.frame()
-    md <- eval(m$data, env)
+    if ("design" %in% names(m)) {
+        md <- eval(m$design, env)
+    } else {
+        md <- eval(m$data, env)
+    }
 
     # returns dataframe with all of the supplied variables, and additionally does checking
     # of g1, g2, colby etc. to ensure everything is cross-compatible
-    df <- inzDataframe(m, data = md, names = varnames, g1.level, g2.level,
-                       structure = structure, env = env)
+    df <- inzDataframe(m, data = md, names = varnames, g1.level, g2.level, env = env)
     
     varnames <- as.list(attr(df, "varnames"))
     vartypes <- lapply(df, function(x) ifelse(is.factor(x), "factor", "numeric"))

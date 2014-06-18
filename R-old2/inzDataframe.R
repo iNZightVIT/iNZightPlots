@@ -10,22 +10,28 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level,
 
     # take the names and replace if specified
     varnames <- modifyList(as.list(m[mw]), names)
-    
-    df <- as.data.frame(lapply(m[mw], eval, data, env))
-    if (!is.null(structure)) {
-        if (structure$type == "freq") {
-            if (length(f <- structure$freqs) != nrow(df))
-                stop("Structural information doesn't match the data (different lengths).")
 
-            df$`(freqs)` <- f
-            attr(df, "max.freq") <- max(f)
-            if ("sizeby" %in% colnames(df)) {
-                df$sizeby <- NULL
-            }
-        } else {
-            
-        }
+    if (inherits(data, "survey.design")) {
+        df <- as.data.frame(lapply(m[mw], eval, data$variables, env))
+        attr(df, "structure") <- data
+    } else {
+        df <- as.data.frame(lapply(m[mw], eval, data, env))
     }
+    
+#    if (!is.null(structure)) {
+#        if (structure$type == "freq") {
+#            if (length(f <- structure$freqs) != nrow(df))
+#                stop("Structural information doesn't match the data (different lengths).")
+#
+#            df$`(freqs)` <- f
+#            attr(df, "max.freq") <- max(f)
+#            if ("sizeby" %in% colnames(df)) {
+#                df$sizeby <- NULL
+#            }
+#        } else if (structure$type == "survey") {
+#            stop("Please use `design = svydesign(...)` instead of `data = ...`")
+#        }
+#    }
 
     if (!is.null(df$sizeby)) {
         df$sizeby <- rescale(df$sizeby)
