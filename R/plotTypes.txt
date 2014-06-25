@@ -1,0 +1,59 @@
++++++ These are the plot types:
+
+createPlot
+   - inz.dotplot     -> for simple small samples
+   - inz.histplot    -> for large or non-simple samples
+
+   - inz.scatterplot -> for small samples
+   - inz.gridplot    -> for simple large samples
+   - inz.hexplot     -> for non-simple large samples
+ 
+   - inz.barplot     -> for all samples
+
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+create.inz.dotplot:
+   - returns object of class "inzdot"
+
+
+
+----------------------------------------------------------------------
+create.inz.histplot
+   - returns object of class "inzhist"
+
+
+
+
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+create.inz.scatterplot
+   - returns object of class "inzscatter"
+x           the x-values to be plotted
+y           the y-values to be plotted
+cols        the colours of the points
+propsize    the sizes of the points
+pch         the plotting characters of the points
+n.missing   the number of missing values in this plot (missing in x and/or y)
+nacol       whether or not there are any missing "colby" variables
+nasize      whether or not there are any missing "sizeby" variables
+xlim        the x axis limits
+ylim        the y axis limits
+
+
+----------------------------------------------------------------------
+create.inz.gridplot
+   - returns object of class "inzgrid"
+
+
+
+----------------------------------------------------------------------
+create.inz.hexplot
+   - returns object of class "inzhex"
+
+
+
+
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+create.inz.barplot
+   - returns object of class "inzbar"

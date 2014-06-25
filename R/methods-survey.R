@@ -92,7 +92,11 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
             } else {
                 dfnew <- df2
             }
-            dfo <- dfnew[, colnames(dfnew) != g1, drop = FALSE]
+            if (is.null(g1)) {
+                dfo <- dfnew
+            } else {
+                dfo <- dfnew[, colnames(dfnew) != g1, drop = FALSE]
+            }
 
             if (nrow(dfo) > 1) {
               # turn it into a svydesign:

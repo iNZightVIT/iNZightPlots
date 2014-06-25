@@ -1,6 +1,5 @@
 create.inz.scatterplot <- function(obj) {
     # take the dataframe and settings from the object
-    print(obj)
     df <- obj$df
     opts <- obj$opts
     xattr <- obj$xattr
@@ -62,26 +61,17 @@ create.inz.scatterplot <- function(obj) {
     # Combine everything together into a classed list which will have a `plot` method
     out <- list(x = df$x, y = df$y, cols = pt.col, propsize = propsize, pch = pch,
                 n.missing = n.missing,
-                grid.plot =
-                if (is.null(opts$largesample)) length(df$x) > opts$large.sample.size
-                else opts$largesample,
                 nacol = if ("colby" %in% v) any(is.na(df$colby)) else FALSE,
                 nasize = if ("sizeby" %in% v) any(is.na(df$sizeby)) else FALSE,
                 xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
                 ylim = if (nrow(df) > 0) range(df$y, na.rm = TRUE) else c(-Inf, Inf))
 
-    
-    if (out$grid.plot) {
-        ## if using a grid plot, forget sizing by anything execpt for weights and frequencies
-        out$propsize <- NULL  # remove propsize
-        if ("(freqs)" %in% v) {
-            out$freq <- df$`(freqs)`
-        }
-        if ("(weights)" %in% v) {
-            out$weight <- df$`(weights)`
-        }
-    }
     class(out) <- "inzscatter"
 
     out
+}
+
+
+plot.inzscatter <- function(obj) {
+    
 }

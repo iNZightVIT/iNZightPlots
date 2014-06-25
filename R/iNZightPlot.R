@@ -167,12 +167,13 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     opts <- inzpars
     wopt <- names(dots) %in% names(opts)  # which additional settings have been specified
     opts <- modifyList(opts, dots[wopt])
-    xattr <- list()
+    xattr <- list(class = class(df))
     if (!is.null(df$max.freq))
-        xattr$max.freq <- df$max.freq        
+        xattr$max.freq <- df$max.freq
     
     plot.list <- lapply(df.list, function(df)
                         lapply(df, createPlot, opts, xattr))
-  #  print(plot.list)
+    #print(plot.list)
+    return(plot.list)
     return(invisible(NULL))
 }
