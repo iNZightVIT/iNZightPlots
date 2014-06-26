@@ -1,0 +1,37 @@
+createPlot <- function(df, opts, xattr) {
+  # This function takes a data.frame object and creates the necessary object which will have a
+  # `plot` method.
+
+    if (is.null(df))
+        return(nullPlot(opts, xattr))
+
+    large <- ifelse(is.null(lg <- opts$largesample),
+                    nrow(df) > opts$large.sample.size, lg)
+    wts <- xattr$class != "inz.simple"
+    
+    v <- xattr$v
+    if (!"y" %in% v) {
+        type <- ifelse(is.factor(df$x), "barplot",
+                       ifelse(large | wts, "histplot", "dotplot"))
+    } else {
+        type <- ifelse(is.factor(df$x),
+                       ifelse(is.factor(df$y), "barplot",
+                              ifelse(large | wts, "histplot", "dotplot")),
+                       ifelse(is.factor(df$y),
+                              ifelse(large, "histplot", "dotplot"),
+                              ifelse(large,
+                                     ifelse(wts, "hexplot", "gridplot"),
+                                     "scatterplot")))
+    }
+
+    # Here, we create a class for the object to be plotted, then we use a generic function `create`
+    # which will use the correct method, and create the required plot.
+    
+    pclass <- paste("inz", type, sep = ".")
+    obj <- structure(.Data = list(df = df, opts = opts, xattr = xattr),
+                     class = pclass)
+    create(obj)
+}
+
+create <- function(obj)
+    UseMethod("create")
