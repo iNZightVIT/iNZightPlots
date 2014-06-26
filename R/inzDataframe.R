@@ -18,7 +18,7 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     # here, it is possible to add new data types (add the necessary conditions, etc,
     # and then simply add the appropriate class)
     # e.g., in future we might want to add a TimeSeries data type ...
-    
+
     if (inherits(data, "survey.design")) {
         df$data <- as.data.frame(lapply(m[mw], eval, data$variables, env))
         df$design <- eval(data, env)

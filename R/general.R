@@ -87,3 +87,11 @@ function(x) {
   # Remove any empty levels -_-
     factor(x.fact) 
 }
+
+
+nullPlot <- function(otps, xattr) {
+    # simply draw nothing!
+    out <- list(xlim = c(-Inf, Inf), ylim = c(-Inf, Inf))
+    class(out) <- "inznull"
+    out
+}

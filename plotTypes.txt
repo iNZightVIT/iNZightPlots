@@ -10,6 +10,8 @@ createPlot
  
    - inz.barplot     -> for all samples
 
+   - nullPlot        -> just an empty box
+
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 create.inz.dotplot:
@@ -43,14 +45,23 @@ ylim        the y axis limits
 ----------------------------------------------------------------------
 create.inz.gridplot
    - returns object of class "inzgrid"
-
+makeRects() function that returns the following"
+  - xg          the vector for the rectangle x-coordinates
+  - yg          the vector for the rectangle y-coordinates
+  - id          the ids for the rectangles
+  - col         the colours for each rectangle
+n.missing   the number of missing values in this plot (missing in x and/or y)
+xlim        the x axis limits
+ylim        the y axis limits
 
 
 ----------------------------------------------------------------------
 create.inz.hexplot
    - returns object of class "inzhex"
-
-
+hex         the S4 object containing the hexagons
+n.missing   the number of missing values in this plot (missing in x and/or y)
+xlim        the x axis limits
+ylim        the y axis limits
 
 
 ----------------------------------------------------------------------

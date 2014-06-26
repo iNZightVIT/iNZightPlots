@@ -3,8 +3,13 @@ create.inz.scatterplot <- function(obj) {
     df <- obj$df
     opts <- obj$opts
     xattr <- obj$xattr
+    
+    if (xattr$class == "inz.survey")
+        df <- df$variables
+    
     v <- colnames(df)
-
+    vn <- xattr$varnames
+        
     # first need to remove missing values
     missing <- apply(df[ , v %in% c("x", "y")], 1, function(x) any(is.na(x)))
     n.missing <- sum(missing)
@@ -42,13 +47,12 @@ create.inz.scatterplot <- function(obj) {
     ## The plotting symbol:
     pch <- rep(ifelse(opts$alpha == 1, opts$pch, 19), nrow(df))
 
-
     ## --- this is where FREQUENCY or SURVEY information is used to control sizes of points
     # size of points
-    if ("(freqs)" %in% v) {
-        propsize <- df$`(freqs)` / xattr$max.freq * 4 + 0.5
-    } else if ("(weights)" %in% v) {
-        propsize <- df$`(weights)`
+    if ("freq" %in% v) {
+        propsize <- df$freq / xattr$max.freq * 4 + 0.5
+    } else if ("weights" %in% v) {
+        propsize <- df$weights
     } else if ("sizeby" %in% v) {
         propsize <- df$sizeby
     } else {
@@ -72,6 +76,6 @@ create.inz.scatterplot <- function(obj) {
 }
 
 
-plot.inzscatter <- function(obj) {
+plot.inzscatter <- function(obj, gen) {
     
 }

@@ -3,6 +3,9 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
     # g2 can take values (0 = "_ALL", 1:ng2, ng2+1 = "_MULTI")
 
     dd <- df$design$variables
+    dd <- cbind(dd, df$data)
+    
+    vn <- as.list(df$varnames)
 
     matrix.plot <- FALSE
     g1 <- g2 <- NULL
@@ -10,7 +13,7 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
         g2 <- df$varnames["g2"]
         
         if (is.null(g2.level)) g2.level <- "_ALL"
-        ng2 <- length(g2l <- if (is.null(g2.level)) "all" else levels(dd[, g2]))
+        ng2 <- length(g2l <- if (is.null(g2.level)) "all" else levels(dd$g2))
 
         # if g2 specified numerically, check the value is ok, and then convert it to
         # character level anyway
@@ -41,7 +44,7 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
             missing$g2 <- sum(is.na(dd[, g2]))
             df1 <- lapply(g2l,
                           function(l) {
-                              dft <- subset(dd, dd[, g2] == l)
+                              dft <- subset(dd, dd$g2 == l)
                               dft[, colnames(dft) != "g2"]
                           })
             names(df1) <- g2l
@@ -87,7 +90,7 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
     df.list <- lapply(df1, function(df2) {
         df3 <- lapply(g1l, function(x) {
             if (x != "all") {
-                w <- df2[, g1] == x
+                w <- df2$g1 == x
                 dfnew <- df2[w & !is.na(w), , drop = FALSE]
             } else {
                 dfnew <- df2
@@ -95,14 +98,16 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
             if (is.null(g1)) {
                 dfo <- dfnew
             } else {
-                dfo <- dfnew[, colnames(dfnew) != g1, drop = FALSE]
+                dfo <- dfnew[, colnames(dfnew) != "g1", drop = FALSE]
             }
 
             if (nrow(dfo) > 1) {
               # turn it into a svydesign:
                 return(eval(parse(text = modifyData(df$design$call, "dfo"))))
-            } else {
+            } else if (nrow(dfo) == 1) {
                 return(list(variables = dfo))
+            } else {
+                return(NULL)
             }
         })
         names(df3) <- g1l
@@ -114,12 +119,16 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
         if (is.null(g2.level)) "all"
         else if (g2.level == "_MULTI") 1:length(df.list)
         else g2.level
-
+    
     missing$x <- sum(sapply(df.list[w.df], function(df)
-                            sum(sapply(df, function(d) sum(is.na(d$variables$x))))))
+                            sum(sapply(df, function(d)
+                                       if (!is.null(d))
+                                       sum(is.na(d$variables$x))  else 0))))
     if ("y" %in% df.vs)
         missing$y <- sum(sapply(df.list[w.df], function(df)
-                                sum(sapply(df, function(d) sum(is.na(d$variables$y))))))
+                                sum(sapply(df, function(d)
+                                           if (!is.null(d))
+                                           sum(is.na(d$variables$y)) else 0))))
 
     class(df.list) <- "inz.survey"
 
