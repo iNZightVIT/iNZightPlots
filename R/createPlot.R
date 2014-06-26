@@ -12,11 +12,11 @@ createPlot <- function(df, opts, xattr) {
     v <- xattr$v
     if (!"y" %in% v) {
         type <- ifelse(is.factor(df$x), "barplot",
-                       ifelse(large, "histplot", "dotplot"))
+                       ifelse(large | wts, "histplot", "dotplot"))
     } else {
         type <- ifelse(is.factor(df$x),
                        ifelse(is.factor(df$y), "barplot",
-                              ifelse(large, "histplot", "dotplot")),
+                              ifelse(large | wts, "histplot", "dotplot")),
                        ifelse(is.factor(df$y),
                               ifelse(large, "histplot", "dotplot"),
                               ifelse(large,

@@ -16,12 +16,24 @@ createPlot
 ----------------------------------------------------------------------
 create.inz.dotplot:
    - returns object of class "inzdot"
-
+x           the x-values of the dots
+y           the y-values of the dots
+cols        the colours of the dots
+pch         the size of the dots (length == 1)
+n.missing   number of missing values
+nacol       whether or not any colour variable is missing
+nasize      whether or not any size by variable is missing
+xlim        the x axis limits
+ylim        the y axis limits
 
 
 ----------------------------------------------------------------------
 create.inz.histplot
    - returns object of class "inzhist"
+hist        the histogram object with everything in it
+n.missing   the number of missing values in this plot (missing in x and/or y)
+xlim        the x axis limits
+ylim        the y axis limits
 
 
 
