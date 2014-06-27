@@ -23,26 +23,26 @@ create.inz.scatterplot <- function(obj) {
     if ("y" %in% strsplit(opts$jitter, '')[[1]])
         df$y <- jitter(df$y)
 
-    # colour of points
-    if ("colby" %in% v & nrow(df) > 0) {
-        if (is.factor(df$colby)) {
-            nby <- length(levels(df$colby))
-            if (length(opts$col.pt) >= nby) {
-                pt.col <- opts$col.pt[1:nby]
-            } else {
-                pt.col <- rainbow(nby, v = 0.7, start = 1/6) #hcl((1:nby) / nby * 360, c = 70, l = 30)
-            }
-            pt.col <- ifelse(is.na(df$colby), "grey50", pt.col[as.numeric(df$colby)])
-        } else {
-            ## rescale the colour-by variable on a scale from 1-200 and then use rainbow colours
-            cb <- df$colby
-            cbsc <- as.integer(199 * ((cb - min(cb, na.rm = TRUE)) /
-                                      diff(range(cb, na.rm = TRUE))) + 1)
-            pt.col <- ifelse(is.na(cb), "grey50", rainbow(200, start = 1/6)[cbsc])
-        }
-    } else {
-        pt.col <- opts$col.pt[1]
-    }
+    # colour of points    
+    ## if ("colby" %in% v & nrow(df) > 0) {
+    ##     if (is.factor(df$colby)) {
+    ##         nby <- length(levels(df$colby))
+    ##         if (length(opts$col.pt) >= nby) {
+    ##             pt.col <- opts$col.pt[1:nby]
+    ##         } else {
+    ##             pt.col <- rainbow(nby, v = 0.7, start = 1/6) #hcl((1:nby) / nby * 360, c = 70, l = 30)
+    ##         }
+    ##         pt.col <- ifelse(is.na(df$colby), "grey50", pt.col[as.numeric(df$colby)])
+    ##     } else {
+    ##         ## rescale the colour-by variable on a scale from 1-200 and then use rainbow colours
+    ##         cb <- df$colby
+    ##         cbsc <- as.integer(199 * ((cb - min(cb, na.rm = TRUE)) /
+    ##                                   diff(range(cb, na.rm = TRUE))) + 1)
+    ##         pt.col <- ifelse(is.na(cb), "grey50", rainbow(200, start = 1/6)[cbsc])
+    ##     }
+    ## } else {
+    ##     pt.col <- opts$col.pt[1]
+    ## }
 
     ## The plotting symbol:
     pch <- rep(ifelse(opts$alpha == 1, opts$pch, 19), nrow(df))
@@ -63,7 +63,7 @@ create.inz.scatterplot <- function(obj) {
     propsize[is.na(propsize)] <- 1
 
     # Combine everything together into a classed list which will have a `plot` method
-    out <- list(x = df$x, y = df$y, cols = pt.col, propsize = propsize, pch = pch,
+    out <- list(x = df$x, y = df$y, colby = df$colby, propsize = propsize, pch = pch,
                 n.missing = n.missing,
                 nacol = if ("colby" %in% v) any(is.na(df$colby)) else FALSE,
                 nasize = if ("sizeby" %in% v) any(is.na(df$sizeby)) else FALSE,

@@ -10,14 +10,19 @@ createPlot <- function(df, opts, xattr) {
     wts <- xattr$class != "inz.simple"
     
     v <- xattr$v
-    if (!"y" %in% v) {
-        type <- ifelse(is.factor(df$x), "barplot",
+    vt <- xattr$vartypes
+    xfact <- vt$x == "factor"
+    ynull <- ! "y" %in% v
+    yfact <- if (ynull) NULL else vt$y == "factor"
+
+    if (ynull) {
+        type <- ifelse(xfact, "barplot",
                        ifelse(large | wts, "histplot", "dotplot"))
     } else {
-        type <- ifelse(is.factor(df$x),
-                       ifelse(is.factor(df$y), "barplot",
+        type <- ifelse(xfact,
+                       ifelse(yfact, "barplot",
                               ifelse(large | wts, "histplot", "dotplot")),
-                       ifelse(is.factor(df$y),
+                       ifelse(yfact,
                               ifelse(large, "histplot", "dotplot"),
                               ifelse(large,
                                      ifelse(wts, "hexplot", "gridplot"),

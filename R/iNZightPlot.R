@@ -6,7 +6,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         inzpars = inzpar(), ...) {
 
   # ------------------------------------------------------------------------------------ #
-  #   iNZightPlots v1.1, written by Tom Elliott (2014, University of Auckland)
+  #   iNZightPlots v2.0, written by Tom Elliott (2014, University of Auckland)
   #
   # This function will `attempt` to take a large variety of data configurations and
   # attempt to make a suitable plot. It can take into account the data structure (for
@@ -167,8 +167,13 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     opts <- inzpars
     wopt <- names(dots) %in% names(opts)  # which additional settings have been specified
     opts <- modifyList(opts, dots[wopt])
-
-    xattr <- list(class = class(df), v = colnames(df$data), varnames = as.list(df$varnames))
+    
+    if (!xfact) xx <- df$data$x
+    if (!ynull) if (!yfact) yy <- df$data$y
+    xattr <- list(class = class(df), v = colnames(df$data), varnames = as.list(df$varnames),
+                  vartypes = structure(vartypes, .Names = names(varnames)))
+    if (!xfact) xattr$xrange = range(xx[is.finite(xx)])
+    if (!ynull) if (!yfact) xattr$yrange <- range(yy[is.finite(yy)])
     if (!is.null(df$max.freq))
         xattr$max.freq <- df$max.freq
 
@@ -179,7 +184,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
 
 
-
+    #print(plot.list)
     
 
 #    cat("Finished ..................\n")
