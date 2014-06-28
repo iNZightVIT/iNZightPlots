@@ -11,7 +11,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
 
     if (xattr$class == "inz.survey")
         df <- df$variables
-
+    
     # first need to remove missing values
     missing <- is.na(df$x)
     if ("y" %in% colnames(df)) {
@@ -38,7 +38,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         
         if (xattr$class == "inz.freq")
             di <- svydesign(ids=~1, weights = df$freq, data = df)
-        else if (xattr$class == "inz.survey") {        
+        else if (xattr$class == "inz.survey") {
             di <- eval(parse(text = modifyData(obj$df$call, "df")))
         } else {
             di <- dfi
@@ -46,6 +46,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
 
         out[[i]] <- di
     }
+
 
     makeHist <- function(d, nbins, xlim) {
         if (is.null(d)) return(NULL)
@@ -63,8 +64,14 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
             ## cannot be used separately to produce the bins etc without plotting it; so copyright
             ## for the next few lines goes to Thomas Lumley.
             h <- hist(x <- d$variables$x, breaks = cuts, plot = FALSE)
-            probs <- coef(svymean(~cut(d$variables$x, h$breaks, include.lowest = TRUE),
-                                  d, na.rm = TRUE))
+
+            # We can run into problems with PSUs have single clusters, so:
+            oo <- options()$survey.lonely.psu
+            options(survey.lonely.psu = "certainty")
+            probs <- coef(svymean(~cut(d$variables$x, h$breaks, include.lowest = TRUE,
+                                       deff = FALSE, estimate.only = TRUE), d, na.rm = TRUE))
+            options(survey.lonely.psu = oo)
+            
             h$density <- probs / diff(h$breaks)
             h$counts <- probs * sum(weights(d))
         } else {

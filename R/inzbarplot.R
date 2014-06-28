@@ -39,9 +39,13 @@ create.inz.barplot <- function(obj) {
         widths <- nn / sum(nn)
         centers <- cumsum(widths) - widths[1] / 2
     }
-    
-    out <- list(phat = phat, widths = widths, centers = centers)
-    print(out)
+
+    out <- list(phat = phat, widths = widths, centers = centers,
+                xlim = c(0, if (ynull) length(tab) else ncol(tab)),
+                ylim = c(0, max(phat)))
+    class(out) <- "inzhist"
+
+    out
 }
 
 plot.inz.barplot <- function(obj, gen) {

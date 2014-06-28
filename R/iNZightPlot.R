@@ -176,17 +176,17 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     if (!ynull) if (!yfact) xattr$yrange <- range(yy[is.finite(yy)])
     if (!is.null(df$max.freq))
         xattr$max.freq <- df$max.freq
-
-#    print(df.list)
     
     plot.list <- lapply(df.list, function(df)
                         lapply(df, createPlot, opts, xattr))
 
 
 
-    #print(plot.list)
-    
+    ## X and Y axis limits:
+    xlim <- range(sapply(plot.list, function(x) sapply(x, function(y) y$xlim)), finite = TRUE)
+    ylim <- range(sapply(plot.list, function(x) sapply(x, function(y) y$ylim)), finite = TRUE)
 
-#    cat("Finished ..................\n")
-    invisible(plot.list)
+    
+    
+    list(xlim = xlim, ylim = ylim)
 }
