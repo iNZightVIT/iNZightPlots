@@ -11,6 +11,20 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
 
     if (xattr$class == "inz.survey")
         df <- df$variables
+
+    # May need to switch around X and Y:
+    if (all(c("x", "y") %in% v)) {
+        if (is.factor(df$x) & is.numeric(df$y)) {
+            X <- df$y
+            df$y <- df$x
+            df$x <- X
+            Xn <- vn$y
+            vn$y <- vn$x
+            vn$x <- Xn
+            xattr$xrange <- xattr$yrange
+            xattr$yrange <- NULL
+        }
+    }
     
     # first need to remove missing values
     missing <- is.na(df$x)
@@ -97,6 +111,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     plist <- lapply(out, makeHist, nbins = 20, xlim = xattr$xrange)
     
     out <- list(objs = plist, n.missing = n.missing,
+                nacol = if ("colby" %in% v) any(sapply(plist, function(T) is.na(T$colby))) else FALSE,
                 xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
                 ylim = c(0, max(sapply(plist, function(p) if (is.null(p)) 0 else max(p$counts)))))
 

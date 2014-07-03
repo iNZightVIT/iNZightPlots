@@ -99,5 +99,6 @@ gSubset.default <- function(df, g1.level, g2.level, df.vs, missing) {
 
     class(df.list) <- "inz.simple"
 
-    list(df = df.list, matrix = matrix.plot, missing = missing)
+    list(df = df.list, matrix = matrix.plot, missing = missing,
+         g1.level = g1.level, g2.level = g2.level)
 }

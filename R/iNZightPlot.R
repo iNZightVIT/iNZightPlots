@@ -104,7 +104,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     # each of these classes will have appropriate methods for extracting the information
 
     varnames <- as.list(df$varnames)
-    vartypes <- lapply(df$data[, names(varnames)],
+    vartypes <- lapply(df$data[, names(varnames), drop = FALSE],
                        function(x) ifelse(is.factor(x), "factor", "numeric"))
     names(vartypes) <- unlist(varnames)
     df.vs <- colnames(df$data)
@@ -150,6 +150,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     dfsub <- gSubset(df, g1.level, g2.level, df.vs, missing)
     matrix.plot <- dfsub$matrix
     missing <- dfsub$missing
+    g1.level <- dfsub$g1.level
+    g2.level <- dfsub$g2.level
 
     df.list <- dfsub$df
     
@@ -170,6 +172,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     
     if (!xfact) xx <- df$data$x
     if (!ynull) if (!yfact) yy <- df$data$y
+
     xattr <- list(class = class(df), v = colnames(df$data), varnames = as.list(df$varnames),
                   vartypes = structure(vartypes, .Names = names(varnames)))
     if (!xfact) xattr$xrange = range(xx[is.finite(xx)])
@@ -180,13 +183,381 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     plot.list <- lapply(df.list, function(df)
                         lapply(df, createPlot, opts, xattr))
 
-
-
     ## X and Y axis limits:
     xlim <- range(sapply(plot.list, function(x) sapply(x, function(y) y$xlim)), finite = TRUE)
     ylim <- range(sapply(plot.list, function(x) sapply(x, function(y) y$ylim)), finite = TRUE)
 
+    TYPE <- gsub("inz", "", class(plot.list[[1]][[1]]))
+    if (!TYPE %in% c("bar")) xlim <- extendrange(xlim)
+    ylim <-
+        if (TYPE %in% c("scatter", "grid", "hex")) extendrange(ylim)
+        else c(0, extendrange(ylim)[2])
+
+    # Set up the plot layout
+
+    ## --- The Main Viewport: this one is simply the canvas, and global CEX value
+    dd <- dev.flush(dev.flush())  # flush everything ...
+
+    dev.hold()
+    grid.newpage()
+    pushViewport(viewport(gp = gpar(cex = opts$cex), name = "container"))
+    grid.rect(gp = gpar(fill = opts$bg, col = opts$bg))
+
+    PAGE.height <- convertHeight(current.viewport()$height, "in", TRUE)  # essentially the height of the window
     
+    ## --- there will be some fancy stuff here designing and implementing a grid which adds titles,
+    ## labels, and optionally legends
+
+    # --- first, need to make all of the labels/legends/etc:
+    VT <- vartypes
+    names(VT) <- names(varnames)
+    if (all(c("x", "y") %in% names(VT))) {
+        if (VT$y == "numeric" & VT$x == "factor") {
+            xn <- varnames$y
+            varnames$y <- varnames$x
+            varnames$x <- xn
+            VT$x <- "numeric"
+            VT$y <- "factor"
+        }
+    }
     
-    list(xlim = xlim, ylim = ylim)
+    titles <- list()
+    titles$main <-
+        if ("main" %in% names(dots)) dots$main
+        else makeTitle(varnames, VT, g1.level, g2.level)
+    titles$xlab <- if ("xlab" %in% names(dots)) dots$xlab else varnames$x
+    if (!ynull) {
+        titles$ylab <-
+            if ("ylab" %in% names(dots)) dots$ylab
+            else if (xfact & yfact) "Proportion (%)" else varnames$y
+    } else if (xfact) {
+        titles$ylab <- "Proportion (%)"
+    }
+    if ("colby" %in% df.vs) titles$legend <- varnames$colby
+
+    
+    # --- WIDTHS of various things
+    # first we need to know HOW WIDE the main viewport is, and then
+    # split the title text into the appropriate number of lines,
+    # then calcualate the height of it.
+    VPcontainer.width <- convertWidth(unit(1, "npc"), "in", TRUE)
+    main.grob <- textGrob(titles$main, gp = gpar(cex = opts$cex.main))
+    MAIN.width <- convertWidth(grobWidth(main.grob), "in", TRUE)
+    MAIN.lnheight <- convertWidth(grobHeight(main.grob), "in", TRUE)
+    if (MAIN.width > 0.9 * VPcontainer.width) {
+        titles$main <- gsub(",", ",\n", titles$main)
+        main.grob <- textGrob(titles$main, gp = gpar(cex = opts$cex.main))
+        MAIN.width <- convertWidth(grobWidth(main.grob), "in", TRUE)
+    }
+    if (MAIN.width > 0.9 * VPcontainer.width) {
+        titles$main <- gsub("subset", "\nsubset", titles$main)
+        main.grob <- textGrob(titles$main, gp = gpar(cex = opts$cex.main))
+        MAIN.width <- convertWidth(grobWidth(main.grob), "in", TRUE)
+    }
+    if (MAIN.width > 0.9 * VPcontainer.width) {
+        titles$main <- gsub(" (size prop", "\n (size prop", titles$main, fixed = TRUE)
+        main.grob <- textGrob(titles$main, gp = gpar(cex = opts$cex.main))
+        MAIN.width <- convertWidth(grobWidth(main.grob), "in", TRUE)
+    }
+    MAIN.height <- convertHeight(grobHeight(main.grob), "in", TRUE) + MAIN.lnheight
+
+    # -- xaxis labels
+    xlab.grob <- textGrob(titles$xlab, gp = gpar(cex = opts$cex.lab))
+    XLAB.height <- convertHeight(grobHeight(xlab.grob), "in", TRUE) * 2
+    # -- yaxis labels
+    if (!is.null(titles$ylab)) {
+        ylab.grob <- textGrob(titles$ylab, rot = 90, gp = gpar(cex = opts$cex.lab))
+        YLAB.width <- convertWidth(grobWidth(ylab.grob), "in", TRUE) * 2
+    } else {
+        YLAB.width <- 0
+    }
+
+    # -- xaxis marks
+    XAX.height <- convertWidth(unit(1, "lines"), "in", TRUE) * 2 * opts$cex.axis
+
+    # -- yaxis marks
+    YAX.width <- convertWidth(unit(1, "lines"), "in", TRUE) * 2 * opts$cex.axis
+
+    # -- legend(s)
+    barplot <- FALSE
+    leg.grob1 <- leg.grob2 <- leg.grob3 <- NULL
+    cex.mult = ifelse("g1" %in% df.vs, 1,
+        ifelse("g1.level" %in% df.vs,
+               ifelse(length(levels(df$g1.level)) >= 6, 0.7, 1), 1))
+
+
+    xnum <- !xfact
+    yfact <- if (ynull) FALSE else yfact
+    ynum <- if (ynull) FALSE else !yfact
+    
+    if ("colby" %in% names(varnames) & TYPE %in% c("dot", "scatter")) {
+        if (is.factor(df$data$colby)) {
+            nby <- length(levels(as.factor(df$data$colby)))
+            if (length(opts$col.pt) >= nby) {
+                ptcol <- opts$col.pt[1:nby]
+            } else {
+                ptcol <- genCols(nby)
+            }
+            
+            misscol <- any(sapply(plot.list, function(x) sapply(x, function(y) y$nacol)))
+            leg.grob1 <- drawLegend(levels(as.factor(df$data$colby)), col = ptcol,
+                                    pch = ifelse(barplot, 22, opts$pch),
+                                    title = varnames$colby, any.missing = misscol, opts = opts)
+        } else {
+            misscol <- any(sapply(plot.list, function(x) sapply(x, function(y) y$nacol)))
+            leg.grob1 <- drawContLegend(df$data$colby, title = varnames$colby,
+                                        height = 0.4 * PAGE.height, cex.mult = cex.mult,
+                                        any.missing = misscol, opts = opts)
+        }
+    } else if (xfact & yfact) {
+        nby <- length(levels(as.factor(df$data$y)))
+        if (length(opts$col.pt) >= nby) {
+            barcol <- opts$col.pt[1:nby]
+        } else {
+            barcol <- genCols(nby)
+        }
+        
+        leg.grob1 <- drawLegend(levels(as.factor(df$data$y)), col = barcol, pch = 22,
+                                title = varnames$y, opts = opts)
+    }
+    
+    if ("sizeby" %in% names(varnames) & TYPE %in% c("scatter")) {
+        misssize <- any(sapply(plot.list, function(x) sapply(x, function(x2) x2$nasize)))
+        if (misssize) {
+            misstext <- paste0("missing ", varnames$sizeby)
+            leg.grob2 <- drawLegend(misstext, col = "grey50", pch = 4,
+                                    cex.mult = cex.mult * 0.8, opts = opts)
+        }        
+    }
+
+    if (xnum & ynum) {
+        leg.grob3 <- drawLinesLegend(df$x, opts = opts, cex.mult = cex.mult * 0.8)
+    }
+
+    hgts <- numeric(3)
+    wdth <- 0
+    
+    if (!is.null(leg.grob1)) {
+        hgts[1] <- convertHeight(grobHeight(leg.grob1), "in", TRUE)
+        wdth <- max(wdth, convertWidth(grobWidth(leg.grob1), "in", TRUE))
+    }
+    if (!is.null(leg.grob2)) {
+        hgts[2] <- convertHeight(grobHeight(leg.grob2), "in", TRUE)
+        wdth <- max(wdth, convertWidth(grobWidth(leg.grob2), "in", TRUE))
+    }
+    if (!is.null(leg.grob3)) {
+        hgts[3] <- convertHeight(grobHeight(leg.grob3), "in", TRUE)
+        wdth <- max(wdth, convertWidth(grobWidth(leg.grob3), "in", TRUE))
+    }
+
+    ## --- Figure out a subtitle for the plot:
+    missing <- missing[missing != 0]
+    if ("subtitle" %in% names(dots)) {
+        SUB <- textGrob(dots$subtitle, gp = gpar(cex = opts$cex.text * 0.8))
+    } else if (missing.info & length(missing) > 0) {
+        names(missing) <- unlist(varnames[match(names(missing), names(varnames))])
+        total.missing <- sum(sapply(missing, sum))
+        missinfo <- paste0(missing, " in ", names(missing), collapse = ", ")
+        subtitle <- paste0(total.missing, " observations dropped due to missingness (",
+                           missinfo, ")")
+        SUB <- textGrob(subtitle, gp = gpar(cex = opts$cex.text * 0.8))
+    } else {
+        SUB <- NULL
+    }
+
+    ## --- CREATE the main LAYOUT for the titles + main plot window
+    MAIN.hgt <- unit(MAIN.height, "in")
+    XAX.hgt <- unit(XAX.height, "in")
+    XLAB.hgt <- unit(XLAB.height, "in")
+    PLOT.hgt <- unit(1, "null")
+    SUB.hgt <- if (is.null(SUB)) unit(0, "null") else convertUnit(grobHeight(SUB) * 2, "in")
+
+    YLAB.wd <- unit(YLAB.width, "in")
+    YAX.wd <- unit(YAX.width, "in")
+    PLOT.wd <- unit(1, "null")
+    LEG.wd <-
+        if (wdth > 0) unit(wdth, "in") + unit(1, "char")
+        else unit(0, "null") 
+    
+    TOPlayout <- grid.layout(nrow = 6, ncol = 5,
+                             heights = unit.c(MAIN.hgt, XAX.hgt, PLOT.hgt,
+                                 XAX.hgt, XLAB.hgt, SUB.hgt),
+                             widths = unit.c(YLAB.wd, YAX.wd, PLOT.wd, YAX.wd, LEG.wd))
+
+    ## Send the layout to the plot window
+    pushViewport(viewport(layout = TOPlayout, name = "VP:TOPlayout"))
+    ## place the title
+    pushViewport(viewport(layout.pos.row = 1))
+    grid.draw(main.grob)
+
+    ## place axis labels
+    if (!is.null(titles$ylab)) {
+        seekViewport("VP:TOPlayout")
+        pushViewport(viewport(layout.pos.row = 3, layout.pos.col = 1))
+        grid.draw(ylab.grob)
+    }
+    seekViewport("VP:TOPlayout")
+    pushViewport(viewport(layout.pos.row = 5, layout.pos.col = 3))
+    grid.draw(xlab.grob)
+
+    ## place the legend
+    if (wdth > 0) {
+        seekViewport("VP:TOPlayout")
+        pushViewport(viewport(layout.pos.col = 5, layout.pos.row = 3))
+        leg.layout <- grid.layout(3, heights = unit(hgts, "in"))
+        pushViewport(viewport(layout = leg.layout, name = "VP:LEGlayout"))
+
+        if (hgts[1] > 0) {
+            seekViewport("VP:LEGlayout")
+            pushViewport(viewport(layout.pos.row = 1))
+            grid.draw(leg.grob1)
+        }
+        if (hgts[2] > 0) {
+            seekViewport("VP:LEGlayout")
+            pushViewport(viewport(layout.pos.row = 2))
+            grid.draw(leg.grob2)
+        }
+         if (hgts[3] > 0) {
+            seekViewport("VP:LEGlayout")
+            pushViewport(viewport(layout.pos.row = 3))
+            grid.draw(leg.grob3)
+        }
+    }
+
+    ## --- next, it will break the plot into subregions for g1 (unless theres only one, then it
+    ## wont)
+    
+    ## break up plot list
+    if (any(g2.level == "_MULTI")) g2.level <- names(plot.list)
+    if (!matrix.plot & !is.null(g2.level)) {
+        plot.list <- plot.list[g2.level]
+    }
+
+    plot.list <- lapply(plot.list, function(x) x[g1.level])
+
+    ## and subtitle
+    if (!is.null(SUB)) {
+        seekViewport("VP:TOPlayout")
+        pushViewport(viewport(layout.pos.row = 6, layout.pos.col = 3))
+        grid.draw(SUB)
+    }
+
+    ## create a layout
+    N <- sum(sapply(plot.list, length))
+    if (matrix.plot) {
+        nr <- length(g2.level)
+        nc <- length(g1.level)
+    } else {
+        dim1 <- floor(sqrt(N))
+        dim2 <- ceiling(N / dim1)
+        
+        if (dev.size()[1] < dev.size()[2]) {
+            nr <- dim2
+            nc <- dim1
+        } else {
+            nr <- dim1
+            nc <- dim2
+        }
+    }
+    multi.cex <- sqrt(sqrt(N) / N)  # this has absolutely no theoretical reasoning,
+                                    # it just does a reasonably acceptable job (:
+
+    ## if the plots are DOTPLOTS or BARPLOTS, then leave a little bit of space between each
+  # we will need to add a small amount of space between the columns of the layout
+    hspace <- ifelse(TYPE %in% c("scatter", "grid", "hex"), 0, 0.01)
+    wds <- rep(unit.c(unit(hspace, "npc"), unit(1, "null")), nc)[-1]
+
+    dummy <- textGrob("some text", gp = gpar(cex = opts$cex.lab * multi.cex))
+    sub.hgt <- convertHeight(grobHeight(dummy), "in", TRUE) * 2
+    vspace <- ifelse(matrix.plot, sub.hgt, 0)
+    hgts <- rep(unit.c(unit(vspace, "in"), unit(1, "null")), nr)
+
+
+    PLOTlayout <- grid.layout(nrow = length(hgts), ncol = length(wds),
+                              heights = hgts, widths = wds)
+    seekViewport("VP:TOPlayout")
+    pushViewport(viewport(layout.pos.row = 3, layout.pos.col = 3))
+    pushViewport(viewport(layout = PLOTlayout, name = "VP:PLOTlayout"))    
+
+    ## --- within each of these regions, we simply plot!
+    ax.gp <- gpar(cex = opts$cex.axis)
+
+    ## --- START from the BOTTOM and work UP; LEFT and work RIGHT (mainly makes sense for continuous
+    ## grouping variables)
+    g1id <- 1  # keep track of plot levels
+    g2id <- 1
+    NG2 <- length(plot.list)
+    NG1 <- length(plot.list[[1]])
+
+    if (xfact & ynum) {
+        X <- df$data$y
+        Y <- df$data$x
+    } else {
+        X <- df$data$x
+        Y <- df$data$y
+    }
+    
+    for (r in nr:1) {        
+        R <- r * 2  # skip the gaps between rows
+        if (matrix.plot) {
+            # add that little thingy
+            seekViewport("VP:PLOTlayout")
+            pushViewport(viewport(layout.pos.row = R - 1,
+                                  gp = gpar(cex = multi.cex, fontface = "bold")))
+            grid.rect(gp = gpar(fill = "lightblue"))
+            grid.text(paste(varnames$g2, "=", g2.level[g2id]), gp = gpar(cex = opts$cex.lab))
+        }
+
+        for (c in 1:nc) {
+            if (g2id > NG2) next()
+            C <- c * 2 - 1
+            seekViewport("VP:PLOTlayout")
+            pushViewport(viewport(layout.pos.row = R, layout.pos.col = C,
+                                  xscale = xlim, yscale = ylim,
+                                  gp = gpar(cex = multi.cex)))
+            grid.rect()
+
+            subt <- g1.level[g1id]
+
+            plot(plot.list[[g2id]][[g1id]],
+                 gen =
+                 list(opts = opts, title = if (subt == "all") NULL else subt,
+                      mcex = multi.cex, sub = vspace))
+
+            # add the appropriate axes:
+            # Decide which axes to plot:
+            pushViewport(viewport(layout.pos.row = 2, xscale = xlim, yscale = ylim))
+            if (r == nr)
+                drawAxes(X, "x", TRUE, c %% 2 == 1 | !TYPE %in% c("scatter", "grid", "hex"), opts)
+
+            if (c == 1)
+                drawAxes(if (TYPE == "bar") ylim else Y, "y", TRUE, (nr - r) %% 2 == 0, opts)
+
+            if (!TYPE %in% c("dot", "hist")) {
+                if (c == nc)
+                    drawAxes(Y, "y", FALSE, (nr - r) %% 2 == 1, opts)
+            }
+            upViewport()
+
+            if (TYPE %in% c("scatter", "grid", "hex")) {
+                pushViewport(viewport(layout.pos.row = 1, xscale = xlim, yscale = ylim))
+                if (r == 1)
+                    drawAxes(X, "x", FALSE, c %% 2 == 0, opts, sub = vspace)
+                upViewport()
+            }
+            
+
+            ## update the counters
+            if (g1id < NG1) {
+                g1id <- g1id + 1
+            } else {
+                g1id <- 1
+                g2id <- g2id + 1
+            }
+        }
+    }
+    
+    dev.flush()
+    cat("Success...\n")
+    return(invisible(plot.list))
 }

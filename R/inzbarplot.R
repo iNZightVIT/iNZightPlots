@@ -43,11 +43,11 @@ create.inz.barplot <- function(obj) {
     out <- list(phat = phat, widths = widths, centers = centers,
                 xlim = c(0, if (ynull) length(tab) else ncol(tab)),
                 ylim = c(0, max(phat)))
-    class(out) <- "inzhist"
+    class(out) <- "inzbar"
 
     out
 }
 
-plot.inz.barplot <- function(obj, gen) {
+plot.inzbar <- function(obj, gen) {
     
 }

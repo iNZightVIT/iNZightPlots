@@ -95,3 +95,12 @@ nullPlot <- function(otps, xattr) {
     class(out) <- "inznull"
     out
 }
+plot.inznull <- function() {
+    return(invisible(NULL))
+}
+
+
+genCols <- function(n) {
+    # This allows us to simply edit the type of colour schemes used
+    rainbow(n, v = 0.7, start = 1/6)
+}
