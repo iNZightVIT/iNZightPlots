@@ -289,7 +289,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     xnum <- !xfact
     yfact <- if (ynull) FALSE else yfact
     ynum <- if (ynull) FALSE else !yfact
-    
+
+    col.args <- list(missing = opts$col.missing)
     if ("colby" %in% names(varnames) & TYPE %in% c("dot", "scatter")) {
         if (is.factor(df$data$colby)) {
             nby <- length(levels(as.factor(df$data$colby)))
@@ -300,14 +301,22 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             }
             
             misscol <- any(sapply(plot.list, function(x) sapply(x, function(y) y$nacol)))
-            leg.grob1 <- drawLegend(levels(as.factor(df$data$colby)), col = ptcol,
+            leg.grob1 <- drawLegend(f.levels <- levels(as.factor(df$data$colby)), col = ptcol,
                                     pch = ifelse(barplot, 22, opts$pch),
                                     title = varnames$colby, any.missing = misscol, opts = opts)
+            if (misscol) {
+                ptcol <- c(ptcol, opts$col.missing)
+                f.levels <- c(f.levels, "missing")
+            }
+            col.args$f.cols <- structure(ptcol, .Names = f.levels)
         } else {
             misscol <- any(sapply(plot.list, function(x) sapply(x, function(y) y$nacol)))
-            leg.grob1 <- drawContLegend(df$data$colby, title = varnames$colby,
+            leg.grobL <- drawContLegend(df$data$colby, title = varnames$colby,
                                         height = 0.4 * PAGE.height, cex.mult = cex.mult,
                                         any.missing = misscol, opts = opts)
+            leg.grob1 <- leg.grobL$fg
+            col.args$n.range <- range(df$data$colby, na.rm = TRUE)
+            col.args$n.cols <- leg.grobL$n.cols
         }
     } else if (xfact & yfact) {
         nby <- length(levels(as.factor(df$data$y)))
@@ -319,6 +328,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         
         leg.grob1 <- drawLegend(levels(as.factor(df$data$y)), col = barcol, pch = 22,
                                 title = varnames$y, opts = opts)
+        col.args$b.cols <- barcol
     }
     
     if ("sizeby" %in% names(varnames) & TYPE %in% c("scatter")) {
@@ -331,7 +341,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     }
 
     if (xnum & ynum) {
-        leg.grob3 <- drawLinesLegend(df$x, opts = opts, cex.mult = cex.mult * 0.8)
+        leg.grob3 <- drawLinesLegend(df$data[, c("x", "y")], opts = opts, cex.mult = cex.mult * 0.8)
     }
 
     hgts <- numeric(3)
@@ -358,7 +368,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         names(missing) <- unlist(varnames[match(names(missing), names(varnames))])
         total.missing <- sum(sapply(missing, sum))
         missinfo <- paste0(missing, " in ", names(missing), collapse = ", ")
-        subtitle <- paste0(total.missing, " observations dropped due to missingness (",
+        subtitle <- paste0(total.missing, " missing values (",
                            missinfo, ")")
         SUB <- textGrob(subtitle, gp = gpar(cex = opts$cex.text * 0.8))
     } else {
@@ -496,7 +506,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         X <- df$data$x
         Y <- df$data$y
     }
-    
+
     for (r in nr:1) {        
         R <- r * 2  # skip the gaps between rows
         if (matrix.plot) {
@@ -519,10 +529,29 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
             subt <- g1.level[g1id]
 
+            ## calculate the height of the subtitle if it is specified
+            p.title <- if (subt == "all") NULL else subt
+            hgt <- unit.c(
+                if (!is.null(p.title)) {
+                    subt <- textGrob(p.title, gp = gpar(cex = opts$cex.lab, fontface = "bold"))
+                    unit(convertHeight(grobHeight(subt), "in", TRUE) * 2, "in")
+                } else {
+                    unit(0, "null")
+                },
+                unit(1, "null"))
+            pushViewport(viewport(layout = grid.layout(2, 1, heights = hgt)))
+            
+            if (!is.null(p.title)) {
+                pushViewport(viewport(layout.pos.row = 1))
+                grid.rect(gp = gpar(fill = opts$col.sub))
+                grid.draw(subt)
+                upViewport()
+            }
+
+            pushViewport(viewport(layout.pos.row = 2, xscale = xlim, yscale = ylim, clip = "on"))
             plot(plot.list[[g2id]][[g1id]],
-                 gen =
-                 list(opts = opts, title = if (subt == "all") NULL else subt,
-                      mcex = multi.cex, sub = vspace))
+                 gen = list(opts = opts, mcex = multi.cex, col.args = col.args))
+            upViewport()
 
             # add the appropriate axes:
             # Decide which axes to plot:

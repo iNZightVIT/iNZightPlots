@@ -4,6 +4,7 @@ inzpar <- function(...) {
     ip <- list(pch            = 1,
                col            = "red",
                col.pt         = "grey50",
+               col.missing    = "#cccccc",
                cex            = 1,
                cex.pt         = 1.0,
                cex.lab        = 1,

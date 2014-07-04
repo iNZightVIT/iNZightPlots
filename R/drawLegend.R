@@ -26,7 +26,7 @@ function(lab, col, pch = opts$pch, cex.mult = 1,
     ## a row for the title, and a line-height row between title and legend:
     if (any.missing) {
         lab <- append(lab, "missing")
-        col <- append(col, "grey50")
+        col <- append(col, opts$col.missing)
     }
     n <- length(lab)
     leg.layout <- grid.layout(n + 2, 3,
@@ -86,7 +86,7 @@ drawContLegend <- function(var, title = "", height = NULL, cex.mult = 1,
     xx <- rep(c(0, 1, 1, 0), 200)
     yy <- rep(0:200 / 200, each = 4)[1:800 + 2]
     id <- rep(1:200, each = 4)
-    poly <- polygonGrob(xx, yy, id = id, gp = gpar(lty = 0, fill = rainbow(200, start = 1/6)))
+    poly <- polygonGrob(xx, yy, id = id, gp = gpar(lty = 0, fill = (n.cols <- rainbow(200, start = 1/6))))
     
     fg <- frameGrob(layout = legend.layout)
     fg <- placeGrob(fg, poly, row = 3, col = 1)
@@ -97,15 +97,15 @@ drawContLegend <- function(var, title = "", height = NULL, cex.mult = 1,
 
     if (any.missing) {
         fg <- placeGrob(fg, pointsGrob(0.5, 0.5, pch = 21, gp =
-                                       gpar(col = "grey50", cex = legcex,
-                                            lwd = opts$lwd.pt, fill = "grey50")),
+                                       gpar(col = opts$col.missing, cex = legcex,
+                                            lwd = opts$lwd.pt, fill = opts$col.missing)),
                         row = 5, col = 1)
         fg <- placeGrob(fg, textGrob("missing", x = unit(1, "lines"), y = 0.5, just = c("left", "center"),
                                      gp = gpar(cex = legcex * opts$cex.axis)),
                     col = 2, row = 5)
     }
     
-    fg
+    list(fg = fg, n.cols = n.cols)
 }
 
 
@@ -177,7 +177,7 @@ drawLinesLegend <- function(x, opts = inzpar(), cex.mult = 1) {
     for (i in 1:n) {
         fg <- placeGrob(fg, linesGrob(c(0.2, 0.8), 0.5,
                                        gp =
-                                       gpar(col = col[i], lty = lty[i], lwd = lwd[i])),
+                                       gpar(col = col[i], lty = lty[i], lwd = lwd[i] * 2)),
                         col = 1, row = i + 1)
        
         fg <- placeGrob(fg, textGrob(lab[i], x = 0 , y = 0.5,

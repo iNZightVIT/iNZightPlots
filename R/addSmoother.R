@@ -39,12 +39,13 @@ function(x, y, quantile, col, lty, lwd) {
 }
 
 
-calcQSmooth <- function(x, q, opts) {
+calcQSmooth <- function(xy, q, opts) {
+    x <- xy[!apply(xy, 1, function(y) any(is.na(y))), ]
   # check quantiles are correct:
     if (q[1] == "default") {
         qp <- 0.5
-        if (length(x) > opts$quant.cutoff[1]) qp <- c(qp, 0.25)
-        if (length(x) > opts$quant.cutoff[2]) qp <- c(qp, 0.1)
+        if (nrow(x) > opts$quant.cutoff[1]) qp <- c(qp, 0.25)
+        if (nrow(x) > opts$quant.cutoff[2]) qp <- c(qp, 0.1)
     } else {
         qp <- q
     }

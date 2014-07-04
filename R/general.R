@@ -95,7 +95,7 @@ nullPlot <- function(otps, xattr) {
     class(out) <- "inznull"
     out
 }
-plot.inznull <- function() {
+plot.inznull <- function(...) {
     return(invisible(NULL))
 }
 
@@ -103,4 +103,21 @@ plot.inznull <- function() {
 genCols <- function(n) {
     # This allows us to simply edit the type of colour schemes used
     rainbow(n, v = 0.7, start = 1/6)
+}
+
+colourPoints <- function(x, col.args, opts = inzpar()) {
+    if (is.null(x))
+        return(opts$col.pt)
+    xclass <- ifelse(is.numeric(x), "numeric", "factor")
+    switch(xclass,
+           "numeric" = {
+               xr <- col.args$n.range
+               xm <- xr[1]
+               xsc <- as.integer(199 * ((x - xm) / diff(xr)) + 1)
+               ifelse(is.na(x), col.args$missing, col.args$n.cols[xsc])
+           }, "factor" = {
+               x <- as.character(x)
+               x[is.na(x)] <- "missing"
+               col.args$f.cols[x]
+           })
 }

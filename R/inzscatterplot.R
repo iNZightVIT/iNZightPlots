@@ -23,29 +23,11 @@ create.inz.scatterplot <- function(obj) {
     if ("y" %in% strsplit(opts$jitter, '')[[1]])
         df$y <- jitter(df$y)
 
-    # colour of points    
-    ## if ("colby" %in% v & nrow(df) > 0) {
-    ##     if (is.factor(df$colby)) {
-    ##         nby <- length(levels(df$colby))
-    ##         if (length(opts$col.pt) >= nby) {
-    ##             pt.col <- opts$col.pt[1:nby]
-    ##         } else {
-    ##             pt.col <- rainbow(nby, v = 0.7, start = 1/6) #hcl((1:nby) / nby * 360, c = 70, l = 30)
-    ##         }
-    ##         pt.col <- ifelse(is.na(df$colby), "grey50", pt.col[as.numeric(df$colby)])
-    ##     } else {
-    ##         ## rescale the colour-by variable on a scale from 1-200 and then use rainbow colours
-    ##         cb <- df$colby
-    ##         cbsc <- as.integer(199 * ((cb - min(cb, na.rm = TRUE)) /
-    ##                                   diff(range(cb, na.rm = TRUE))) + 1)
-    ##         pt.col <- ifelse(is.na(cb), "grey50", rainbow(200, start = 1/6)[cbsc])
-    ##     }
-    ## } else {
-    ##     pt.col <- opts$col.pt[1]
-    ## }
 
     ## The plotting symbol:
-    pch <- rep(ifelse(opts$alpha == 1, opts$pch, 19), nrow(df))
+    pch <- rep(ifelse(opts$alpha == 1,
+                      ifelse(opts$fill.pt == "transparent", opts$pch, 21),
+                      19), nrow(df))
 
     ## --- this is where FREQUENCY or SURVEY information is used to control sizes of points
     # size of points
@@ -60,11 +42,11 @@ create.inz.scatterplot <- function(obj) {
     }
     
     pch[is.na(propsize)] <- 4
-    propsize[is.na(propsize)] <- 1
+    propsize[is.na(propsize)] <- 0.6
 
     # Combine everything together into a classed list which will have a `plot` method
     out <- list(x = df$x, y = df$y, colby = df$colby, propsize = propsize, pch = pch,
-                n.missing = n.missing,
+                fill.pt = opts$fill.pt, n.missing = n.missing,
                 nacol = if ("colby" %in% v) any(is.na(df$colby)) else FALSE,
                 nasize = if ("sizeby" %in% v) any(is.na(df$sizeby)) else FALSE,
                 xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
@@ -80,36 +62,18 @@ plot.inzscatter <- function(obj, gen) {
     xlim <- current.viewport()$xscale
     ylim <- current.viewport()$yscale
     opts <- gen$opts
-    title <- gen$title
     mcex <- gen$mcex
-    sub <- gen$sub
-
-    ## calculate the height of the subtitle if it is specified
-    hgt <- unit.c(
-        if (!is.null(title)) {
-            subt <- textGrob(title, gp = gpar(cex = opts$cex.lab, fontface = "bold"))
-            unit(convertHeight(grobHeight(subt), "in", TRUE) * 2, "in")
-        } else {
-            unit(0, "null")
-        },
-        unit(1, "null"))
-    pushViewport(viewport(layout = grid.layout(2, 1, heights = hgt)))
-
-    if (!is.null(title)) {
-        pushViewport(viewport(layout.pos.row = 1))
-        grid.rect(gp = gpar(fill = opts$col.sub))
-        grid.draw(subt)
-        upViewport()
-    }
+    col.args <- gen$col.args
 
     if (length(obj$x) == 0)
         return()
 
-    pushViewport(viewport(layout.pos.row = 2, xscale = xlim, yscale = ylim, clip = "on"))
     grid.points(obj$x, obj$y, pch = obj$pch, 
                 gp =
-                gpar(col = obj$cols, cex = obj$propsize * opts$cex.pt,
-                     lwd = opts$lwd.pt, alpha = opts$alpha))
+                gpar(col = colourPoints(obj$colby, col.args, opts),
+                     cex = obj$propsize * opts$cex.pt,
+                     lwd = opts$lwd.pt, alpha = opts$alpha,
+                     fill = obj$fill.pt))
         
     # Connect by dots if they want it ...
     if (opts$join) {
@@ -157,8 +121,8 @@ plot.inzscatter <- function(obj, gen) {
 
     # Smoothers and quantiles:
     if (length(opts$quant.smooth) > 0) {
-        try(qs <- calcQSmooth(obj$x, opts$quant.smooth, opts), TRUE)
-        if (!is.null(qs)) {
+        qs <- try(calcQSmooth(cbind(obj$x, obj$y), opts$quant.smooth, opts), TRUE)
+        if (!inherits(qs, "try-error")) {
             qp <- qs$qp
             lty <- qs$lty
             lwd <- qs$lwd
@@ -200,6 +164,10 @@ plot.inzscatter <- function(obj, gen) {
     # colours of these lines are darker versions of the points.
     # ------------------------------------------------------------- #
 
+    if (opts$trend.by)
+        if (is.null(col.args$f.cols))
+            opts$trend.by <- FALSE
+        
     if (!is.null(opts$trend)) {
         if (length(unique(obj$col)) == 1 | !opts$trend.by) {
             lapply(opts$trend, function(o) {
@@ -217,13 +185,11 @@ plot.inzscatter <- function(obj, gen) {
                     order = which(c("linear", "quadratic", "cubic") == o)
                     addTrend(xtmp[[b]], ytmp[[b]],
                              order = order, xlim = xlim,
-                             col = darken(levels(byy)[b]),
+                             col = darken(col.args$f.cols[b]),
                              bs = FALSE)  # opts$bs.inference)
                 })
         }
     }
     
-    upViewport()
-
     invisible(NULL)
 }
