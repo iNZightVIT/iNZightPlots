@@ -341,7 +341,14 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     }
 
     if (xnum & ynum) {
-        leg.grob3 <- drawLinesLegend(df$data[, c("x", "y")], opts = opts, cex.mult = cex.mult * 0.8)
+        df.lens <- lapply(plot.list, function(a) {
+            mm <- sapply(a, function(b) 
+                         sum(apply(cbind(b$x, b$y), 1, function(c) all(!is.na(c)))))
+            A <- a[[which.max(mm)]]
+            cbind(A$x, A$y)
+        })
+        ddd <- df.lens[[which.max(sapply(df.lens, nrow))]]
+        leg.grob3 <- drawLinesLegend(ddd, opts = opts, cex.mult = cex.mult * 0.8)
     }
 
     hgts <- numeric(3)
