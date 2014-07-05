@@ -1,8 +1,19 @@
 addTrend <-
 function(x, y, order, xlim, col, bs) {
     xx <- seq(xlim[1], xlim[2], length = 1001)
-    yy <- try(predict(lm(y ~ poly(x, order)), data.frame(x = xx)),
-              silent = TRUE)
+    if (inherits(x, "survey.design")) {
+        svy <- x
+        print(svy)
+        expr <- switch(order,
+                       formula(y ~ x),
+                       formula(y ~ x + I(x^2)),
+                       formula(y ~ x + I(x^2) + I(x^3)))
+        yy <- try(predict(svyglm(expr, design = svy), data.frame(x = xx)),
+                  silent = TRUE)
+    } else {
+        yy <- try(c(predict(lm(y ~ poly(x, order)), data.frame(x = xx))),
+                  silent = TRUE)
+    }
 
   # Sometimes, there might not be enough data points do run poly(),
   # so in this case simply don't draw.

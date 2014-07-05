@@ -18,11 +18,16 @@ create.inz.hexplot <- function(obj) {
     df <- df[!missing, ]
 
     xbins <-
-        if ((cpt <- opts$cex.pt) > 1) {
-            (1 - (cpt - 1) / 2.5) * (25) + 5
+        if (is.null(opts$hex.bins)) {
+            if ((cpt <- opts$cex.pt) > 1) {
+                (1 - (cpt - 1) / 2.5) * (25) + 5
+            } else {
+                (1 - (cpt - 0.05) / 0.95) * 70 + 30
+            }
         } else {
-            (1 - (cpt - 0.05) / 0.95) * 70 + 30
+            opts$hex.bins
         }
+    
     ## hexbin returns an S4 object, so need to use the @ operator
     hb <- hexbin(df$x, df$y, IDs = TRUE, xbins = xbins)
     cellid <- hb@cID
@@ -52,8 +57,8 @@ plot.inzhex <- function(obj, gen) {
     opts <- gen$opts
     mcex <- gen$mcex
     
-    grid.hexagons(obj$hex, style = "centroids")    
-
+    grid.hexagons(obj$hex, style = "centroids")
+    
     ## ---------------------------------------------------------------------------- ##
     ## Now that the main plot has been drawn, time to add stuff to it!
 
@@ -112,7 +117,7 @@ plot.inzhex <- function(obj, gen) {
     if (!is.null(opts$trend)) {
         lapply(opts$trend, function(o) {
             order = which(c("linear", "quadratic", "cubic") == o)  # gives us 1, 2, or 3
-            addTrend(obj$x, obj$y, order = order, xlim = xlim,
+            addTrend(obj$svy, NULL, order = order, xlim = xlim,
                      col = opts$col.trend[[o]], bs = opts$bs.inference)
         })
 

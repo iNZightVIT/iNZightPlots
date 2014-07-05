@@ -53,6 +53,7 @@ inzpar <- function(...) {
                large.sample.size = 2000,
                largesample    = NULL,
                scatter.grid.bins = 200,
+               hex.bins       = NULL,
                hist.bins      = 100,
                quant.cutoff   = c(200, 1000))
 
