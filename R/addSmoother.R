@@ -1,6 +1,10 @@
 addSmoother <-
-function(x, y, f, col, bs, lty = 1) {
-    sm <- lowess(x, y, f = f)
+function(x, y = NULL, f, col, bs, lty = 1) {
+    if (is.null(y) & inherits(x, "survey.design")) {
+        sm <- svysmooth(y ~ x, design = x, method = "locpoly")[[1]]
+    } else {
+        sm <- lowess(x, y, f = f)
+    }
     grid.lines(sm$x, sm$y,
                default.units = "native",
                gp = gpar(col = col, lwd = 2, lty = lty))
@@ -20,14 +24,17 @@ function(x, y, f, col, bs, lty = 1) {
 }
 
 addQuantileSmoother <-
-function(x, y, quantile, col, lty, lwd) {
+function(x, y = NULL, quantile, col, lty, lwd) {    
   # Draws quantiles on a plot.
     if (quantile < 0.5)  # symmetry
         quantile <- c(quantile, 1 - quantile)
 
   # Because we are using the `svysmooth()` function from the `survey` package,
   # we need to supply a design (here, everything is IID)
-    des <- suppressWarnings(svydesign(ids = ~1, data = data.frame(x = x, y = y)))
+    if (is.null(y) & inherits(x, "survey.design"))
+        des <- x
+    else
+        des <- suppressWarnings(svydesign(ids = ~1, data = data.frame(x = x, y = y)))
     
     invisible(sapply(quantile,
                      function(a) {
@@ -40,7 +47,13 @@ function(x, y, quantile, col, lty, lwd) {
 
 
 calcQSmooth <- function(xy, q, opts) {
-    x <- xy[!apply(xy, 1, function(y) any(is.na(y))), ]
+    if (inherits(xy, "survey.design")) {
+        x <- xy$variables[, c("x", "y")]
+        x <- x[!apply(x, 1, function(y) any(is.na(y))), ]
+    } else {
+        x <- xy[!apply(xy, 1, function(y) any(is.na(y))), ]
+    }
+    
   # check quantiles are correct:
     if (q[1] == "default") {
         qp <- 0.5
