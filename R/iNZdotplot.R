@@ -33,7 +33,7 @@ iNZdotplot <-
   # =========================================================================== #
   #                                                             Start main plot
 
-    ylim2 <- c(0, length(levels(y)))  # need a yscale
+    ylim2 <- c(0, ifelse(is.null(y), 1, length(levels(y))))  # need a yscale
     pushViewport(viewport(layout.pos.row = 2,
                           xscale = xlim,
                           yscale = ylim2))
