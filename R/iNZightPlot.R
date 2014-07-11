@@ -98,9 +98,16 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         md <- eval(m$data, env)
     }
 
+#    if (!is.null(by))
+#        print(by)
+    print(by)
+    print(colby)
+    
     # we now want to create a data object which contains *ALL* of the necessary
     # information, including survey design, or frequency information:
     df <- inzDataframe(m, data = md, names = varnames, g1.level, g2.level, env = env)
+  #  print(head(df$data))
+  #  print(df$varnames)
 
     # df will have a class: inz.simple, inz.freq, inz.survey
     # each of these classes will have appropriate methods for extracting the information
