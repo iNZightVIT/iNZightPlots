@@ -1,8 +1,10 @@
 iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         g2 = NULL, g2.level = NULL, varnames = list(),
-                        colby = NULL, sizeby = NULL,
+                        colby = by, sizeby = prop.size,
                         data = NULL, design = NULL, freq = NULL,
                         missing.info = TRUE,
+                        xlab = varnames$x, ylab = varnames$y,
+                        by = NULL, prop.size = NULL, new = TRUE,  # compatibility arguments
                         inzpars = inzpar(), ...) {
 
   # ------------------------------------------------------------------------------------ #
