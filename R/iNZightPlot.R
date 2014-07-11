@@ -193,6 +193,21 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         if (TYPE %in% c("scatter", "grid", "hex")) extendrange(ylim)
         else c(0, extendrange(ylim)[2])
 
+    maxcnt <- NULL
+    if (TYPE %in% c("grid", "hex")) {
+      # if there is a `counts` need to get the max:
+        maxcnt <- switch(TYPE,
+                         "grid" = {
+                             warning("Frequency density not constant scale across multiple plots yet.")
+                         }, "hex" = {
+                             max(sapply(plot.list, function(x) sapply(x, function(y)
+                                                                      max(y$hex@count, na.rm = TRUE))))
+                         })
+    }
+
+    if (is.numeric(df$data$colby))
+        opts$trend.by <- FALSE
+
     # Set up the plot layout
 
     ## --- The Main Viewport: this one is simply the canvas, and global CEX value
@@ -476,8 +491,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             nc <- dim2
         }
     }
-    multi.cex <- sqrt(sqrt(N) / N)  # this has absolutely no theoretical reasoning,
-                                    # it just does a reasonably acceptable job (:
+    multi.cex <- 1.2 * sqrt(sqrt(N) / N)  # this has absolutely no theoretical reasoning,
+                                          # it just does a reasonably acceptable job (:
 
     ## if the plots are DOTPLOTS or BARPLOTS, then leave a little bit of space between each
   # we will need to add a small amount of space between the columns of the layout
@@ -556,8 +571,9 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             }
 
             pushViewport(viewport(layout.pos.row = 2, xscale = xlim, yscale = ylim, clip = "on"))
-            plot(plot.list[[g2id]][[g1id]],
-                 gen = list(opts = opts, mcex = multi.cex, col.args = col.args))
+            plot(plot.list[[g2id]][[g1id]], gen =
+                 list(opts = opts, mcex = multi.cex, col.args = col.args,
+                      maxcount = maxcnt))
             upViewport()
 
             # add the appropriate axes:

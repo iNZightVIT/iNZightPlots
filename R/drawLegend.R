@@ -114,11 +114,20 @@ drawLinesLegend <- function(x, opts = inzpar(), cex.mult = 1) {
     lines.list <- list()
     if (length(opts$trend) > 0) {
         if (all(opts$trend != FALSE)) {
-            for (i in 1:length(opts$trend)) {
-                lines.list <- c(lines.list,
-                                list(c(opts$trend[i],
-                                       opts$col.trend[[opts$trend[i]]],
-                                       opts$lty, opts$lwd)))
+            if (opts$trend.by) { #opts$trend.parallel) {
+                for (i in 1:length(opts$trend)) {
+                    lines.list <- c(lines.list,
+                                    list(c(opts$trend[i], "black",
+                                           which(opts$trend[i] == c("linear", "quadratic", "cubic")),
+                                           opts$lwd)))
+                }
+            } else {
+                for (i in 1:length(opts$trend)) {
+                    lines.list <- c(lines.list,
+                                    list(c(opts$trend[i],
+                                           opts$col.trend[[opts$trend[i]]],
+                                           opts$lty, opts$lwd)))
+                }
             }
         }
     }
@@ -139,9 +148,15 @@ drawLinesLegend <- function(x, opts = inzpar(), cex.mult = 1) {
     } else {
         if (!is.null(opts$smooth)) {
             if (opts$smooth != 0) {
-                lines.list <- c(lines.list,
-                                list(c("smoother", opts$col.smooth,
-                                       opts$lty, opts$lwd)))
+                if (opts$trend.by) {
+                    lines.list <- c(lines.list,
+                                    list(c("smoother", "black",
+                                           opts$smoothby.lty, opts$lwd)))
+                } else {
+                    lines.list <- c(lines.list,
+                                    list(c("smoother", opts$col.smooth,
+                                           opts$lty, opts$lwd)))
+                }
             }
         }
     }

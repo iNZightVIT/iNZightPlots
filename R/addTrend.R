@@ -3,7 +3,6 @@ function(x, y, order, xlim, col, bs) {
     xx <- seq(xlim[1], xlim[2], length = 1001)
     if (inherits(x, "survey.design")) {
         svy <- x
-        print(svy)
         expr <- switch(order,
                        formula(y ~ x),
                        formula(y ~ x + I(x^2)),
@@ -20,7 +19,7 @@ function(x, y, order, xlim, col, bs) {
     if (!inherits(yy, "try-error")) {
         grid.lines(xx, yy,
                    default.units = "native",
-                   gp = gpar(col = col, lwd = 2))
+                   gp = gpar(col = col, lwd = 2, lty = order))
 
         if (bs) {
             bs.lines <- vector("list", 30)
@@ -44,6 +43,33 @@ function(x, y, order, xlim, col, bs) {
             grid.polyline(all.lines[, 1], all.lines[, 2], id = all.lines[, 3],
                           default.units = "native",
                           gp = gpar(col = col, lwd = 1, lty = 3))
+        }
+    }
+}
+
+addParTrend <- function(x, y, by, order, xlim, cols) {
+    xx <- rep(seq(xlim[1], xlim[2], length = 1001), length(lby <- levels(by)))
+    byy <- rep(lby, each = 1001)
+    if (inherits(x, "survey.design")) {
+        svy <- x
+        expr <- switch(order,
+                       formula(y ~ x + by),
+                       formula(y ~ x + I(x^2) + by),
+                       formula(y ~ x + I(x^2) + I(x^3) + by))
+        yy <- try(predict(LM <- svyglm(expr, design = svy), data.frame(x = xx, by = byy)),
+                  silent = TRUE)
+    } else {
+        yy <- try(c(predict(LM <- lm(y ~ poly(x, order) + by), data.frame(x = xx, by = byy))),
+                  silent = TRUE)
+    }
+
+  # Sometimes, there might not be enough data points do run poly(),
+  # so in this case simply don't draw.
+    if (!inherits(yy, "try-error")) {
+        for (i in 1:length(lby)) {
+            grid.lines(xx[byy == lby[i]], yy[byy == lby[i]],
+                       default.units = "native",
+                       gp = gpar(col = (cols[i]), lwd = 2, lty = order))
         }
     }
 }

@@ -30,6 +30,7 @@ create.inz.hexplot <- function(obj) {
     
     ## hexbin returns an S4 object, so need to use the @ operator
     hb <- hexbin(df$x, df$y, IDs = TRUE, xbins = xbins)
+    
     cellid <- hb@cID
     ## now manipulate the counts with the weight variable
     if (xattr$class == "inz.freq") {
@@ -56,8 +57,8 @@ plot.inzhex <- function(obj, gen) {
     ylim <- current.viewport()$yscale
     opts <- gen$opts
     mcex <- gen$mcex
-    
-    grid.hexagons(obj$hex, style = "centroids")
+
+    grid.hexagons(obj$hex, style = "centroids", maxcnt = gen$maxcount)
     
     ## ---------------------------------------------------------------------------- ##
     ## Now that the main plot has been drawn, time to add stuff to it!

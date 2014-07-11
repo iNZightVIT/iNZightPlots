@@ -119,6 +119,10 @@ plot.inzscatter <- function(obj, gen) {
                    gp = gpar(col = opts$col.LOE, lty = opts$lty.LOE))
     }
 
+    if (opts$trend.by)
+        if (is.null(col.args$f.cols))
+            opts$trend.by <- FALSE
+
     # Smoothers and quantiles:
     if (length(opts$quant.smooth) > 0) {
         qs <- try(calcQSmooth(cbind(obj$x, obj$y), opts$quant.smooth, opts), TRUE)
@@ -148,8 +152,8 @@ plot.inzscatter <- function(obj, gen) {
                     for (b in 1:length(levels(byy)))
                         try(addSmoother(xtmp[[b]], ytmp[[b]],
                                         f = opts$smooth,
-                                        col = darken(levels(byy)[b]),
-                                        bs = FALSE, lty = 2), TRUE)
+                                        col = darken(col.args$f.cols[b]),
+                                        bs = FALSE, lty = opts$smoothby.lty), TRUE)
                 }
             }
         }
@@ -164,9 +168,7 @@ plot.inzscatter <- function(obj, gen) {
     # colours of these lines are darker versions of the points.
     # ------------------------------------------------------------- #
 
-    if (opts$trend.by)
-        if (is.null(col.args$f.cols))
-            opts$trend.by <- FALSE
+    
         
     if (!is.null(opts$trend)) {
         if (length(unique(obj$col)) == 1 | !opts$trend.by) {
@@ -174,6 +176,13 @@ plot.inzscatter <- function(obj, gen) {
                 order = which(c("linear", "quadratic", "cubic") == o)  # gives us 1, 2, or 3
                 addTrend(obj$x, obj$y, order = order, xlim = xlim,
                          col = opts$col.trend[[o]], bs = opts$bs.inference)
+            })
+        } else if (opts$trend.parallel) {
+            byy <- as.factor(obj$col)
+            lapply(opts$trend, function(o) {
+                order = which(c("linear", "quadratic", "cubic") == o)
+                addParTrend(obj$x, obj$y, byy, order = order, xlim = xlim,
+                            cols = col.args$f.cols)
             })
         } else {
             byy <- as.factor(obj$col)  # pseudo-by-variable
@@ -185,8 +194,8 @@ plot.inzscatter <- function(obj, gen) {
                     order = which(c("linear", "quadratic", "cubic") == o)
                     addTrend(xtmp[[b]], ytmp[[b]],
                              order = order, xlim = xlim,
-                             col = darken(col.args$f.cols[b]),
-                             bs = FALSE)  # opts$bs.inference)
+                             col = col.args$f.cols[b],
+                             bs = opts$bs.inference)
                 })
         }
     }

@@ -23,6 +23,7 @@ inzpar <- function(...) {
                rugs           = "",
                trend          = NULL,
                smooth         = 0,
+               smoothby.lty   = 4,  # MUST be numeric
                quant.smooth   = NULL,
                LOE            = FALSE,
                join           = FALSE,
@@ -32,6 +33,7 @@ inzpar <- function(...) {
                     quadratic = "red",
                     cubic ="green4"),
                trend.by       = FALSE,
+               trend.parallel = TRUE,
                col.smooth     = c("magenta"),
                col.LOE        = "black",
                lty.LOE        = 2,
