@@ -687,8 +687,8 @@ iNZightPlot <-
                       # need to include the error bars!
                         phat <- table(x) / length(x)
                         se <- sqrt(phat * (1 - phat) / length(x))
-                        max(phat + 1.96 * se)
-                    })))
+                        max(phat + 1.96 * se, na.rm = TRUE)
+                    }), na.rm = TRUE))
                 }
                 o
             } else {
@@ -730,7 +730,7 @@ iNZightPlot <-
                         se <- sqrt(phat * (1 - phat) /
                                    length(x.list[[i]]))
                         max(phat + 1.96 * se, na.rm = TRUE)
-                    })))
+                    }), na.rm = TRUE))
                 }
                 o
             }

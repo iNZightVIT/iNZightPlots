@@ -351,9 +351,9 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                                                   # need to include the error bars!
                                                     phat <- table(x) / length(x)
                                                     se <- sqrt(phat * (1 - phat) / length(x))
-                                                    max(phat + 1.96 * se)
-                                                }))
-                                         })))
+                                                    max(phat + 1.96 * se, na.rm = TRUE)
+                                                }), na.rm = TRUE)
+                                         }), na.rm = TRUE))
             }
             o
         } else {

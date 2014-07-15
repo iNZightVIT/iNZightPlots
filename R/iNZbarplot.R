@@ -9,7 +9,7 @@ iNZbarplot <-
   #  - draws the subtitle if grouping variable 1 is being defined
   #  - add any additional features
   # --------------------------------------------------------------------------- #
-
+        
     pushViewport(viewport(layout = layout,
                           xscale = xlim))
 
