@@ -2,7 +2,6 @@ inzpar <- function(...) {
     dots <- list(...)
     
     ip <- list(pch            = 1,
-               col            = "red",
                col.pt         = "grey50",
                col.missing    = "#cccccc",
                cex            = 1,

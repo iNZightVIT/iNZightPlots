@@ -102,7 +102,8 @@ plot.inznull <- function(...) {
 
 genCols <- function(n) {
     # This allows us to simply edit the type of colour schemes used
-    rainbow(n, v = 0.7, start = 1/6)
+    #rainbow(n, v = 0.7, start = 1/6)
+    hcl((1:n) / n * 360, c = 80, l = 50)
 }
 
 colourPoints <- function(x, col.args, opts = inzpar()) {

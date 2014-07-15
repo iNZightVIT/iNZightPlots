@@ -8,8 +8,10 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     vars <- c("", "x", "y", "g1", "g2", "colby", "sizeby")
     mw <- names(m) %in% vars
     mw[1] <- FALSE  # the function name
+    mw <- mw & !sapply(as.list(m), is.null)
 
     # take the names and replace if specified
+    names <- names[names != ""]
     varnames <- modifyList(as.list(m[mw]), names)
 
     df <- list()  # initialise the object
