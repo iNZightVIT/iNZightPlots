@@ -73,7 +73,8 @@ plot.inzscatter <- function(obj, gen) {
                 gpar(col = colourPoints(obj$colby, col.args, opts),
                      cex = obj$propsize * opts$cex.pt,
                      lwd = opts$lwd.pt, alpha = opts$alpha,
-                     fill = obj$fill.pt))
+                     fill = obj$fill.pt),
+                name = "SCATTERPOINTS")
         
     # Connect by dots if they want it ...
     if (opts$join) {
