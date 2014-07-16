@@ -33,11 +33,11 @@ create.inz.hexplot <- function(obj) {
     
     cellid <- hb@cID
     ## now manipulate the counts with the weight variable
-    if (xattr$class == "inz.freq") {
-        W <- df$freq
-    } else {
-        W <- weights(obj$df, "sampling")[!missing]
-    }
+    W <- switch(xattr$class,
+                "inz.freq" = df$freq,
+                "inz.survey" = weights(obj$df, "sampling")[!missing],
+                "inz.simple" = rep(1, nrow(df)))
+
     hb@count <- as.vector(tapply(W, cellid, sum))
     hb@xcm <- as.vector(tapply(1:length(df$x), cellid,
                                function(i) weighted.mean(df$x[i], W[i])))

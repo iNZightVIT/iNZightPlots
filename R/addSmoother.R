@@ -7,7 +7,6 @@ addXYsmoother <- function(obj, opts, col.args, xlim, ylim, x = obj$x, y = obj$y)
         
         qs <- try(calcQSmooth(X, opts$quant.smooth, opts), TRUE)
         if (!inherits(qs, "try-error")) {
-            print("ready")
             qp <- qs$qp
             lty <- qs$lty
             lwd <- qs$lwd

@@ -56,7 +56,9 @@ inzpar <- function(...) {
                scatter.grid.bins = 200,
                hex.bins       = NULL,
                hist.bins      = 100,
-               quant.cutoff   = c(200, 1000))
+               quant.cutoff   = c(200, 1000),
+               plottype       = "default",
+               matchplots     = FALSE)
 
     # update any user has specified
     if (length(dots) > 0) {

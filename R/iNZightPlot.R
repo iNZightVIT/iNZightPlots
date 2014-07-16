@@ -181,7 +181,18 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     if (!ynull) if (!yfact) xattr$yrange <- range(yy[is.finite(yy)])
     if (!is.null(df$max.freq))
         xattr$max.freq <- df$max.freq
-    
+
+    if (opts$matchplots) {
+      # this is the case where the data is subset by g1/g2, but we want the plots to be the same
+      # across all levels
+
+      # we just need to go through all plots and test if they should be LARGESAMPLE or not:
+        if (is.null(opts$largesample)) {
+            maxRow <- max(sapply(df.list, function(df) sapply(df, nrow)))
+            opts$largesample <- maxRow > opts$large.sample.size  # essentially override the
+                                                                 # largesample argument
+        }
+    }
     plot.list <- lapply(df.list, function(df)
                         lapply(df, createPlot, opts, xattr))
 
@@ -202,8 +213,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                          "grid" = {
                              warning("Frequency density not constant scale across multiple plots yet.")
                          }, "hex" = {
-                             max(sapply(plot.list, function(x) sapply(x, function(y)
-                                                                      max(y$hex@count, na.rm = TRUE))))
+                             max(sapply(plot.list, function(x) sapply(x, function(y) {
+                                 if (class(y) == "inzhex")
+                                     max(y$hex@count, na.rm = TRUE)
+                                 else 0
+                             })))
                          })
     }
 
@@ -496,8 +510,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             nc <- dim2
         }
     }
-    multi.cex <- 1.2 * sqrt(sqrt(N) / N)  # this has absolutely no theoretical reasoning,
-                                          # it just does a reasonably acceptable job (:
+    multi.cex <- max(1.2 * sqrt(sqrt(N) / N), 0.5)  # this has absolutely no theoretical reasoning,
+                                                    # it just does a reasonably acceptable job (:
 
     ## if the plots are DOTPLOTS or BARPLOTS, then leave a little bit of space between each
   # we will need to add a small amount of space between the columns of the layout
@@ -575,7 +589,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 upViewport()
             }
 
-            pushViewport(viewport(layout.pos.row = 2, xscale = xlim, yscale = ylim, clip = "on"))
+            pushViewport(viewport(layout.pos.row = 2, xscale = xlim, yscale = ylim, clip = "on",
+                                  name = "VP:locate.these.points"))
             plot(plot.list[[g2id]][[g1id]], gen =
                  list(opts = opts, mcex = multi.cex, col.args = col.args,
                       maxcount = maxcnt))
@@ -591,7 +606,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 drawAxes(if (TYPE == "bar") ylim else Y, "y", TRUE, (nr - r) %% 2 == 0, opts)
 
             if (!TYPE %in% c("dot", "hist")) {
-                if (c == nc)
+                if (c == nc | g1id == NG1)
                     drawAxes(Y, "y", FALSE, (nr - r) %% 2 == 1, opts)
             }
             upViewport()

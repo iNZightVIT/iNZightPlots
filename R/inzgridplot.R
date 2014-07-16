@@ -7,8 +7,13 @@ create.inz.gridplot <- function(obj) {
     opts <- obj$opts
     xattr <- obj$xattr
 
+    if (xattr$class == "inz.survey") {
+        warning("The grid plot doesn't account for survey and frequency weighting. Better to use plottype = \"hex\".")
+        df <- df$variables
+    }
+
     v <- colnames(df)
-    vn <- xattr$varnames
+    vn <- xattr$varnames    
 
     # first need to remove missing values
     missing <- apply(df[ , v %in% c("x", "y")], 1, function(x) any(is.na(x)))
