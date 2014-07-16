@@ -105,8 +105,8 @@ plot.inzgrid <- function(obj, gen) {
     }
 
     # Add additional features to plot:
-    addXYsmoother(obj, opts, col.args, xlim, ylim, x = obj$args$df$x, y = obj$args$df$y)
-    addXYtrend(obj, opts, col.args, xlim, ylim, x = obj$args$df$x, y = obj$args$df$y)
+    addXYsmoother(obj, opts, col.args, xlim, ylim)
+    addXYtrend(obj, opts, col.args, xlim, ylim)
     
     invisible(NULL)
 }

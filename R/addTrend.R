@@ -1,4 +1,4 @@
-addXYtrend <- function(obj, opts, col.args, xlim, ylim, x = obj$x, y = obj$y) {
+addXYtrend <- function(obj, opts, col.args, xlim, ylim) {
     # Trend lines:
     # ------------------------------------------------------------- #
     # If the `by` variable has been set, then the points are        
@@ -7,6 +7,30 @@ addXYtrend <- function(obj, opts, col.args, xlim, ylim, x = obj$x, y = obj$y) {
     # trend lines for each level of by (i.e., each colour). The
     # colours of these lines are darker versions of the points.
     # ------------------------------------------------------------- #
+
+    ## decide what x and y are:
+    if ("svy" %in% names(obj)) {
+        if (inherits(obj$svy, "survey.design")) {
+            x <- obj$svy
+            y <- NULL
+        } else {
+            # na's arent removed
+            x <- obj$svy$x
+            y <- obj$svy$y
+            isna <- is.na(x) | is.na(y)
+            x <- x[!isna]
+            y <- y[!isna]
+        }
+    } else if ("args" %in% names(obj)) {
+        x <- obj$args$df$x
+        y <- obj$args$df$y
+        isna <- is.na(x) | is.na(y)
+        x <- x[!isna]
+        y <- y[!isna]
+    } else {
+        x <- obj$x
+        y <- obj$y
+    }
     
     if (!is.null(opts$trend)) {
         if (length(unique(obj$col)) == 1 | !opts$trend.by) {

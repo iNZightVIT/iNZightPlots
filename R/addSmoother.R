@@ -1,4 +1,28 @@
-addXYsmoother <- function(obj, opts, col.args, xlim, ylim, x = obj$x, y = obj$y) {
+addXYsmoother <- function(obj, opts, col.args, xlim, ylim) {
+    ## decide what x and y are:
+    if ("svy" %in% names(obj)) {
+        if (inherits(obj$svy, "survey.design")) {
+            x <- obj$svy
+            y <- NULL
+        } else {
+            # na's arent removed
+            x <- obj$svy$x
+            y <- obj$svy$y
+            isna <- is.na(x) | is.na(y)
+            x <- x[!isna]
+            y <- y[!isna]
+        }
+    } else if ("args" %in% names(obj)) {
+        x <- obj$args$df$x
+        y <- obj$args$df$y
+        isna <- is.na(x) | is.na(y)
+        x <- x[!isna]
+        y <- y[!isna]
+    } else {
+        x <- obj$x
+        y <- obj$y
+    }
+    
     if (length(opts$quant.smooth) > 0) {
         if (inherits(x, "survey.design"))
             X <- x
