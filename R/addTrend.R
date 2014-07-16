@@ -1,3 +1,44 @@
+addXYtrend <- function(obj, opts, col.args, xlim, ylim, x = obj$x, y = obj$y) {
+    # Trend lines:
+    # ------------------------------------------------------------- #
+    # If the `by` variable has been set, then the points are        
+    # coloured by the levels of `by`. Thus, there is more than one
+    # level of `unique(col)`. In this case, we need to add the
+    # trend lines for each level of by (i.e., each colour). The
+    # colours of these lines are darker versions of the points.
+    # ------------------------------------------------------------- #
+    
+    if (!is.null(opts$trend)) {
+        if (length(unique(obj$col)) == 1 | !opts$trend.by) {
+            lapply(opts$trend, function(o) {
+                order = which(c("linear", "quadratic", "cubic") == o)  # gives us 1, 2, or 3
+                addTrend(x, y, order = order, xlim = xlim,
+                         col = opts$col.trend[[o]], bs = opts$bs.inference)
+            })
+        } else if (opts$trend.parallel) {
+            byy <- as.factor(obj$col)
+            lapply(opts$trend, function(o) {
+                order = which(c("linear", "quadratic", "cubic") == o)
+                addParTrend(x, y, byy, order = order, xlim = xlim,
+                            cols = col.args$f.cols)
+            })
+        } else {
+            byy <- as.factor(obj$col)  # pseudo-by-variable
+            xtmp <- lapply(levels(byy), function(c) subset(x, obj$col == c))
+            ytmp <- lapply(levels(byy), function(c) subset(y, obj$col == c))
+            
+            for (b in 1:length(levels(byy)))
+                lapply(opts$trend, function(o) {
+                    order = which(c("linear", "quadratic", "cubic") == o)
+                    addTrend(xtmp[[b]], ytmp[[b]],
+                             order = order, xlim = xlim,
+                             col = col.args$f.cols[b],
+                             bs = opts$bs.inference)
+                })
+        }
+    }
+}
+
 addTrend <-
 function(x, y, order, xlim, col, bs) {
     xx <- seq(xlim[1], xlim[2], length = 1001)
@@ -53,10 +94,10 @@ addParTrend <- function(x, y, by, order, xlim, cols) {
     if (inherits(x, "survey.design")) {
         svy <- x
         expr <- switch(order,
-                       formula(y ~ x + by),
-                       formula(y ~ x + I(x^2) + by),
-                       formula(y ~ x + I(x^2) + I(x^3) + by))
-        yy <- try(predict(LM <- svyglm(expr, design = svy), data.frame(x = xx, by = byy)),
+                       formula(y ~ x + colby),
+                       formula(y ~ x + I(x^2) + colby),
+                       formula(y ~ x + I(x^2) + I(x^3) + colby))
+        yy <- try(predict(LM <- svyglm(expr, design = svy), data.frame(x = xx, colby = byy)),
                   silent = TRUE)
     } else {
         yy <- try(c(predict(LM <- lm(y ~ poly(x, order) + by), data.frame(x = xx, by = byy))),

@@ -123,82 +123,9 @@ plot.inzscatter <- function(obj, gen) {
         if (is.null(col.args$f.cols))
             opts$trend.by <- FALSE
 
-    # Smoothers and quantiles:
-    if (length(opts$quant.smooth) > 0) {
-        qs <- try(calcQSmooth(cbind(obj$x, obj$y), opts$quant.smooth, opts), TRUE)
-        if (!inherits(qs, "try-error")) {
-            qp <- qs$qp
-            lty <- qs$lty
-            lwd <- qs$lwd
-            for (q in 1:length(qp))
-                try(addQuantileSmoother(obj$x, obj$y, quantile = qp[q],
-                                        col = opts$col.smooth,
-                                        lty = lty[q], lwd = lwd[q]), TRUE)
-        }
-    } else if (!is.null(opts$smooth)) {
-      # Smoothers
-        if (opts$smooth != 0) {
-            if (opts$smooth > 1) {
-                warning("Smoothing value must be in the interval [0, 1]")
-            } else {
-                if (length(unique(obj$col)) == 1 | !opts$trend.by) {
-                    try(addSmoother(obj$x, obj$y, f = opts$smooth,
-                                    col = opts$col.smooth, bs = opts$bs.inference), TRUE)
-                } else {
-                    byy <- as.factor(obj$col)  # pseudo-by-variable
-                    xtmp <- lapply(levels(byy), function(c) subset(obj$x, obj$col == c))
-                    ytmp <- lapply(levels(byy), function(c) subset(obj$y, obj$col == c))
-                    
-                    for (b in 1:length(levels(byy)))
-                        try(addSmoother(xtmp[[b]], ytmp[[b]],
-                                        f = opts$smooth,
-                                        col = darken(col.args$f.cols[b]),
-                                        bs = FALSE, lty = opts$smoothby.lty), TRUE)
-                }
-            }
-        }
-    }
-
-    # Trend lines:
-    # ------------------------------------------------------------- #
-    # If the `by` variable has been set, then the points are        
-    # coloured by the levels of `by`. Thus, there is more than one
-    # level of `unique(col)`. In this case, we need to add the
-    # trend lines for each level of by (i.e., each colour). The
-    # colours of these lines are darker versions of the points.
-    # ------------------------------------------------------------- #
-
-    
-        
-    if (!is.null(opts$trend)) {
-        if (length(unique(obj$col)) == 1 | !opts$trend.by) {
-            lapply(opts$trend, function(o) {
-                order = which(c("linear", "quadratic", "cubic") == o)  # gives us 1, 2, or 3
-                addTrend(obj$x, obj$y, order = order, xlim = xlim,
-                         col = opts$col.trend[[o]], bs = opts$bs.inference)
-            })
-        } else if (opts$trend.parallel) {
-            byy <- as.factor(obj$col)
-            lapply(opts$trend, function(o) {
-                order = which(c("linear", "quadratic", "cubic") == o)
-                addParTrend(obj$x, obj$y, byy, order = order, xlim = xlim,
-                            cols = col.args$f.cols)
-            })
-        } else {
-            byy <- as.factor(obj$col)  # pseudo-by-variable
-            xtmp <- lapply(levels(byy), function(c) subset(obj$x, obj$col == c))
-            ytmp <- lapply(levels(byy), function(c) subset(obj$y, obj$col == c))
-            
-            for (b in 1:length(levels(byy)))
-                lapply(opts$trend, function(o) {
-                    order = which(c("linear", "quadratic", "cubic") == o)
-                    addTrend(xtmp[[b]], ytmp[[b]],
-                             order = order, xlim = xlim,
-                             col = col.args$f.cols[b],
-                             bs = opts$bs.inference)
-                })
-        }
-    }
+    # Add additional features to plot:
+    addXYsmoother(obj, opts, col.args, xlim, ylim)
+    addXYtrend(obj, opts, col.args, xlim, ylim) 
     
     invisible(NULL)
 }

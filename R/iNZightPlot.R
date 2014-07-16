@@ -310,7 +310,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ynum <- if (ynull) FALSE else !yfact
 
     col.args <- list(missing = opts$col.missing)
-    if ("colby" %in% names(varnames) & TYPE %in% c("dot", "scatter")) {
+    if ("colby" %in% names(varnames) &
+        (TYPE %in% c("dot", "scatter") || (TYPE %in% c("grid", "hex") & !is.null(opts$trend) & opts$trend.by))) {
         if (is.factor(df$data$colby)) {
             nby <- length(levels(as.factor(df$data$colby)))
             if (length(opts$col.pt) >= nby) {
@@ -318,7 +319,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             } else {
                 ptcol <- genCols(nby)
             }
-            
+
             misscol <- any(sapply(plot.list, function(x) sapply(x, function(y) y$nacol)))
             leg.grob1 <- drawLegend(f.levels <- levels(as.factor(df$data$colby)), col = ptcol,
                                     pch = ifelse(barplot, 22, opts$pch),

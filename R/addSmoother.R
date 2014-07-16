@@ -1,3 +1,46 @@
+addXYsmoother <- function(obj, opts, col.args, xlim, ylim, x = obj$x, y = obj$y) {
+    if (length(opts$quant.smooth) > 0) {
+        if (inherits(x, "survey.design"))
+            X <- x
+        else
+            X <- cbind(x, y)
+        
+        qs <- try(calcQSmooth(X, opts$quant.smooth, opts), TRUE)
+        if (!inherits(qs, "try-error")) {
+            print("ready")
+            qp <- qs$qp
+            lty <- qs$lty
+            lwd <- qs$lwd
+            for (q in 1:length(qp))
+                try(addQuantileSmoother(x, y, quantile = qp[q],
+                                        col = opts$col.smooth,
+                                        lty = lty[q], lwd = lwd[q]), TRUE)
+        }
+    } else if (!is.null(opts$smooth)) {
+      # Smoothers
+        if (opts$smooth != 0) {
+            if (opts$smooth > 1) {
+                warning("Smoothing value must be in the interval [0, 1]")
+            } else {
+                if (length(unique(obj$col)) == 1 | !opts$trend.by) {
+                    try(addSmoother(x, y, f = opts$smooth,
+                                    col = opts$col.smooth, bs = opts$bs.inference), TRUE)
+                } else {
+                    byy <- as.factor(obj$col)  # pseudo-by-variable
+                    xtmp <- lapply(levels(byy), function(c) subset(x, obj$col == c))
+                    ytmp <- lapply(levels(byy), function(c) subset(y, obj$col == c))
+                    
+                    for (b in 1:length(levels(byy)))
+                        try(addSmoother(xtmp[[b]], ytmp[[b]],
+                                        f = opts$smooth,
+                                        col = darken(col.args$f.cols[b]),
+                                        bs = FALSE, lty = opts$smoothby.lty), TRUE)
+                }
+            }
+        }
+    }
+}
+
 addSmoother <-
 function(x, y = NULL, f, col, bs, lty = 1) {
     if (is.null(y) & inherits(x, "survey.design")) {
