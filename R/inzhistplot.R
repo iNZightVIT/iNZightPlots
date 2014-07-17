@@ -3,5 +3,7 @@ create.inz.histplot <- function(obj) {
 }
 
 plot.inzhist <- function(obj, gen) {
+    plot.inzdot(obj, gen, hist = TRUE) # this will set up the plot
 
+    # now draw the bars
 }

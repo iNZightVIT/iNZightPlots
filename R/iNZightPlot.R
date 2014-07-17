@@ -199,6 +199,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ## X and Y axis limits:
     xlim <- range(sapply(plot.list, function(x) sapply(x, function(y) y$xlim)), finite = TRUE)
     ylim <- range(sapply(plot.list, function(x) sapply(x, function(y) y$ylim)), finite = TRUE)
+    ylim.raw <- ylim
+    xlim.raw <- xlim
 
     TYPE <- gsub("inz", "", class(plot.list[[1]][[1]]))
     if (!TYPE %in% c("bar")) xlim <- extendrange(xlim)
@@ -219,8 +221,10 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                                  else 0
                              })))
                          })
+    } else if (TYPE %in% c("dot", "hist")) {
+        maxcnt <- ylim.raw[2]
     }
-
+    
     if (is.numeric(df$data$colby))
         opts$trend.by <- FALSE
 
@@ -309,7 +313,19 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     XAX.height <- convertWidth(unit(1, "lines"), "in", TRUE) * 2 * opts$cex.axis
 
     # -- yaxis marks
-    YAX.width <- convertWidth(unit(1, "lines"), "in", TRUE) * 2 * opts$cex.axis
+    YAX.width <- if (TYPE == "dot" & !ynull) {
+        # need to grab the factoring variable -> might be x OR y
+        yf <- if (is.factor(df$data$y)) df$data$y else df$data$x
+        yl <- levels(yf)
+        yWidths <- sapply(yl, function(L)
+                          convertWidth(grobWidth(
+                              textGrob(L, gp = gpar(cex = opts$cex.axis))
+                              ), "in", TRUE))
+        max(yWidths)
+    } else 0
+
+    YAX.default.width <- convertWidth(unit(1, "lines"), "in", TRUE) * 2 * opts$cex.axis
+    YAX.width <- YAX.width + YAX.default.width
 
     # -- legend(s)
     barplot <- FALSE
@@ -598,7 +614,20 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
             # add the appropriate axes:
             # Decide which axes to plot:
-            pushViewport(viewport(layout.pos.row = 2, xscale = xlim, yscale = ylim))
+
+            ### -------------
+            # For dotplots + histograms: the axis are at the bottom of every column, and on the far
+            # left
+            #
+            # For scatterplots + gridplots + hexplots: the axis alternative on both axis, left and
+            # right
+            #
+            # For barplot: the axis is on the bottom of every column, and left and right of every
+            # row 
+            ### ------------
+            
+            pushViewport(viewport(layout.pos.row = 2, xscale = xlim,
+                                  yscale = if (TYPE == "bar") 100 * ylim else ylim))
             if (r == nr)
                 drawAxes(X, "x", TRUE, c %% 2 == 1 | !TYPE %in% c("scatter", "grid", "hex"), opts)
 

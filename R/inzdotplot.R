@@ -47,7 +47,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     }
 
     for (i in unique(id)) {
-        dfi <- subset(df, id = i)
+        dfi <- subset(df, id == i)
         dfi$y <- NULL
         
         if (xattr$class == "inz.freq")
@@ -107,10 +107,17 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         
         ret
     }
-
-    plist <- lapply(out, makeHist, nbins = 20, xlim = xattr$xrange)
+    nbins <- if (hist) {
+        opts$hist.bins
+    } else {
+        wd <- convertWidth(unit(1 * opts$cex.pt, "char"),
+                           "npc", valueOnly = TRUE)
+        floor(1 / (wd * 0.8))
+    }
     
-    out <- list(objs = plist, n.missing = n.missing,
+    plist <- lapply(out, makeHist, nbins = nbins, xlim = xattr$xrange)
+    
+    out <- list(toplot = plist, n.missing = n.missing,
                 nacol = if ("colby" %in% v) any(sapply(plist, function(T) is.na(T$colby))) else FALSE,
                 xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
                 ylim = c(0, max(sapply(plist, function(p) if (is.null(p)) 0 else max(p$counts)))))
@@ -120,6 +127,61 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     out
 }
 
-plot.inzdot <- function(obj, gen) {
+plot.inzdot <- function(obj, gen, hist = FALSE) {
+    # First step is to grab stuff:
+    xlim <- current.viewport()$xscale
+    ylim <- current.viewport()$yscale
+    opts <- gen$opts
+    mcex <- gen$mcex
+    col.args <- gen$col.args
+    boxplot <- opts$boxplot
+
+    toplot <- obj$toplot
+
+    nlev <- length(toplot)
+    pushViewport(viewport(layout = grid.layout(nrow = nlev),
+                          name = "VP:dotplot-levels"))
+    Hgts <- if (boxplot) c(3, 1) else c(1, 0)
+    dpLayout <- grid.layout(nrow = 2, heights = unit(Hgts, "null"))
+
+    # we need to make the dots stack nicely, if they fit
+    maxcount <- gen$maxcount
+    seekViewport("VP:dotplot-levels")
+    pushViewport(viewport(layout.pos.row = 1))
+    pushViewport(viewport(layout = dpLayout))
+    pushViewport(viewport(layout.pos.row = 1))  # this is where dots will go
+
+    ht <- convertHeight(unit(1 * opts$cex.pt, "char"),
+                        "npc", valueOnly = TRUE)
+    ny <- floor(convertHeight(unit(1, "npc"),
+                              "npc", valueOnly = TRUE) / ht)
+
+    maxdots <- max(ny, maxcount)
+    ylim <- c(0, maxdots * 1.05)
     
+    for (i in 1:nlev) {
+        pp <- toplot[[i]]
+        seekViewport("VP:dotplot-levels")
+        pushViewport(viewport(layout.pos.row = i))
+        pushViewport(viewport(layout = dpLayout))
+        
+        if (boxplot) {
+            pushViewport(viewport(layout.pos.row = 2))
+            grid.rect(gp = gpar(fill = "#cccccc"))
+            upViewport()
+        }
+        
+        pushViewport(viewport(layout.pos.row = 1,
+                              xscale = xlim, yscale = ylim,
+                              name = paste0("VP:plotregion-", i)))
+        
+        grid.points(pp$x, pp$y,
+                    gp =
+                    gpar(col = colourPoints(obj$colby, col.args, opts),
+                         cex = obj$cex.pt, lwd = opts$lwd.pt,
+                         alpha = opts$alpha, fill = obj$fill.pt))
+    }
+
+    seekViewport("VP:dotplot-levels")
+    upViewport()
 }
