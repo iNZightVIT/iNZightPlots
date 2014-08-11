@@ -1,5 +1,5 @@
 drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts, sub = 0) {
-    if (is.numeric(x)) {        
+    if (is.numeric(x)) { 
         switch(which,
                "x" = {
                    if (main) {
@@ -35,7 +35,15 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts, sub = 0) {
                    labwid <- convertWidth(grobWidth(tt), "mm", valueOnly = TRUE)
                    grid.draw(labText)
                }, "y" = {
-
+                   if (!is.null(x)) {
+                       labels <- levels(x)
+                       Nlab <- length(labels)
+                       for (i in 1:Nlab) {
+                           seekViewport(paste0("VP:plotregion-", i))
+                           grid.text(labels[i], x = unit(-0.5, "lines"), just = "right")
+                           upViewport()
+                       }
+                   }
                })
     }
 }

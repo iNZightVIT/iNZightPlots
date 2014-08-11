@@ -270,6 +270,10 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     }
     if ("colby" %in% df.vs) titles$legend <- varnames$colby
 
+    N <- sum(sapply(plot.list, length))
+    multi.cex <- max(1.2 * sqrt(sqrt(N) / N), 0.5)  # this has absolutely no theoretical reasoning,
+                                                    # it just does a reasonably acceptable job (:
+
     
     # --- WIDTHS of various things
     # first we need to know HOW WIDE the main viewport is, and then
@@ -313,13 +317,13 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     XAX.height <- convertWidth(unit(1, "lines"), "in", TRUE) * 2 * opts$cex.axis
 
     # -- yaxis marks
-    YAX.width <- if (TYPE == "dot" & !ynull) {
+    YAX.width <- if (TYPE %in% c("dot", "hist") & !ynull) {
         # need to grab the factoring variable -> might be x OR y
         yf <- if (is.factor(df$data$y)) df$data$y else df$data$x
         yl <- levels(yf)
         yWidths <- sapply(yl, function(L)
                           convertWidth(grobWidth(
-                              textGrob(L, gp = gpar(cex = opts$cex.axis))
+                              textGrob(L, gp = gpar(cex = opts$cex.axis * multi.cex))
                               ), "in", TRUE))
         max(yWidths)
     } else 0
@@ -510,7 +514,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     }
 
     ## create a layout
-    N <- sum(sapply(plot.list, length))
+    
     if (matrix.plot) {
         nr <- length(g2.level)
         nc <- length(g1.level)
@@ -526,9 +530,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             nc <- dim2
         }
     }
-    multi.cex <- max(1.2 * sqrt(sqrt(N) / N), 0.5)  # this has absolutely no theoretical reasoning,
-                                                    # it just does a reasonably acceptable job (:
-
+    
     ## if the plots are DOTPLOTS or BARPLOTS, then leave a little bit of space between each
   # we will need to add a small amount of space between the columns of the layout
     hspace <- ifelse(TYPE %in% c("scatter", "grid", "hex"), 0, 0.01)
@@ -563,7 +565,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         X <- df$data$x
         Y <- df$data$y
     }
-
+    
     for (r in nr:1) {        
         R <- r * 2  # skip the gaps between rows
         if (matrix.plot) {
@@ -578,6 +580,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         for (c in 1:nc) {
             if (g2id > NG2) next()
             C <- c * 2 - 1
+
             seekViewport("VP:PLOTlayout")
             pushViewport(viewport(layout.pos.row = R, layout.pos.col = C,
                                   xscale = xlim, yscale = ylim,
@@ -628,14 +631,14 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             
             pushViewport(viewport(layout.pos.row = 2, xscale = xlim,
                                   yscale = if (TYPE == "bar") 100 * ylim else ylim))
-            if (r == nr)
+            if (r == nr)  # bottom
                 drawAxes(X, "x", TRUE, c %% 2 == 1 | !TYPE %in% c("scatter", "grid", "hex"), opts)
 
-            if (c == 1)
+            if (c == 1)  # left column
                 drawAxes(if (TYPE == "bar") ylim else Y, "y", TRUE, (nr - r) %% 2 == 0, opts)
 
             if (!TYPE %in% c("dot", "hist")) {
-                if (c == nc | g1id == NG1)
+                if (c == nc | g1id == NG1) # right column (or last plot in top row)
                     drawAxes(Y, "y", FALSE, (nr - r) %% 2 == 1, opts)
             }
             upViewport()
@@ -646,6 +649,18 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                     drawAxes(X, "x", FALSE, c %% 2 == 0, opts, sub = vspace)
                 upViewport()
             }
+
+            ## This is necessary to delete the "old" viewport so we can create a new one
+            ## of the same name, but retain it long enough to use it for drawing the axes
+            if (TYPE %in% c("dot", "hist"))
+                switch(TYPE,
+                       "dot" = {
+                           seekViewport("VP:dotplot-levels")
+                           popViewport()
+                       }, "hist" = {
+                           seekViewport("VP:histplot-levels")
+                           popViewport()
+                       })
             
 
             ## update the counters
@@ -655,6 +670,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 g1id <- 1
                 g2id <- g2id + 1
             }
+
+            
         }
     }
     
