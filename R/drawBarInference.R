@@ -41,6 +41,7 @@ drawBarInference <- function(x, y = NULL, opts) {
     else
         comp <- NULL
 
+    
   # Create confidence intervals
     if ("conf" %in% opts$inference.type)
         conf <- list(low = phat - size.conf, upp = phat + size.conf)
@@ -49,7 +50,7 @@ drawBarInference <- function(x, y = NULL, opts) {
 
     list(comp = comp, conf = conf,
          max  = max(comp$upp, conf$upp, Phat, na.rm = TRUE),
-         n    = ncol(as.matrix(phat)))
+         n    = nrow(as.matrix(phat)))
 }
 
 drawInferenceLines <- function(x, i, xx, opts, guides) {
