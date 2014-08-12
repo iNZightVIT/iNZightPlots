@@ -52,8 +52,6 @@ drawMeanInference <- function(x, opts, guides = NULL) {
                    gpar(col = "red",
                         lwd = opts$inf.lwd.conf,
                         lineend = "butt"))
-        
-        opts$inference.type <- c("comp", "conf")
     }
 
     if ("comp" %in% opts$inference.type) {
