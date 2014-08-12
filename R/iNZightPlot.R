@@ -639,7 +639,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
             if (!TYPE %in% c("dot", "hist")) {
                 if (c == nc | g1id == NG1) # right column (or last plot in top row)
-                    drawAxes(Y, "y", FALSE, (nr - r) %% 2 == 1, opts)
+                    drawAxes(if (TYPE == "bar") ylim else Y, "y", FALSE, (nr - r) %% 2 == 1, opts)
             }
             upViewport()
 

@@ -30,17 +30,17 @@ create.inz.barplot <- function(obj) {
 
     if (ynull) {
         tab <- svytable(~x, design = svy)
-        phat <- tab / sum(tab)
+        phat <- matrix(tab / sum(tab), nrow = 1)
         widths <- rep(1, length(tab))
-        centers <- rep(0.5, length(tab))
+        edges <- c(0, 1)
     } else {
         tab <- svytable(~y + x, design = svy)
         phat <- sweep(tab, 1, nn <- rowSums(tab), "/")
         widths <- nn / sum(nn)
-        centers <- cumsum(widths) - widths[1] / 2
+        edges <- c(0, cumsum(widths))
     }
 
-    out <- list(phat = phat, widths = widths, centers = centers,
+    out <- list(phat = phat, widths = widths, edges = edges, nx = ncol(phat),
                 xlim = c(0, if (ynull) length(tab) else ncol(tab)),
                 ylim = c(0, max(phat)))
     class(out) <- "inzbar"
@@ -49,5 +49,22 @@ create.inz.barplot <- function(obj) {
 }
 
 plot.inzbar <- function(obj, gen) {
+    opts <- gen$opts
+    p <- obj$phat
+    nx <- obj$nx
     
+    edges <- rep(obj$edges * 0.9 + 0.05, each = 4)
+    edges <- edges[3:(length(edges) - 2)]
+    xx <- rep(edges, nx) + rep(1:nx - 1, each = 4 * nrow(p))
+
+    tops <- apply(p, 2, function(x) rbind(0, x, x, 0))
+    yy <- c(tops)
+    
+    id <- rep(1:prod(dim(p)), each = 4)
+    colz <- if (is.null(gen$col.args$b.cols)) opts$bar.fill else rep(gen$col.args$b.cols, nx)
+    
+    grid.polygon(unit(xx, "native"), unit(yy, "native"), id = id,
+                 gp =
+                 gpar(fill = colz, col = opts$bar.col,
+                      lwd = opts$bar.lwd))
 }
