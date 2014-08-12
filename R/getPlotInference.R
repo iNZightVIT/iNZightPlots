@@ -392,6 +392,8 @@ getPlotInference <- function(x, y = NULL, g1 = NULL, g2 = NULL,
                                eval(out))
 
                         mult.tab <- try(multipleComp(fit))
+                        
+                        
                         if (!inherits(mult.tab, "try-error")) {
                             if (nrow(as.matrix(mult.tab)) == 1) {
                                 out <- capture.output(eval(mult.tab))
@@ -886,8 +888,22 @@ triangularMatrix <- function(factorLvls, output, statType) {
 
     condition <- FALSE
     if(!is.null(colNames)) {
-        if (all(colnames(statsMatrix) == c("Estimate", "Tukey.L", "Tukey.U", "Tukey.p")))
+        if (all(colnames(statsMatrix) == c("Estimate", "Tukey.L", "Tukey.U", "Tukey.p"))) {
             condition <- TRUE
+
+            Nlev <- length(factorLvls)
+            rns <- c()
+            for (i in 1:(Nlev-1))
+                rns <- c(rns, paste(factorLvls[i], " - ", factorLvls[(i+1):Nlev]))
+            
+            
+            output.df <- as.data.frame(statsMatrix)
+            output.df$name <- rownames(output.df)
+            
+            fake <- data.frame(name=rns)
+            statsMatrix <- as.matrix(merge(output.df, fake, by = "name", all.y = TRUE)[, -1])
+            rownames(statsMatrix) <- rns
+        }
         else condition <- FALSE
     } else {
         condition <- FALSE
