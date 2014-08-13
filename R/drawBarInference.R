@@ -13,9 +13,9 @@ drawBarInference <- function(x, y = NULL, opts) {
    
     if (length(dim(tab)) == 1) {
         phat <- tab / sum(tab)
-        if (length(phat) < 3) # binary case
-            out <- iNZightMR:::moecalc(iNZightMR:::seBinprops(tab, phat), est = phat)
-        else
+       # if (length(phat) < 3) # binary case
+       #     out <- iNZightMR:::moecalc(iNZightMR:::seBinprops(tab, phat), est = phat)
+       # else
             out <- iNZightMR:::moecalc(iNZightMR:::seMNprops(sum(tab), phat), est = phat) 
         ## notice this is not an error
         ## the detail listed in iNZightMR/R/ses.moecalc.R row 50 - 73 
@@ -23,19 +23,25 @@ drawBarInference <- function(x, y = NULL, opts) {
             if ("comp" %in% opts$inference.type) list(low = matrix(out$compL, nrow = 1),
                                                       upp = matrix(out$compU, nrow = 1))
             else NULL
+
+        cat("\n\nComparison intervals:\n")
         print(comp)
         conf <-
             if ("conf" %in% opts$inference.type) list(low = matrix(out$confL, nrow = 1),
                                                       upp = matrix(out$confU, nrow = 1))
             else NULL
+
+        cat("\n\nConfidence invercals:\n")
         print(conf)
+
+        assign("out", out, .GlobalEnv)
     } else {
         ## for two variables x, y 
         ## a native version is also providing here:
         phat <- tab / rowSums(tab)
         out <- lapply(1:nrow(tab), function(i)
                       iNZightMR:::moecalc(iNZightMR:::seBinprops(tab[i, ], phat[i, ]), est = phat[i, ]))
-        
+        print(lapply(out, summary))
         comp <-
             if ("comp" %in% opts$inference.type) {
                 list(low = t(sapply(out, function(x) x$compL)),
