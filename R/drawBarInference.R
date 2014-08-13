@@ -39,19 +39,19 @@ drawBarInference <- function(x, y = NULL, opts) {
         ## for two variables x, y 
         ## a native version is also providing here:
         phat <- tab / rowSums(tab)
-        out <- lapply(1:nrow(tab), function(i)
-                      iNZightMR:::moecalc(iNZightMR:::seBinprops(tab[i, ], phat[i, ]), est = phat[i, ]))
+        out <- lapply(1:ncol(tab), function(i)
+                      iNZightMR:::moecalc(iNZightMR:::seBinprops(rep(colSums(tab)[i],nrow(tab)), phat[,i ]), est = phat[,i ]))
         print(lapply(out, summary))
         comp <-
             if ("comp" %in% opts$inference.type) {
-                list(low = t(sapply(out, function(x) x$compL)),
-                     upp = t(sapply(out, function(x) x$compU)))
+                list(low = sapply(out, function(x) x$compL),
+                     upp = sapply(out, function(x) x$compU))
             } else NULL
         
         conf <-
             if ("conf" %in% opts$inference.type) {
-                list(low = t(sapply(out, function(x) x$confL)),
-                     upp = t(sapply(out, function(x) x$confU)))
+                list(low = phat - sqrt(phat*(1-phat)/rowSums(tab))*1.96,
+                     upp = phat + sqrt(phat*(1-phat)/rowSums(tab))*1.96)
             } else NULL
     }
   
@@ -63,6 +63,7 @@ drawBarInference <- function(x, y = NULL, opts) {
     list(comp = comp, conf = conf,
          max  = max(comp$upp, conf$upp, Phat, na.rm = TRUE),
          n    = nrow(as.matrix(phat)))
+   
 }
 
 drawInferenceLines <- function(x, i, xx, opts, guides) {
