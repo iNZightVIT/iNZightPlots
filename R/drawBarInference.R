@@ -30,26 +30,6 @@ drawBarInference <- function(x, y = NULL, opts) {
         se <- sqrt(sweep(phat * (1 - phat), 1, n, "/"))
     }
 
-    #  one can use the following the find comparison interval, confidence interval in the same time for single factor variable
-    # tbl = table(x)
-    # phat = tbl/sum(tbl)
-    # if (length(phat)<3) # binary case
-    #  out = iNZightMR:::moecalc(iNZightMR:::seBinprops(tbl, phat), est=phat)
-    # else
-    #  out = iNZightMR:::moecalc(iNZightMR:::seMNprops(sum(tbl), phat), est=phat) 
-    ## notice this is not an error
-    ##  the detail listed in iNZightMR/R/ses.moecalc.R row 50 - 73 
-    ## comp = list(low = out$compL, upp = out$compU)
-    ## conf = list(low = out$confL, upp = out$confU)
-    ## for two variables x, y 
-    ## a native version is also providing here:
-    ## out <- list()
-    ## for (i in 1:nrow(tab)){
-    ##   # for factor variable x is two
-    ##  out[[i]] <- iNZightMR:::moecalc(iNZightMR:::seBinprops(tab[i,], (tab/rowSums(tab))[i,]), est=(tab/rowSums(tab))[i,])
-    ## }
-    ## basically, out[[i]]$compL is the i group comparison interval lower bound,etc. 
-  
     size.conf <- 1.96 * se
 
     Phat <- phat
@@ -67,7 +47,7 @@ drawBarInference <- function(x, y = NULL, opts) {
         conf <- list(low = phat - size.conf, upp = phat + size.conf)
     else
         conf <- NULL
-    
+
     list(comp = comp, conf = conf,
          max  = max(comp$upp, conf$upp, Phat, na.rm = TRUE),
          n    = nrow(as.matrix(phat)))
