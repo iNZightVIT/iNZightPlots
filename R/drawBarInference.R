@@ -12,61 +12,47 @@ drawBarInference <- function(x, y = NULL, opts) {
     tab <- if (is.null(y)) table(x) else table(y, x)
    
     if (length(dim(tab)) == 1) {
-      # dealing with a single X factor
-        phat <- matrix(makeBars(x), nrow = 1)
-        n <- sum(tab)
-
-        size.comp <- matrix(1.96 * errorbarsize(proportionCovs(tab)),
-                            nrow = 1)
-        se <- matrix(sqrt(phat * (1 - phat) / n), nrow = 1)
+        phat <- tab / sum(tab)
+        if (length(phat) < 3) # binary case
+            out <- iNZightMR:::moecalc(iNZightMR:::seBinprops(tab, phat), est = phat)
+        else
+            out <- iNZightMR:::moecalc(iNZightMR:::seMNprops(sum(tab), phat), est = phat) 
+        ## notice this is not an error
+        ## the detail listed in iNZightMR/R/ses.moecalc.R row 50 - 73 
+        comp <-
+            if ("comp" %in% opts$inference.type) list(low = matrix(out$compL, nrow = 1),
+                                                      upp = matrix(out$compU, nrow = 1))
+            else NULL
+        print(comp)
+        conf <-
+            if ("conf" %in% opts$inference.type) list(low = matrix(out$confL, nrow = 1),
+                                                      upp = matrix(out$confU, nrow = 1))
+            else NULL
+        print(conf)
     } else {
-      # dealing with an X and Y factor combination
-        phat <- makeBars(x, y)
-        n <- rowSums(tab)
+        ## for two variables x, y 
+        ## a native version is also providing here:
+        phat <- tab / rowSums(tab)
+        out <- lapply(1:nrow(tab), function(i)
+                      iNZightMR:::moecalc(iNZightMR:::seBinprops(tab[i, ], phat[i, ]), est = phat[i, ]))
         
-        size.comp <- 1.96 *
-            t(apply(tab, 1, function(r) errorbarsize(proportionCovs(r))))
-
-        se <- sqrt(sweep(phat * (1 - phat), 1, n, "/"))
+        comp <-
+            if ("comp" %in% opts$inference.type) {
+                list(low = t(sapply(out, function(x) x$compL)),
+                     upp = t(sapply(out, function(x) x$compU)))
+            } else NULL
+        
+        conf <-
+            if ("conf" %in% opts$inference.type) {
+                list(low = t(sapply(out, function(x) x$confL)),
+                     upp = t(sapply(out, function(x) x$confU)))
+            } else NULL
     }
-
-    #  one can use the following the find comparison interval, confidence interval in the same time for single factor variable
-    # tbl = table(x)
-    # phat = tbl/sum(tbl)
-    # if (length(phat)<3) # binary case
-    #  out = iNZightMR:::moecalc(iNZightMR:::seBinprops(tbl, phat), est=phat)
-    # else
-    #  out = iNZightMR:::moecalc(iNZightMR:::seMNprops(sum(tbl), phat), est=phat) 
-    ## notice this is not an error
-    ##  the detail listed in iNZightMR/R/ses.moecalc.R row 50 - 73 
-    ## comp = list(low = out$compL, upp = out$compU)
-    ## conf = list(low = out$confL, upp = out$confU)
-    ## for two variables x, y 
-    ## a native version is also providing here:
-    ## out <- list()
-    ## for (i in 1:nrow(tab)){
-    ##   # for factor variable x is two
-    ##  out[[i]] <- iNZightMR:::moecalc(iNZightMR:::seBinprops(tab[i,], (tab/rowSums(tab))[i,]), est=(tab/rowSums(tab))[i,])
-    ## }
-    ## basically, out[[i]]$compL is the i group comparison interval lower bound,etc. 
   
-    size.conf <- 1.96 * se
-
     Phat <- phat
     phat[tab < 5] <- NA
-
-  # Create comparison intervals
-    if ("comp" %in% opts$inference.type)
-        comp <- list(low = phat - size.comp, upp = phat + size.comp)
-    else
-        comp <- NULL
-
-    
-  # Create confidence intervals
-    if ("conf" %in% opts$inference.type)
-        conf <- list(low = phat - size.conf, upp = phat + size.conf)
-    else
-        conf <- NULL
+    comp <- lapply(comp, function(m) { m[tab < 5] <- NA; m})
+    conf <- lapply(conf, function(m) { m[tab < 5] <- NA; m})
     
     list(comp = comp, conf = conf,
          max  = max(comp$upp, conf$upp, Phat, na.rm = TRUE),
