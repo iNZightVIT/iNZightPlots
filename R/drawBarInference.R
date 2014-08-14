@@ -40,7 +40,7 @@ drawBarInference <- function(x, y = NULL, opts) {
         ## a native version is also providing here:
         phat <- tab / rowSums(tab)
         out <- lapply(1:ncol(tab), function(i)
-                      iNZightMR:::moecalc(iNZightMR:::seBinprops(rep(colSums(tab)[i],nrow(tab)), phat[,i ]), est = phat[,i ]))
+                      iNZightMR:::moecalc(iNZightMR:::seBinprops(rowSums(tab), phat[,i ]), est = phat[,i ]))
         print(lapply(out, summary))
         comp <-
             if ("comp" %in% opts$inference.type) {
