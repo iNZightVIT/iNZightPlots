@@ -349,9 +349,10 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                                          max(sapply(X,
                                                 function(x) {
                                                   # need to include the error bars!
-                                                    phat <- table(x) / length(x)
-                                                    se <- sqrt(phat * (1 - phat) / length(x))
-                                                    max(phat + 1.96 * se, na.rm = TRUE)
+                                                   # phat <- table(x) / length(x)
+                                                   # se <- sqrt(phat * (1 - phat) / length(x))
+                                                   # max(phat + 1.96 * se, na.rm = TRUE)
+                                                    drawBarInference(x, opts = opts)$max
                                                 }), na.rm = TRUE)
                                          }), na.rm = TRUE))
             }
@@ -392,11 +393,12 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                 up <- 0
                 for (i in 1:length(x.list)) {
                     for (j in 1:length(x.list[[i]])) {
-                        tab <- table(x.list[[i]][[j]], y.list[[i]][[j]])
-                        phat <- apply(tab, 2, function(x) x / sum(x))
-                        se <- sqrt(phat * (1 - phat) /
-                                   length(x.list[[i]][[j]]))
-                        up <- try(max(up, max(phat + 1.96 * se, na.rm = TRUE)))
+                       # tab <- table(x.list[[i]][[j]], y.list[[i]][[j]])
+                       # phat <- apply(tab, 2, function(x) x / sum(x))
+                       # se <- sqrt(phat * (1 - phat) /
+                       #            length(x.list[[i]][[j]]))
+                       # up <- try(max(up, max(phat + 1.96 * se, na.rm = TRUE)))
+                        drawBarInference(x.list[[i]][[j]], y.list[[i]][[j]], opts)$max
                     }
                 }
                 o <- c(0, up)

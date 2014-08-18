@@ -14,52 +14,78 @@ drawBarInference <- function(x, y = NULL, opts) {
     if (length(dim(tab)) == 1) {
       # dealing with a single X factor
         phat <- matrix(makeBars(x), nrow = 1)
+        
         n <- sum(tab)
 
         size.comp <- matrix(1.96 * errorbarsize(proportionCovs(tab)),
                             nrow = 1)
+        
         se <- matrix(sqrt(phat * (1 - phat) / n), nrow = 1)
+        size.conf <- 1.96 * se
+
+        Phat <- phat
+        phat[tab < 5] <- NA
+
+        if (n > 0) {
+            comp <- if ("comp" %in% opts$inference.type) {
+                list(low = phat - size.comp, upp = phat + size.comp)
+            } else NULL
+            
+            conf <- if ("conf" %in% opts$inference.type) {
+                list(low = phat - size.conf, upp = phat + size.conf)
+            } else NULL
+            
+            max <- max(comp$upp, conf$upp, Phat, na.rm = TRUE)
+        } else {
+            comp <- NULL
+            conf <- NULL
+            max <- 0
+        }
     } else {
         ## for two variables x, y 
         ## a native version is also providing here:
         phat <- tab / rowSums(tab)
-        out <- lapply(1:ncol(tab), function(i)
-                      iNZightMR:::moecalc(iNZightMR:::seBinprops(rowSums(tab), phat[,i ]), est = phat[,i ]))
-        print(lapply(out, summary))
-        comp <-
-            if ("comp" %in% opts$inference.type) {
-                list(low = sapply(out, function(x) x$compL),
-                     upp = sapply(out, function(x) x$compU))
-            } else NULL
+        se <- sqrt(sweep(phat * (1 - phat), 1, rowSums(tab), "/"))
+
+        ii <- rowSums(tab) > 0
+
         
-        conf <-
-            if ("conf" %in% opts$inference.type) {
-                list(low = phat - sqrt(phat*(1-phat)/rowSums(tab))*1.96,
-                     upp = phat + sqrt(phat*(1-phat)/rowSums(tab))*1.96)
-            } else NULL
+        if (any(rowSums(tab) > 0)) {
+            ## The moecalc function returns errors that iNZight users don't need to know about ...
+            op <- options(warn = -1)
+            out <- lapply(1:ncol(tab), function(i)
+                          iNZightMR:::moecalc(iNZightMR:::seBinprops(rowSums(tab)[ii], phat[ii, i]), est = phat[ii, i]))
+            options(op)
+            
+            Phat <- phat
+            phat[tab < 5] <- NA
+            
+            comp <-
+                if ("comp" %in% opts$inference.type) {
+                    low <- upp <- phat * 0
+                    low[ii, ] <- sapply(out, function(x) x$compL)
+                    upp[ii, ] <- sapply(out, function(x) x$compU)
+                    
+                    list(low = low, upp = upp)
+                } else NULL
+            
+            conf <-
+                if ("conf" %in% opts$inference.type) {
+                    list(low = phat - sqrt(phat * (1 - phat) / rowSums(tab)) * 1.96,
+                         upp = phat + sqrt(phat * (1 - phat) / rowSums(tab)) * 1.96)
+                } else NULL
+
+            max <- max(comp$upp, conf$upp, Phat, na.rm = TRUE)
+        } else {
+            comp <- NULL
+            conf <- NULL
+            max <- 0
+        }
     }
 
-    size.conf <- 1.96 * se
-
-    Phat <- phat
-    phat[tab < 5] <- NA
-
-  # Create comparison intervals
-    if ("comp" %in% opts$inference.type)
-        comp <- list(low = phat - size.comp, upp = phat + size.comp)
-    else
-        comp <- NULL
-
     
-  # Create confidence intervals
-    if ("conf" %in% opts$inference.type)
-        conf <- list(low = phat - size.conf, upp = phat + size.conf)
-    else
-        conf <- NULL
 
-    list(comp = comp, conf = conf,
-         max  = max(comp$upp, conf$upp, Phat, na.rm = TRUE),
-         n    = nrow(as.matrix(phat)))
+    list(comp = comp, conf = conf, max = max, n = nrow(as.matrix(phat)))
    
 }
 

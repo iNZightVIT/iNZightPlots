@@ -229,17 +229,19 @@ iNZbarplot <-
 
 
     if (guides == "all") {
-      # Draw inference guide lines
-        pushViewport(viewport(yscale = ylim * 1.05))
-        guides <- g.loc[!is.na(g.loc)]
-        
-        if (length(guides) > 0)
-            grid.polyline(x = rep(c(0, 1), length(guides)),
-                          y = unit(rep(guides, each = 2), "native"),
-                          id = rep(1:length(guides), each = 2),
-                          gp = gpar(lty = 3, col = "grey50", lwd = 0.5))
-        
-        upViewport()
+        if (!is.null(g.loc)) {
+            ## Draw inference guide lines
+            pushViewport(viewport(yscale = ylim * 1.05))
+            guides <- g.loc[!is.na(g.loc)]
+            
+            if (length(guides) > 0)
+                grid.polyline(x = rep(c(0, 1), length(guides)),
+                              y = unit(rep(guides, each = 2), "native"),
+                              id = rep(1:length(guides), each = 2),
+                              gp = gpar(lty = 3, col = "grey50", lwd = 0.5))
+            
+            upViewport()
+        }
     }
     
     upViewport()  # back to layout4

@@ -684,10 +684,7 @@ iNZightPlot <-
                     o <- r + mult * 0.04 * (r[2] - r[1])
                 } else {
                     o <- c(0, max(sapply(x.list, function(x) {
-                      # need to include the error bars!
-                        phat <- table(x) / length(x)
-                        se <- sqrt(phat * (1 - phat) / length(x))
-                        max(phat + 1.96 * se, na.rm = TRUE)
+                        drawBarInference(x, opts = opts)$max
                     }), na.rm = TRUE))
                 }
                 o
@@ -724,12 +721,7 @@ iNZightPlot <-
                 } else {
                   # need the y-values for the appropriate barplot
                     o <- c(0, max(sapply(1:length(x.list), function(i) {
-                      # need to include the error bars!
-                        tab <- table(x.list[[i]], y.list[[i]])
-                        phat <- apply(tab, 2, function(x) x / sum(x))
-                        se <- sqrt(phat * (1 - phat) /
-                                   length(x.list[[i]]))
-                        max(phat + 1.96 * se, na.rm = TRUE)
+                        drawBarInference(x.list[[i]], y.list[[i]], opts)$max
                     }), na.rm = TRUE))
                 }
                 o
