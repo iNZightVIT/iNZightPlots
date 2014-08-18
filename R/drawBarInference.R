@@ -20,14 +20,23 @@ drawBarInference <- function(x, y = NULL, opts) {
                             nrow = 1)
         se <- matrix(sqrt(phat * (1 - phat) / n), nrow = 1)
     } else {
-      # dealing with an X and Y factor combination
-        phat <- makeBars(x, y)
-        n <- rowSums(tab)
+        ## for two variables x, y 
+        ## a native version is also providing here:
+        phat <- tab / rowSums(tab)
+        out <- lapply(1:ncol(tab), function(i)
+                      iNZightMR:::moecalc(iNZightMR:::seBinprops(rowSums(tab), phat[,i ]), est = phat[,i ]))
+        print(lapply(out, summary))
+        comp <-
+            if ("comp" %in% opts$inference.type) {
+                list(low = sapply(out, function(x) x$compL),
+                     upp = sapply(out, function(x) x$compU))
+            } else NULL
         
-        size.comp <- 1.96 *
-            t(apply(tab, 1, function(r) errorbarsize(proportionCovs(r))))
-
-        se <- sqrt(sweep(phat * (1 - phat), 1, n, "/"))
+        conf <-
+            if ("conf" %in% opts$inference.type) {
+                list(low = phat - sqrt(phat*(1-phat)/rowSums(tab))*1.96,
+                     upp = phat + sqrt(phat*(1-phat)/rowSums(tab))*1.96)
+            } else NULL
     }
 
     size.conf <- 1.96 * se
@@ -51,6 +60,7 @@ drawBarInference <- function(x, y = NULL, opts) {
     list(comp = comp, conf = conf,
          max  = max(comp$upp, conf$upp, Phat, na.rm = TRUE),
          n    = nrow(as.matrix(phat)))
+   
 }
 
 drawInferenceLines <- function(x, i, xx, opts, guides) {
