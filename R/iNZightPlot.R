@@ -5,7 +5,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         missing.info = TRUE,
                         xlab = varnames$x, ylab = varnames$y,
                         new = TRUE,  # compatibility arguments
-                        inzpars = inzpar(), ...) {
+                        inzpars = inzpar(), layout.only = FALSE, ...) {
 
   # ------------------------------------------------------------------------------------ #
   #   iNZightPlots v2.0, written by Tom Elliott (2014, University of Auckland)
@@ -565,7 +565,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         X <- df$data$x
         Y <- df$data$y
     }
-    
+
     for (r in nr:1) {        
         R <- r * 2  # skip the gaps between rows
         if (matrix.plot) {
@@ -610,10 +610,12 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
             pushViewport(viewport(layout.pos.row = 2, xscale = xlim, yscale = ylim, clip = "on",
                                   name = "VP:locate.these.points"))
-            plot(plot.list[[g2id]][[g1id]], gen =
-                 list(opts = opts, mcex = multi.cex, col.args = col.args,
-                      maxcount = maxcnt))
+            if (!layout.only)
+                plot(plot.list[[g2id]][[g1id]], gen =
+                     list(opts = opts, mcex = multi.cex, col.args = col.args,
+                          maxcount = maxcnt))
             upViewport()
+            
 
             # add the appropriate axes:
             # Decide which axes to plot:
@@ -652,7 +654,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
             ## This is necessary to delete the "old" viewport so we can create a new one
             ## of the same name, but retain it long enough to use it for drawing the axes
-            if (TYPE %in% c("dot", "hist"))
+            if (TYPE %in% c("dot", "hist") & !layout.only)
                 switch(TYPE,
                        "dot" = {
                            seekViewport("VP:dotplot-levels")
@@ -677,5 +679,9 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     
     dev.flush()
     cat("Success...\n")
+    plot.list$gen <- list(opts = opts, mcex = multi.cex, col.args = col.args,
+                          maxcount = maxcnt)
+    plot.list$xlim <- xlim
+    plot.list$ylim <- ylim
     return(invisible(plot.list))
 }

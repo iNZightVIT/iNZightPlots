@@ -44,6 +44,7 @@ inzpar <- function(...) {
                bar.lwd        = 1,
                bar.col        = "black",
                bar.fill       = "darkgreen",
+               full.height    = FALSE,
                inf.lwd.comp   = 4,
                inf.lwd.conf   = 2,
                inf.col.comp   = "black",

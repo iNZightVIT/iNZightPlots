@@ -41,6 +41,7 @@ create.inz.barplot <- function(obj) {
     }
 
     out <- list(phat = phat, widths = widths, edges = edges, nx = ncol(phat),
+                full.height = opts$full.height,
                 xlim = c(0, if (ynull) length(tab) else ncol(tab)),
                 ylim = c(0, max(phat)))
     class(out) <- "inzbar"
