@@ -851,7 +851,7 @@ iNZightPlot <-
                             axis[2] <- 2
                         else if (j == nc | id == N)
                             axis[2] <- 1
-                        
+
                         iNZbarplot(x.list[[id]], y2,
                                    axis = axis,
                                    lab = g1.level[id],
@@ -968,7 +968,7 @@ iNZightPlot <-
             upViewport()  # return to toplevel layout
         }
 
-        dev.flush()
+        dev.flush(dev.flush())
 
       # Now return to the viewport
         pushViewport(viewport(layout = layout1))

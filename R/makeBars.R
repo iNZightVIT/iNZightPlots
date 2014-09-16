@@ -7,6 +7,6 @@ makeBars <- function(x, y = NULL, cols = NULL) {
         tab <- table(y, x)
         hgt <- sweep(tab, 1, rowSums(tab), "/")
     }
-
+    
     hgt
 }

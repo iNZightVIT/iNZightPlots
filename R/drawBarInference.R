@@ -39,6 +39,7 @@ drawBarInference <- function(x, y = NULL, opts) {
         } else {
             comp <- NULL
             conf <- NULL
+
             max <- 0
         }
     } else {
@@ -48,9 +49,8 @@ drawBarInference <- function(x, y = NULL, opts) {
         se <- sqrt(sweep(phat * (1 - phat), 1, rowSums(tab), "/"))
 
         ii <- rowSums(tab) > 0
-
         
-        if (any(rowSums(tab) > 0)) {
+        if (sum(ii) > 1) {
             ## The moecalc function returns errors that iNZight users don't need to know about ...
             op <- options(warn = -1)
             out <- lapply(1:ncol(tab), function(i)
@@ -79,12 +79,12 @@ drawBarInference <- function(x, y = NULL, opts) {
         } else {
             comp <- NULL
             conf <- NULL
-            max <- 0
+            max <- if (sum(ii) == 1) max(phat[ii, ]) else 0
         }
     }
 
     
-
+    
     list(comp = comp, conf = conf, max = max, n = nrow(as.matrix(phat)))
    
 }
