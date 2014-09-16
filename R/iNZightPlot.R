@@ -270,7 +270,10 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     }
     if ("colby" %in% df.vs) titles$legend <- varnames$colby
 
-    N <- sum(sapply(plot.list, length))
+
+    ## plot.list still contains all the levels of g1 that wont be plotted - for axis scaling etc
+    ## so figure this one out somehow ...
+    N <- length(plot.list) * length(g1.level)
     multi.cex <- max(1.2 * sqrt(sqrt(N) / N), 0.5)  # this has absolutely no theoretical reasoning,
                                                     # it just does a reasonably acceptable job (:
 
@@ -504,6 +507,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         plot.list <- plot.list[g2.level]
     }
 
+    print(g1.level)
     plot.list <- lapply(plot.list, function(x) x[g1.level])
 
     ## and subtitle
@@ -514,7 +518,6 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     }
 
     ## create a layout
-    
     if (matrix.plot) {
         nr <- length(g2.level)
         nc <- length(g1.level)
