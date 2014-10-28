@@ -398,13 +398,17 @@ function(x, y = NULL, g1 = NULL, g2 = NULL,
                        # se <- sqrt(phat * (1 - phat) /
                        #            length(x.list[[i]][[j]]))
                        # up <- try(max(up, max(phat + 1.96 * se, na.rm = TRUE)))
-                        drawBarInference(x.list[[i]][[j]], y.list[[i]][[j]], opts)$max
+                        tt <- drawBarInference(x.list[[i]][[j]], y.list[[i]][[j]], opts)$max
+                        if (is.finite(tt))
+                            up <- max(up, tt)
                     }
                 }
                 o <- c(0, up)
             }
             o
         }
+    if (all(ylim == 0))
+        ylim <- c(0, 1)
 
     seekViewport("subdivisionLayout")  # future proofing temporarily ...
 
