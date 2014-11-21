@@ -3,6 +3,8 @@
 \encoding{UTF-8}
 
 \section{Changes in Version 1.0.4}{
+  Release date: 17 September 2014
+  
   \subsection{MAJOR CHANGES}{
     \itemize{
       \item The confidence and comparison intervals on barcharts are now
@@ -44,12 +46,17 @@
   }
 
   \subsection{PATCH 1.0.4-1}{
-    Fixed a bug that stopped matrix of plots for some variables.
+    Date: 29 October 2014
+    \itemize{
+      \item Fixed a bug that stopped matrix of plots for some variables.
+    }
   }
 }
 
 
 \section{Changes in Version 1.0.3}{
+  Release date: 17 June 2014
+  
   \subsection{BUG FIXES}{
     \itemize{
       \item specifying `g2.level` with numbers wasn't working, has been fixed for plots,
@@ -61,6 +68,8 @@
 }
 
 \section{Changes in Version 1.0.2}{
+  Release date: 4 April 2014
+  
   \subsection{BUG FIXES}{
     \itemize{
       \item An error where the response was printed instead of the
@@ -72,6 +81,8 @@
 
 
 \section{Changes in Version 1.0.1}{
+  Release date: 27 March 2014
+  
   \subsection{MINOR CHANGES}{
     \itemize{
       \item The type of plot used can be specified by setting the
@@ -110,6 +121,8 @@
 
 
 \section{MAJOR RELEASE VERSION 1.0.0}{
+  Release date: 18 January 2014
+  
   \itemize{
     \item New major release of iNZightPlots released, completely
     rewritten using `grid`.
