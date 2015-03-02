@@ -613,11 +613,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
             ### I found "VP:locate.these.points" so far is just using here and no other
             ## depencies so I think giving the its an uniqe name would be a good idea here.
-            nameVP <- paste0("VP:locate.these.points", g2id, g1id)
+        #    nameVP <- paste0("VP:locate.these.points", g2id, g1id)
+        #    pushViewport(viewport(layout.pos.row = 2, xscale = xlim, yscale = ylim, clip = "on",
+        #                          name = nameVP)) 
             pushViewport(viewport(layout.pos.row = 2, xscale = xlim, yscale = ylim, clip = "on",
-                                  name = nameVP)) 
-            #pushViewport(viewport(layout.pos.row = 2, xscale = xlim, yscale = ylim, clip = "on",
-            #                      name = "VP:locate.these.points"))
+                                  name = "VP:locate.these.points"))
             if (!layout.only)
                 plot(plot.list[[g2id]][[g1id]], gen =
                      list(opts = opts, mcex = multi.cex, col.args = col.args,

@@ -123,7 +123,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     plist <- lapply(out, makeHist, nbins = nbins, xlim = xattr$xrange)
     
     out <- list(toplot = plist, n.missing = n.missing, boxinfo = boxinfo,
-                nacol = if ("colby" %in% v) any(sapply(plist, function(T) is.na(T$colby))) else FALSE,
+                nacol = if ("colby" %in% v) any(sapply(plist, function(T) any(is.na(T$colby)))) else FALSE,
                 xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
                 ylim = c(0, max(sapply(plist, function(p) if (is.null(p)) 0 else max(p$counts)))))
 
@@ -185,7 +185,7 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
         if (length(pp$x) > 0)
             grid.points(pp$x, pp$y,
                         gp =
-                        gpar(col = colourPoints(obj$colby, col.args, opts),
+                        gpar(col = colourPoints(pp$colby, col.args, opts),
                              cex = opts$cex.dotpt, lwd = opts$lwd.pt,
                              alpha = opts$alpha, fill = obj$fill.pt))
     }

@@ -77,24 +77,24 @@ plot.inzscatter <- function(obj, gen) {
                      lwd = opts$lwd.pt, alpha = opts$alpha,
                      fill = obj$fill.pt),
                 name = "SCATTERPOINTS")
-        
+    print(col.args)
     # Connect by dots if they want it ...
     if (opts$join) {
-        if (length(unique(obj$cols)) == 1 | !opts$lines.by) {
+        if (length(unique(obj$colby)) == 1 | !opts$lines.by) {
             grid.lines(obj$x, obj$y, default.units = "native",
                        gp =
                        gpar(lwd = opts$lwd, lty = opts$lty,
                             col = opts$col.line))
         } else {
-            byy <- as.factor(obj$cols)  # pseudo-by-variable
-            xtmp <- lapply(levels(byy), function(c) subset(obj$x, obj$cols == c))
-            ytmp <- lapply(levels(byy), function(c) subset(obj$y, obj$cols == c))
-            
+            byy <- as.factor(obj$colby)  # pseudo-by-variable
+            xtmp <- lapply(levels(byy), function(c) subset(obj$x, obj$colby == c))
+            ytmp <- lapply(levels(byy), function(c) subset(obj$y, obj$colby == c))
+
             for (b in 1:length(levels(byy)))
                 grid.lines(xtmp[[b]], ytmp[[b]], default.units = "native",
                            gp =
                            gpar(lwd = opts$lwd, lty = opts$lty,
-                                col = levels(byy)[b]))
+                                col = col.args$f.cols[b]))
         }
     }
     
