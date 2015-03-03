@@ -63,7 +63,8 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         out[[i]] <- di
     }
 
-    boxinfo <- if (boxplot) boxSummary(out, opts) else NULL
+    boxinfo <- if (boxplot & (!"mean" %in% opts$inference.par))
+        boxSummary(out, opts) else NULL
 
     makeHist <- function(d, nbins, xlim) {
         if (is.null(d)) return(NULL)
@@ -120,7 +121,13 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         floor(1 / (wd))
     }
 
-    plist <- lapply(out, makeHist, nbins = nbins, xlim = xattr$xrange)
+    plist <- lapply(out, makeHist,
+                    nbins = nbins, xlim = xattr$xrange)
+
+    ## Generate a list of the inference information for each plot:
+    inflist <- dotinference(out, opts = opts)
+
+    print(inflist)
     
     out <- list(toplot = plist, n.missing = n.missing, boxinfo = boxinfo,
                 nacol = if ("colby" %in% v) any(sapply(plist, function(T) any(is.na(T$colby)))) else FALSE,
@@ -237,4 +244,89 @@ addBoxplot <- function(x) {
                   rep(0.5, 4), id = rep(1:2, each = 2),
                   gp = gpar(lwd = opts$box.lwd[2]))
                   
+}
+
+
+
+dotinference <- function(obj, opts) {
+    inf.par <- opts$inference.par
+    inf.type <- opts$inference.type
+    bs <- opts$bs.inference
+
+    if (is.null(inf.par) & is.null(inf.type)) {
+        return(NULL)
+    }
+
+    ## combine data ...
+    dat <- do.call(rbind, lapply(names(obj), function(n) data.frame(x = obj[[n]], y = n)))
+    
+    if (!is.null(inf.par)) {
+        switch(inf.par[1],
+               "mean" = {
+                   lapply(inf.type, function(type) {
+                       switch(type,
+                              "conf" = {
+                                  if (bs) {
+                                      ## 95% bootstrap confidence interval
+                                      b <- boot(dat, strata = dat$y,
+                                                function(d, f) tapply(d[f, 1], d[f, 2], mean),
+                                                R = opts$n.boot)
+                                      ci <- t(apply(b$t, 2, quantile, probs = c(0.025, 0.975)))
+                                      dimnames(ci) <- list(levels(dat$y),
+                                                           c("lower", "upper"))
+                                      ci
+                                  } else {
+                                      ## 95% confidence interval (normal theory)
+
+                                      n <- tapply(dat$x, dat$y, length)
+                                      wd <- qt(0.975, df = n - 1) * tapply(dat$x, dat$y, sd) / sqrt(n)
+                                      mn <- tapply(dat$x, dat$y, mean)
+                                      cbind(lower = mn - wd, upper = mn + wd)
+                                  }
+                              },
+                              "comp" = {
+                                  if (bs) {
+                                      #b <- boot(x, function(x, d) mean(x[d]), R = opts$n.boot)
+                                      #boot.ci(b, type = "perc")$percent[1, c(4, 5)]
+                                      NULL
+                                  } else {
+                                      #inf.wd <- (1 / sqrt(2)) * (sd(x) / sqrt(length(x)))
+                                      #mean(x) + c(-1, 1) * inf.wd
+                                      NULL
+                                  }
+                              })
+                   })
+               },
+               "median" = {
+                   lapply(inf.type, function(type) {
+                       switch(type,
+                              "conf" = {
+                                  if (opts$bs.inference) {
+                                      ## b <- boot(x, function(x, d) median(x[d]), R = opts$n.boot)
+                                      ## res <- boot.ci(b, type = "perc")$percent[1, c(4, 5)]
+                                      NULL
+                                  } else {
+                                      NULL   
+                                  }
+                              },
+                              "comp" = {
+                                  if (opts$bs.inference) {
+                                      NULL
+                                  } else {
+                                      ## q <- quantile(x, c(0.25, 0.5, 0.75))
+                                      ## inf.wd <- 1.5 * (abs(q[3] - q[1]) / sqrt(length(x)))
+                                      ## res <- q[2] + c(-1, 1) * inf.wd
+                                      NULL
+                                  }
+                              })
+                   })
+               }) -> result
+        
+        names(result) <- inf.type
+        
+    } else {
+        return(NULL)
+    }
+
+    result
 }
