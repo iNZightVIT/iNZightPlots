@@ -125,11 +125,9 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
                     nbins = nbins, xlim = xattr$xrange)
 
     ## Generate a list of the inference information for each plot:
-    inflist <- dotinference(out, opts = opts)
-
-    print(inflist)
+    inflist <- dotinference(obj)
     
-    out <- list(toplot = plist, n.missing = n.missing, boxinfo = boxinfo,
+    out <- list(toplot = plist, n.missing = n.missing, boxinfo = boxinfo, inference.info = inflist,
                 nacol = if ("colby" %in% v) any(sapply(plist, function(T) any(is.na(T$colby)))) else FALSE,
                 xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
                 ylim = c(0, max(sapply(plist, function(p) if (is.null(p)) 0 else max(p$counts)))))
@@ -150,7 +148,8 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
 
     toplot <- obj$toplot
     boxinfo <- obj$boxinfo
-
+    inflist <- obj$inference.info
+    
     nlev <- length(toplot)
     pushViewport(viewport(layout = grid.layout(nrow = nlev),
                           name = "VP:dotplot-levels"))
@@ -178,12 +177,11 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
         seekViewport("VP:dotplot-levels")
         pushViewport(viewport(layout.pos.row = i))
         pushViewport(viewport(layout = dpLayout))
-        
-        if (boxplot) {
-            pushViewport(viewport(layout.pos.row = 2, xscale = xlim))
-            addBoxplot(boxinfo[[i]])
-            upViewport()
-        }
+
+        pushViewport(viewport(layout.pos.row = 2, xscale = xlim))
+        if (boxplot) addBoxplot(boxinfo[[i]])
+        if (!is.null(inflist)) addUnivarInference(inflist, i)
+        upViewport()
         
         pushViewport(viewport(layout.pos.row = 1,
                               xscale = xlim, yscale = ylim,
@@ -211,20 +209,18 @@ boxSummary <- function(obj, opts) {
             return(NULL)
 
         if (!inherits(o, "survey.design")) {
-            if (nrow(o) < 5) return(NULL)
-            svyobj <- try(svydesign(ids=~1, weights = rep(1, nrow(o)), data = o))
+            quant <- quantile(o$x, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+            min <- min(o$x, na.rm = TRUE)
+            max <- max(o$x, na.rm = TRUE)
         } else {
             if (nrow(o$variables) < 5) return(NULL)
             svyobj <- o
+            quant <- svyquantile(~x, svyobj, quantiles = c(0.25, 0.5, 0.75))
+            min <- min(svyobj$variables$x, na.rm = TRUE)
+            max <- max(svyobj$variables$x, na.rm = TRUE)
         }
 
-        if (inherits(svyobj, "try-error"))
-            return(NULL)
-
-        list(quantiles = svyquantile(~x, svyobj, quantiles = c(0.25, 0.5, 0.75)),
-             min = min(svyobj$variables$x, na.rm = TRUE),
-             max = max(svyobj$variables$x, na.rm = TRUE),
-             inference = FALSE, opts = opts)
+        list(quantiles = quant, min = min, max = max, inference = FALSE, opts = opts)
     })
 }
 
@@ -248,7 +244,12 @@ addBoxplot <- function(x) {
 
 
 
-dotinference <- function(obj, opts) {
+dotinference <- function(obj) {
+    ## obj: list of data broken down by subsets
+    ## opts: various options (inzpar)
+
+    opts <- obj$opts
+    xattr <- obj$xattr
     inf.par <- opts$inference.par
     inf.type <- opts$inference.type
     bs <- opts$bs.inference
@@ -257,8 +258,22 @@ dotinference <- function(obj, opts) {
         return(NULL)
     }
 
-    ## combine data ...
-    dat <- do.call(rbind, lapply(names(obj), function(n) data.frame(x = obj[[n]], y = n)))
+  
+    ## for simplicity, if no 'y' factor, just make all the same level for tapply later:
+    if (obj$xattr$class == "inz.simple") {
+        svy <- FALSE
+        dat <- obj$df
+        if (!"y" %in% colnames(dat)) {
+            dat <- data.frame(dat, y = factor("all"))
+            inf.type <- inf.type[inf.type != "comp"]
+        }
+    } else {
+        ## survey structure ...
+        svy <- TRUE
+        dat <- obj$df
+        if (!"y" %in% colnames(dat$variables))
+            inf.type <- inf.type[inf.type != "comp"]
+    }
     
     if (!is.null(inf.par)) {
         switch(inf.par[1],
@@ -268,31 +283,61 @@ dotinference <- function(obj, opts) {
                               "conf" = {
                                   if (bs) {
                                       ## 95% bootstrap confidence interval
-                                      b <- boot(dat, strata = dat$y,
-                                                function(d, f) tapply(d[f, 1], d[f, 2], mean),
-                                                R = opts$n.boot)
-                                      ci <- t(apply(b$t, 2, quantile, probs = c(0.025, 0.975)))
-                                      dimnames(ci) <- list(levels(dat$y),
-                                                           c("lower", "upper"))
-                                      ci
+                                      if (svy) {
+                                          if ("y" %in% colnames(dat$variables)) {
+                                              NULL
+                                          } else {
+                                              NULL
+                                          }
+                                      } else {
+                                          b <- boot(dat, strata = dat$y,
+                                                    function(d, f) tapply(d[f, 1], d[f, 2], mean, na.rm = TRUE),
+                                                    R = opts$n.boot)
+                                          ci <- t(apply(b$t, 2, quantile, probs = c(0.025, 0.975), na.rm = TRUE))
+                                          dimnames(ci) <- list(levels(dat$y),
+                                                               c("lower", "upper"))
+                                          ci
+                                      }
                                   } else {
                                       ## 95% confidence interval (normal theory)
-
-                                      n <- tapply(dat$x, dat$y, length)
-                                      wd <- qt(0.975, df = n - 1) * tapply(dat$x, dat$y, sd) / sqrt(n)
-                                      mn <- tapply(dat$x, dat$y, mean)
-                                      cbind(lower = mn - wd, upper = mn + wd)
+                                      if (svy) {
+                                          if ("y" %in% colnames(dat$variables)) {
+                                              fit <- svyglm(x ~ y, design = dat)
+                                              ci <- confint(predict(fit, newdata = data.frame(y = levels(dat$variables$y))))
+                                              dimnames(ci) <- list(levels(dat$variables$y),
+                                                                   c("lower", "upper"))
+                                          } else {
+                                              fit <- svyglm(x ~ 1, design = dat)
+                                              ci <- confint(fit)
+                                              dimnames(ci) <- list("all", c("lower", "upper"))
+                                          }
+                                          ci
+                                      } else {
+                                          n <- tapply(dat$x, dat$y, function(z) sum(!is.na(z)))
+                                          wd <- qt(0.975, df = n - 1) * tapply(dat$x, dat$y, sd, na.rm = TRUE) / sqrt(n)
+                                          mn <- tapply(dat$x, dat$y, mean, na.rm = TRUE)
+                                          cbind(lower = mn - wd, upper = mn + wd)
+                                      }
                                   }
                               },
                               "comp" = {
                                   if (bs) {
-                                      #b <- boot(x, function(x, d) mean(x[d]), R = opts$n.boot)
-                                      #boot.ci(b, type = "perc")$percent[1, c(4, 5)]
-                                      NULL
+                                      if (svy) {
+                                          NULL
+                                      } else {
+                                          ## b <- boot(x, function(x, d) mean(x[d]), R = opts$n.boot)
+                                          ## boot.ci(b, type = "perc")$percent[1, c(4, 5)]
+                                          NULL
+                                      }
                                   } else {
-                                      #inf.wd <- (1 / sqrt(2)) * (sd(x) / sqrt(length(x)))
-                                      #mean(x) + c(-1, 1) * inf.wd
-                                      NULL
+                                      if (svy) {
+                                          NULL
+                                      } else {
+                                          n <- tapply(dat$x, dat$y, function(z) sum(!is.na(z)))
+                                          wd <- tapply(dat$x, dat$y, sd, na.rm = TRUE) / sqrt(2 * n)
+                                          mn <- tapply(dat$x, dat$y, mean, na.rm = TRUE)
+                                          cbind(lower = mn - wd, upper = mn + wd)
+                                      }
                                   }
                               })
                    })
@@ -301,32 +346,48 @@ dotinference <- function(obj, opts) {
                    lapply(inf.type, function(type) {
                        switch(type,
                               "conf" = {
-                                  if (opts$bs.inference) {
-                                      ## b <- boot(x, function(x, d) median(x[d]), R = opts$n.boot)
-                                      ## res <- boot.ci(b, type = "perc")$percent[1, c(4, 5)]
-                                      NULL
+                                  if (bs) {
+                                      if (svy) {
+                                          NULL
+                                      } else {
+                                          ## b <- boot(x, function(x, d) median(x[d]), R = opts$n.boot)
+                                          ## res <- boot.ci(b, type = "perc")$percent[1, c(4, 5)]
+                                          NULL
+                                      }
                                   } else {
-                                      NULL   
+                                      if (svy) {
+                                          NULL
+                                      } else {
+                                          NULL
+                                      }
                                   }
                               },
                               "comp" = {
-                                  if (opts$bs.inference) {
-                                      NULL
+                                  if (bs) {
+                                      if (svy) {
+                                          NULL
+                                      } else {
+                                          NULL
+                                      }
                                   } else {
-                                      ## q <- quantile(x, c(0.25, 0.5, 0.75))
-                                      ## inf.wd <- 1.5 * (abs(q[3] - q[1]) / sqrt(length(x)))
-                                      ## res <- q[2] + c(-1, 1) * inf.wd
-                                      NULL
+                                      if (svy) {
+                                          NULL
+                                      } else {
+                                          n <- tapply(dat$x, dat$y, function(z) sum(!is.na(z)))
+                                          wd <- 1.5 * tapply(dat$x, dat$y, function(z) abs(diff(quantile(z, c(0.25, 0.75), na.rm = TRUE)))) / sqrt(n)
+                                          mn <- tapply(dat$x, dat$y, quantile, probs = 0.5, na.rm = TRUE)
+                                          cbind(lower = mn - wd, upper = mn + wd)
+                                      }
                                   }
                               })
                    })
                }) -> result
         
         names(result) <- inf.type
-        
+       
     } else {
         return(NULL)
     }
-
+    attr(result, "bootstrap") <- bs
     result
 }

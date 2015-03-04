@@ -12,6 +12,7 @@ plot.inzhist <- function(obj, gen) {
 
     toplot <- obj$toplot
     boxinfo <- obj$boxinfo
+    inflist <- obj$inference.info
 
     nlev <- length(toplot)
     pushViewport(viewport(layout = grid.layout(nrow = nlev),
@@ -27,11 +28,10 @@ plot.inzhist <- function(obj, gen) {
         pushViewport(viewport(layout.pos.row = i))
         pushViewport(viewport(layout = dpLayout))
         
-        if (boxplot) {
-            pushViewport(viewport(layout.pos.row = 2, xscale = xlim))
-            addBoxplot(boxinfo[[i]])
-            upViewport()
-        }
+        pushViewport(viewport(layout.pos.row = 2, xscale = xlim))
+        if (boxplot) addBoxplot(boxinfo[[i]])
+        if (!is.null(inflist)) addUnivarInference(inflist, i)
+        upViewport()
         
         pushViewport(viewport(layout.pos.row = 1,
                               xscale = xlim, yscale = ylim,

@@ -507,7 +507,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         plot.list <- plot.list[g2.level]
     }
 
-    print(g1.level)
+    #print(g1.level)
     plot.list <- lapply(plot.list, function(x) x[g1.level])
 
     ## and subtitle
