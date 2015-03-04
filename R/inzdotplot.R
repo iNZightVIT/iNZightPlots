@@ -194,9 +194,14 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
                              cex = opts$cex.dotpt, lwd = opts$lwd.pt,
                              alpha = opts$alpha, fill = obj$fill.pt))
     }
-
+    
     seekViewport("VP:dotplot-levels")
     upViewport()
+
+    if (!is.null(inflist))
+        if ("comp" %in% names(inflist))
+            addUnivarCompLines(inflist)
+
 }
 
 
@@ -235,7 +240,7 @@ addBoxplot <- function(x) {
     yy <- rep(c(0.2, 0.8, 0.8, 0.2), 2)
     id <- rep(1:2, each = 4)
     grid.polygon(unit(xx, "native"), unit(yy, "npc"), id = id,
-                 gp = gpar(lwd = opts$box.lwd[1]))
+                 gp = gpar(lwd = opts$box.lwd[1], fill = opts$box.fill))
     grid.polyline(unit(c(x$min, x$quantiles[1], x$quantiles[3], x$max), "native"),
                   rep(0.5, 4), id = rep(1:2, each = 2),
                   gp = gpar(lwd = opts$box.lwd[2]))
@@ -352,7 +357,13 @@ dotinference <- function(obj) {
                                       } else {
                                           ## b <- boot(x, function(x, d) median(x[d]), R = opts$n.boot)
                                           ## res <- boot.ci(b, type = "perc")$percent[1, c(4, 5)]
-                                          NULL
+                                          b <- boot(dat, strata = dat$y,
+                                                    function(d, f) tapply(d[f, 1], d[f, 2], quantile, probs = 0.5, na.rm = TRUE),
+                                                    R = 2 * opts$n.boot)
+                                          ci <- t(apply(b$t, 2, quantile, probs = c(0.025, 0.975), na.rm = TRUE))
+                                          dimnames(ci) <- list(levels(dat$y),
+                                                               c("lower", "upper"))
+                                          ci
                                       }
                                   } else {
                                       if (svy) {

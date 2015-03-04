@@ -52,4 +52,9 @@ plot.inzhist <- function(obj, gen) {
 
     seekViewport("VP:histplot-levels")
     upViewport()
+
+    if (!is.null(inflist))
+        if ("comp" %in% names(inflist))
+            addUnivarCompLines(inflist)
 }
+
