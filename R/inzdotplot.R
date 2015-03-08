@@ -334,8 +334,8 @@ dotinference <- function(obj) {
                                                     function(d, f) tapply(d[f, 1], d[f, 2], mean, na.rm = TRUE),
                                                     R = opts$n.boot)
                                           cov <- cov(b$t)
-                                          ses <- iNZightMR:::seCovs(cov)
-                                          ci <- iNZightMR:::moecalc(ses, est = tapply(dat$x, dat$y, mean, na.rm = TRUE))
+                                          ses <- suppressWarnings(iNZightMR:::seCovs(cov))
+                                          ci <- suppressWarnings(iNZightMR:::moecalc(ses, est = tapply(dat$x, dat$y, mean, na.rm = TRUE)))
                                           cbind(lower = ci$compL, upper = ci$compU)
                                       }
                                   } else {
@@ -359,8 +359,6 @@ dotinference <- function(obj) {
                                       if (svy) {
                                           NULL
                                       } else {
-                                          ## b <- boot(x, function(x, d) median(x[d]), R = opts$n.boot)
-                                          ## res <- boot.ci(b, type = "perc")$percent[1, c(4, 5)]
                                           b <- boot(dat, strata = dat$y,
                                                     function(d, f) tapply(d[f, 1], d[f, 2], quantile, probs = 0.5, na.rm = TRUE),
                                                     R = 2 * opts$n.boot)
@@ -382,7 +380,13 @@ dotinference <- function(obj) {
                                       if (svy) {
                                           NULL
                                       } else {
-                                          NULL
+                                          b <- boot(dat, strata = dat$y,
+                                                    function(d, f) tapply(d[f, 1], d[f, 2], median, na.rm = TRUE),
+                                                    R = opts$n.boot)
+                                          cov <- cov(b$t)
+                                          ses <- suppressWarnings(iNZightMR:::seCovs(cov))
+                                          ci <- suppressWarnings(iNZightMR:::moecalc(ses, est = tapply(dat$x, dat$y, median, na.rm = TRUE)))
+                                          cbind(lower = ci$compL, upper = ci$compU)
                                       }
                                   } else {
                                       if (svy) {
