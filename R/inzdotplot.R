@@ -330,9 +330,13 @@ dotinference <- function(obj) {
                                       if (svy) {
                                           NULL
                                       } else {
-                                          ## b <- boot(x, function(x, d) mean(x[d]), R = opts$n.boot)
-                                          ## boot.ci(b, type = "perc")$percent[1, c(4, 5)]
-                                          NULL
+                                          b <- boot(dat, strata = dat$y,
+                                                    function(d, f) tapply(d[f, 1], d[f, 2], mean, na.rm = TRUE),
+                                                    R = opts$n.boot)
+                                          cov <- cov(b$t)
+                                          ses <- iNZightMR:::seCovs(cov)
+                                          ci <- iNZightMR:::moecalc(ses, est = tapply(dat$x, dat$y, mean, na.rm = TRUE))
+                                          cbind(lower = ci$compL, upper = ci$compU)
                                       }
                                   } else {
                                       if (svy) {

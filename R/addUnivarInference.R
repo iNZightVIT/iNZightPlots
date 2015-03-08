@@ -1,6 +1,6 @@
 addUnivarInference <- function(inflist, i) {
     bs <- attr(inflist, "bootstrap")
-    col1 <- ifelse(bs, "green", "blue")
+    col1 <- ifelse(bs, "green4", "blue")
     col2 <- ifelse(bs, "magenta", "red")
     lapply(c("conf", "comp"), function(n) {
         if (!is.null(inflist[[n]])) {
