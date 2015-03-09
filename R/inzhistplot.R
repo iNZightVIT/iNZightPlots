@@ -30,7 +30,7 @@ plot.inzhist <- function(obj, gen) {
         
         pushViewport(viewport(layout.pos.row = 2, xscale = xlim))
         if (boxplot) addBoxplot(boxinfo[[i]])
-        if (!is.null(inflist)) addUnivarInference(inflist, i)
+        if (!is.null(inflist)) addUnivarInference(inflist, i, opts)
         upViewport()
         
         pushViewport(viewport(layout.pos.row = 1,

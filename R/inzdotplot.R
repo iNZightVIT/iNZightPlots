@@ -180,7 +180,7 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
 
         pushViewport(viewport(layout.pos.row = 2, xscale = xlim))
         if (boxplot) addBoxplot(boxinfo[[i]])
-        if (!is.null(inflist)) addUnivarInference(inflist, i)
+        if (!is.null(inflist)) addUnivarInference(inflist, i, opts)
         upViewport()
         
         pushViewport(viewport(layout.pos.row = 1,
@@ -271,13 +271,18 @@ dotinference <- function(obj) {
         if (!"y" %in% colnames(dat)) {
             dat <- data.frame(dat, y = factor("all"))
             inf.type <- inf.type[inf.type != "comp"]
+        } else if (bs) {
+            dat <- dat[!is.na(dat$y), ]
         }
     } else {
         ## survey structure ...
         svy <- TRUE
         dat <- obj$df
-        if (!"y" %in% colnames(dat$variables))
+        if (!"y" %in% colnames(dat$variables)) {
             inf.type <- inf.type[inf.type != "comp"]
+        } else if (bs) {
+            dat <- dat[!is.na(dat$y), ]
+        }
     }
     
     if (!is.null(inf.par)) {

@@ -45,12 +45,11 @@ create.inz.barplot <- function(obj) {
     }
     
     inflist <- barinference(obj, tab, phat)
-    print(inflist)
     
     out <- list(phat = phat, widths = widths, edges = edges, nx = ncol(phat),
-                full.height = opts$full.height,
+                full.height = opts$full.height, inference.info = inflist,
                 xlim = c(0, if (ynull) length(tab) else ncol(tab)),
-                ylim = c(0, max(phat)))
+                ylim = c(0, max(phat, attr(inflist, "max"))))
     class(out) <- "inzbar"
 
     out
@@ -60,7 +59,7 @@ plot.inzbar <- function(obj, gen) {
     opts <- gen$opts
     p <- obj$phat
     nx <- obj$nx
-    
+
     inflist <- obj$inference.info
     
     edges <- rep(obj$edges * 0.9 + 0.05, each = 4)
@@ -78,8 +77,10 @@ plot.inzbar <- function(obj, gen) {
                  gpar(fill = colz, col = opts$bar.col,
                       lwd = opts$bar.lwd))
 
+    center <- apply(matrix(xx, ncol = 4, byrow = TRUE), 1, function(x) x[2] + (x[3] - x[2]) / 2)
+    
     if (!is.null(inflist)) {
-        addBarInference(inflist)
+        addBarInference(inflist, center, opts)
     }
 }
 
@@ -125,7 +126,7 @@ barinference <- function(obj, tab, phat) {
                            ## Standard confidence interval:
                            t(apply(tab, 1, function(x) {
                                n <- sum(x)
-                               p <- ifelse(x >= 5, x / n, NA)
+                               p <- ifelse(x >= opts$min.count, x / n, NA)
                                se <- sqrt(p * (1 - p) / n)
                                se * 1.96
                            })) -> size
@@ -145,7 +146,36 @@ barinference <- function(obj, tab, phat) {
                        if (svy) {
                            NULL
                        } else {
-                           NULL
+                           if (twoway) {
+                               n <- rowSums(tab)
+
+                               ## ii - only use rows that have at least 1 count
+                               ## (due to subsetting, can be 0 counts for a row)
+                               ii <- n > 0
+                               lapply(1:ncol(tab), function(i) {
+                                   suppressWarnings(
+                                       iNZightMR:::moecalc(
+                                           iNZightMR:::seBinprops(rowSums(tab)[ii],
+                                                                  phat[ii, i]), est = phat[ii, i]
+                                           )
+                                       )
+                               }) -> out
+                               
+                               low <- upp <- phat * 0
+                               low[ii, ] <- sapply(out, function(x) x$compL)
+                               upp[ii, ] <- sapply(out, function(x) x$compU)
+                               
+                               list(lower = low, upper = upp)
+                           } else {
+                               phat <- c(phat) # don't want matrix
+                               with(suppressWarnings(iNZightMR:::moecalc(iNZightMR:::seMNprops(sum(tab), phat), est = phat)),
+                                    list(lower = t(compL), upper = t(compU))) -> res
+                               lapply(res, function(r) {
+                                   colnames(r) <- colnames(tab)
+                                   r[tab < opts$min.count] <- NA
+                                   r
+                               })
+                           }
                        }
                    }
                })
@@ -153,5 +183,7 @@ barinference <- function(obj, tab, phat) {
     names(result) <- inf.type
 
     attr(result, "bootstrap") <- bs
+    attr(result, "max") <- max(sapply(result, function(r)
+                                      max(sapply(r, max, na.rm = TRUE), na.rm = TRUE)), na.rm = TRUE)
     result    
 }
