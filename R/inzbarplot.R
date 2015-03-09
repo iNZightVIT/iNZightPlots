@@ -4,6 +4,10 @@ create.inz.barplot <- function(obj) {
     opts <- obj$opts
     xattr <- obj$xattr
 
+    inf.type <- opts$inference.type
+    inf.par <- "proportion"
+    bs <- opts$bs.inference
+
     if (xattr$class == "inz.survey")
         df <- df$variables
 
@@ -39,7 +43,10 @@ create.inz.barplot <- function(obj) {
         widths <- nn / sum(nn)
         edges <- c(0, cumsum(widths))
     }
-
+    
+    inflist <- barinference(obj, tab, phat)
+    print(inflist)
+    
     out <- list(phat = phat, widths = widths, edges = edges, nx = ncol(phat),
                 full.height = opts$full.height,
                 xlim = c(0, if (ynull) length(tab) else ncol(tab)),
@@ -53,6 +60,8 @@ plot.inzbar <- function(obj, gen) {
     opts <- gen$opts
     p <- obj$phat
     nx <- obj$nx
+    
+    inflist <- obj$inference.info
     
     edges <- rep(obj$edges * 0.9 + 0.05, each = 4)
     edges <- edges[3:(length(edges) - 2)]
@@ -68,4 +77,81 @@ plot.inzbar <- function(obj, gen) {
                  gp =
                  gpar(fill = colz, col = opts$bar.col,
                       lwd = opts$bar.lwd))
+
+    if (!is.null(inflist)) {
+        addBarInference(inflist)
+    }
+}
+
+
+barinference <- function(obj, tab, phat) {
+    ## obj: list of data broken down by subsets
+    ## opts: various options (inzpar)
+
+    opts <- obj$opts
+    xattr <- obj$xattr
+    inf.par <- "proportion"
+    inf.type <- opts$inference.type
+    bs <- opts$bs.inference
+
+    if (is.null(inf.type)) {
+        return(NULL)
+    }
+
+    twoway <- length(dim(tab)) == 2  # two way comparison (two factors ...)
+    svy <- obj$xattr$class != "inz.simple"
+
+    if (length(dim(tab)) == 1) {
+        twoway <- FALSE
+        tab <- t(tab)
+        phat <- t(phat)
+    } else {
+        twoway <- TRUE
+    }
+
+    lapply(inf.type, function(type) {
+        switch(type,
+               "conf" = {
+                   if (bs) {
+                       if (svy) {
+                           NULL
+                       } else {
+                           NULL
+                       }
+                   } else {
+                       if (svy) {
+                           NULL
+                       } else {
+                           ## Standard confidence interval:
+                           t(apply(tab, 1, function(x) {
+                               n <- sum(x)
+                               p <- ifelse(x >= 5, x / n, NA)
+                               se <- sqrt(p * (1 - p) / n)
+                               se * 1.96
+                           })) -> size
+                           if (!twoway) phat <- t(phat)
+                           list(lower = phat - size, upper = phat + size)
+                       }
+                   }
+               },
+               "comp" = {
+                   if (bs) {
+                       if (svy) {
+                           NULL
+                       } else {
+                           NULL
+                       }
+                   } else {
+                       if (svy) {
+                           NULL
+                       } else {
+                           NULL
+                       }
+                   }
+               })
+    }) -> result
+    names(result) <- inf.type
+
+    attr(result, "bootstrap") <- bs
+    result    
 }
