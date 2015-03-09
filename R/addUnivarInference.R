@@ -1,15 +1,15 @@
 addUnivarInference <- function(inflist, i) {
     bs <- attr(inflist, "bootstrap")
-    col1 <- ifelse(bs, "green4", "blue")
-    col2 <- ifelse(bs, "magenta", "red")
-    lapply(c("conf", "comp"), function(n) {
+    col1 <- ifelse(bs, "black", "blue")
+    col2 <- ifelse(bs, "orange", "red")
+    lapply(rev(c("conf", "comp")), function(n) {
         if (!is.null(inflist[[n]])) {
             ci <- inflist[[n]][i, ]
             grid.lines(x = unit(ci, units = "native"),
                        y = unit(0.5, "npc"),
                        gp =
                        gpar(col = switch(n, 'comp' = col1, 'conf' = col2),
-                            lwd = switch(n, 'comp' = 4, conf = 2),
+                            lwd = switch(n, 'comp' = 5, 'conf' = 2),
                             lineend = "butt"))
         }
     })

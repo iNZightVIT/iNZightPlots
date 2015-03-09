@@ -306,17 +306,19 @@ dotinference <- function(obj) {
                                   } else {
                                       ## 95% confidence interval (normal theory)
                                       if (svy) {
-                                          if ("y" %in% colnames(dat$variables)) {
-                                              fit <- svyglm(x ~ y, design = dat)
-                                              ci <- confint(predict(fit, newdata = data.frame(y = levels(dat$variables$y))))
-                                              dimnames(ci) <- list(levels(dat$variables$y),
-                                                                   c("lower", "upper"))
-                                          } else {
-                                              fit <- svyglm(x ~ 1, design = dat)
-                                              ci <- confint(fit)
-                                              dimnames(ci) <- list("all", c("lower", "upper"))
-                                          }
-                                          ci
+                                          ## This doesn't account for clustering
+                                          ##
+                                          ## if ("y" %in% colnames(dat$variables)) {
+                                          ##     fit <- svyglm(x ~ y, design = dat)
+                                          ##     ci <- confint(predict(fit, newdata = data.frame(y = levels(dat$variables$y))))
+                                          ##     dimnames(ci) <- list(levels(dat$variables$y),
+                                          ##                          c("lower", "upper"))
+                                          ## } else {
+                                          ##     fit <- svyglm(x ~ 1, design = dat)
+                                          ##     ci <- confint(fit)
+                                          ##     dimnames(ci) <- list("all", c("lower", "upper"))
+                                          ## }
+                                          ## ci
                                       } else {
                                           n <- tapply(dat$x, dat$y, function(z) sum(!is.na(z)))
                                           wd <- qt(0.975, df = n - 1) * tapply(dat$x, dat$y, sd, na.rm = TRUE) / sqrt(n)
@@ -342,10 +344,20 @@ dotinference <- function(obj) {
                                       if (svy) {
                                           NULL
                                       } else {
-                                          n <- tapply(dat$x, dat$y, function(z) sum(!is.na(z)))
-                                          wd <- tapply(dat$x, dat$y, sd, na.rm = TRUE) / sqrt(2 * n)
-                                          mn <- tapply(dat$x, dat$y, mean, na.rm = TRUE)
-                                          cbind(lower = mn - wd, upper = mn + wd)
+                                          ##############################################################
+                                          # This is the old method, an approximately 75% CI ...        #
+                                          ##############################################################
+                                          # n <- tapply(dat$x, dat$y, function(z) sum(!is.na(z)))      #
+                                          # wd <- tapply(dat$x, dat$y, sd, na.rm = TRUE) / sqrt(2 * n) #
+                                          # mn <- tapply(dat$x, dat$y, mean, na.rm = TRUE)             #
+                                          # cbind(lower = mn - wd, upper = mn + wd)                    #
+                                          ##############################################################
+
+                                          ## The new method uses iNZightMR:
+                                          fit <- lm(x ~ y, data = dat)
+                                          est <- predict(fit, newdata = data.frame(y = levels(dat$y)))
+                                          mfit <- suppressWarnings(iNZightMR:::moecalc(fit, factorname = "y", est = est))
+                                          with(mfit, cbind(compL, compU)) + coef(fit)[1]
                                       }
                                   }
                               })
