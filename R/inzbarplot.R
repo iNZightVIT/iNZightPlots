@@ -94,6 +94,7 @@ barinference <- function(obj, tab, phat) {
     inf.par <- "proportion"
     inf.type <- opts$inference.type
     bs <- opts$bs.inference
+    dat <- obj$df
 
     if (is.null(inf.type)) {
         return(NULL)
@@ -117,7 +118,21 @@ barinference <- function(obj, tab, phat) {
                        if (svy) {
                            NULL
                        } else {
-                           NULL
+                           if (twoway) {
+                               n <- rowSums(tab)
+                               b <- boot(dat, function(d, f) {
+                                         tt <- t(table(d[f, 1], d[f, 2]))
+                                         sweep(tt, 1, n, "/")
+                                         }, R = 1000)
+                               cis <- apply(b$t, 2, quantile, probs = c(0.025, 0.975))
+                               list(lower = matrix(cis[1, ], nrow = nrow(tab), byrow = FALSE),
+                                    upper = matrix(cis[2, ], nrow = nrow(tab), byrow = FALSE))
+                           } else {
+                               n <- sum(tab)
+                               b <- boot(dat, function(d, f) table(d[f, 1]) / n, R = opts$n.boot)
+                               cis <- apply(b$t, 2, quantile, probs = c(0.025, 0.975))
+                               list(lower = cis[1, , drop = FALSE], upper = cis[2, , drop = FALSE])
+                           }
                        }
                    } else {
                        if (svy) {
@@ -184,6 +199,10 @@ barinference <- function(obj, tab, phat) {
 
     attr(result, "bootstrap") <- bs
     attr(result, "max") <- max(sapply(result, function(r)
-                                      max(sapply(r, max, na.rm = TRUE), na.rm = TRUE)), na.rm = TRUE)
+                                      if (is.null(r)) 0 else max(sapply(r, function(x)
+                                                                        if(is.null(x)) 0 else max(x, na.rm = TRUE)),
+                                                                 na.rm = TRUE)
+                                      ),
+                               na.rm = TRUE)
     result    
 }
