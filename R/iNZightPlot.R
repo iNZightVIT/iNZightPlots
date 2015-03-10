@@ -5,7 +5,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         missing.info = TRUE,
                         xlab = varnames$x, ylab = varnames$y,
                         new = TRUE,  # compatibility arguments
-                        inzpars = inzpar(), layout.only = FALSE, plot = TRUE, ...) {
+                        inzpars = inzpar(), layout.only = FALSE, plot = TRUE, df, ...) {
 
   # ------------------------------------------------------------------------------------ #
   #   iNZightPlots v2.0, written by Tom Elliott (2014, University of Auckland)
@@ -87,23 +87,26 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
   # ------------------------------------------------------------------------------------ #
   # 1. The data step
   # ----------------
-    
+
     # grab the arguments and the data frame is supplied:
     m <- match.call(expand.dots = FALSE)
     env <- parent.frame()
 
-    if ("design" %in% names(m)) {
-        md <- eval(m$design, env)
-    } else {
-        md <- eval(m$data, env)
+    ## getSummary and other wrappers will pass an inz.data object
+    if (missing(df)) {
+        if ("design" %in% names(m)) {
+            md <- eval(m$design, env)
+        } else {
+            md <- eval(m$data, env)
+        }
+        
+        ## we now want to create a data object which contains *ALL* of the necessary
+        ## information, including survey design, or frequency information:
+        df <- inzDataframe(m, data = md, names = varnames, g1.level, g2.level, env = env)
     }
-    
-    # we now want to create a data object which contains *ALL* of the necessary
-    # information, including survey design, or frequency information:
-    df <- inzDataframe(m, data = md, names = varnames, g1.level, g2.level, env = env)
 
-    # df will have a class: inz.simple, inz.freq, inz.survey
-    # each of these classes will have appropriate methods for extracting the information
+    ## df will have a class: inz.simple, inz.freq, inz.survey
+    ## each of these classes will have appropriate methods for extracting the information
 
     varnames <- as.list(df$varnames)
     vartypes <- lapply(df$data[, names(varnames), drop = FALSE],
@@ -193,9 +196,20 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                                                                  # largesample argument
         }
     }
-    plot.list <- lapply(df.list, function(df)
-                        lapply(df, createPlot, opts, xattr))
 
+    ## createPlot - uses various things such as "grobWidth" which causes a new device to open
+    ## so create a NULL device and delete it afterwards ...
+    if (!plot) 
+        jpeg(FILE <- tempfile())
+    
+    plot.list <- lapply(df.list, function(df)
+        lapply(df, createPlot, opts, xattr))
+    
+    if (!plot) {
+        dev.off()
+        unlink(FILE)
+    }
+    
     ## X and Y axis limits:
     xlim <- range(sapply(plot.list, function(x) sapply(x, function(y) y$xlim)), finite = TRUE)
     ylim <- range(sapply(plot.list, function(x) sapply(x, function(y) y$ylim)), finite = TRUE)
@@ -207,7 +221,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ylim <-
         if (TYPE %in% c("scatter", "grid", "hex")) extendrange(ylim)
         else c(0, extendrange(ylim)[2])
-
+    
     maxcnt <- NULL
     if (TYPE %in% c("grid", "hex")) {
       # if there is a `counts` need to get the max:
@@ -689,7 +703,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         
         dev.flush()
     }
-    cat("Success...\n")
+
     if (plot) {
         plot.list$gen <- list(opts = opts,
                               mcex = multi.cex,
