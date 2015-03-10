@@ -78,9 +78,12 @@ plot.inzbar <- function(obj, gen) {
                       lwd = opts$bar.lwd))
 
     center <- apply(matrix(xx, ncol = 4, byrow = TRUE), 1, function(x) x[2] + (x[3] - x[2]) / 2)
+    bounds <- apply(matrix(xx, ncol = 4, byrow = TRUE), 1, function(x) x[2:3])
     
     if (!is.null(inflist)) {
         addBarInference(inflist, center, opts)
+        if (!is.null(inflist$comp))
+            addBarCompLines(inflist$comp, bounds, p, opts)
     }
 }
 
