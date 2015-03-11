@@ -63,7 +63,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         out[[i]] <- di
     }
 
-    boxinfo <- if (boxplot & (!"mean" %in% opts$inference.par))
+    boxinfo <- if (boxplot & (!"mean" %in% opts$inference.par) & nrow(df) > 5)
         boxSummary(out, opts) else NULL
 
     makeHist <- function(d, nbins, xlim) {
