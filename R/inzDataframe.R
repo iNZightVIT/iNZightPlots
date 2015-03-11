@@ -4,6 +4,15 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
   # data frame for easy use by iNZightPlot.
   # It returns an object with a class: `inz.(simple|freq|survey)`
 
+    if ("g2" %in% names(m) & !("g1" %in% names(m))) {
+        ## G2 supplied, G1 is not : swap
+        m$g1.level <- NULL
+        names(m) <- gsub("^g2", "g1", names(m))
+
+        g1.level <- g2.level
+        g2.level <- NULL
+    }
+
     # the variables we want to look for in argument list (m)
     vars <- c("", "x", "y", "g1", "g2", "colby", "sizeby")
     mw <- names(m) %in% vars
@@ -15,7 +24,7 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     varnames <- modifyList(as.list(m[mw]), names)
 
     df <- list()  # initialise the object
-
+    
     ## ----- DATA TYPES:
     # here, it is possible to add new data types (add the necessary conditions, etc,
     # and then simply add the appropriate class)
