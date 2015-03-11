@@ -5,7 +5,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         missing.info = TRUE,
                         xlab = varnames$x, ylab = varnames$y,
                         new = TRUE,  # compatibility arguments
-                        inzpars = inzpar(), layout.only = FALSE, plot = TRUE, df, ...) {
+                        inzpars = inzpar(), layout.only = FALSE, plot = TRUE,
+                        df, env = parent.frame(), ...) {
 
   # ------------------------------------------------------------------------------------ #
   #   iNZightPlots v2.0, written by Tom Elliott (2014, University of Auckland)
@@ -90,14 +91,28 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     # grab the arguments and the data frame is supplied:
     m <- match.call(expand.dots = FALSE)
-    env <- parent.frame()
 
     ## getSummary and other wrappers will pass an inz.data object
     if (missing(df)) {
-        if ("design" %in% names(m)) {
+        if (!is.null(design)) {
             md <- eval(m$design, env)
         } else {
             md <- eval(m$data, env)
+        }
+
+        ## fix up some subsetting group stuff
+        if (is.null(m$g1)) {
+            if (!is.null(m$g2)) {
+                if (length(varnames) > 0) {
+                    varnames$g1 <- varnames$g2
+                    varnames$g2 <- NULL
+                }
+                return(iNZightPlot(x = x, y = y, g1 = g2, g1.level = g2.level, g2 = NULL, g2.level = NULL,
+                                   varnames = varnames, colby = colby, sizeby = sizeby, data = data,
+                                   design = design, freq = freq, missing.info = missing.info,
+                                   xlab = xlab, ylba= ylab, new = new, inzpars = inzpars,
+                                   layout.only = layout.only, plot = plot, env = env, ...))
+            }
         }
         
         ## we now want to create a data object which contains *ALL* of the necessary
@@ -289,7 +304,9 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
         ## plot.list still contains all the levels of g1 that wont be plotted - for axis scaling etc
         ## so figure this one out somehow ...
-        N <- length(plot.list) * length(g1.level)
+        ng1 <- ifelse("g1" %in% names(df$data), length(g1.level), 1)
+        ng2 <- ifelse("g2" %in% names(df$data), ifelse(matrix.plot, length(g2.level), 1), 1)
+        N <- ng1 * ng2  # length(plot.list) * length(g1.level)
         multi.cex <- max(1.2 * sqrt(sqrt(N) / N), 0.5)  # this has absolutely no theoretical reasoning,
                                         # it just does a reasonably acceptable job (:
 

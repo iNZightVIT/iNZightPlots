@@ -77,7 +77,7 @@ plot.inzscatter <- function(obj, gen) {
                      lwd = opts$lwd.pt, alpha = opts$alpha,
                      fill = obj$fill.pt),
                 name = "SCATTERPOINTS")
-    print(col.args)
+
     # Connect by dots if they want it ...
     if (opts$join) {
         if (length(unique(obj$colby)) == 1 | !opts$lines.by) {
