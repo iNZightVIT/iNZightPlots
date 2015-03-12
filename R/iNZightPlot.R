@@ -533,16 +533,15 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
         ## --- next, it will break the plot into subregions for g1 (unless theres only one, then it
         ## wont)
-        
+        return(plot.list)
         ## break up plot list
         if (any(g2.level == "_MULTI")) g2.level <- names(plot.list)
         if (!matrix.plot & !is.null(g2.level)) {
             plot.list <- plot.list[g2.level]
         }
 
-                                        #print(g1.level)
         plot.list <- lapply(plot.list, function(x) x[g1.level])
-
+        
         ## and subtitle
         if (!is.null(SUB)) {
             seekViewport("VP:TOPlayout")
@@ -651,10 +650,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                                         #                          name = nameVP)) 
                 pushViewport(viewport(layout.pos.row = 2, xscale = xlim, yscale = ylim, clip = "on",
                                       name = "VP:locate.these.points"))
-                if (!layout.only)
+                if (!layout.only) {
                     plot(plot.list[[g2id]][[g1id]], gen =
                          list(opts = opts, mcex = multi.cex, col.args = col.args,
                               maxcount = maxcnt))
+                }
                 upViewport()
                 
 

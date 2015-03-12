@@ -29,23 +29,29 @@ create.inz.barplot <- function(obj) {
                   }, "inz.freq" = {
                       svydesign(ids=~1, weights = ~freq, data = df)
                   }, "inz.simple" = {
-                      svydesign(ids=~1, weights = rep(1, nrow(df)), data = df)
+                      NULL
                   })
 
     if (ynull) {
-        tab <- svytable(~x, design = svy)
+        if (is.null(svy))
+            tab <- table(df$x)
+        else
+            tab <- svytable(~x, design = svy)
         phat <- matrix(tab / sum(tab), nrow = 1)
         widths <- rep(1, length(tab))
         edges <- c(0, 1)
     } else {
-        tab <- svytable(~y + x, design = svy)
+        if (is.null(svy))
+            tab <- table(df$y, df$x)
+        else
+            tab <- svytable(~y + x, design = svy)
         phat <- sweep(tab, 1, nn <- rowSums(tab), "/")
         widths <- nn / sum(nn)
         edges <- c(0, cumsum(widths))
     }
     
     inflist <- barinference(obj, tab, phat)
-    
+
     out <- list(phat = phat, widths = widths, edges = edges, nx = ncol(phat),
                 full.height = opts$full.height, inference.info = inflist,
                 xlim = c(0, if (ynull) length(tab) else ncol(tab)),
@@ -61,7 +67,7 @@ plot.inzbar <- function(obj, gen) {
     nx <- obj$nx
 
     inflist <- obj$inference.info
-    
+
     edges <- rep(obj$edges * 0.9 + 0.05, each = 4)
     edges <- edges[3:(length(edges) - 2)]
     xx <- rep(edges, nx) + rep(1:nx - 1, each = 4 * nrow(p))
@@ -203,9 +209,10 @@ barinference <- function(obj, tab, phat) {
     attr(result, "bootstrap") <- bs
     attr(result, "max") <- max(sapply(result, function(r)
                                       if (is.null(r)) 0 else max(sapply(r, function(x)
-                                                                        if(is.null(x)) 0 else max(x, na.rm = TRUE)),
+                                                                        if(is.null(x)) 0 else max(c(0, x), na.rm = TRUE)),
                                                                  na.rm = TRUE)
                                       ),
                                na.rm = TRUE)
+
     result    
 }
