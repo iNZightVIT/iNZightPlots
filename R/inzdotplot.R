@@ -178,7 +178,7 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
         pushViewport(viewport(layout.pos.row = i))
         pushViewport(viewport(layout = dpLayout))
 
-        pushViewport(viewport(layout.pos.row = 2, xscale = xlim))
+        pushViewport(viewport(layout.pos.row = 2, xscale = xlim, clip = "on"))
         if (boxplot) addBoxplot(boxinfo[[i]])
         if (!is.null(inflist)) addUnivarInference(inflist, i, opts)
         upViewport()
@@ -263,6 +263,8 @@ dotinference <- function(obj) {
         return(NULL)
     }
 
+    if (nrow(obj$df) < opts$min.count) return(NULL)
+
   
     ## for simplicity, if no 'y' factor, just make all the same level for tapply later:
     if (obj$xattr$class == "inz.simple") {
@@ -326,7 +328,9 @@ dotinference <- function(obj) {
                                           ## ci
                                       } else {
                                           n <- tapply(dat$x, dat$y, function(z) sum(!is.na(z)))
-                                          wd <- qt(0.975, df = n - 1) * tapply(dat$x, dat$y, sd, na.rm = TRUE) / sqrt(n)
+                                          n <- ifelse(n < 2, NA, n)
+                                          wd <- qt(0.975, df = n - 1) * tapply(dat$x, dat$y, sd,
+                                                              na.rm = TRUE) / sqrt(n)
                                           mn <- tapply(dat$x, dat$y, mean, na.rm = TRUE)
                                           cbind(lower = mn - wd, upper = mn + wd)
                                       }
@@ -342,7 +346,9 @@ dotinference <- function(obj) {
                                                     R = opts$n.boot)
                                           cov <- cov(b$t)
                                           ses <- suppressWarnings(iNZightMR:::seCovs(cov))
-                                          ci <- suppressWarnings(iNZightMR:::moecalc(ses, est = tapply(dat$x, dat$y, mean, na.rm = TRUE)))
+                                          ci <- suppressWarnings(iNZightMR:::moecalc(
+                                              ses, est = tapply(dat$x, dat$y, mean, na.rm = TRUE)
+                                          ))
                                           cbind(lower = ci$compL, upper = ci$compU)
                                       }
                                   } else {
@@ -359,10 +365,15 @@ dotinference <- function(obj) {
                                           ##############################################################
 
                                           ## The new method uses iNZightMR:
-                                          fit <- lm(x ~ y, data = dat)
-                                          est <- predict(fit, newdata = data.frame(y = levels(dat$y)))
-                                          mfit <- suppressWarnings(iNZightMR:::moecalc(fit, factorname = "y", est = est))
-                                          with(mfit, cbind(compL, compU)) + coef(fit)[1]
+
+                                          if(any(is.na(tapply(dat$x, dat$y, length)))) {
+                                              NULL
+                                          } else {
+                                              fit <- lm(x ~ y, data = dat)
+                                              est <- predict(fit, newdata = data.frame(y = levels(dat$y)))
+                                              mfit <- suppressWarnings(iNZightMR:::moecalc(fit, factorname = "y", est = est))
+                                              with(mfit, cbind(compL, compU)) + coef(fit)[1]
+                                          }
                                       }
                                   }
                               })

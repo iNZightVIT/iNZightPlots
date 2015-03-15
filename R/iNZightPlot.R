@@ -100,21 +100,6 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             md <- eval(m$data, env)
         }
 
-        ## fix up some subsetting group stuff
-        ## if (is.null(m$g1)) {
-        ##     if (!is.null(m$g2)) {
-        ##         if (length(varnames) > 0) {
-        ##             varnames$g1 <- varnames$g2
-        ##             varnames$g2 <- NULL
-        ##         }
-        ##         return(iNZightPlot(x = x, y = y, g1 = g2, g1.level = g2.level, g2 = NULL, g2.level = NULL,
-        ##                            varnames = varnames, colby = colby, sizeby = sizeby, data = data,
-        ##                            design = design, freq = freq, missing.info = missing.info,
-        ##                            xlab = xlab, ylba= ylab, new = new, inzpars = inzpars,
-        ##                            layout.only = layout.only, plot = plot, env = env, ...))
-        ##     }
-        ## }
-
         ## we now want to create a data object which contains *ALL* of the necessary
         ## information, including survey design, or frequency information:
         df <- inzDataframe(m, data = md, names = varnames, g1.level, g2.level, env = env)
@@ -305,9 +290,12 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         ## plot.list still contains all the levels of g1 that wont be plotted - for axis scaling etc
         ## so figure this one out somehow ...
         ng1 <- ifelse("g1" %in% names(df$data), length(g1.level), 1)
-        ng2 <- ifelse("g2" %in% names(df$data), ifelse(matrix.plot, length(g2.level), 1), 1)
+        ng2 <- ifelse("g2" %in% names(df$data), ifelse(matrix.plot,
+                                                       ifelse(g2.level == "_MULTI",
+                                                              length(plot.list), length(g2.level)), 1), 1)
         N <- ng1 * ng2  # length(plot.list) * length(g1.level)
-        multi.cex <- max(1.2 * sqrt(sqrt(N) / N), 0.5)  # this has absolutely no theoretical reasoning,
+        NN <- if (matrix.plot) length(plot.list) * length(plot.list[[1]]) else N
+        multi.cex <- max(1.2 * sqrt(sqrt(NN) / NN), 0.5)  # this has absolutely no theoretical reasoning,
                                         # it just does a reasonably acceptable job (:
 
 
@@ -567,14 +555,14 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         }
 
         ## if the plots are DOTPLOTS or BARPLOTS, then leave a little bit of space between each
-                                        # we will need to add a small amount of space between the columns of the layout
+        ## we will need to add a small amount of space between the columns of the layout
         hspace <- ifelse(TYPE %in% c("scatter", "grid", "hex"), 0, 0.01)
         wds <- rep(unit.c(unit(hspace, "npc"), unit(1, "null")), nc)[-1]
 
-        dummy <- textGrob("some text", gp = gpar(cex = opts$cex.lab * multi.cex))
-        sub.hgt <- convertHeight(grobHeight(dummy), "in", TRUE) * 2
-        vspace <- ifelse(matrix.plot, sub.hgt, 0)
-        hgts <- rep(unit.c(unit(vspace, "in"), unit(1, "null")), nr)
+        subt <- textGrob("dummy text", gp = gpar(cex = opts$cex.lab, fontface = "bold"))
+        sub.hgt <- unit(convertHeight(grobHeight(subt), "in", TRUE) * 1.2, "in")
+        vspace <- if (matrix.plot) sub.hgt else unit(0, "in")
+        hgts <- rep(unit.c(vspace, unit(1, "null")), nr)
 
 
         PLOTlayout <- grid.layout(nrow = length(hgts), ncol = length(wds),
@@ -629,7 +617,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 hgt <- unit.c(
                     if (!is.null(p.title)) {
                         subt <- textGrob(p.title, gp = gpar(cex = opts$cex.lab, fontface = "bold"))
-                        unit(convertHeight(grobHeight(subt), "in", TRUE) * 2, "in")
+                        sub.hgt
                     } else {
                         unit(0, "null")
                     },
@@ -643,11 +631,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                     upViewport()
                 }
 
-### I found "VP:locate.these.points" so far is just using here and no other
+                ## I found "VP:locate.these.points" so far is just using here and no other
                 ## depencies so I think giving the its an uniqe name would be a good idea here.
-                                        #    nameVP <- paste0("VP:locate.these.points", g2id, g1id)
-                                        #    pushViewport(viewport(layout.pos.row = 2, xscale = xlim, yscale = ylim, clip = "on",
-                                        #                          name = nameVP))
+                ##    nameVP <- paste0("VP:locate.these.points", g2id, g1id)
+                ##    pushViewport(viewport(layout.pos.row = 2, xscale = xlim, yscale = ylim, clip = "on",
+                ##                          name = nameVP))
                 pushViewport(viewport(layout.pos.row = 2, xscale = xlim, yscale = ylim, clip = "on",
                                       name = "VP:locate.these.points"))
                 if (!layout.only) {
@@ -658,19 +646,19 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 upViewport()
 
 
-                                        # add the appropriate axes:
-                                        # Decide which axes to plot:
+                ## add the appropriate axes:
+                ## Decide which axes to plot:
 
-### -------------
-                                        # For dotplots + histograms: the axis are at the bottom of every column, and on the far
-                                        # left
-                                        #
-                                        # For scatterplots + gridplots + hexplots: the axis alternative on both axis, left and
-                                        # right
-                                        #
-                                        # For barplot: the axis is on the bottom of every column, and left and right of every
-                                        # row
-### ------------
+                ## -------------
+                ## For dotplots + histograms: the axis are at the bottom of every column, and on the far
+                ## left
+                ##
+                ## For scatterplots + gridplots + hexplots: the axis alternative on both axis, left and
+                ## right
+                ##
+                ## For barplot: the axis is on the bottom of every column, and left and right of every
+                ## row
+                ## ------------
 
                 pushViewport(viewport(layout.pos.row = 2, xscale = xlim,
                                       yscale = if (TYPE == "bar") 100 * ylim else ylim))
@@ -729,6 +717,9 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         plot.list$xlim <- xlim
         plot.list$ylim <- ylim
     }
+
+    attr(plot.list, "varnames") <- varnames
+    attr(plot.list, "glevels") <- g.level
 
     class(plot.list) <- "inzplotoutput"
     return(invisible(plot.list))

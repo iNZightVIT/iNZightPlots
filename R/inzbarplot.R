@@ -128,16 +128,24 @@ barinference <- function(obj, tab, phat) {
                            NULL
                        } else {
                            if (twoway) {
-                               n <- rowSums(tab)
-                               b <- boot(dat, function(d, f) {
-                                         tt <- t(table(d[f, 1], d[f, 2]))
-                                         sweep(tt, 1, n, "/")
-                                         }, R = 1000)
-                               cis <- apply(b$t, 2, quantile, probs = c(0.025, 0.975))
-                               list(lower = matrix(cis[1, ], nrow = nrow(tab), byrow = FALSE),
-                                    upper = matrix(cis[2, ], nrow = nrow(tab), byrow = FALSE))
+                               ## For now, we will just all over and not return intervals
+                               ## IN FUTURE: might want to bootstrap some other way?
+                               inf <- try({
+                                   n <- rowSums(tab)
+                                   b <- boot(dat, function(d, f) {
+                                       tt <- t(table(d[f, 1], d[f, 2]))
+                                       sweep(tt, 1, n, "/")
+                                   }, R = 1000)
+                                   cis <- apply(b$t, 2, quantile, probs = c(0.025, 0.975))
+                               }, silent = TRUE)
+                               if (inherits(inf, "try-error"))
+                                   NULL
+                               else
+                                   list(lower = matrix(cis[1, ], nrow = nrow(tab), byrow = FALSE),
+                                        upper = matrix(cis[2, ], nrow = nrow(tab), byrow = FALSE))
                            } else {
                                n <- sum(tab)
+                               if (n == 0) return(NULL)
                                b <- boot(dat, function(d, f) table(d[f, 1]) / n, R = opts$n.boot)
                                cis <- apply(b$t, 2, quantile, probs = c(0.025, 0.975))
                                list(lower = cis[1, , drop = FALSE], upper = cis[2, , drop = FALSE])
@@ -171,26 +179,35 @@ barinference <- function(obj, tab, phat) {
                            NULL
                        } else {
                            if (twoway) {
-                               n <- rowSums(tab)
-
-                               ## ii - only use rows that have at least 1 count
-                               ## (due to subsetting, can be 0 counts for a row)
-                               ii <- n > 0
-                               lapply(1:ncol(tab), function(i) {
-                                   suppressWarnings(
-                                       iNZightMR:::moecalc(
-                                           iNZightMR:::seBinprops(rowSums(tab)[ii],
-                                                                  phat[ii, i]), est = phat[ii, i]
+                               ## several ways in which this can fall over; rather than testing for
+                               ## each, just try and iNZightMR will fail with an error
+                               int <- try({
+                                   n <- rowSums(tab)
+                                   
+                                   ## ii - only use rows that have at least 1 count
+                                   ## (due to subsetting, can be 0 counts for a row)
+                                   ii <- n > 0
+                                   
+                                   lapply(1:ncol(tab), function(i) {
+                                       if(sum(tab[ii, ] > 0) < 2) return(list(compL = NA, compU = NA))
+                                       
+                                       suppressWarnings(
+                                           iNZightMR:::moecalc(
+                                               iNZightMR:::seBinprops(n[ii], phat[ii, i]), est = phat[ii, i]
                                            )
                                        )
-                               }) -> out
-                               
-                               low <- upp <- phat * 0
-                               low[ii, ] <- sapply(out, function(x) x$compL)
-                               upp[ii, ] <- sapply(out, function(x) x$compU)
-                               
-                               list(lower = low, upper = upp)
+                                   }) -> out
+                                   
+                                   low <- upp <- phat * 0
+                                   low[ii, ] <- sapply(out, function(x) x$compL)
+                                   upp[ii, ] <- sapply(out, function(x) x$compU)
+                               }, silent = TRUE)
+                               if (inherits(int, "try-error"))
+                                   NULL
+                               else
+                                   list(lower = low, upper = upp)
                            } else {
+                               if (sum(tab) == 0) return(NULL)
                                phat <- c(phat) # don't want matrix
                                with(suppressWarnings(iNZightMR:::moecalc(iNZightMR:::seMNprops(sum(tab), phat), est = phat)),
                                     list(lower = t(compL), upper = t(compU))) -> res
