@@ -521,7 +521,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
         ## --- next, it will break the plot into subregions for g1 (unless theres only one, then it
         ## wont)
-        ## return(plot.list)
+
         ## break up plot list
         if (any(g2.level == "_MULTI")) g2.level <- names(plot.list)
         if (!matrix.plot & !is.null(g2.level)) {
@@ -707,6 +707,14 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         }
 
         dev.flush()
+    } else {
+        ## break up plot list
+        if (any(g2.level == "_MULTI")) g2.level <- names(plot.list)
+        if (!matrix.plot & !is.null(g2.level)) {
+            plot.list <- plot.list[g2.level]
+        }
+
+        plot.list <- lapply(plot.list, function(x) x[g1.level])
     }
 
     if (plot) {
@@ -720,6 +728,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     attr(plot.list, "varnames") <- varnames
     attr(plot.list, "glevels") <- g.level
+    attr(plot.list, "vartypes") <- vartypes
+    attr(plot.list, "missing") <- missing
 
     class(plot.list) <- "inzplotoutput"
     return(invisible(plot.list))

@@ -34,8 +34,13 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         y.levels <- levels(df$y) # need to save these before we remove missing ...
         missing <- missing | is.na(df$y)
     }
-    
+
     n.missing <- sum(missing)
+    
+    if ("y" %in% colnames(df)) {
+        attr(n.missing, "levels") <- tapply(missing, df$y, sum)
+    }
+    
     df <- df[!missing, , drop = FALSE]
     
     ## Return a LIST for each level of y
