@@ -600,7 +600,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 pushViewport(viewport(layout.pos.row = R - 1,
                                       gp = gpar(cex = multi.cex, fontface = "bold")))
                 grid.rect(gp = gpar(fill = "lightblue"))
-                grid.text(paste(varnames$g2, "=", g2.level[g2id]), gp = gpar(cex = opts$cex.lab))
+                grid.text(paste(varnames$g2, "=", g2.level[g2id]), gp = gpar(cex = opts$cex.lab, fontface = "bold"))
             }
 
             for (c in 1:nc) {
@@ -620,7 +620,10 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 hgt <- unit.c(
                     if (!is.null(p.title)) {
                         subt <- textGrob(p.title, gp = gpar(cex = opts$cex.lab, fontface = "bold"))
-                        sub.hgt
+                        if (matrix.plot)
+                            sub.hgt
+                        else
+                            unit(convertHeight(grobHeight(subt), "in", TRUE) * 2, "in")
                     } else {
                         unit(0, "null")
                     },
