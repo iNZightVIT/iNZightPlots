@@ -52,7 +52,7 @@ create.inz.barplot <- function(obj) {
     
     inflist <- barinference(obj, tab, phat)
 
-    out <- list(phat = phat, widths = widths, edges = edges, nx = ncol(phat),
+    out <- list(phat = phat, tab = tab, widths = widths, edges = edges, nx = ncol(phat),
                 full.height = opts$full.height, inference.info = inflist,
                 xlim = c(0, if (ynull) length(tab) else ncol(tab)),
                 ylim = c(0, max(phat, attr(inflist, "max"))))

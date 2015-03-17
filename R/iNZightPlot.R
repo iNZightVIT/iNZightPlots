@@ -105,6 +105,9 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         df <- inzDataframe(m, data = md, names = varnames, g1.level, g2.level, env = env)
     }
 
+    total.missing <- sum(apply(df$data, 1, function(x) any(is.na(x))))
+    total.obs <- nrow(df$data)
+
     ## df will have a class: inz.simple, inz.freq, inz.survey
     ## each of these classes will have appropriate methods for extracting the information
 
@@ -730,7 +733,9 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     attr(plot.list, "glevels") <- g.level
     attr(plot.list, "vartypes") <- vartypes
     attr(plot.list, "missing") <- missing
-
+    attr(plot.list, "total.missing") <- total.missing
+    attr(plot.list, "total.obs") <- total.obs
+    
     class(plot.list) <- "inzplotoutput"
     return(invisible(plot.list))
 }

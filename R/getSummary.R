@@ -78,6 +78,8 @@ summary.inzplotoutput <- function(object, width = 100) {
     g.levels <- attr(obj, "glevels")
     vartypes <- attr(obj, "vartypes")
     missing <- attr(obj, "missing")
+    total.missing <- attr(obj, "total.missing")
+    total.obs <- attr(obj, "total.obs")
 
     
     add(Hrule)
@@ -102,11 +104,24 @@ summary.inzplotoutput <- function(object, width = 100) {
                                 do.call(paste, c(vnames[c("g1", "g2")[wg]], list(sep = " and ")))))
     }
 
-    if (!is.null(missing)) {
-        print(missing)
-        mat <- rbind(mat, "",
-                     cbind(ind("Total number of missing observations: "),
-                           sum(sapply(missing, sum))))
+    mat <- rbind(mat, "",
+                 cbind("Total number of observations: ", total.obs))
+    if (total.missing > 0) {
+        allnames <- c("x", "y", "g1", "g2")
+        nn <- allnames[allnames %in% names(missing)]
+        nn <- nn[sapply(missing[nn], function(m) m > 0)]
+        mat <- rbind(mat,
+                     cbind(ind("Number ommitted due to missingness: "),
+                           paste0(total.missing,
+                                  if (length(missing) > 1) {
+                                      paste0(" (",
+                                             paste(sapply(nn, function(i) {
+                                                 paste0(missing[[i]], " in ", vnames[[i]])
+                                             }), collapse = ", "),
+                                             ")")
+                                  })),
+                     cbind(ind("Total number of observations used: "),
+                           total.obs - total.missing))
     }
     mat <- cbind(format(mat[, 1], justify = "right"), mat[, 2])
     apply(mat, 1, add)
@@ -169,7 +184,6 @@ summary.inzplotoutput <- function(object, width = 100) {
             add(header, underline = TRUE)
             add("")
 
-
             sapply(summary(pl), add)
             
             add("")
@@ -179,6 +193,12 @@ summary.inzplotoutput <- function(object, width = 100) {
     })
 
     add(Hrule)
+
+    ## Notes:
+    add("")
+    add("")
+
+    
     
     class(out) <- "inzight.plotsummary"
     out
