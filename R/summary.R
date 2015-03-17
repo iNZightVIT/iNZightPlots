@@ -112,7 +112,7 @@ summary.inzscatter <- function(object, vn) {
     trend <- object$trend
 
     out <- character()
-    
+    print(vn)
     if ("linear" %in% trend) {
         beta <- signif(coef(lm(y ~ x)), 4)
         out <- c(out,
