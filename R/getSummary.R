@@ -86,12 +86,24 @@ summary.inzplotoutput <- function(object, width = 100) {
     add(center("iNZight Summary", width))
     add(hrule)
 
+    scatter <- FALSE
+    if ("y" %in% names(vnames)) {
+        if (vartypes[[vnames$x]] == "numeric" & vartypes[[vnames$y]] == "numeric") {
+            scatter <- TRUE
+        }
+    }
+
     ## A tidy header that formats the vames of the variables
-    mat <- cbind(ind("Primary variable of interest: "),
-                 paste0(vnames$x, " (", vartypes[[vnames$x]], ")"))
+    mat <- cbind(ind(ifelse(scatter, "Response variable: ", "Primary variable of interest: ")),
+                 paste0(ifelse(scatter, vnames$y, vnames$x),
+                        " (", vartypes[[ifelse(scatter, vnames$y, vnames$x)]], ")"))
+    
     if ("y" %in% names(vnames))
-        mat <- rbind(mat, cbind(ind("Secondary variable: "),
-                                paste0(vnames$y,  " (", vartypes[[vnames$y]], ")")))
+        mat <- rbind(mat, cbind(ind(paste0(ifelse(scatter,
+                                                  "Predictor/explanatory", "Secondary"),
+                                           " variable: ")),
+                                paste0(ifelse(scatter, vnames$x, vnames$y),
+                                       " (", vartypes[[ifelse(scatter, vnames$x, vnames$y)]], ")")))
 
     wg <- c("g1", "g2") %in% names(vnames)
 
@@ -136,7 +148,6 @@ summary.inzplotoutput <- function(object, width = 100) {
         if (this != "all") {
             add(Hrule)
             add(ind("For the subset where ", 5), vnames$g2, " = ", this)
-            #add(Hrule)
         }
         
         lapply(names(obj[[this]]), function(o) {
