@@ -279,11 +279,10 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         titles$main <-
             if (!is.null(dots$main)) dots$main
             else makeTitle(varnames, VT, g1.level, g2.level)
-        titles$xlab <- if (!is.null(dots$xlab)) dots$xlab else varnames$x
+        titles$xlab <- xlab
         if (!ynull) {
             titles$ylab <-
-                if (!is.null(dots$ylab)) dots$ylab
-                else if (xfact & yfact) "Proportion (%)" else varnames$y
+                if (xfact & yfact) "Proportion (%)" else ylab
         } else if (xfact) {
             titles$ylab <- "Proportion (%)"
         }
