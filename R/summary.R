@@ -1,4 +1,4 @@
-summary.inzdot <- function(object) {
+summary.inzdot <- function(object, ...) {
     ## Generate summary information:
 
 
@@ -49,7 +49,7 @@ summary.inzdot <- function(object) {
 
 
 
-summary.inzbar <- function(object) {
+summary.inzbar <- function(object, ...) {
     tab <- object$tab
     perc <- object$phat * 100
 
@@ -102,4 +102,53 @@ summary.inzbar <- function(object) {
         mat <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
         mat
     }
+}
+
+
+
+summary.inzscatter <- function(object, vn) {
+    x <- object$x
+    y <- object$y
+    trend <- object$trend
+
+    out <- character()
+    
+    if ("linear" %in% trend) {
+        beta <- signif(coef(lm(y ~ x)), 4)
+        out <- c(out,
+                 "Linear trend:", "",
+                 paste0("    ",
+                        vn$y, " = ",
+                        beta[1], " + ",
+                        beta[2], " * ", vn$x),
+                 paste0("    Linear correlation: ", round(cor(x, y), 2)),
+                 "")
+    }
+    if ("quadratic" %in% trend) {
+        beta <- signif(coef(lm(y ~ x + I(x^2))), 4)
+        out <- c(out,
+                 "Quadratic trend:", "",
+                 paste0("    ",
+                        vn$y, " = ",
+                        beta[1], " + ",
+                        beta[2], " * ", vn$x, " + ",
+                        beta[3], " * ", vn$x, "^2"), "")
+    }
+    if ("cubic" %in% trend) {
+        beta <- signif(coef(lm(y ~ x + I(x^2) + I(x^3))), 4)
+        out <- c(out,
+                 "Cubic trend:", "",
+                 paste0("    ",
+                        vn$y, " = ",
+                        beta[1], " + ",
+                        beta[2], " * ", vn$x, " + ",
+                        beta[3], " * ", vn$x, "^2 + ",
+                        beta[4], " * ", vn$x, "^3"), "")
+    }
+    
+    rank.cor <- cor(x, y, method = "spearman")
+    out <- c(out,
+             paste0("Rank correlation: ", sprintf("%.2f", rank.cor),
+                    "  (using Spearman's Rank Correlation)"))
+      
 }

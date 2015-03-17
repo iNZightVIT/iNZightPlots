@@ -50,7 +50,8 @@ create.inz.scatterplot <- function(obj) {
                 nacol = if ("colby" %in% v) any(is.na(df$colby)) else FALSE,
                 nasize = if ("sizeby" %in% v) any(is.na(df$sizeby)) else FALSE,
                 xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
-                ylim = if (nrow(df) > 0) range(df$y, na.rm = TRUE) else c(-Inf, Inf))
+                ylim = if (nrow(df) > 0) range(df$y, na.rm = TRUE) else c(-Inf, Inf),
+                trend = opts$trend, trend.by = opts$trend.by, smooth = opts$trend)
     if (xattr$class == "inz.survey")
         out$svy <- obj$df
 

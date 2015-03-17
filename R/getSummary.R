@@ -149,7 +149,7 @@ summary.inzplotoutput <- function(object, width = 100) {
                                      switch(vartypes[[vnames$y]],
                                             "numeric" = {
                                                 sprintf("Summary of %s versus %s",
-                                                        vnames$y, vnames$x)
+                                                        vnames$x, vnames$y)
                                             },
                                             "factor" = {
                                                 sprintf("Summary of %s by %s",
@@ -184,7 +184,7 @@ summary.inzplotoutput <- function(object, width = 100) {
             add(header, underline = TRUE)
             add("")
 
-            sapply(summary(pl), add)
+            sapply(summary(pl, vnames), add)
             
             add("")
         })
