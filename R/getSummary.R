@@ -2,7 +2,8 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            g2 = NULL, g2.level = NULL, varnames = list(),
                            colby = NULL, sizeby = NULL,
                            data = NULL, design = NULL, freq = NULL,
-                           missing.info = TRUE, inzpars = inzpar(), ...) {
+                           missing.info = TRUE, inzpars = inzpar(),
+                           summary.type = "summary", ...) {
 
     ## Grab a plot object!
     m <- match.call(expand.dots = FALSE)
@@ -21,11 +22,12 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 varnames$g1 <- varnames$g2
                 varnames$g2 <- NULL
             }
-            iNZightPlot(x = x, y = y, g1 = g2, g1.level = g2.level, g2 = NULL, g2.level = NULL,
-                        varnames = varnames, colby = colby, sizeby = sizeby, data = data,
-                        design = design, freq = freq, missing.info = missing.info,
-                        xlab = xlab, ylba= ylab, new = new, inzpars = inzpars,
-                        layout.only = layout.only, plot = plot, env = env, ...)
+            getPlotSummary(x = x, y = y, g1 = g2, g1.level = g2.level, g2 = NULL, g2.level = NULL,
+                           varnames = varnames, colby = colby, sizeby = sizeby, data = data,
+                           design = design, freq = freq, missing.info = missing.info,
+                           xlab = xlab, ylba= ylab, new = new, inzpars = inzpars,
+                           layout.only = layout.only, plot = plot, env = env,
+                           summary.type = summary.type, ...)
         }
     }
     
@@ -33,6 +35,40 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ## information, including survey design, or frequency information:
     if (!"df" %in% ls())
         df <- inzDataframe(m, data = md, names = varnames, g1.level, g2.level, env = env)
+
+
+    ### This is getting complex... so for now ignore manual use.
+
+    ## ## Modify `inzpars` for the inference:
+    ## dots <- list(...)
+    ## inference.type <- inference.par <- NULL
+    ## bs.inference <- FALSE
+    ## if (summary.type[1] == "inference") {
+    ##     if (!"inference.type" %in% names(dots))
+    ##         inference.type <- inzpars$inference.type
+    ##     else
+    ##         inference.type <- dots$inference.type
+        
+    ##     if (is.null(inference.type))
+    ##         inference.type <- "conf"
+
+
+    ##     if (!"inference.par" %in% names(dots))
+    ##         inference.par <- inzpars$inference.par
+    ##     else
+    ##         inference.par <- dots$inference.par
+
+    ##     ## Set the default to "mean" - barplots automatically use proportion
+    ##     if (is.null(inference.par))
+    ##         inference.par <- "mean"
+
+
+    ##     ## and grab bootstrap info ...
+    ##     if (!"bs.inference" %in% names(dots))
+    ##         bs.inference <- inzpars$bs.inference
+    ##     else
+    ##         bs.inference <- dots$bs.inference
+    ## }
     
     obj <- iNZightPlot(x = x, y = y, g1 = g1, g1.level = g1.level,
                        g2 = g2, g2.level = g2.level, varnames = varnames,
@@ -43,12 +79,19 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
 
     ### Now we just loop over everything ...
-
-    summary(obj)
+    
+    summary(obj, summary.type)
 }
 
 
-summary.inzplotoutput <- function(object, width = 100) {
+summary.inzplotoutput <- function(object, summary.type = "summary", width = 100) {
+    if (length(summary.type) > 1) {
+        warning("Only using the first element of `summary.type`")
+        summary.type <- summary.type[1]
+    }
+    if (!summary.type %in% c("summary", "inference"))
+        stop("`summary.type` must be either `summary` or `inference`")
+    
     obj <- object  ## same typing ... but match default `summary` method arguments
 
     ## set up some variables/functions to make text processing easier ...
@@ -59,11 +102,7 @@ summary.inzplotoutput <- function(object, width = 100) {
     Hrule <- rule("=", width)
     hrule <- rule("-", width)
     srule <- rule("*", width)
-    center <- function(x, width) {
-        len <- nchar(x)
-        pad <- floor((width - len) / 2)
-        paste0(paste0(rep(" ", pad), collapse = ""), x)
-    }
+    center <- centerText
     ind <- function(x, indent = 3)
         paste0(paste0(rep(" ", indent), collapse = ""), x)
     
@@ -80,10 +119,18 @@ summary.inzplotoutput <- function(object, width = 100) {
     missing <- attr(obj, "missing")
     total.missing <- attr(obj, "total.missing")
     total.obs <- attr(obj, "total.obs")
-
+    bs <- attr(obj, "bootstrap")
+    
     
     add(Hrule)
-    add(center("iNZight Summary", width))
+    add(center(switch(summary.type,
+                      "summary" =
+                      "iNZight Summary",
+                      "inference" =
+                      paste("iNZight Inference using",
+                            ifelse(bs,
+                                   "the Nonparametric Bootstrap",
+                                   "Normal Theory"))), width))
     add(hrule)
 
     scatter <- FALSE
@@ -141,7 +188,13 @@ summary.inzplotoutput <- function(object, width = 100) {
 
     add(Hrule)
     add("")
-    
+
+    simpleCap <- function(x) {
+        s <- strsplit(x, " ")[[1]]
+        paste(toupper(substring(s, 1,1)), substring(s, 2),
+              sep="", collapse=" ")
+    }
+    stype <- simpleCap(summary.type)
     
     ## Cycle through G2 first
     lapply(names(obj), function(this) {
@@ -159,30 +212,30 @@ summary.inzplotoutput <- function(object, width = 100) {
                                  if ("y" %in% names(vnames)) {
                                      switch(vartypes[[vnames$y]],
                                             "numeric" = {
-                                                sprintf("Summary of %s versus %s",
-                                                        vnames$y, vnames$x)
+                                                sprintf("%s of %s versus %s",
+                                                        stype, vnames$y, vnames$x)
                                             },
                                             "factor" = {
-                                                sprintf("Summary of %s by %s",
-                                                        vnames$x, vnames$y)
+                                                sprintf("%s of %s by %s",
+                                                        stype, vnames$x, vnames$y)
                                             })
                                  } else {
-                                     sprintf("Summary of %s", vnames$x)
+                                     sprintf("%s of %s", stype, vnames$x)
                                  }
                              },
                              "factor" = {
                                  if ("y" %in% names(vnames)) {
                                      switch(vartypes[[vnames$y]],
                                             "numeric" = {
-                                                sprintf("Summary of the distribution of %s by %s",
-                                                        vnames$x, vnames$y)
+                                                sprintf("%s of the distribution of %s by %s",
+                                                        stype, vnames$x, vnames$y)
                                             },
                                             "factor" = {
-                                                sprintf("Summary of the distribution of %s by %s",
-                                                        vnames$x, vnames$y)
+                                                sprintf("%s of the distribution of %s by %s",
+                                                        stype, vnames$x, vnames$y)
                                             })
                                  } else {
-                                     sprintf("Summary of the distribution of %s", vnames$x)
+                                     sprintf("%s of the distribution of %s", stype, vnames$x)
                                  }
                              })
 
@@ -195,7 +248,10 @@ summary.inzplotoutput <- function(object, width = 100) {
             add(header, underline = TRUE)
             add("")
 
-            sapply(summary(pl, vnames), add)
+            sapply(switch(summary.type,
+                          "summary" = summary(pl, vnames),
+                          "inference" = inference(pl, bs, width = width)),
+                   add)
             
             add("")
         })
@@ -219,4 +275,13 @@ summary.inzplotoutput <- function(object, width = 100) {
 
 print.inzight.plotsummary <- function(text) {
     cat(text, sep = "\n")
+}
+
+
+
+
+centerText <- function(x, width) {
+    len <- nchar(x)
+    pad <- floor((width - len) / 2)
+    paste0(paste0(rep(" ", pad), collapse = ""), x)
 }

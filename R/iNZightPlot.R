@@ -737,6 +737,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     attr(plot.list, "missing") <- missing
     attr(plot.list, "total.missing") <- total.missing
     attr(plot.list, "total.obs") <- total.obs
+    attr(plot.list, "bootstrap") <- opts$bs.inference
     
     class(plot.list) <- "inzplotoutput"
     return(invisible(plot.list))

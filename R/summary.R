@@ -1,14 +1,8 @@
 summary.inzdot <- function(object, ...) {
     ## Generate summary information:
-
-
+    
     ## Produce a matrix of the required summary:
     toplot <- object$toplot
-    ## missing <- object$n.missing
-    ## if (!is.null(attr(missing, "levels")))
-    ##         missing <- attr(missing, "levels")
-    ## else
-    ##     missing <- structure(missing, .Names = "all")
     
     do.call(rbind, lapply(names(toplot), function(p) {
         x <- toplot[[p]]$x
@@ -106,7 +100,7 @@ summary.inzbar <- function(object, ...) {
 
 
 
-summary.inzscatter <- function(object, vn) {
+summary.inzscatter <- function(object, vn, ...) {
     x <- object$x
     y <- object$y
     trend <- object$trend
