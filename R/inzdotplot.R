@@ -291,155 +291,164 @@ dotinference <- function(obj) {
             dat <- dat[!is.na(dat$y), ]
         }
     }
-    
+
     if (!is.null(inf.par)) {
-        switch(inf.par[1],
-               "mean" = {
-                   lapply(inf.type, function(type) {
-                       switch(type,
-                              "conf" = {
-                                  if (bs) {
-                                      ## 95% bootstrap confidence interval
-                                      if (svy) {
-                                          if ("y" %in% colnames(dat$variables)) {
-                                              NULL
-                                          } else {
-                                              NULL
-                                          }
-                                      } else {
-                                          b <- boot(dat, strata = dat$y,
-                                                    function(d, f) tapply(d[f, 1], d[f, 2], mean, na.rm = TRUE),
-                                                    R = opts$n.boot)
-                                          ci <- t(apply(b$t, 2, quantile, probs = c(0.025, 0.975), na.rm = TRUE))
-                                          dimnames(ci) <- list(levels(dat$y),
-                                                               c("lower", "upper"))
-                                          ci
-                                      }
-                                  } else {
-                                      ## 95% confidence interval (normal theory)
-                                      if (svy) {
-                                          ## This doesn't account for clustering
-                                          ##
-                                          ## if ("y" %in% colnames(dat$variables)) {
-                                          ##     fit <- svyglm(x ~ y, design = dat)
-                                          ##     ci <- confint(predict(fit, newdata = data.frame(y = levels(dat$variables$y))))
-                                          ##     dimnames(ci) <- list(levels(dat$variables$y),
-                                          ##                          c("lower", "upper"))
-                                          ## } else {
-                                          ##     fit <- svyglm(x ~ 1, design = dat)
-                                          ##     ci <- confint(fit)
-                                          ##     dimnames(ci) <- list("all", c("lower", "upper"))
-                                          ## }
-                                          ## ci
-                                      } else {
-                                          n <- tapply(dat$x, dat$y, function(z) sum(!is.na(z)))
-                                          n <- ifelse(n < 2, NA, n)
-                                          wd <- qt(0.975, df = n - 1) * tapply(dat$x, dat$y, sd,
-                                                              na.rm = TRUE) / sqrt(n)
-                                          mn <- tapply(dat$x, dat$y, mean, na.rm = TRUE)
-                                          cbind(lower = mn - wd, upper = mn + wd)
-                                      }
-                                  }
-                              },
-                              "comp" = {
-                                  if (bs) {
-                                      if (svy) {
-                                          NULL
-                                      } else {
-                                          b <- boot(dat, strata = dat$y,
-                                                    function(d, f) tapply(d[f, 1], d[f, 2], mean, na.rm = TRUE),
-                                                    R = opts$n.boot)
-                                          cov <- cov(b$t)
-                                          ses <- suppressWarnings(iNZightMR:::seCovs(cov))
-                                          ci <- suppressWarnings(iNZightMR:::moecalc(
-                                              ses, est = tapply(dat$x, dat$y, mean, na.rm = TRUE)
-                                          ))
-                                          cbind(lower = ci$compL, upper = ci$compU)
-                                      }
-                                  } else {
-                                      if (svy) {
-                                          NULL
-                                      } else {
-                                          ##############################################################
-                                          # This is the old method, an approximately 75% CI ...        #
-                                          ##############################################################
-                                          # n <- tapply(dat$x, dat$y, function(z) sum(!is.na(z)))      #
-                                          # wd <- tapply(dat$x, dat$y, sd, na.rm = TRUE) / sqrt(2 * n) #
-                                          # mn <- tapply(dat$x, dat$y, mean, na.rm = TRUE)             #
-                                          # cbind(lower = mn - wd, upper = mn + wd)                    #
-                                          ##############################################################
-
-                                          ## The new method uses iNZightMR:
-
-                                          if(any(is.na(tapply(dat$x, dat$y, length)))) {
-                                              NULL
-                                          } else {
-                                              fit <- lm(x ~ y, data = dat)
-                                              est <- predict(fit, newdata = data.frame(y = levels(dat$y)))
-                                              mfit <- suppressWarnings(iNZightMR:::moecalc(fit, factorname = "y", est = est))
-                                              with(mfit, cbind(compL, compU)) + coef(fit)[1]
-                                          }
-                                      }
-                                  }
-                              })
-                   })
-               },
-               "median" = {
-                   lapply(inf.type, function(type) {
-                       switch(type,
-                              "conf" = {
-                                  if (bs) {
-                                      if (svy) {
-                                          NULL
-                                      } else {
-                                          b <- boot(dat, strata = dat$y,
-                                                    function(d, f) tapply(d[f, 1], d[f, 2], quantile, probs = 0.5, na.rm = TRUE),
-                                                    R = 2 * opts$n.boot)
-                                          ci <- t(apply(b$t, 2, quantile, probs = c(0.025, 0.975), na.rm = TRUE))
-                                          dimnames(ci) <- list(levels(dat$y),
-                                                               c("lower", "upper"))
-                                          ci
-                                      }
-                                  } else {
-                                      if (svy) {
-                                          NULL
-                                      } else {
-                                          NULL
-                                      }
-                                  }
-                              },
-                              "comp" = {
-                                  if (bs) {
-                                      if (svy) {
-                                          NULL
-                                      } else {
-                                          b <- boot(dat, strata = dat$y,
-                                                    function(d, f) tapply(d[f, 1], d[f, 2], median, na.rm = TRUE),
-                                                    R = opts$n.boot)
-                                          cov <- cov(b$t)
-                                          ses <- suppressWarnings(iNZightMR:::seCovs(cov))
-                                          ci <- suppressWarnings(iNZightMR:::moecalc(ses, est = tapply(dat$x, dat$y, median, na.rm = TRUE)))
-                                          cbind(lower = ci$compL, upper = ci$compU)
-                                      }
-                                  } else {
-                                      if (svy) {
-                                          NULL
-                                      } else {
-                                          n <- tapply(dat$x, dat$y, function(z) sum(!is.na(z)))
-                                          wd <- 1.5 * tapply(dat$x, dat$y, function(z) abs(diff(quantile(z, c(0.25, 0.75), na.rm = TRUE)))) / sqrt(n)
-                                          mn <- tapply(dat$x, dat$y, quantile, probs = 0.5, na.rm = TRUE)
-                                          cbind(lower = mn - wd, upper = mn + wd)
-                                      }
-                                  }
-                              })
-                   })
-               }) -> result
-        
-        names(result) <- inf.type
-       
+        lapply(inf.par, function(ip) {
+            switch(
+                ip,
+                "mean" = {
+                    lapply(inf.type, function(type) {
+                        switch(
+                            type,
+                            "conf" = {
+                                if (bs) {
+                                    ## 95% bootstrap confidence interval
+                                    if (svy) {
+                                        if ("y" %in% colnames(dat$variables)) {
+                                            NULL
+                                        } else {
+                                            NULL
+                                        }
+                                    } else {
+                                        b <- boot(dat, strata = dat$y,
+                                                  function(d, f) tapply(d[f, 1], d[f, 2], mean, na.rm = TRUE),
+                                                  R = opts$n.boot)
+                                        ci <- cbind(t(apply(b$t, 2, quantile, probs = c(0.025, 0.975), na.rm = TRUE)),
+                                                    colMeans(b$t))
+                                        dimnames(ci) <- list(levels(dat$y),
+                                                             c("lower", "upper", "mean"))
+                                        ci
+                                    }
+                                } else {
+                                    ## 95% confidence interval (normal theory)
+                                    if (svy) {
+                                        ## This doesn't account for clustering
+                                        ##
+                                        ## if ("y" %in% colnames(dat$variables)) {
+                                        ##     fit <- svyglm(x ~ y, design = dat)
+                                        ##     ci <- confint(predict(fit, newdata = data.frame(y = levels(dat$variables$y))))
+                                        ##     dimnames(ci) <- list(levels(dat$variables$y),
+                                        ##                          c("lower", "upper"))
+                                        ## } else {
+                                        ##     fit <- svyglm(x ~ 1, design = dat)
+                                        ##     ci <- confint(fit)
+                                        ##     dimnames(ci) <- list("all", c("lower", "upper"))
+                                        ## }
+                                        ## ci
+                                    } else {
+                                        n <- tapply(dat$x, dat$y, function(z) sum(!is.na(z)))
+                                        n <- ifelse(n < 2, NA, n)
+                                        wd <- qt(0.975, df = n - 1) * tapply(dat$x, dat$y, sd,
+                                                            na.rm = TRUE) / sqrt(n)
+                                        mn <- tapply(dat$x, dat$y, mean, na.rm = TRUE)
+                                        cbind(lower = mn - wd, upper = mn + wd, mean = mn)
+                                    }
+                                }
+                            },
+                            "comp" = {
+                                if (bs) {
+                                    if (svy) {
+                                        NULL
+                                    } else {
+                                        b <- boot(dat, strata = dat$y,
+                                                  function(d, f) tapply(d[f, 1], d[f, 2], mean, na.rm = TRUE),
+                                                  R = opts$n.boot)
+                                        cov <- cov(b$t)
+                                        ses <- suppressWarnings(iNZightMR:::seCovs(cov))
+                                        ci <- suppressWarnings(iNZightMR:::moecalc(
+                                            ses, est = tapply(dat$x, dat$y, mean, na.rm = TRUE)
+                                        ))
+                                        cbind(lower = ci$compL, upper = ci$compU)
+                                    }
+                                } else {
+                                    if (svy) {
+                                        NULL
+                                    } else {
+                                        ## ########################################################## ##
+                                        ## This is the old method, an approximately 75% CI ...        ##
+                                        ## ########################################################## ##
+                                        ## n <- tapply(dat$x, dat$y, function(z) sum(!is.na(z)))      ##
+                                        ## wd <- tapply(dat$x, dat$y, sd, na.rm = TRUE) / sqrt(2 * n) ##
+                                        ## mn <- tapply(dat$x, dat$y, mean, na.rm = TRUE)             ##
+                                        ## cbind(lower = mn - wd, upper = mn + wd)                    ##
+                                        ## ########################################################## ##
+                                        
+                                        ## The new method uses iNZightMR:
+                                        
+                                        if(any(is.na(tapply(dat$x, dat$y, length)))) {
+                                            NULL
+                                        } else {
+                                            fit <- lm(x ~ y, data = dat)
+                                            est <- predict(fit, newdata = data.frame(y = levels(dat$y)))
+                                            mfit <- suppressWarnings(iNZightMR:::moecalc(fit, factorname = "y", est = est))
+                                            with(mfit, cbind(compL, compU)) + coef(fit)[1]
+                                        }
+                                    }
+                                }
+                            })
+                    })
+                },
+                "median" = {
+                    lapply(inf.type, function(type) {
+                        switch(
+                            type,
+                            "conf" = {
+                                if (bs) {
+                                    if (svy) {
+                                        NULL
+                                    } else {
+                                        b <- boot(dat, strata = dat$y,
+                                                  function(d, f) tapply(d[f, 1], d[f, 2], quantile, probs = 0.5, na.rm = TRUE),
+                                                  R = 2 * opts$n.boot)
+                                        ci <- cbind(t(apply(b$t, 2, quantile, probs = c(0.025, 0.975), na.rm = TRUE)),
+                                                    colMeans(b$t))
+                                        dimnames(ci) <- list(levels(dat$y),
+                                                             c("lower", "upper", "mean"))
+                                        ci
+                                    }
+                                } else {
+                                    if (svy) {
+                                        NULL
+                                    } else {
+                                        NULL
+                                    }
+                                }
+                            },
+                            "comp" = {
+                                if (bs) {
+                                    if (svy) {
+                                        NULL
+                                    } else {
+                                        b <- boot(dat, strata = dat$y,
+                                                  function(d, f) tapply(d[f, 1], d[f, 2], median, na.rm = TRUE),
+                                                  R = opts$n.boot)
+                                        cov <- cov(b$t)
+                                        ses <- suppressWarnings(iNZightMR:::seCovs(cov))
+                                        ci <- suppressWarnings(iNZightMR:::moecalc(ses, est = tapply(dat$x, dat$y, median, na.rm = TRUE)))
+                                        cbind(lower = ci$compL, upper = ci$compU)
+                                    }
+                                } else {
+                                    if (svy) {
+                                        NULL
+                                    } else {
+                                        n <- tapply(dat$x, dat$y, function(z) sum(!is.na(z)))
+                                        wd <- 1.5 * tapply(dat$x, dat$y, function(z) abs(diff(quantile(z, c(0.25, 0.75), na.rm = TRUE)))) / sqrt(n)
+                                        mn <- tapply(dat$x, dat$y, quantile, probs = 0.5, na.rm = TRUE)
+                                        cbind(lower = mn - wd, upper = mn + wd)
+                                    }
+                                }
+                            })
+                    })
+                }) -> result
+            names(result) <- inf.type
+            result
+        }) -> result.list
+        names(result.list) <- inf.par
+        result.list
     } else {
         return(NULL)
     }
-    attr(result, "bootstrap") <- bs
-    result
+
+    attr(result.list, "bootstrap") <- bs
+    result.list
 }

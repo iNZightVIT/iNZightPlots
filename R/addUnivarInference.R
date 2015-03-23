@@ -2,10 +2,13 @@ addUnivarInference <- function(inflist, i, opts) {
     bs <- attr(inflist, "bootstrap")
     col1 <- ifelse(bs, opts$inf.col.comp[2], opts$inf.col.comp[1])
     col2 <- ifelse(bs, opts$inf.col.conf[2], opts$inf.col.conf[1])
-    
+
+    ## We can only display one type of inference (mean OR median)
+    inflist <- inflist[[1]]
+
     lapply(rev(c("conf", "comp")), function(n) {
         if (!is.null(inflist[[n]])) {
-            ci <- inflist[[n]][i, ]
+            ci <- inflist[[n]][i, c("lower", "upper")]
             grid.lines(x = unit(ci, units = "native"),
                        y = unit(0.5, "npc"),
                        gp =

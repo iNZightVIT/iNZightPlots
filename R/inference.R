@@ -2,27 +2,48 @@ inference <- function(object, ...)
     UseMethod("inference")
 
 
-inference.inzdot <- function(object, bs, width, ...) {
+inference.inzdot <- function(object, bs, class, width, ...) {
     toplot <- object$toplot
     inf <- object$inference.info
 
+    if (is.null(inf[[1]]$conf))
+        stop("Please specify `inference.type = conf` to get inference information.")
+
+    mat <- inf$mean$conf[, c("lower", "mean", "upper"), drop = FALSE]
+    
+    mat <- matrix(apply(mat, 2, function(col) {
+        format(col, digits = 4)
+    }), nrow = nrow(mat))
+    
+    ## Remove NA's and replace with an empty space
+    mat[grep("NA", mat)] <- ""
+    
+    ## Text formatting to return a character vector - each row of matrix
+    mat <- rbind(c("Lower CI", "Mean", "Upper CI"), mat)
+    colnames(mat) <- NULL
+    
+    byFactor <- length(toplot) > 1
+    
+    if (byFactor)
+        mat <- cbind(c("", names(toplot)), mat)
+    rownames(mat) <- NULL
+    
+    mat <- matrix(apply(mat, 2, function(col) {
+        format(col, justify = "right")
+    }), nrow = nrow(mat))
+    
+    out <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
+    
+    plural <- ifelse(byFactor, "s", "")
+    bsCI <- ifelse(bs, " Percentile Bootstrap", "")
+    out <- c(paste0(ifelse(byFactor,
+                           "Group means", "Mean"),
+                    " with 95%", bsCI, " Confidence Interval", plural), "",
+             out)
+
     if (bs) {
-        "Not yet implemented."
-    } else {
-        
-        means <- do.call(rbind, lapply(toplot,
-                                       function(t) {
-                                           if (is.null(t$x))
-                                               NA
-                                           else
-                                               mean(t$x, na.rm = TRUE)
-                                       }))
-        
-        if (is.null(inf$conf))
-            stop("Please specify `inference.type = conf` to get inference information.")
-        
-        mat <- cbind(means, inf$conf)
-        mat <- mat[, c(2, 1, 3), drop = FALSE]
+        ## for simplicity, if no 'y' factor, just make all the same level for tapply later:
+        mat <- inf$median$conf[, c("lower", "mean", "upper"), drop = FALSE]
         
         mat <- matrix(apply(mat, 2, function(col) {
             format(col, digits = 4)
@@ -32,7 +53,7 @@ inference.inzdot <- function(object, bs, width, ...) {
         mat[grep("NA", mat)] <- ""
         
         ## Text formatting to return a character vector - each row of matrix
-        mat <- rbind(c("Lower CI", "Mean", "Upper CI"), mat)
+        mat <- rbind(c("Lower CI", "Median", "Upper CI"), mat)
         colnames(mat) <- NULL
         
         byFactor <- length(toplot) > 1
@@ -45,72 +66,72 @@ inference.inzdot <- function(object, bs, width, ...) {
             format(col, justify = "right")
         }), nrow = nrow(mat))
         
-        out <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
+        mat <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
         
-        plural <- ifelse(byFactor, "s", "")
-        out <- c(paste0(ifelse(byFactor,
-                               "Group means", "Mean"),
-                        " with 95% Confidence Interval", plural), "",
-                 out)
+        out <- c(out, "",
+                 paste0(ifelse(byFactor,
+                           "Group medians", "Median"),
+                    " with 95%", bsCI, " Confidence Interval", plural), "", mat)
+    }
+
+
+    
+    ### NOTE: this doesn't account for SURVEY design yet.
+    
+    if (byFactor & !bs) {
+        ## For x ~ factor, we also include an F test, and multiple comparisons
+        ## (estimates, pvalues, and confidence intervals).
         
-        if (byFactor) {
-            ## For x ~ factor, we also include an F test, and multiple comparisons
-            ## (estimates, pvalues, and confidence intervals).
-            
-            dat <- do.call(rbind, lapply(names(toplot),
-                                         function(t) {
-                                             if (is.null(toplot[[t]]$x))
+        dat <- do.call(rbind, lapply(names(toplot),
+                                     function(t) {
+                                         if (is.null(toplot[[t]]$x))
                                                  NULL
-                                             else
-                                                 data.frame(x = toplot[[t]]$x, y = t)
-                                         }
-                                         ))
-            fit <- lm(x ~ y, data = dat)
+                                         else
+                                             data.frame(x = toplot[[t]]$x, y = t)
+                                     }
+                                     ))
+        fit <- lm(x ~ y, data = dat)
+        
+        fstat <- summary(fit)$fstatistic
+        
+        Ftest <- c("Overall F-test", "",
+                   paste0("F: ", signif(fstat[1], 5), "   ", 
+                          "df: ", fstat[2], " and ", fstat[3], "   ",
+                          "p-value: ",
+                          format.pval(pf(fstat[1], fstat[2], fstat[3], lower.tail = FALSE),
+                                      digits = 2)))
+        
+        out <- c(out, "", Ftest, "",
+                 "", "   *** Differences between Group Means (column - row) ***", "")
+        
+        means <- predict(fit, newdata = data.frame(y = levels(dat$y)))
+        names(means) <- LEVELS <- levels(dat$y)
+        diffMat <- outer(means, means, function(x, y) y - x)
+        diffMat <- formatTriMat(diffMat, LEVELS)
+        
+        out <- c(out,
+                 "Estimates", "",
+                 apply(diffMat, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
+        
+        mc <- try(s20x::multipleComp(fit))
+        if (!inherits(mc, "try-error")) {
+            cimat <- triangularMatrix(LEVELS, mc, "ci")
+            cimat <- formatMat(cimat)
             
-            fstat <- summary(fit)$fstatistic
-            
-            Ftest <- c("Overall F-test", "",
-                       paste0("F: ", signif(fstat[1], 5), "   ", 
-                              "df: ", fstat[2], " and ", fstat[3], "   ",
-                              "p-value: ",
-                              format.pval(pf(fstat[1], fstat[2], fstat[3], lower.tail = FALSE),
-                                          digits = 2)))
-            
-            out <- c(out, "", Ftest, "",
-                     "", "   *** Differences between Group Means (column - row) ***", "")
-            
-            means <- predict(fit, newdata = data.frame(y = levels(dat$y)))
-            names(means) <- LEVELS <- levels(dat$y)
-            diffMat <- outer(means, means, function(x, y) y - x)
-            diffMat <- formatTriMat(diffMat, LEVELS)
-
-            out <- c(out,
-                     "Estimates", "",
-                     apply(diffMat, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
-
-            mc <- try(s20x::multipleComp(fit))
-            if (!inherits(mc, "try-error")) {
-                cimat <- triangularMatrix(LEVELS, mc, "ci")
-                cimat <- formatMat(cimat)
-                
-                out <- c(out, "",
-                         "95% Confidence Intervals (adjusted for multiple comparisons)", "",
-                         apply(cimat, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
-                
-                
-                pmat <- triangularMatrix(LEVELS, mc, "p-values")
-                pmat <- formatMat(pmat, 2)
-                
-                out <- c(out, "",
-                         "P-values", "",
-                         apply(pmat, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
-                
-            } else {
-                out <- c(out, "", "Unable to compute confidence intervals and p-values.")
-            }
+            out <- c(out, "",
+                     "95% Confidence Intervals (adjusted for multiple comparisons)", "",
+                     apply(cimat, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
             
             
+            pmat <- triangularMatrix(LEVELS, mc, "p-values")
+            pmat <- formatMat(pmat, 2)
             
+            out <- c(out, "",
+                     "P-values", "",
+                     apply(pmat, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
+            
+        } else {
+            out <- c(out, "", "Unable to compute confidence intervals and p-values.")
         }
     }
     

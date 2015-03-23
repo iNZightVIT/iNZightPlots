@@ -120,7 +120,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary", width = 100)
     total.missing <- attr(obj, "total.missing")
     total.obs <- attr(obj, "total.obs")
     bs <- attr(obj, "bootstrap")
-    
+    inzclass <- attr(obj, "inzclass")    
     
     add(Hrule)
     add(center(switch(summary.type,
@@ -250,7 +250,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary", width = 100)
 
             sapply(switch(summary.type,
                           "summary" = summary(pl, vnames),
-                          "inference" = inference(pl, bs, width = width)),
+                          "inference" = inference(pl, bs, inzclass, width = width)),
                    add)
             
             add("")
