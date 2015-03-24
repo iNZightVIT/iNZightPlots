@@ -37,12 +37,12 @@ inference.inzdot <- function(object, bs, class, width, ...) {
     plural <- ifelse(byFactor, "s", "")
     bsCI <- ifelse(bs, " Percentile Bootstrap", "")
     out <- c(paste0(ifelse(byFactor,
-                           "Group means", "Mean"),
+                           "Group Means", "Mean"),
                     " with 95%", bsCI, " Confidence Interval", plural), "",
              out)
 
     if (bs) {
-        ## for simplicity, if no 'y' factor, just make all the same level for tapply later:
+        ## BOOTSTRAP MEDIAN
         mat <- inf$median$conf[, c("lower", "mean", "upper"), drop = FALSE]
         
         mat <- matrix(apply(mat, 2, function(col) {
@@ -70,7 +70,39 @@ inference.inzdot <- function(object, bs, class, width, ...) {
         
         out <- c(out, "",
                  paste0(ifelse(byFactor,
-                           "Group medians", "Median"),
+                           "Group Medians", "Median"),
+                    " with 95%", bsCI, " Confidence Interval", plural), "", mat)
+
+
+        ## BOOTSTRAP INTERQUARTILE RANGE
+        mat <- inf$iqr$conf[, c("lower", "mean", "upper"), drop = FALSE]
+        
+        mat <- matrix(apply(mat, 2, function(col) {
+            format(col, digits = 4)
+        }), nrow = nrow(mat))
+        
+        ## Remove NA's and replace with an empty space
+        mat[grep("NA", mat)] <- ""
+        
+        ## Text formatting to return a character vector - each row of matrix
+        mat <- rbind(c("Lower CI", "IQR", "Upper CI"), mat)
+        colnames(mat) <- NULL
+        
+        byFactor <- length(toplot) > 1
+        
+        if (byFactor)
+            mat <- cbind(c("", names(toplot)), mat)
+        rownames(mat) <- NULL
+        
+        mat <- matrix(apply(mat, 2, function(col) {
+            format(col, justify = "right")
+        }), nrow = nrow(mat))
+        
+        mat <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
+        
+        out <- c(out, "",
+                 paste0(ifelse(byFactor,
+                           "Group Interquartile Ranges", "Interquartile Range"),
                     " with 95%", bsCI, " Confidence Interval", plural), "", mat)
     }
 

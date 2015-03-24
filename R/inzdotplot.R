@@ -439,6 +439,27 @@ dotinference <- function(obj) {
                                 }
                             })
                     })
+                },
+                "iqr" = {
+                    list(conf = 
+                             if ("conf" %in% inf.type & bs) {
+                                 if (svy) {
+                                     NULL
+                                 } else {
+                                     b <- boot(dat, strata = dat$y,
+                                               function(d, f) tapply(d[f, 1], d[f, 2],
+                                                                     function(x) diff(quantile(x, probs = c(0.25, 0.75), na.rm = TRUE))),
+                                               R = 2 * opts$n.boot)
+                                     iqr <- cbind(t(apply(b$t, 2, quantile, probs = c(0.025, 0.975), na.rm = TRUE)),
+                                                  colMeans(b$t))
+                                     dimnames(iqr) <- list(levels(dat$y),
+                                                           c("lower", "upper", "mean"))
+                                     iqr
+                                 }
+                             } else {
+                                 NULL
+                             }
+                         )
                 }) -> result
             names(result) <- inf.type
             result
