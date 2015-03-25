@@ -219,7 +219,81 @@ inference.inzbar <- function(object, ...) {
 }
 
 
-inference.inzscatter <- function(object, ...) {
+inference.inzscatter <- function(object, bs, vn, ...) {
+    d <- data.frame(x = object$x, y = object$y)
+    trend <- object$trend
+    
+    if (is.null(trend))
+        return("Please specify a trend line to obtain inference information.")
 
-    NULL
+    ## Ensure the order is linear/quad/cubic
+    allT <- c("linear", "quadratic", "cubic")
+    tr <- (1:3)[allT %in% trend]
+    
+    out <- character()
+
+    for (t in tr) {
+        fit <- switch(t,
+                      lm(y ~ x, data = d),
+                      lm(y ~ x + I(x^2), data = d),
+                      lm(y ~ x + I(x^2) + I(x^3), data = d))
+        
+        cc <- summary(fit)$coef
+        ci <- confint(fit)
+
+        mat <-
+           ## Option 1: 'default' but includes extraneous decimal places for larger numbers
+           # cbind(format(cc[, 1], digits = 4),
+           #       format(ci[, 1], digits = 4),
+           #       format(ci[, 2], digits = 4),
+           ## Option 2: align decimal points in columns; ok, but maybe not
+           # cbind(decimal.align(sprintf("%.5g", cc[, 1])),
+           #       decimal.align(sprintf("%.5g", ci[, 1])),
+           #       decimal.align(sprintf("%.5g", ci[, 2])),
+           ## Option 3: flush everything right
+            cbind(sprintf("%.5g", cc[, 1]),
+                  sprintf("%.5g", ci[, 1]),
+                  sprintf("%.5g", ci[, 2]),
+                  format.pval(cc[, 4], digits = 2))
+
+        rn <- paste0(vn$x, c("", "^2", "^3"))
+        
+        mat <- rbind(c("Estimate", "Lower CI", "Upper CI", "p-value"), mat)
+        mat <- cbind(c("", "Intercept", rn[1:t]), mat)
+        mat <- apply(mat, 2, function(x) format(x, justify = "right"))
+
+        out <- c(out, "",
+                 paste0(switch(t, "Linear", "Quadratic", "Cubic"), " Trend Coefficients with 95% ",
+                        ifelse(bs, "Percentile Bootstrap ", ""), "Confidence Intervals"), "",
+                 apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
+    }
+    
+
+    out
+}
+
+
+
+decimal.align <- 
+    function (x, dechar = ".", nint = NA, ndec = NA, pad.left = TRUE) 
+{
+    ## The following function is taken from "prettyR" package version 2.1
+    ## We only included it here to remove the need to include an entirely
+    ## new package in the iNZightVIT distribution.
+    
+    splitchar <- paste("[", dechar, "]", sep = "")
+    splitlist <- strsplit(as.character(x), splitchar)
+    ints <- unlist(lapply(splitlist, "[", 1))
+    ints[is.na(ints)] <- "0"
+    if (pad.left) {
+        if (is.na(nint)) 
+            nint <- max(nchar(ints))
+        ints <- sprintf(paste("%", nint, "s", sep = ""), ints)
+    }
+    if (is.na(ndec)) 
+        ndec <- max(nchar(unlist(lapply(splitlist, "[", 2))))
+    decs <- unlist(lapply(splitlist, "[", 2))
+    decs[is.na(decs)] <- "0"
+    decs <- sprintf(paste("%-", ndec, "s", sep = ""), decs)
+    return(paste(ints, decs, sep = dechar))
 }
