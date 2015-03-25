@@ -242,15 +242,6 @@ inference.inzscatter <- function(object, bs, vn, ...) {
         ci <- confint(fit)
 
         mat <-
-           ## Option 1: 'default' but includes extraneous decimal places for larger numbers
-           # cbind(format(cc[, 1], digits = 4),
-           #       format(ci[, 1], digits = 4),
-           #       format(ci[, 2], digits = 4),
-           ## Option 2: align decimal points in columns; ok, but maybe not
-           # cbind(decimal.align(sprintf("%.5g", cc[, 1])),
-           #       decimal.align(sprintf("%.5g", ci[, 1])),
-           #       decimal.align(sprintf("%.5g", ci[, 2])),
-           ## Option 3: flush everything right
             cbind(sprintf("%.5g", cc[, 1]),
                   sprintf("%.5g", ci[, 1]),
                   sprintf("%.5g", ci[, 2]),
@@ -274,26 +265,3 @@ inference.inzscatter <- function(object, bs, vn, ...) {
 
 
 
-decimal.align <- 
-    function (x, dechar = ".", nint = NA, ndec = NA, pad.left = TRUE) 
-{
-    ## The following function is taken from "prettyR" package version 2.1
-    ## We only included it here to remove the need to include an entirely
-    ## new package in the iNZightVIT distribution.
-    
-    splitchar <- paste("[", dechar, "]", sep = "")
-    splitlist <- strsplit(as.character(x), splitchar)
-    ints <- unlist(lapply(splitlist, "[", 1))
-    ints[is.na(ints)] <- "0"
-    if (pad.left) {
-        if (is.na(nint)) 
-            nint <- max(nchar(ints))
-        ints <- sprintf(paste("%", nint, "s", sep = ""), ints)
-    }
-    if (is.na(ndec)) 
-        ndec <- max(nchar(unlist(lapply(splitlist, "[", 2))))
-    decs <- unlist(lapply(splitlist, "[", 2))
-    decs[is.na(decs)] <- "0"
-    decs <- sprintf(paste("%-", ndec, "s", sep = ""), decs)
-    return(paste(ints, decs, sep = dechar))
-}
