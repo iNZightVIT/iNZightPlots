@@ -226,9 +226,8 @@ inference.inzscatter <- function(object, bs, nboot, vn, ...) {
     if (is.null(trend))
         return("Please specify a trend line to obtain inference information.")
 
-    if (nrow(d) < 10) {
+    if (bs & nrow(d) < 10)
         return("Not enough observations to perform bootstrap simulation.")
-    }
 
     ## Ensure the order is linear/quad/cubic
     allT <- c("linear", "quadratic", "cubic")
@@ -239,8 +238,9 @@ inference.inzscatter <- function(object, bs, nboot, vn, ...) {
     for (t in tr) {
         if (nrow(d) <= t + 1) {
             out <- c(out, "",
-                     paste0("Not enough observations to fit ",
+                     paste0("Not enough observations (n = ", nrow(d), ") to fit ",
                             switch(t, "Linear", "Quadratic", "Cubic"), " trend"))
+            break
         } else {
             if (bs) {
                 b <- boot(d,
