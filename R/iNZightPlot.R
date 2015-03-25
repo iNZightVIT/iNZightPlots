@@ -448,15 +448,18 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         }
 
         ## --- Figure out a subtitle for the plot:
-        missing <- missing[missing != 0]
+        
         if ("subtitle" %in% names(dots)) {
             SUB <- textGrob(dots$subtitle, gp = gpar(cex = opts$cex.text * 0.8))
         } else if (missing.info & length(missing) > 0) {
-            names(missing) <- unlist(varnames[match(names(missing), names(varnames))])
-            total.missing <- sum(sapply(missing, sum))
-            missinfo <- paste0(missing, " in ", names(missing), collapse = ", ")
-            subtitle <- paste0(total.missing, " missing values (",
-                               missinfo, ")")
+            POS.missing <- missing[missing != 0]
+            names(POS.missing) <- unlist(varnames[match(names(POS.missing), names(varnames))])
+            missinfo <-
+                if (length(missing) > 1) paste0(" (", paste0(POS.missing, " in ", names(POS.missing),
+                                                             collapse = ", "), ")")
+                else ""
+            
+            subtitle <- paste0(total.missing, " missing values", missinfo)
             SUB <- textGrob(subtitle, gp = gpar(cex = opts$cex.text * 0.8))
         } else {
             SUB <- NULL
