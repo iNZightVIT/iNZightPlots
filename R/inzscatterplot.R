@@ -51,7 +51,8 @@ create.inz.scatterplot <- function(obj) {
                 nasize = if ("sizeby" %in% v) any(is.na(df$sizeby)) else FALSE,
                 xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
                 ylim = if (nrow(df) > 0) range(df$y, na.rm = TRUE) else c(-Inf, Inf),
-                trend = opts$trend, trend.by = opts$trend.by, smooth = opts$trend)
+                trend = opts$trend, trend.by = opts$trend.by, smooth = opts$trend,
+                n.boot = opts$n.boot)
     if (xattr$class == "inz.survey")
         out$svy <- obj$df
 

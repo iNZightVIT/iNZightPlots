@@ -219,46 +219,80 @@ inference.inzbar <- function(object, ...) {
 }
 
 
-inference.inzscatter <- function(object, bs, vn, ...) {
+inference.inzscatter <- function(object, bs, nboot, vn, ...) {
     d <- data.frame(x = object$x, y = object$y)
     trend <- object$trend
     
     if (is.null(trend))
         return("Please specify a trend line to obtain inference information.")
 
+    if (nrow(d) < 10) {
+        return("Not enough observations to perform bootstrap simulation.")
+    }
+
     ## Ensure the order is linear/quad/cubic
     allT <- c("linear", "quadratic", "cubic")
     tr <- (1:3)[allT %in% trend]
-    
+
     out <- character()
 
     for (t in tr) {
-        fit <- switch(t,
-                      lm(y ~ x, data = d),
-                      lm(y ~ x + I(x^2), data = d),
-                      lm(y ~ x + I(x^2) + I(x^3), data = d))
-        
-        cc <- summary(fit)$coef
-        ci <- confint(fit)
-
-        mat <-
-            cbind(sprintf("%.5g", cc[, 1]),
-                  sprintf("%.5g", ci[, 1]),
-                  sprintf("%.5g", ci[, 2]),
-                  format.pval(cc[, 4], digits = 2))
-
-        rn <- paste0(vn$x, c("", "^2", "^3"))
-        
-        mat <- rbind(c("Estimate", "Lower CI", "Upper CI", "p-value"), mat)
-        mat <- cbind(c("", "Intercept", rn[1:t]), mat)
-        mat <- apply(mat, 2, function(x) format(x, justify = "right"))
-
-        out <- c(out, "",
-                 paste0(switch(t, "Linear", "Quadratic", "Cubic"), " Trend Coefficients with 95% ",
-                        ifelse(bs, "Percentile Bootstrap ", ""), "Confidence Intervals"), "",
-                 apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
+        if (nrow(d) <= t + 1) {
+            out <- c(out, "",
+                     paste0("Not enough observations to fit ",
+                            switch(t, "Linear", "Quadratic", "Cubic"), " trend"))
+        } else {
+            if (bs) {
+                b <- boot(d,
+                          function(dat, f) {
+                              fit <- switch(t,
+                                            lm(y ~ x, data = dat[f, ]),
+                                            lm(y ~ x + I(x^2), data = dat[f, ]),
+                                            lm(y ~ x + I(x^2) + I(x^3), data = dat[f, ]))
+                              c(coef(fit),
+                                if (t == 1) cor(d[f, "x"], d[f, "y"]))
+                          }, R = object$n.boot)
+                mat <-
+                    cbind(sprintf("%.5g", colMeans(b$t, na.rm = TRUE)),
+                          sprintf("%.5g", apply(b$t, 2, quantile, probs = 0.025, na.rm = TRUE)),
+                          sprintf("%.5g", apply(b$t, 2, quantile, probs = 0.975, na.rm = TRUE)))
+                
+            } else {
+                fit <- switch(t,
+                              lm(y ~ x, data = d),
+                              lm(y ~ x + I(x^2), data = d),
+                              lm(y ~ x + I(x^2) + I(x^3), data = d))
+                
+                cc <- summary(fit)$coef
+                ci <- confint(fit)
+                
+                mat <-
+                    cbind(sprintf("%.5g", cc[, 1]),
+                          sprintf("%.5g", ci[, 1]),
+                          sprintf("%.5g", ci[, 2]),
+                          format.pval(cc[, 4], digits = 2))
+            }
+            
+            if (bs & t == 1) {
+                covMat <- mat[3, ]
+                mat <- mat[1:2, ]
+            }
+            
+            mat <- rbind(c("Estimate", "Lower CI", "Upper CI", if (!bs) "p-value"), mat)
+            
+            rn <- paste0(vn$x, c("", "^2", "^3"))
+            mat <- cbind(c("", "Intercept", rn[1:t]), mat)
+            if (bs & t == 1) {
+                mat <- rbind(mat, "", c("correlation", covMat))
+            }
+            mat <- apply(mat, 2, function(x) format(x, justify = "right"))
+            
+            out <- c(out, "",
+                     paste0(switch(t, "Linear", "Quadratic", "Cubic"), " Trend Coefficients with 95% ",
+                            ifelse(bs, "Percentile Bootstrap ", ""), "Confidence Intervals"), "",
+                     apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
+        }
     }
-    
 
     out
 }
