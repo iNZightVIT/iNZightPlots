@@ -136,19 +136,20 @@ barinference <- function(obj, tab, phat) {
                                        tt <- t(table(d[f, 1], d[f, 2]))
                                        sweep(tt, 1, n, "/")
                                    }, R = 1000)
-                                   cis <- apply(b$t, 2, quantile, probs = c(0.025, 0.975))
+                                   cis <- apply(b$t, 2, function(x) c(quantile(x, probs = c(0.025, 0.975)), mean(x)))
                                }, silent = TRUE)
                                if (inherits(inf, "try-error"))
                                    NULL
                                else
                                    list(lower = matrix(cis[1, ], nrow = nrow(tab), byrow = FALSE),
-                                        upper = matrix(cis[2, ], nrow = nrow(tab), byrow = FALSE))
+                                        upper = matrix(cis[2, ], nrow = nrow(tab), byrow = FALSE),
+                                        estimate = matrix(cis[3, ], nrow = nrow(tab), byrow = FALSE))
                            } else {
                                n <- sum(tab)
                                if (n == 0) return(NULL)
                                b <- boot(dat, function(d, f) table(d[f, 1]) / n, R = opts$n.boot)
-                               cis <- apply(b$t, 2, quantile, probs = c(0.025, 0.975))
-                               list(lower = cis[1, , drop = FALSE], upper = cis[2, , drop = FALSE])
+                               cis <- apply(b$t, 2, function(x) c(quantile(x, probs = c(0.025, 0.975)), mean(x)))
+                               list(lower = cis[1, , drop = FALSE], upper = cis[2, , drop = FALSE], estimate = cis[3, , drop = FALSE])
                            }
                        }
                    } else {
@@ -163,7 +164,7 @@ barinference <- function(obj, tab, phat) {
                                se * 1.96
                            })) -> size
                            if (!twoway) phat <- t(phat)
-                           list(lower = phat - size, upper = phat + size)
+                           list(lower = phat - size, upper = phat + size, estimate = phat)
                        }
                    }
                },

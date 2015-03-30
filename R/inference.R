@@ -19,7 +19,7 @@ inference.inzdot <- function(object, bs, class, width, ...) {
     mat[grep("NA", mat)] <- ""
     
     ## Text formatting to return a character vector - each row of matrix
-    mat <- rbind(c("Lower CI", "Mean", "Upper CI"), mat)
+    mat <- rbind(c("Lower", "Mean", "Upper"), mat)
     colnames(mat) <- NULL
     
     byFactor <- length(toplot) > 1
@@ -53,7 +53,7 @@ inference.inzdot <- function(object, bs, class, width, ...) {
         mat[grep("NA", mat)] <- ""
         
         ## Text formatting to return a character vector - each row of matrix
-        mat <- rbind(c("Lower CI", "Median", "Upper CI"), mat)
+        mat <- rbind(c("Lower", "Median", "Upper"), mat)
         colnames(mat) <- NULL
         
         byFactor <- length(toplot) > 1
@@ -85,7 +85,7 @@ inference.inzdot <- function(object, bs, class, width, ...) {
         mat[grep("NA", mat)] <- ""
         
         ## Text formatting to return a character vector - each row of matrix
-        mat <- rbind(c("Lower CI", "IQR", "Upper CI"), mat)
+        mat <- rbind(c("Lower", "IQR", "Upper"), mat)
         colnames(mat) <- NULL
         
         byFactor <- length(toplot) > 1
@@ -174,11 +174,12 @@ formatTriMat <- function(mat, names) {
     ## Formats a (lower) triangular matrix nicely for display:
     
     mat[!lower.tri(mat)] <- NA
-    mat <- mat[-1, ]
-    
+    mat <- mat[-1, , drop = FALSE]
+
     mat <- matrix(apply(mat, 2, function(col) {
         format(col, digits = 4)
     }), nrow = nrow(mat))
+    
     mat[grep("NA", mat)] <- ""
     
     mat <- cbind(c("", names[-1]),
@@ -195,7 +196,13 @@ formatTriMat <- function(mat, names) {
 formatMat <- function(mat, digits = 4) {
     dn <- dimnames(mat)
     
-    mat <- t(apply(mat, 1, function(x) suppressWarnings(as.numeric(x))))
+    mat <- apply(mat, 1, function(x) suppressWarnings(as.numeric(x)))
+    ## If the matrix has a single column, apply returns a vector rather than a matrix
+    if (is.matrix(mat))
+        mat <- t(mat)
+    else
+        mat <- matrix(mat, ncol = 1)
+    
     mat <-  matrix(apply(mat, 2, function(col) {
         format(col, digits = digits)
     }), nrow = nrow(mat))
@@ -213,9 +220,307 @@ formatMat <- function(mat, digits = 4) {
 
 
 
-inference.inzbar <- function(object, ...) {
+inference.inzbar <- function(object, bs, vn, nb, ...) {
+    phat <- object$phat
+    inf <- object$inference.info
 
-    NULL
+    if (is.null(inf$conf))
+        stop("Please specify `inference.type = conf` to get inference information.")
+
+    twoway <- nrow(phat) > 1
+
+    if (twoway) {
+        mat <- inf$conf$estimate
+        dn <- dimnames(object$tab)
+
+        mat <- matrix(apply(mat, 2, function(col) {
+            format(col, digits = 3)
+        }), nrow = nrow(mat))
+    
+        ## Remove NA's and replace with an empty space
+        mat[grep("NA", mat)] <- ""
+
+        ## Text formatting to return a character vector - each row of matrix
+        mat <- rbind(dn[[2]], mat)
+        colnames(mat) <- NULL
+        
+        mat <- cbind(c("", dn[[1]]), mat, c("Row sums", rep(1, nrow(phat))))
+        rownames(mat) <- NULL
+        
+        mat <- matrix(apply(mat, 2, function(col) {
+            format(col, justify = "right")
+        }), nrow = nrow(mat))
+        
+        out <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
+        out <- c("Estimated Proportions", "",  out)
+        
+        cis <- inf$conf
+        cis <- rbind(cis$lower, cis$upper)
+        cis <- cis[c(1:nrow(phat) * 2 - 1, 1:nrow(phat) * 2), ]
+
+        cis <- matrix(apply(cis, 2, function(col) {
+            format(col, digits = 3)
+        }), nrow = nrow(cis))
+        cis[grep("NA", cis)] <- ""
+
+        cis <- rbind(dn[[2]], cis)
+        colnames(cis) <- NULL
+
+        cis <- cbind(c("", rbind(dn[[1]], "")), cis)
+        colnames(cis) <- NULL
+
+        cis <- matrix(apply(cis, 2, function(col) {
+            format(col, justify = "right")
+        }), nrow = nrow(cis))
+        
+        bsCI <- ifelse(bs, " Percentile Bootstrap", "")
+        out <- c(out, "", paste0("95%", bsCI, " Confidence Intervals"), "",
+                 apply(cis, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
+
+        out <- c(out, "", "",
+                 paste0("   *** Differences between proportions of ", vn$y, " for each level of ", vn$x, " ***"))
+
+        if (bs) {
+            tab <- object$tab
+            dat <- do.call(rbind,
+                           sapply(rownames(tab), function(t)
+                                  cbind(sample(colnames(tab), sum(tab[t, ]), TRUE, tab[t, ]), t)))
+            dat <- data.frame(x = dat[, 1], y = dat[, 2])
+
+            b <- boot(dat, function(d, f) {
+                tt <- t(table(d[f, "x"], d[f, "y"]))
+                n1 <- nrow(tt)
+                n2 <- ncol(tt)
+                nn <- rowSums(tt)
+                pp <- sweep(tt, 1, nn, "/")
+                
+                d <- c()
+                for (ii in 1:n2)
+                    for (jj in 2:n1)
+                        d <- c(d, pp[ii, jj] - pp[ii, jj])
+                
+                d                      
+            }, R = nb)
+            
+            print(head(b$t))
+        }
+
+        for (j in 1:ncol(phat)) {
+            p <- phat[, j]
+            n <- length(p)
+            lev <- dn[[2]][j]
+            sum <- rowSums(object$tab)
+
+            if (bs) {
+                diff <- matrix(nrow = length(LEVELS), ncol = length(LEVELS))
+                diff[lower.tri(diff)] <- colMeans(b$t)
+                diff <- formatTriMat(diff, LEVELS)
+                
+            } else {
+                diff <- outer(p, p, function(p1, p2) p1 - p2)
+                diff <- formatTriMat(diff, dn[[1]])
+            }
+
+            out <- c(out, "",
+                     paste0("### ", vn$x, " = ", lev), "",
+                     "Estimates", "",
+                     apply(diff, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
+
+            cis <- matrix(NA, nrow = 2 * (n - 1), ncol = n - 1)
+            for (a in 2:n) {
+                for (b in 1:(a - 1)) {
+                    wr <- (a - 2) * 2 + 1
+                    cis[wr:(wr + 1), b] <- pDiffCI(p[a], p[b], sum[a], sum[b])
+                }
+            }
+            colnames(cis) <- dn[[1]][-n]
+            rownames(cis) <- c(rbind(dn[[1]][-1], ""))
+
+            cis <- formatMat(cis, 3)
+            
+            out <- c(out, "",
+                     paste0("95% ", bsCI, " Confidence Intervals"), "",
+                     apply(cis, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
+        }
+
+        out <- c(out, "", "",
+                 "   *** Chi-square test for Independence ***", "",
+                 paste0("(i.e., is the distribution of ", vn$x, " independent of ", vn$y, "?)"), "",
+                 paste0("   X-squared = ", format(signif(chi2$statistic, 5)), ", ",
+                        "df = ", format(signif(chi2$parameter, 5)), ", ",
+                        "p-value ", ifelse(chi2$p.value < 2.2e-16, "", "= "), format.pval(chi2$p.value, digits = 4)))
+        
+
+    } else {
+        mat <- t(rbind(inf$conf$lower, inf$conf$estimate, inf$conf$upper))
+        
+        mat <- matrix(apply(mat, 2, function(col) {
+            format(col, digits = 3)
+        }), nrow = nrow(mat))
+    
+        ## Remove NA's and replace with an empty space
+        mat[grep("NA", mat)] <- ""
+
+        ## Text formatting to return a character vector - each row of matrix
+        mat <- rbind(c("Lower", "Estimate", "Upper"), mat)
+        colnames(mat) <- NULL
+
+        LEVELS <- names(object$tab)
+        mat <- cbind(c("", LEVELS), mat)
+        rownames(mat) <- NULL
+        
+        mat <- matrix(apply(mat, 2, function(col) {
+            format(col, justify = "right")
+        }), nrow = nrow(mat))
+        
+        out <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
+        
+        bsCI <- ifelse(bs, " Percentile Bootstrap", "")
+        out <- c(paste0("Estimated Proportion with 95%", bsCI, " Confidence Interval"), "",
+                 out)
+
+        if (bs) {
+            ## This is about the only place we do bootstrapping within the inference function, as no such
+            ## method is applicable to the plots themselves.
+            ## All other inferences are generated by the plotting function, which are then displayed on the plot
+            ## and hence match the output from this function.
+            
+            dat <- data.frame(x = rep(names(object$tab), times = object$tab))
+            b <- boot(dat, function(d, f) {
+                tt <- table(d[f, ])
+                ni <- length(tt)
+                nn <- sum(tt)
+                pp <- tt / nn
+
+                d <- c()
+                for (ii in 2:ni)
+                    for (jj in 1:(ii - 1))
+                        d <- c(d, pp[ii] - pp[jj])
+
+                d                      
+            }, R = nb)
+
+            diffs <- matrix(nrow = length(LEVELS), ncol = length(LEVELS))
+            diffs[lower.tri(diffs)] <- colMeans(b$t)
+            diffs <- formatTriMat(diffs, LEVELS)
+
+            cil <- ciu <- matrix(nrow = length(LEVELS), ncol = length(LEVELS))
+            cil[lower.tri(cil)] <- apply(b$t, 2, quantile, probs = 0.025)
+            ciu[lower.tri(ciu)] <- apply(b$t, 2, quantile, probs = 0.975)
+
+            cil <- formatTriMat(cil, LEVELS)
+            ciu <- formatTriMat(ciu, LEVELS)
+
+            cis <- rbind(cil[-1, , drop = FALSE], ciu[-1, , drop = FALSE])
+            cis <- cis[order(cis[, 1]), -1, drop = FALSE]
+
+            rownames(cis) <- rbind(LEVELS[-1], "")
+            colnames(cis) <- cil[1, -1]
+            
+            cis <- formatMat(cis)
+            
+        } else {
+            diffs <- freq1way.edited(object$tab, "estimates")
+            diffs <- formatMat(diffs)
+        
+            cis <- freq1way.edited(object$tab, "ci")
+            cis <- formatMat(cis)
+        }
+
+        out <- c(out, "", "",
+                 "   *** Differences between Proportions (column - row) ***", "",
+                 "Estimates", "",
+                 apply(diffs, 1, function(x) paste0("   ", paste(x, collapse = "   "))),
+                 "",
+                 paste0("95%", bsCI, " Confidence Intervals"), "",
+                 apply(cis, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
+
+        if (!bs) {
+            chi2 <- chisq.test(object$tab)
+            out <- c(out, "", "",
+                     "   *** Chi-square test for equal proportions ***", "",
+                     paste0("   X-squared = ", format(signif(chi2$statistic, 5)), ", ",
+                            "df = ", format(signif(chi2$parameter, 5)), ", ",
+                            "p-value ", ifelse(chi2$p.value < 2.2e-16, "", "= "), format.pval(chi2$p.value, digits = 4)))
+        }
+    }
+    
+    out
+}
+
+freq1way.edited <- function(tbl, inf.type = "estimates", conf.level = 0.95) {
+    ## Before freq1way is called should output the variable name in the table
+    level.names <- names(tbl)
+    n <- sum(tbl)
+    ncats <- length(tbl)
+    ncatsC2 <- choose(ncats, 2)
+
+    if (is.null(level.names)) level.names <- 1:ncats
+
+    conf.pc <- conf.level * 100
+    phat <- tbl / sum(tbl)
+
+    qval <- abs(qnorm((1 - conf.level) / (2 * ncats)))
+
+    matw <- matrix(NA, ncats - 1, ncats - 1)
+
+    dimnames(matw) <- list(level.names[-length(level.names)], level.names[-1])
+
+    qval.adjusted <- abs(qnorm((1 - conf.level) / (2 * ncatsC2)))
+
+    tempw <- ""
+
+    if (inf.type == "estimates") {
+        for(i1 in 1:(ncats - 1)) {
+            for(i2 in 2:ncats) {
+                tempw <- phat[i1] - phat[i2]
+                tempw <- signif(tempw, 5)
+                matw[i1, i2 - 1] <- ifelse((i1 < i2), tempw , " ")
+            }
+        }
+        t(matw)
+    } else {
+        testMatrix <- matrix(" ", ncats - 1, 2 * ncats - 2)
+        count <- 1
+        count.2 <- 0
+        for(i1 in 1:(ncats - 1)) {
+            count <- 0
+            for(i2 in 2:ncats) {
+                tempw <- phat[i1] - phat[i2] +
+                    abs(qnorm((1 - conf.level) / (2 * ncatsC2))) * c(-1, 1) *
+                        sqrt(((phat[i1] + phat[i2]) - ((phat[i1] - phat[i2])^2)) / n)
+                tempw <- signif(tempw, 5)
+                matw[i1, i2 - 1] <- ifelse((i1 < i2),
+                                           paste("(", tempw[1], ",", tempw[2], ")", sep = ""),
+                                           " ")
+                
+                if(i2 == 2)
+                    count <- i2 - 2
+                if(i1 < i2) {
+                    testMatrix[i1, count + 1 + count.2] <- tempw[1]
+                    testMatrix[i1, (count = count + 2) + count.2] <- tempw[2]
+                }
+            }
+            count.2 <- count.2 + 2
+        }
+
+        rowNames <- rep("", ncats * 2)
+        temp <- 1:(ncats * 2)
+        rowNames[(temp %% 2 != 0)] <- level.names
+
+        testMatrix <- t(testMatrix)
+        rownames(testMatrix) <- rowNames[-c(1, 2)]
+        colnames(testMatrix) <- level.names[-ncats]
+
+        testMatrix
+    }
+}
+
+pDiffCI <- function(p1, p2, n1, n2, z = 1.96) {
+    p <- p1 - p2
+    se <- sqrt(p1 * (1 - p1) / n1 + p2 * (1 - p2) / n2)
+
+    p + c(-1, 1) * z * se
 }
 
 
@@ -278,7 +583,7 @@ inference.inzscatter <- function(object, bs, nboot, vn, ...) {
                 mat <- mat[1:2, ]
             }
             
-            mat <- rbind(c("Estimate", "Lower CI", "Upper CI", if (!bs) "p-value"), mat)
+            mat <- rbind(c("Estimate", "Lower", "Upper", if (!bs) "p-value"), mat)
             
             rn <- paste0(vn$x, c("", "^2", "^3"))
             mat <- cbind(c("", "Intercept", rn[1:t]), mat)
@@ -291,6 +596,11 @@ inference.inzscatter <- function(object, bs, nboot, vn, ...) {
                      paste0(switch(t, "Linear", "Quadratic", "Cubic"), " Trend Coefficients with 95% ",
                             ifelse(bs, "Percentile Bootstrap ", ""), "Confidence Intervals"), "",
                      apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
+
+            ## add a 'key' to the end of the output
+            if (t == max(tr) & !bs) 
+                out <- c(out, "", "",
+                         "   p-values for the null hypothesis of no association, H0: beta = 0")
         }
     }
 

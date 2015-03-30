@@ -250,7 +250,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary", width = 100)
 
             sapply(switch(summary.type,
                           "summary" = summary(pl, vnames),
-                          "inference" = inference(pl, bs, inzclass, width = width, vn = vnames)),
+                          "inference" = inference(pl, bs, inzclass, width = width, vn = vnames, nb = attr(obj, "nboot"))),
                    add)
             
             add("")
