@@ -34,6 +34,13 @@ Darken <- function(x = "#FFFFFF") {
 darken <- Vectorize(Darken)  # allow it to work on a vector of Xs
 
 
+##' Convert a numeric variable in to a factor with four levels.
+##'
+##' @title Convert to Factor
+##' @param x a numeric vector
+##' @return a factor vector
+##' @author tell029
+##' @export
 convert.to.factor <-
 function(x) {
     if (is.factor(x)) {
@@ -89,7 +96,7 @@ function(x) {
 }
 
 
-nullPlot <- function(otps, xattr) {
+nullPlot <- function(opts, xattr) {
     # simply draw nothing!
     out <- list(xlim = c(-Inf, Inf), ylim = c(-Inf, Inf))
     class(out) <- "inznull"
