@@ -93,7 +93,6 @@ plot.inzbar <- function(obj, gen) {
     }
 }
 
-
 barinference <- function(obj, tab, phat) {
     ## obj: list of data broken down by subsets
     ## opts: various options (inzpar)
@@ -193,8 +192,8 @@ barinference <- function(obj, tab, phat) {
                                        if(sum(tab[ii, ] > 0) < 2) return(list(compL = NA, compU = NA))
                                        
                                        suppressWarnings(
-                                           iNZightMR:::moecalc(
-                                               iNZightMR:::seBinprops(n[ii], phat[ii, i]), est = phat[ii, i]
+                                           moecalc(
+                                               seBinprops(n[ii], phat[ii, i]), est = phat[ii, i]
                                            )
                                        )
                                    }) -> out
@@ -210,7 +209,7 @@ barinference <- function(obj, tab, phat) {
                            } else {
                                if (sum(tab) == 0) return(NULL)
                                phat <- c(phat) # don't want matrix
-                               with(suppressWarnings(iNZightMR:::moecalc(iNZightMR:::seMNprops(sum(tab), phat), est = phat)),
+                               with(suppressWarnings(moecalc(seMNprops(sum(tab), phat), est = phat)),
                                     list(lower = t(compL), upper = t(compU))) -> res
                                lapply(res, function(r) {
                                    colnames(r) <- colnames(tab)

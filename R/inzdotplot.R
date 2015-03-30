@@ -354,8 +354,8 @@ dotinference <- function(obj) {
                                                   function(d, f) tapply(d[f, 1], d[f, 2], mean, na.rm = TRUE),
                                                   R = opts$n.boot)
                                         cov <- cov(b$t)
-                                        ses <- suppressWarnings(iNZightMR:::seCovs(cov))
-                                        ci <- suppressWarnings(iNZightMR:::moecalc(
+                                        ses <- suppressWarnings(seCovs(cov))
+                                        ci <- suppressWarnings(moecalc(
                                             ses, est = tapply(dat$x, dat$y, mean, na.rm = TRUE)
                                         ))
                                         cbind(lower = ci$compL, upper = ci$compU)
@@ -380,7 +380,7 @@ dotinference <- function(obj) {
                                         } else {
                                             fit <- lm(x ~ y, data = dat)
                                             est <- predict(fit, newdata = data.frame(y = levels(dat$y)))
-                                            mfit <- suppressWarnings(iNZightMR:::moecalc(fit, factorname = "y", est = est))
+                                            mfit <- suppressWarnings(moecalc(fit, factorname = "y", est = est))
                                             with(mfit, cbind(compL, compU)) + coef(fit)[1]
                                         }
                                     }
@@ -423,8 +423,8 @@ dotinference <- function(obj) {
                                                   function(d, f) tapply(d[f, 1], d[f, 2], median, na.rm = TRUE),
                                                   R = opts$n.boot)
                                         cov <- cov(b$t)
-                                        ses <- suppressWarnings(iNZightMR:::seCovs(cov))
-                                        ci <- suppressWarnings(iNZightMR:::moecalc(ses, est = tapply(dat$x, dat$y, median, na.rm = TRUE)))
+                                        ses <- suppressWarnings(seCovs(cov))
+                                        ci <- suppressWarnings(moecalc(ses, est = tapply(dat$x, dat$y, median, na.rm = TRUE)))
                                         cbind(lower = ci$compL, upper = ci$compU)
                                     }
                                 } else {

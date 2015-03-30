@@ -1,3 +1,14 @@
+##' Plotting parameters for iNZight Plots
+##'
+##' A whole suite of parameters that can be used to fine-tune plots obtained from the
+##' \code{iNZightPlot} function.
+##' 
+##' @title iNZight Plotting Parameters
+##' @param ... If arguments are supplied, then these values are set. If left empty, then
+##' the default list is returned.
+##' @return an object of class \code{inzpar.list}
+##' @author tell029
+##' @export
 inzpar <- function(...) {
     dots <- list(...)
     

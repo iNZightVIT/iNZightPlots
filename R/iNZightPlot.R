@@ -1,3 +1,51 @@
+##' A general plotting function that automatically detects variable type and draws the
+##' appropriate plot.
+##' It also provides facilities to add inference information to plots, colour- and
+##' size-by variables, and can handle survey data.
+##'
+##' Some details here ...
+##' 
+##' @title iNZight Plot
+##' @param x a vector (numeric or factor), or the name of a column in the supplied
+##' \code{data} or \code{design} object
+##' @param y a vector (numeric or factor), or the name of a column in the supplied
+##' \code{data} or \code{design} object
+##' @param g1 a vector (numeric or factor), or the name of a column in the supplied
+##' \code{data} or \code{design} object. This variable acts as a subsetting variable.
+##' @param g1.level the name (or numeric position) of the level of \code{g1} that will be
+##' used instead of the entire data set
+##' @param g2 a vector (numeric or factor), or the name of a column in the supplied
+##' \code{data} or \code{design} object. This variable acts as a subsetting variable, similar to
+##' \code{g1}
+##' @param g2.level same as \code{g1.level}, however takes the additional value \code{"_MULTI"},
+##' which produces a matrix of \code{g1} by \code{g2}
+##' @param varnames a list of variable names, with the list named using the appropriate arguments
+##' (i.e., \code{list(x = "height", g1 = "gender")})
+##' @param colby the name of a variable (numeric or factor) to colour points by. In the
+##' case of a numeric variable, a continuous colour scale is used, otherwise each level of
+##' the factor is assigned a colour
+##' @param sizeby the name of a (numeric) variable, which controls the size of points
+##' @param data the name of a data set
+##' @param design the name of a survey object, obtained from the \code{survey} package
+##' @param freq the name of a frequency variable if the data are frequencies
+##' @param missing.info logical, if \code{TRUE}, information regarding missingness is
+##' displayed in the plot
+##' @param xlab the text for the x-label
+##' @param ylab the text for the y-label
+##' @param new logical, used for compatibility
+##' @param inzpars allows specification of iNZight plotting parameters over multiple plots
+##' @param layout.only logical, if \code{TRUE}, only the layout is drawn (useful if a
+##' custom plot is to be drawn)
+##' @param plot logical, if \code{FALSE}, the plot is not drawn (used by \code{summary})
+##' @param df compatibility argument
+##' @param env compatibility argument
+##' @param ... additional arguments, see \code{inzpar}
+##' @return An \code{inzightplotoutput} object, which contains the information displayed
+##' in the plot
+##'
+##' @import grid boot s20x survey quantreg survey SparseM hexbin iNZightMR
+##' @author tell029
+##' @export
 iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         g2 = NULL, g2.level = NULL, varnames = list(),
                         colby = NULL, sizeby = NULL,
