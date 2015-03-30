@@ -181,6 +181,7 @@ formatTriMat <- function(mat, names) {
     }), nrow = nrow(mat))
     
     mat[grep("NA", mat)] <- ""
+    mat[grep("NaN", mat)] <- ""
     
     mat <- cbind(c("", names[-1]),
                  rbind(names, mat))
@@ -207,6 +208,7 @@ formatMat <- function(mat, digits = 4) {
         format(col, digits = digits)
     }), nrow = nrow(mat))
     mat[grep("NA", mat)] <- ""
+    mat[grep("NaN", mat)] <- ""
 
     mat <- cbind(c("", dn[[1]]),
                  rbind(dn[[2]], mat))
@@ -224,8 +226,14 @@ inference.inzbar <- function(object, bs, vn, nb, ...) {
     phat <- object$phat
     inf <- object$inference.info
 
-    if (is.null(inf$conf))
+    if (! "conf" %in% names(inf))
         stop("Please specify `inference.type = conf` to get inference information.")
+    
+    if (is.null(inf$conf))
+        return("Unable to obtain inference information.")
+
+    if (bs & sum(tab) < 10)
+        return("Not enough data to perform bootstraps.")
 
     twoway <- nrow(phat) > 1
 
@@ -236,9 +244,10 @@ inference.inzbar <- function(object, bs, vn, nb, ...) {
         mat <- matrix(apply(mat, 2, function(col) {
             format(col, digits = 3)
         }), nrow = nrow(mat))
-    
+
         ## Remove NA's and replace with an empty space
         mat[grep("NA", mat)] <- ""
+        mat[grep("NaN", mat)] <- ""
 
         ## Text formatting to return a character vector - each row of matrix
         mat <- rbind(dn[[2]], mat)
@@ -262,6 +271,7 @@ inference.inzbar <- function(object, bs, vn, nb, ...) {
             format(col, digits = 3)
         }), nrow = nrow(cis))
         cis[grep("NA", cis)] <- ""
+        cis[grep("NaN", cis)] <- ""
 
         cis <- rbind(dn[[2]], cis)
         colnames(cis) <- NULL
@@ -282,11 +292,9 @@ inference.inzbar <- function(object, bs, vn, nb, ...) {
 
         if (bs) {
             tab <- object$tab
-            dat <- do.call(rbind,
-                           sapply(rownames(tab), function(t)
-                                  cbind(sample(colnames(tab), sum(tab[t, ]), TRUE, tab[t, ]), t)))
-            dat <- data.frame(x = dat[, 1], y = dat[, 2])
-
+            dat <- data.frame(x = rep(colnames(tab), times = colSums(tab)),
+                              y = rep(rep(rownames(tab), times = ncol(tab)), tab))
+            
             b <- boot(dat, function(d, f) {
                 tt <- t(table(d[f, "x"], d[f, "y"]))
                 n1 <- nrow(tt)
@@ -297,12 +305,10 @@ inference.inzbar <- function(object, bs, vn, nb, ...) {
                 d <- c()
                 for (ii in 1:n2)
                     for (jj in 2:n1)
-                        d <- c(d, pp[ii, jj] - pp[ii, jj])
+                        d <- c(d, pp[jj, ii] - pp[jj - 1, ii])
                 
-                d                      
+                d  
             }, R = nb)
-            
-            print(head(b$t))
         }
 
         for (j in 1:ncol(phat)) {
@@ -312,10 +318,11 @@ inference.inzbar <- function(object, bs, vn, nb, ...) {
             sum <- rowSums(object$tab)
 
             if (bs) {
-                diff <- matrix(nrow = length(LEVELS), ncol = length(LEVELS))
-                diff[lower.tri(diff)] <- colMeans(b$t)
-                diff <- formatTriMat(diff, LEVELS)
-                
+                ni <- nrow(tab) - 1
+                wi <- 1:ni + (j - 1) * ni
+                diff <- matrix(nrow = ni + 1, ncol = ni + 1)
+                diff[lower.tri(diff)] <- colMeans(b$t, na.rm = TRUE)[wi]
+                diff <- formatTriMat(diff, rownames(tab))
             } else {
                 diff <- outer(p, p, function(p1, p2) p1 - p2)
                 diff <- formatTriMat(diff, dn[[1]])
@@ -327,30 +334,23 @@ inference.inzbar <- function(object, bs, vn, nb, ...) {
                      apply(diff, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
 
             cis <- matrix(NA, nrow = 2 * (n - 1), ncol = n - 1)
-            for (a in 2:n) {
-                for (b in 1:(a - 1)) {
-                    wr <- (a - 2) * 2 + 1
-                    cis[wr:(wr + 1), b] <- pDiffCI(p[a], p[b], sum[a], sum[b])
+            for (k in 2:n) {
+                for (l in 1:(k - 1)) {
+                    wr <- (k - 2) * 2 + 1
+                    cis[wr:(wr + 1), l] <-
+                        if (bs) quantile(b$t[, j], c(0.025, 0.975), na.rm = TRUE)
+                        else pDiffCI(p[k], p[l], sum[k], sum[l])
                 }
             }
             colnames(cis) <- dn[[1]][-n]
             rownames(cis) <- c(rbind(dn[[1]][-1], ""))
-
+            
             cis <- formatMat(cis, 3)
             
             out <- c(out, "",
                      paste0("95% ", bsCI, " Confidence Intervals"), "",
                      apply(cis, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
         }
-
-        out <- c(out, "", "",
-                 "   *** Chi-square test for Independence ***", "",
-                 paste0("(i.e., is the distribution of ", vn$x, " independent of ", vn$y, "?)"), "",
-                 paste0("   X-squared = ", format(signif(chi2$statistic, 5)), ", ",
-                        "df = ", format(signif(chi2$parameter, 5)), ", ",
-                        "p-value ", ifelse(chi2$p.value < 2.2e-16, "", "= "), format.pval(chi2$p.value, digits = 4)))
-        
-
     } else {
         mat <- t(rbind(inf$conf$lower, inf$conf$estimate, inf$conf$upper))
         
@@ -360,6 +360,7 @@ inference.inzbar <- function(object, bs, vn, nb, ...) {
     
         ## Remove NA's and replace with an empty space
         mat[grep("NA", mat)] <- ""
+        mat[grep("NaN", mat)] <- ""
 
         ## Text formatting to return a character vector - each row of matrix
         mat <- rbind(c("Lower", "Estimate", "Upper"), mat)
@@ -434,15 +435,15 @@ inference.inzbar <- function(object, bs, vn, nb, ...) {
                  "",
                  paste0("95%", bsCI, " Confidence Intervals"), "",
                  apply(cis, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
+    }
 
-        if (!bs) {
-            chi2 <- chisq.test(object$tab)
-            out <- c(out, "", "",
-                     "   *** Chi-square test for equal proportions ***", "",
-                     paste0("   X-squared = ", format(signif(chi2$statistic, 5)), ", ",
-                            "df = ", format(signif(chi2$parameter, 5)), ", ",
-                            "p-value ", ifelse(chi2$p.value < 2.2e-16, "", "= "), format.pval(chi2$p.value, digits = 4)))
-        }
+    if (!bs) {
+        chi2 <- suppressWarnings(chisq.test(object$tab))
+        out <- c(out, "", "",
+                 "   *** Chi-square test for equal proportions ***", "",
+                 paste0("   X-squared = ", format(signif(chi2$statistic, 5)), ", ",
+                        "df = ", format(signif(chi2$parameter, 5)), ", ",
+                        "p-value ", ifelse(chi2$p.value < 2.2e-16, "", "= "), format.pval(chi2$p.value, digits = 4)))
     }
     
     out
