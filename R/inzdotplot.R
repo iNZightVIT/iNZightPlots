@@ -263,7 +263,7 @@ dotinference <- function(obj) {
     inf.par <- opts$inference.par
     inf.type <- opts$inference.type
     if (!is.null(inf.type) & is.null(inf.par))
-        inf.par <- c("mean", "median")
+        inf.par <- c("mean", "median", "iqr")
     bs <- opts$bs.inference
 
     if (is.null(inf.par) & is.null(inf.type)) {
@@ -383,7 +383,7 @@ dotinference <- function(obj) {
                                             fit <- lm(x ~ y, data = dat)
                                             est <- predict(fit, newdata = data.frame(y = levels(dat$y)))
                                             mfit <- suppressWarnings(moecalc(fit, factorname = "y", est = est))
-                                            with(mfit, cbind(compL, compU)) + coef(fit)[1]
+                                            cbind(with(mfit, cbind(lower = compL, upper = compU)) + coef(fit)[1], mean = est)
                                         }
                                     }
                                 }

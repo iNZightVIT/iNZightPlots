@@ -10,7 +10,7 @@ inference.inzdot <- function(object, bs, class, width, ...) {
         stop("Please specify `inference.type = conf` to get inference information.")
 
     mat <- inf$mean$conf[, c("lower", "mean", "upper"), drop = FALSE]
-print(mat)    
+
     mat <- matrix(apply(mat, 2, function(col) {
         format(col, digits = 4)
     }), nrow = nrow(mat))
@@ -44,7 +44,7 @@ print(mat)
     if (bs) {
         ## BOOTSTRAP MEDIAN
         mat <- inf$median$conf[, c("lower", "mean", "upper"), drop = FALSE]
-        
+
         mat <- matrix(apply(mat, 2, function(col) {
             format(col, digits = 4)
         }), nrow = nrow(mat))
@@ -76,7 +76,7 @@ print(mat)
 
         ## BOOTSTRAP INTERQUARTILE RANGE
         mat <- inf$iqr$conf[, c("lower", "mean", "upper"), drop = FALSE]
-        
+
         mat <- matrix(apply(mat, 2, function(col) {
             format(col, digits = 4)
         }), nrow = nrow(mat))
@@ -232,7 +232,7 @@ inference.inzbar <- function(object, bs, vn, nb, ...) {
     if (is.null(inf$conf))
         return("Unable to obtain inference information.")
 
-    if (bs & sum(tab) < 10)
+    if (bs & sum(object$tab) < 10)
         return("Not enough data to perform bootstraps.")
 
     twoway <- nrow(phat) > 1
