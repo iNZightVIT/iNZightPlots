@@ -49,6 +49,12 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         md <- eval(m$data, env)
     }
 
+    varnames <- varnames
+
+    ## Any varnames supplied that AREN'T needed must be removed, otherwise errors:
+    nullVars <- sapply(as.list(m)[names(varnames)], is.null)
+    varnames[nullVars] <- NULL
+
     ## fix up some subsetting group stuff
     if (is.null(m$g1)) {
         if (!is.null(g2)) {
@@ -104,7 +110,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ##     else
     ##         bs.inference <- dots$bs.inference
     ## }
-    
+
     obj <- iNZightPlot(x = x, y = y, g1 = g1, g1.level = g1.level,
                        g2 = g2, g2.level = g2.level, varnames = varnames,
                        colby = colby, sizeby = sizeby,
@@ -112,9 +118,8 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                        missing.info = missing.info, inzpars = inzpars,
                        plot = FALSE, df = df, ...)
 
-
     ### Now we just loop over everything ...
-    
+
     summary(obj, summary.type)
 }
 

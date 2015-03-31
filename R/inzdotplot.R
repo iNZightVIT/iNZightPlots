@@ -262,6 +262,8 @@ dotinference <- function(obj) {
     xattr <- obj$xattr
     inf.par <- opts$inference.par
     inf.type <- opts$inference.type
+    if (!is.null(inf.type) & is.null(inf.par))
+        inf.par <- c("mean", "median")
     bs <- opts$bs.inference
 
     if (is.null(inf.par) & is.null(inf.type)) {

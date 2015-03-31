@@ -160,6 +160,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ## each of these classes will have appropriate methods for extracting the information
 
     varnames <- as.list(df$varnames)
+
+    ## Any varnames supplied that AREN'T needed must be removed, otherwise errors:
+    nullVars <- sapply(as.list(m)[names(varnames)], is.null)
+    varnames[nullVars] <- NULL
+    
     vartypes <- lapply(df$data[, names(varnames), drop = FALSE],
                        function(x) ifelse(is.factor(x), "factor", "numeric"))
     names(vartypes) <- unlist(varnames)
@@ -323,6 +328,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             }
         }
 
+        if (is.null(xlab))
+            xlab <- varnames$x
+        if (is.null(ylab))
+            ylab <- varnames$y
+        
         titles <- list()
         titles$main <-
             if (!is.null(dots$main)) dots$main

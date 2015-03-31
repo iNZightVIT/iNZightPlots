@@ -5,12 +5,12 @@ inference <- function(object, ...)
 inference.inzdot <- function(object, bs, class, width, ...) {
     toplot <- object$toplot
     inf <- object$inference.info
-
+    
     if (is.null(inf[[1]]$conf))
         stop("Please specify `inference.type = conf` to get inference information.")
 
     mat <- inf$mean$conf[, c("lower", "mean", "upper"), drop = FALSE]
-    
+print(mat)    
     mat <- matrix(apply(mat, 2, function(col) {
         format(col, digits = 4)
     }), nrow = nrow(mat))
