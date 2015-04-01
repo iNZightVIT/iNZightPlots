@@ -193,7 +193,7 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
                               name = paste0("VP:plotregion-", i)))
 
         if (length(pp$x) > 0)
-            grid.points(pp$x, pp$y,
+            grid.points(pp$x, pp$y, pch = opts$pch,
                         gp =
                         gpar(col = colourPoints(pp$colby, col.args, opts),
                              cex = opts$cex.dotpt, lwd = opts$lwd.pt,
