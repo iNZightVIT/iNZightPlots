@@ -118,8 +118,13 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     }
     nbins <- if (hist) {
         ## some option here to adjust the number of bins (e.g., sample size < 100?)
-        
-        opts$hist.bins
+        if (is.null(opts$hist.bins)) {
+            wd <- convertWidth(unit(1.2 * opts$cex.dotpt, "char"),
+                               "npc", valueOnly = TRUE)
+            floor(1 / (wd))
+        } else {
+            opts$hist.bins
+        }
     } else {
         wd <- convertWidth(unit(1.2 * opts$cex.dotpt, "char"),
                            "npc", valueOnly = TRUE)

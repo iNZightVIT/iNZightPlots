@@ -247,9 +247,35 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
       # we just need to go through all plots and test if they should be LARGESAMPLE or not:
         if (is.null(opts$largesample)) {
-            maxRow <- max(sapply(df.list, function(df) sapply(df, nrow)))
-            opts$largesample <- maxRow > opts$large.sample.size  # essentially override the
-                                                                 # largesample argument
+            sample.sizes <- do.call(c, lapply(df.list, function(df) sapply(df, nrow)))
+            smallest.sample <- min(sample.sizes, na.rm = TRUE)
+            largest.sample <- max(sample.sizes, na.rm = TRUE)
+
+            ## grab parameters
+            N.LARGE <- opts$large.sample.size
+            N.LIMITS <- opts$match.limits
+            
+            ## Do we need different plots?
+            if (smallest.sample > N.LARGE) {
+                ## all sample sizes are big enough
+                opts$largesample <- TRUE
+            } else if (largest.sample < N.LARGE) {
+                ## all sample sizes are small enough
+                opts$largesample <- FALSE
+            } else if (smallest.sample > N.LIMITS[1]) {
+                ## the smallest sample is bigger than the lower limit
+                opts$largesample <- TRUE
+            } else if (largest.sample < N.LIMITS[2]) {
+                ## the largest sample is smaller than the upper limit
+                opts$largesample <- FALSE
+            } else {
+                ## sample sizes range outside both upper and lower limits
+                opts$largesample <- as.logical(round(mean(sample.sizes > N.LARGE)))
+            }
+            
+#            maxRow <- max(sapply(df.list, function(df) sapply(df, nrow)))
+#            opts$largesample <- maxRow > opts$large.sample.size  # essentially override the
+#                                                                 # largesample argument
         }
     }
 
@@ -801,6 +827,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     attr(plot.list, "bootstrap") <- opts$bs.inference
     attr(plot.list, "nboot") <- opts$n.boot
     attr(plot.list, "inzclass") <- xattr$class
+
+    attr(plot.list, "plottype") <- gsub("inz", "", class(plot.list[[1]][[1]]))
     
     class(plot.list) <- "inzplotoutput"
     return(invisible(plot.list))
