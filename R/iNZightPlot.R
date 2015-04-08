@@ -681,7 +681,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         for (r in nr:1) {
             R <- r * 2  # skip the gaps between rows
             if (matrix.plot) {
-                                        # add that little thingy
+                ## add that little thingy
                 seekViewport("VP:PLOTlayout")
                 pushViewport(viewport(layout.pos.row = R - 1,
                                       gp = gpar(cex = multi.cex, fontface = "bold")))
@@ -692,6 +692,19 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             for (c in 1:nc) {
                 if (g2id > NG2) next()
                 C <- c * 2 - 1
+
+                ## This is necessary to delete the "old" viewport so we can create a new one
+                ## of the same name, but retain it long enough to use it for drawing the axes
+                if (TYPE %in% c("dot", "hist") & !layout.only) {
+                    vp2rm <- try(switch(TYPE,
+                                        "dot" = {
+                                            seekViewport("VP:dotplot-levels")
+                                            popViewport()
+                                        }, "hist" = {
+                                            seekViewport("VP:histplot-levels")
+                                            popViewport()
+                                        }), TRUE)                    
+                }
 
                 seekViewport("VP:PLOTlayout")
                 pushViewport(viewport(layout.pos.row = R, layout.pos.col = C,
@@ -773,19 +786,6 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                     upViewport()
                 }
 
-                ## This is necessary to delete the "old" viewport so we can create a new one
-                ## of the same name, but retain it long enough to use it for drawing the axes
-                if (TYPE %in% c("dot", "hist") & !layout.only)
-                    switch(TYPE,
-                           "dot" = {
-                               seekViewport("VP:dotplot-levels")
-                               popViewport()
-                           }, "hist" = {
-                               seekViewport("VP:histplot-levels")
-                               popViewport()
-                           })
-
-
                 ## update the counters
                 if (g1id < NG1) {
                     g1id <- g1id + 1
@@ -827,6 +827,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     attr(plot.list, "bootstrap") <- opts$bs.inference
     attr(plot.list, "nboot") <- opts$n.boot
     attr(plot.list, "inzclass") <- xattr$class
+    attr(plot.list, "nplots") <- N
 
     attr(plot.list, "plottype") <- gsub("inz", "", class(plot.list[[1]][[1]]))
     

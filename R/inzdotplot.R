@@ -68,27 +68,24 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         out[[i]] <- di
     }
 
-    boxinfo <- if (boxplot & (!"mean" %in% opts$inference.par) & nrow(df) > 5)
-        boxSummary(out, opts) else NULL
-
     makeHist <- function(d, nbins, xlim) {
         if (is.null(d)) return(NULL)
         
-      # Create even cut points in the given data range:
+        ## Create even cut points in the given data range:
         range <- xlim
         range <- extendrange(range, f = 0.01) ## is this necessary?
         cuts <- seq(range[1] - 0.1, range[2] + 0.1, length = nbins + 1)
         bin.min <- cuts[-(nbins + 1)]
         bin.max <- cuts[-1]
-
-        # Cut the data and calculate counts:
+        
+        ## Cut the data and calculate counts:
         if (inherits(d, "survey.design")) {
             ## To do this, we will pretty much grab stuff from the `survey` package, however it
             ## cannot be used separately to produce the bins etc without plotting it; so copyright
             ## for the next few lines goes to Thomas Lumley.
             h <- hist(x <- d$variables$x, breaks = cuts, plot = FALSE)
-
-            # We can run into problems with PSUs have single clusters, so:
+            
+            ## We can run into problems with PSUs have single clusters, so:
             oo <- options()$survey.lonely.psu
             options(survey.lonely.psu = "certainty")
             probs <- coef(svymean(~cut(d$variables$x, h$breaks, include.lowest = TRUE,
@@ -100,7 +97,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         } else {
             h <- hist(x <- d$x, breaks = cuts, plot = FALSE)
         }
-
+        
         ret <- list(breaks = cuts,
                     counts = as.numeric(h$counts),
                     density = as.numeric(h$density),
@@ -114,8 +111,14 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
             }
         }
         
+        attr(ret, "order") <- order(d$x)
         ret
     }
+
+    boxinfo <- if (boxplot & (!"mean" %in% opts$inference.par) & nrow(df) > 5)
+        boxSummary(out, opts) else NULL
+
+    
     nbins <- if (hist) {
         ## some option here to adjust the number of bins (e.g., sample size < 100?)
         if (is.null(opts$hist.bins)) {
@@ -136,9 +139,10 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
 
     ## Generate a list of the inference information for each plot:
     inflist <- dotinference(obj)
-    
+
     out <- list(toplot = plist, n.missing = n.missing, boxinfo = boxinfo, inference.info = inflist,
-                nacol = if ("colby" %in% v) any(sapply(plist, function(T) any(is.na(T$colby)))) else FALSE,
+                nacol = if ("colby" %in% v) any(sapply(plist, function(T)
+                    if (is.null(T$colby)) FALSE else any(is.na(T$colby)))) else FALSE,
                 xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
                 ylim = c(0, max(sapply(plist, function(p) if (is.null(p)) 0 else max(p$counts)))))
 
@@ -192,17 +196,20 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
         if (boxplot) addBoxplot(boxinfo[[i]])
         if (!is.null(inflist)) addUnivarInference(inflist, i, opts)
         upViewport()
+
+        vpname <- ifelse(nlev == 1, "VP:plotregion", paste0("VP:plotregion-", i))
         
         pushViewport(viewport(layout.pos.row = 1,
                               xscale = xlim, yscale = ylim,
-                              name = paste0("VP:plotregion-", i)))
+                              name = vpname))
 
         if (length(pp$x) > 0)
             grid.points(pp$x, pp$y, pch = opts$pch,
                         gp =
                         gpar(col = colourPoints(pp$colby, col.args, opts),
                              cex = opts$cex.dotpt, lwd = opts$lwd.pt,
-                             alpha = opts$alpha, fill = obj$fill.pt))
+                             alpha = opts$alpha, fill = obj$fill.pt),
+                        name = "DOTPOINTS")
     }
     
     seekViewport("VP:dotplot-levels")
