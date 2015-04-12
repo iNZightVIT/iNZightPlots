@@ -13,9 +13,9 @@ createPlot <- function(df, opts, xattr) {
     vt <- xattr$vartypes
     xfact <- vt$x == "factor"
     ynull <- ! "y" %in% v
-    yfact <- if (ynull) NULL else vt$y == "factor"
+    yfact <- if (ynull) FALSE else vt$y == "factor"
     xnum <- !xfact
-    ynum <- if (ynull) NULL else !xfact
+    ynum <- if (ynull) FALSE else !xfact
 
     ## allow forcing the plot type:
     ## -- here, the switch takes the given plot type, checks the data types are correct,

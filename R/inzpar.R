@@ -71,7 +71,8 @@
 ##' \item{'large.sample.size'}{sample sizes over this value will use a large-sample plot variant
 ##' (i.e., scatter plots will become hex plots, dot plots become histograms)}
 ##' \item{'largesample'}{logical, if \code{TRUE}, then the large-sample plot variance is used}
-##' \item{'scatter.grid.bins'}{the number of bins to use for the scatter-grid plot}
+##' \item{'scatter.grid.bins'}{the number, N, of bins to use for the scatter-grid plot,
+##' producing an N x N matrix}
 ##' \item{'hex.bins'}{the number of bins to use for hexagonal binning}
 ##' \item{'quant.cutoff'}{if \code{quant.smooth = "default"}, these sample size values are used
 ##' to determine which quantiles are drawn}
@@ -147,8 +148,8 @@ inzpar <- function(...) {
                n.boot         = 1500,
                large.sample.size = 2000,
                largesample    = NULL,
-               scatter.grid.bins = 200,
-               hex.bins       = NULL,
+               scatter.grid.bins = 50,
+               hex.bins       = 20,
                hist.bins      = NULL,
                quant.cutoff   = c(200, 1000),
                plottype       = "default",

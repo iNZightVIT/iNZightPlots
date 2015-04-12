@@ -17,16 +17,16 @@ create.inz.hexplot <- function(obj) {
     n.missing <- sum(missing)
     df <- df[!missing, ]
 
-    xbins <-
-        if (is.null(opts$hex.bins)) {
-            if ((cpt <- opts$cex.pt) > 1) {
-                (1 - (cpt - 1) / 2.5) * (25) + 5
-            } else {
-                (1 - (cpt - 0.05) / 0.95) * 70 + 30
-            }
-        } else {
-            opts$hex.bins
-        }
+    xbins <- opts$hex.bins
+        #if (is.null(opts$hex.bins)) {
+        #    if ((cpt <- opts$cex.pt) > 1) {
+        #        (1 - (cpt - 1) / 2.5) * (25) + 5
+        #    } else {
+        #        (1 - (cpt - 0.05) / 0.95) * 70 + 30
+        #    }
+        #} else {
+        #    opts$hex.bins
+        #}
     
     ## hexbin returns an S4 object, so need to use the @ operator
     hb <- hexbin(df$x, df$y, IDs = TRUE, xbins = xbins)

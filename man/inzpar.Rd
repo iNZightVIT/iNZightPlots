@@ -87,7 +87,8 @@ to obtain the intervals}
 \item{'large.sample.size'}{sample sizes over this value will use a large-sample plot variant
 (i.e., scatter plots will become hex plots, dot plots become histograms)}
 \item{'largesample'}{logical, if \code{TRUE}, then the large-sample plot variance is used}
-\item{'scatter.grid.bins'}{the number of bins to use for the scatter-grid plot}
+\item{'scatter.grid.bins'}{the number, n, of bins to use for the scatter-grid plot,
+producing an \eqn{n \times n} matrix}
 \item{'hex.bins'}{the number of bins to use for hexagonal binning}
 \item{'quant.cutoff'}{if \code{quant.smooth = "default"}, these sample size values are used
 to determine which quantiles are drawn}

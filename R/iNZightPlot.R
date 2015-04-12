@@ -827,7 +827,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     attr(plot.list, "bootstrap") <- opts$bs.inference
     attr(plot.list, "nboot") <- opts$n.boot
     attr(plot.list, "inzclass") <- xattr$class
-    attr(plot.list, "nplots") <- N
+    attr(plot.list, "nplots") <- if (exists("N")) N else NULL
 
     attr(plot.list, "plottype") <- gsub("inz", "", class(plot.list[[1]][[1]]))
     
