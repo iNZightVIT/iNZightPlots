@@ -107,11 +107,11 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         if (!hist) {
             ret$y <- unlist(sapply(h$counts[h$counts != 0], function(c) 1:c))
             if ("colby" %in% colnames(d)) {
-                ret$colby <- d$colby[order(d$x)]
+                ret$colby <- d$colby[order(x)]
             }
         }
         
-        attr(ret, "order") <- order(d$x)
+        attr(ret, "order") <- order(x)
         ret
     }
 
