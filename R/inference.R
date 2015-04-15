@@ -5,6 +5,9 @@ inference <- function(object, ...)
 inference.inzdot <- function(object, bs, class, width, ...) {
     toplot <- object$toplot
     inf <- object$inference.info
+
+    if (is.character(inf))
+        return("Sample too small to get inference")
     
     if (is.null(inf[[1]]$conf))
         stop("Please specify `inference.type = conf` to get inference information.")

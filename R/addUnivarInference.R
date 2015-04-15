@@ -6,6 +6,8 @@ addUnivarInference <- function(inflist, i, opts) {
     ## We can only display one type of inference (mean OR median)
     inflist <- inflist[[1]]
 
+    if (is.character(inflist)) return()
+
     lapply(rev(c("conf", "comp")), function(n) {
         if (!is.null(inflist[[n]])) {
             ci <- inflist[[n]][i, c("lower", "upper")]

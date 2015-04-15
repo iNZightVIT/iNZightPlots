@@ -282,7 +282,7 @@ dotinference <- function(obj) {
         return(NULL)
     }
 
-    if (nrow(obj$df) < opts$min.count) return(NULL)
+    if (nrow(obj$df) < opts$min.count) return("sample too small")
 
   
     ## for simplicity, if no 'y' factor, just make all the same level for tapply later:
@@ -424,7 +424,16 @@ dotinference <- function(obj) {
                                     if (svy) {
                                         NULL
                                     } else {
-                                        NULL
+                                        ## YEAR 12 INTERVALS
+                                        iqr <- 
+                                        
+                                        n <- tapply(dat$x, dat$y, function(z) sum(!is.na(z)))
+                                        n <- ifelse(n < 2, NA, n)
+                                        wd <- qt(0.975, df = n - 1) *
+                                            tapply(dat$x, dat$y, function(z)
+                                                   diff(quantile(z, c(0.25, 0.75), na.rm = TRUE))) / sqrt(n)
+                                        mn <- tapply(dat$x, dat$y, median, na.rm = TRUE)
+                                        cbind(lower = mn - wd, upper = mn + wd, mean = mn)
                                     }
                                 }
                             },
