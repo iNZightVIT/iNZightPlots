@@ -76,7 +76,7 @@ gSubset.default <- function(df, g1.level, g2.level, df.vs, missing) {
         g1l <- "all"
         g1.level <- "all"
     }
-    
+
     # this converts each data.frame in the list to a list of data
     # frames for all levels of g1
     df.list <- lapply(df1, function(df2) {

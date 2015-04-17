@@ -136,7 +136,6 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
   # ------------------------------------------------------------------------------------ #
   # 1. The data step
   # ----------------
-
     # grab the arguments and the data frame is supplied:
     m <- match.call(expand.dots = FALSE)
 
