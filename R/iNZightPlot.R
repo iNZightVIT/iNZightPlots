@@ -340,16 +340,23 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         ## --- there will be some fancy stuff here designing and implementing a grid which adds titles,
         ## labels, and optionally legends
 
-                                        # --- first, need to make all of the labels/legends/etc:
+        ## --- first, need to make all of the labels/legends/etc:
         VT <- vartypes
         names(VT) <- names(varnames)
+        
         if (all(c("x", "y") %in% names(VT))) {
+            ## switch X/Y for dotplots
+            
             if (VT$y == "numeric" & VT$x == "factor") {
                 xn <- varnames$y
                 varnames$y <- varnames$x
                 varnames$x <- xn
                 VT$x <- "numeric"
                 VT$y <- "factor"
+
+                my <- missing$y
+                missing$y <- missing$x
+                missing$x <- my
             }
         }
 
@@ -541,9 +548,13 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 if (length(missing) > 1) paste0(" (", paste0(POS.missing, " in ", names(POS.missing),
                                                              collapse = ", "), ")")
                 else ""
-            
-            subtitle <- paste0(total.missing, " missing values", missinfo)
-            SUB <- textGrob(subtitle, gp = gpar(cex = opts$cex.text * 0.8))
+
+            if (total.missing > 0) {
+                subtitle <- paste0(total.missing, " missing values", missinfo) 
+                SUB <- textGrob(subtitle, gp = gpar(cex = opts$cex.text * 0.8))
+            } else {
+                SUB <- NULL
+            }
         } else {
             SUB <- NULL
         }
@@ -566,9 +577,44 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                                  heights = unit.c(MAIN.hgt, XAX.hgt, PLOT.hgt,
                                      XAX.hgt, XLAB.hgt, SUB.hgt),
                                  widths = unit.c(YLAB.wd, YAX.wd, PLOT.wd, YAX.wd, LEG.wd))
-
+        
         ## Send the layout to the plot window
         pushViewport(viewport(layout = TOPlayout, name = "VP:TOPlayout"))
+
+        ## Sort out XAX height:
+        pushViewport(viewport(layout.pos.row = 3, layout.pos.col = 3))
+        plotWidth <- convertWidth(current.viewport()$width, 'in', TRUE)
+        upViewport()
+
+        if (TYPE == "bar") {
+            ## If the labels are too wide, we rotate them (and shrink slightly)
+            x.lev <- levels(df$data$x)
+            nLabs <- length(x.lev)
+            maxWd <- 0.8 * plotWidth / nLabs
+            rot <- any(sapply(x.lev, function(l)
+                              convertWidth(grobWidth(textGrob(l, gp = gpar(cex = opts$cex.axis))),
+                                           "in", TRUE) > maxWd))
+            opts$rot <- rot
+            
+            if (rot) {
+                ## Unable to update the viewport, so just recreate it:
+                XAXht <- drawAxes(df$data$x, which = "x", main = TRUE, label = TRUE, opts,
+                                  heightOnly = TRUE)
+                XAX.hgt2 <- convertWidth(XAXht, "in")
+
+                ## destroy the old one
+                popViewport()
+                TOPlayout <- grid.layout(nrow = 6, ncol = 5,
+                                         heights = unit.c(MAIN.hgt, XAX.hgt, PLOT.hgt,
+                                             XAX.hgt2, XLAB.hgt, SUB.hgt),
+                                         widths = unit.c(YLAB.wd, YAX.wd, PLOT.wd, YAX.wd, LEG.wd))
+                
+                ## Send the layout to the plot window
+                pushViewport(viewport(layout = TOPlayout, name = "VP:TOPlayout"))
+            }
+        }
+
+
         ## place the title
         pushViewport(viewport(layout.pos.row = 1))
         grid.draw(main.grob)
@@ -761,7 +807,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 ## right
                 ##
                 ## For barplot: the axis is on the bottom of every column, and left and right of every
-                ## row
+                ## row - also, must rotate if too big!
                 ## ------------
 
                 pushViewport(viewport(layout.pos.row = 2, xscale = xlim,

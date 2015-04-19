@@ -4,6 +4,8 @@ create.inz.barplot <- function(obj) {
     opts <- obj$opts
     xattr <- obj$xattr
 
+    
+
     inf.type <- opts$inference.type
     inf.par <- "proportion"
     bs <- opts$bs.inference
