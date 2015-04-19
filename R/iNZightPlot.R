@@ -448,7 +448,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         YAX.width <- YAX.width + YAX.default.width
 
                                         # -- legend(s)
-        barplot <- FALSE
+        barplot <- TYPE == "bar"
         leg.grob1 <- leg.grob2 <- leg.grob3 <- NULL
         cex.mult = ifelse("g1" %in% df.vs, 1,
             ifelse("g1.level" %in% df.vs,
@@ -461,7 +461,10 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
         col.args <- list(missing = opts$col.missing)
         if ("colby" %in% names(varnames) &
-            (TYPE %in% c("dot", "scatter") || (TYPE %in% c("grid", "hex") & !is.null(opts$trend) & opts$trend.by))) {
+            (TYPE %in% c("dot", "scatter") ||
+             (TYPE %in% c("grid", "hex") & !is.null(opts$trend) & opts$trend.by) ||
+             (TYPE == "bar" & ynull & is.factor(df$data$colby)))) {
+            
             if (is.factor(df$data$colby)) {
                 nby <- length(levels(as.factor(df$data$colby)))
                 if (length(opts$col.pt) >= nby) {
@@ -470,7 +473,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                     ptcol <- genCols(nby)
                 }
 
-                misscol <- any(sapply(plot.list, function(x) sapply(x, function(y) y$nacol)))
+                if (TYPE != "bar")
+                    misscol <- any(sapply(plot.list, function(x) sapply(x, function(y) y$nacol)))
+                else
+                    misscol <- FALSE
+
                 leg.grob1 <- drawLegend(f.levels <- levels(as.factor(df$data$colby)), col = ptcol,
                                         pch = ifelse(barplot, 22, opts$pch),
                                         title = varnames$colby, any.missing = misscol, opts = opts)

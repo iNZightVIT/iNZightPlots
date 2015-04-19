@@ -34,6 +34,7 @@ create.inz.barplot <- function(obj) {
                       NULL
                   })
 
+    SEG <- FALSE
     if (ynull) {
         if (is.null(svy))
             tab <- table(df$x)
@@ -42,6 +43,17 @@ create.inz.barplot <- function(obj) {
         phat <- matrix(tab / sum(tab), nrow = 1)
         widths <- rep(1, length(tab))
         edges <- c(0, 1)
+
+                ## colby: (segmented bar plot)
+        SEG <- "colby" %in% colnames(df)
+        if (SEG) {
+            tab2 <-
+                if (is.null(svy))
+                    table(df$colby, df$x)
+                else
+                    svytable(~colby + x, design = svy)
+            p2 <- sweep(tab2, 2, colSums(tab2), "/")
+        }
     } else {
         if (is.null(svy))
             tab <- table(df$y, df$x)
@@ -51,13 +63,16 @@ create.inz.barplot <- function(obj) {
         widths <- nn / sum(nn)
         edges <- c(0, cumsum(widths))
     }
-    
-    inflist <- barinference(obj, tab, phat)
+
+    ## Cannot have inference on segmented plot (too complicated for now)
+    inflist <- if (!SEG) barinference(obj, tab, phat) else NULL
 
     out <- list(phat = phat, tab = tab, widths = widths, edges = edges, nx = ncol(phat),
                 full.height = opts$full.height, inference.info = inflist,
                 xlim = c(0, if (ynull) length(tab) else ncol(tab)),
                 ylim = c(0, max(phat, attr(inflist, "max"))))
+    if (SEG) out$p.colby = p2
+    
     class(out) <- "inzbar"
 
     out
@@ -70,15 +85,36 @@ plot.inzbar <- function(obj, gen) {
 
     inflist <- obj$inference.info
 
+    if (SEG <- !is.null(obj$p.colby)) {
+        seg.cols <- gen$col.args$f.cols
+    }
+    
     edges <- rep(obj$edges * 0.9 + 0.05, each = 4)
     edges <- edges[3:(length(edges) - 2)]
+
     xx <- rep(edges, nx) + rep(1:nx - 1, each = 4 * nrow(p))
 
-    tops <- apply(p, 2, function(x) rbind(0, x, x, 0))
-    yy <- c(tops)
-    
-    id <- rep(1:prod(dim(p)), each = 4)
-    colz <- if (is.null(gen$col.args$b.cols)) opts$bar.fill else rep(gen$col.args$b.cols, nx)
+    if (SEG) {
+       xx <- rep(xx, length(seg.cols))
+       tops <- apply(p, 2, function(x) rbind(0, x, x, 0))
+
+       yy <- rep(tops, length(seg.cols))
+       ps <- rep(c(t(obj$p.colby)), each = 4)
+       pT <- rep(c(t(apply(obj$p.colby, 2, cumsum))), each = 4)
+       yy <- yy * pT
+
+       ## reverse the order, so the short ones are drawn last!       
+       id <- rev(rep(1:prod(dim(obj$p.colby)), each = 4))
+       colz <- rep(seg.cols, each = nx)
+    } else {
+        
+        
+        tops <- apply(p, 2, function(x) rbind(0, x, x, 0))
+        yy <- c(tops)
+        
+        id <- rep(1:prod(dim(p)), each = 4)
+        colz <- if (is.null(gen$col.args$b.cols)) opts$bar.fill else rep(gen$col.args$b.cols, nx)
+    }
     
     grid.polygon(unit(xx, "native"), unit(yy, "native"), id = id,
                  gp =
