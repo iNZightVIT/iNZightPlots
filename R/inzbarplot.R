@@ -91,35 +91,49 @@ plot.inzbar <- function(obj, gen) {
     
     edges <- rep(obj$edges * 0.9 + 0.05, each = 4)
     edges <- edges[3:(length(edges) - 2)]
-
     xx <- rep(edges, nx) + rep(1:nx - 1, each = 4 * nrow(p))
-
+    
     if (SEG) {
-       xx <- rep(xx, length(seg.cols))
-       tops <- apply(p, 2, function(x) rbind(0, x, x, 0))
-
-       yy <- rep(tops, length(seg.cols))
-       ps <- rep(c(t(obj$p.colby)), each = 4)
-       pT <- rep(c(t(apply(obj$p.colby, 2, cumsum))), each = 4)
-       yy <- yy * pT
-
-       ## reverse the order, so the short ones are drawn last!       
-       id <- rev(rep(1:prod(dim(obj$p.colby)), each = 4))
-       colz <- rep(seg.cols, each = nx)
-    } else {
-        
-        
+        xx <- rep(xx, length(seg.cols))
         tops <- apply(p, 2, function(x) rbind(0, x, x, 0))
-        yy <- c(tops)
         
-        id <- rep(1:prod(dim(p)), each = 4)
-        colz <- if (is.null(gen$col.args$b.cols)) opts$bar.fill else rep(gen$col.args$b.cols, nx)
+        yy <- rep(tops, length(seg.cols))
+        ps <- rep(c(t(obj$p.colby)), each = 4)
+        pT <- rep(c(t(apply(obj$p.colby, 2, cumsum))), each = 4)
+        yy <- yy * pT
+        
+        ## reverse the order, so the short ones are drawn last!       
+        id <- rev(rep(1:prod(dim(obj$p.colby)), each = 4))
+        colz <- rep(seg.cols, each = nx)
+        
+        grid.polygon(unit(xx, "native"), unit(yy, "native"), id = id,
+                     gp =
+                     gpar(fill = colz, col = "transparent",
+                          lwd = 0))
+
+        ## separating lines
+        mat <- apply(sweep(obj$p.colby, 2, tops[2, ], "*"), 2, cumsum)
+        mat <- mat[-nrow(mat), ]  # drop the last one
+
+        yl <- rep(c(mat), each = 2)
+        xl <- rep(edges[2:3], length = length(yl)) + rep(1:nx - 1, each = 2 * nrow(mat))
+        id <- rep(1:length(c(mat)), each = 2)
+
+        grid.polyline(xl, yl, default.units = "native", id = id,
+                      gp = gpar(col = opts$bar.col, lwd = opts$bar.lwd))                          
     }
     
+    xx <- rep(edges, nx) + rep(1:nx - 1, each = 4 * nrow(p))
+    tops <- apply(p, 2, function(x) rbind(0, x, x, 0))
+    yy <- c(tops)
+    
+    id <- rep(1:prod(dim(p)), each = 4)
+    colz <- if (is.null(gen$col.args$b.cols)) opts$bar.fill else rep(gen$col.args$b.cols, nx)
+   
     grid.polygon(unit(xx, "native"), unit(yy, "native"), id = id,
-                 gp =
-                 gpar(fill = colz, col = opts$bar.col,
-                      lwd = opts$bar.lwd))
+                     gp =
+                     gpar(fill = if (SEG) "transparent" else colz, col = opts$bar.col,
+                          lwd = opts$bar.lwd))    
 
     center <- apply(matrix(xx, ncol = 4, byrow = TRUE), 1, function(x) x[2] + (x[3] - x[2]) / 2)
     bounds <- apply(matrix(xx, ncol = 4, byrow = TRUE), 1, function(x) x[2:3])
