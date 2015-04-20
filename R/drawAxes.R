@@ -47,7 +47,7 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts, sub = 0, h
                        Nlab <- length(labels)
                        for (i in 1:Nlab) {
                            seekViewport(paste0("VP:plotregion-", i))
-                           grid.text(labels[i], x = unit(-0.5, "lines"), just = "right")
+                           grid.text(labels[i], x = unit(-0.5, "lines"), just = "right", gp = gpar(cex = opts$cex.axis))
                            upViewport()
                        }
                    }

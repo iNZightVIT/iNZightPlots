@@ -429,12 +429,12 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             YLAB.width <- 0
         }
 
-                                        # -- xaxis marks
+        ## -- xaxis marks
         XAX.height <- convertWidth(unit(1, "lines"), "in", TRUE) * 2 * opts$cex.axis
 
-                                        # -- yaxis marks
+        ## -- yaxis marks
         YAX.width <- if (TYPE %in% c("dot", "hist") & !ynull) {
-                                        # need to grab the factoring variable -> might be x OR y
+            ## need to grab the factoring variable -> might be x OR y
             yf <- if (is.factor(df$data$y)) df$data$y else df$data$x
             yl <- levels(yf)
             yWidths <- sapply(yl, function(L)
@@ -583,7 +583,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         TOPlayout <- grid.layout(nrow = 6, ncol = 5,
                                  heights = unit.c(MAIN.hgt, XAX.hgt, PLOT.hgt,
                                      XAX.hgt, XLAB.hgt, SUB.hgt),
-                                 widths = unit.c(YLAB.wd, YAX.wd, PLOT.wd, YAX.wd, LEG.wd))
+                                 widths = unit.c(YLAB.wd, YAX.wd, PLOT.wd, if (TYPE %in% c("scatter", "grid", "hex")) YAX.wd else unit(0.5, "in"), LEG.wd))
         
         ## Send the layout to the plot window
         pushViewport(viewport(layout = TOPlayout, name = "VP:TOPlayout"))
