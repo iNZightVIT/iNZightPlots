@@ -44,8 +44,11 @@ create.inz.barplot <- function(obj) {
         widths <- rep(1, length(tab))
         edges <- c(0, 1)
 
-                ## colby: (segmented bar plot)
+        ## colby: (segmented bar plot)
         SEG <- "colby" %in% colnames(df)
+        if (SEG & !is.factor(df$colby))
+            SEG <- FALSE
+        
         if (SEG) {
             tab2 <-
                 if (is.null(svy))
@@ -113,7 +116,7 @@ plot.inzbar <- function(obj, gen) {
 
         ## separating lines
         mat <- apply(sweep(obj$p.colby, 2, tops[2, ], "*"), 2, cumsum)
-        mat <- mat[-nrow(mat), ]  # drop the last one
+        mat <- mat[-nrow(mat), , drop = FALSE]  # drop the last one
 
         yl <- rep(c(mat), each = 2)
         xl <- rep(edges[2:3], length = length(yl)) + rep(1:nx - 1, each = 2 * nrow(mat))
