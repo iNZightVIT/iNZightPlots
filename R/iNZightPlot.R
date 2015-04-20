@@ -164,6 +164,9 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     nullVars <- sapply(as.list(m)[names(varnames)], is.null)
     varnames[nullVars] <- NULL
     
+    ## In some cases, arguments are removed and must be continued on other error
+    ## (e.g., too many factor levels, etc)
+    varnames[!names(varnames) %in% colnames(df$data)] <- NULL
     vartypes <- lapply(df$data[, names(varnames), drop = FALSE],
                        function(x) ifelse(is.factor(x), "factor", "numeric"))
     names(vartypes) <- unlist(varnames)
