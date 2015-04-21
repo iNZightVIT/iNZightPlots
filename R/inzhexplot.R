@@ -47,7 +47,10 @@ create.inz.hexplot <- function(obj) {
     out <- list(hex = hb, n.missing = n.missing, svy = obj$df,
                 colby = df$colby, nacol = FALSE,
                 xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
-                ylim = if (nrow(df) > 0) range(df$y, na.rm = TRUE) else c(-Inf, Inf))
+                ylim = if (nrow(df) > 0) range(df$y, na.rm = TRUE) else c(-Inf, Inf),
+                x = df$x, y = df$y,
+                trend = opts$trend, trend.by = opts$trend.by, smooth = opts$trend,
+                n.boot = opts$n.boot)
     class(out) <- "inzhex"
 
     out

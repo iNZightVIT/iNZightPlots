@@ -111,6 +111,8 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ##         bs.inference <- dots$bs.inference
     ## }
 
+    
+
     obj <- iNZightPlot(x = x, y = y, g1 = g1, g1.level = g1.level,
                        g2 = g2, g2.level = g2.level, varnames = varnames,
                        colby = colby, sizeby = sizeby,

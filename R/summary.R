@@ -40,6 +40,8 @@ summary.inzdot <- function(object, ...) {
     mat <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
     mat
 }
+summary.inzhist <- function(object, ...)
+    summary.inzdot(object, ...)
 
 
 
@@ -145,3 +147,8 @@ summary.inzscatter <- function(object, vn, ...) {
                     "  (using Spearman's Rank Correlation)"))
       
 }
+summary.inzgrid <- function(object, vn, ...)
+    summary.inzscatter(object, vn, ...)
+
+summary.inzhex <- function(object, vn, ...)
+    summary.inzscatter(object, vn, ...)

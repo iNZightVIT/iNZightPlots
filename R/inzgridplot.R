@@ -76,7 +76,10 @@ create.inz.gridplot <- function(obj) {
     out <- list(makeRects = makeRects, args = list(df = df, opts = opts, xattr = xattr),
                 n.missing = n.missing, colby = df$colby, nacol = FALSE,
                 xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
-                ylim = if (nrow(df) > 0) range(df$y, na.rm = TRUE) else c(-Inf, Inf))
+                ylim = if (nrow(df) > 0) range(df$y, na.rm = TRUE) else c(-Inf, Inf),
+                x = df$x, y = df$y,
+                trend = opts$trend, trend.by = opts$trend.by, smooth = opts$trend,
+                n.boot = opts$n.boot)
     class(out) <- "inzgrid"
 
     out

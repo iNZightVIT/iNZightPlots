@@ -222,6 +222,8 @@ formatMat <- function(mat, digits = 4) {
 
     mat
 }
+inference.inzhist <- function(object, bs, class, width, ...)
+    inference.inzdot(object, bs, class, width, ...)
 
 
 
@@ -610,6 +612,10 @@ inference.inzscatter <- function(object, bs, nboot, vn, ...) {
 
     out
 }
+inference.inzgrid <- function(object, bs, nboot, vn, ...)
+    inference.inzscatter(object, bs, nboot, vn, ...)
 
+inference.inzhex <- function(object, bs, nboot, vn, ...)
+    inference.inzscatter(object, bs, nboot, vn, ...)
 
 
