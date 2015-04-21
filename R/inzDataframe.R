@@ -5,29 +5,29 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
   # It returns an object with a class: `inz.(simple|freq|survey)`
 
     if ("g2" %in% names(m) & (!("g1" %in% names(m)) | is.null(m$g1))) {
-        ## G2 supplied, G1 is not : swap
-        
-        if (g2.level == "_ALL") {
-            m$g1 <- NULL
-            m$g2 <- NULL
-            
-            m$g1.level <- NULL
-            m$g2.level <- NULL
-            
-            g1.level <- NULL
-            g2.level <- NULL
-            
-            names$g1 <- NULL
-            names$g2 <- NULL
-        } else {
-            m$g1.level <- NULL
-            names(m) <- gsub("^g2", "g1", names(m))
-            
-            g1.level <- g2.level
-            g2.level <- NULL
-            
-            names$g1 <- names$g2
-            names$g2 <- NULL
+        if (!is.null(m$g2)) {
+            if (g2.level == "_ALL") {
+                m$g1 <- NULL
+                m$g2 <- NULL
+                
+                m$g1.level <- NULL
+                m$g2.level <- NULL
+                
+                g1.level <- NULL
+                g2.level <- NULL
+                
+                names$g1 <- NULL
+                names$g2 <- NULL
+            } else {
+                m$g1.level <- NULL
+                names(m) <- gsub("^g2", "g1", names(m))
+                
+                g1.level <- g2.level
+                g2.level <- NULL
+                
+                names$g1 <- names$g2
+                names$g2 <- NULL
+            }
         }
     }
 
