@@ -54,7 +54,7 @@ plot.inzhist <- function(obj, gen) {
     upViewport()
 
     if (!is.null(inflist))
-        if ("comp" %in% names(inflist))
+        if ("comp" %in% names(inflist[[1]]))
             addUnivarCompLines(inflist)
 }
 

@@ -22,7 +22,8 @@ addUnivarInference <- function(inflist, i, opts) {
 }
 
 addUnivarCompLines <- function(inflist) {
-    guides <- unique(c(inflist$comp))
+    inflist <- inflist[[1]]
+    guides <- unique(c(inflist$comp[, c("lower", "upper")]))
     if (!is.null(guides))
         grid.polyline(x = unit(rep(guides, each = 2), "native"),
                       y = rep(c(0, 1), length(guides)),

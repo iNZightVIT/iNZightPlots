@@ -214,7 +214,7 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
     
     seekViewport("VP:dotplot-levels")
     upViewport()
-
+    
     if (!is.null(inflist))
         if ("comp" %in% names(inflist))
             addUnivarCompLines(inflist)
