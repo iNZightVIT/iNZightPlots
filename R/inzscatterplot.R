@@ -31,6 +31,7 @@ create.inz.scatterplot <- function(obj) {
 
     ## --- this is where FREQUENCY or SURVEY information is used to control sizes of points
     # size of points
+    resize <- TRUE
     if ("freq" %in% v) {
         propsize <- df$freq / xattr$max.freq * 4 + 0.5
     } else if ("weights" %in% v) {
@@ -38,10 +39,11 @@ create.inz.scatterplot <- function(obj) {
     } else if ("sizeby" %in% v) {
         propsize <- df$sizeby
     } else {
-        propsize <- 1
+        propsize <- opts$cex.pt
+        resize <- FALSE
     }
 
-    if (length(propsize) > 1) {
+    if (resize) {
         ## Try from half cex to 2 x cex
         cex.range <- opts$cex.pt * c(0.5, 4)
         propsize.range <- range(propsize, na.rm = TRUE)
