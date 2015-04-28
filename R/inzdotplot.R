@@ -156,11 +156,12 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         if (symbol.width < mdiff) {
             ## If the symbols are smaller than the smallest differences,
             ## then just use all of the values as bins!
-            xx <- unique(sapply(out, function(d) unique(d$x)))
+            xx <- unique(do.call(c, lapply(out, function(d) unique(d$x))))
             bins <- seq(min(xx) - 0.5 * mdiff, max(xx) + 0.5 * mdiff, by = mdiff)
         } else {
-            wd <- convertWidth(unit(mult.width * opts$cex.dotpt, "char"),
-                               "npc", valueOnly = TRUE)
+            wd <- convertWidth(unit(opts$cex.dotpt, "char"),
+                               "npc", valueOnly = TRUE) * 1.2
+
             nbins <- floor(1 / (wd))
         }
     }
