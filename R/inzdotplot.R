@@ -68,16 +68,22 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         out[[i]] <- di
     }
 
-    makeHist <- function(d, nbins, xlim) {
+    makeHist <- function(d, nbins, xlim, bins = NULL) {
         if (is.null(d)) return(NULL)
-        
-        ## Create even cut points in the given data range:
-        range <- xlim
-        range <- extendrange(range, f = 0.01) ## is this necessary?
-        cuts <- seq(range[1] - 0.1, range[2] + 0.1, length = nbins + 1)
+
+        if (is.null(nbins)) {
+            range <- range(bins)
+            cuts <- bins            
+        } else {        
+            ## Create even cut points in the given data range:
+            range <- xlim
+            range <- extendrange(range, f = 0.01) ## is this necessary?
+            cuts <- seq(range[1] - 0.1, range[2] + 0.1, length = nbins + 1)
+        }
+
         bin.min <- cuts[-(nbins + 1)]
         bin.max <- cuts[-1]
-        
+                
         ## Cut the data and calculate counts:
         if (inherits(d, "survey.design")) {
             ## To do this, we will pretty much grab stuff from the `survey` package, however it
@@ -118,10 +124,10 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     boxinfo <- if (boxplot & (!"mean" %in% opts$inference.par) & nrow(df) > 5)
         boxSummary(out, opts) else NULL
 
-    
-    nbins <- if (hist) {
+    nbins <- bins <- NULL
+    if (hist) {
         ## some option here to adjust the number of bins (e.g., sample size < 100?)
-        if (is.null(opts$hist.bins)) {
+        nbins <- if (is.null(opts$hist.bins)) {
             wd <- convertWidth(unit(1.2 * opts$cex.dotpt, "char"),
                                "npc", valueOnly = TRUE)
             floor(1 / (wd))
@@ -129,13 +135,38 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
             opts$hist.bins
         }
     } else {
-        wd <- convertWidth(unit(1.2 * opts$cex.dotpt, "char"),
-                           "npc", valueOnly = TRUE)
-        floor(1 / (wd))
+        ## compute the smallest non-zero difference, and deduce if it is a common
+        ## factor of all the differences:
+        diffs <- do.call(c, lapply(out, function(d) {
+            diffs <- diff(sort(d$x))
+            diffs[diffs > 0]
+        }))
+
+        mdiff <- min(diffs)
+        fdiff <- diffs / mdiff
+        isDiscrete <- all(round(fdiff) == fdiff)
+
+        xr <- diff(range(sapply(out, function(d) range(d$x))))
+        
+        mult.width <- ifelse(isDiscrete, 1, 1.2)
+
+        symbol.width <- convertWidth(unit(opts$cex.dotpt, "char"),
+                                     "native", valueOnly = TRUE) * xr
+
+        if (symbol.width < mdiff) {
+            ## If the symbols are smaller than the smallest differences,
+            ## then just use all of the values as bins!
+            xx <- unique(sapply(out, function(d) unique(d$x)))
+            bins <- seq(min(xx) - 0.5 * mdiff, max(xx) + 0.5 * mdiff, by = mdiff)
+        } else {
+            wd <- convertWidth(unit(mult.width * opts$cex.dotpt, "char"),
+                               "npc", valueOnly = TRUE)
+            nbins <- floor(1 / (wd))
+        }
     }
 
     plist <- lapply(out, makeHist,
-                    nbins = nbins, xlim = xattr$xrange)
+                    nbins = nbins, xlim = xattr$xrange, bins = bins)
 
     ## Generate a list of the inference information for each plot:
     inflist <- dotinference(obj)
