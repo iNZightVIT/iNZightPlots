@@ -283,8 +283,17 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     ## createPlot - uses various things such as "grobWidth" which causes a new device to open
     ## so create a NULL device and delete it afterwards ...
-    if (!plot)
+    if (plot) {
+        ## --- The Main Viewport: this one is simply the canvas, and global CEX value
+        dd <- dev.flush(dev.flush())  # flush everything ...
+
+        dev.hold()
+        grid.newpage()
+        pushViewport(viewport(gp = gpar(cex = opts$cex), name = "container"))
+        grid.rect(gp = gpar(fill = opts$bg, col = opts$bg))
+    } else {
         jpeg(FILE <- tempfile())
+    }
 
     plot.list <- lapply(df.list, function(df)
         lapply(df, createPlot, opts, xattr))
@@ -330,13 +339,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     if (plot) {
 
-        ## --- The Main Viewport: this one is simply the canvas, and global CEX value
-        dd <- dev.flush(dev.flush())  # flush everything ...
-
-        dev.hold()
-        grid.newpage()
-        pushViewport(viewport(gp = gpar(cex = opts$cex), name = "container"))
-        grid.rect(gp = gpar(fill = opts$bg, col = opts$bg))
+        
 
         PAGE.height <- convertHeight(current.viewport()$height, "in", TRUE)  # essentially the height of the window
 
@@ -623,7 +626,6 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 pushViewport(viewport(layout = TOPlayout, name = "VP:TOPlayout"))
             }
         }
-
 
         ## place the title
         pushViewport(viewport(layout.pos.row = 1))
