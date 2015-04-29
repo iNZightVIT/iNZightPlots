@@ -281,6 +281,45 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         }
     }
 
+   
+
+    ## if creating a dot plot, must figure out the size of a symbol:
+    itsADotplot <- FALSE
+    if (ynull & !xfact) 
+        itsADotplot <- TRUE
+    else if (!ynull) {
+        if ((!xfact & yfact) | (xfact & !yfact))
+            itsADotplot <- TRUE
+    }
+
+    if (itsADotplot)
+        if (opts$plottype != "dot")
+            if (opts$plottype != "default" | (opts$plottype == "default" & opts$largesample))
+                itsADotplot <- FALSE
+    
+    if (itsADotplot) {
+        m2 <- match.call(expand.dots = TRUE)
+        m2$plottype <- "hist"
+        m2$layout.only <- TRUE
+        m2$inference.type <- NULL
+        m2$inference.par <- NULL        
+        
+        ## we will now attempt something slightly complicated/computationally dumb
+        ## HOWEVER: it will give us pretty dotplots
+#        F <- "~/Desktop/file.pdf"#tempfile()
+        S <- dev.size("px")
+#        pdf(F, width = S[1], height = S[2])  # create a NULL device with same dimensions
+
+        p <- eval(m2, env)
+        
+
+        xattr$symbol.width <- convertWidth(unit(opts$cex.dotpt, "char"),
+                                           "native", valueOnly = TRUE)
+        
+#        dev.off()
+#        unlink(F)  ## delete the temp file
+    }
+
     ## createPlot - uses various things such as "grobWidth" which causes a new device to open
     ## so create a NULL device and delete it afterwards ...
     if (plot) {
@@ -294,7 +333,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     } else {
         jpeg(FILE <- tempfile())
     }
-
+    
     plot.list <- lapply(df.list, function(df)
         lapply(df, createPlot, opts, xattr))
 
@@ -612,7 +651,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             if (rot) {
                 ## Unable to update the viewport, so just recreate it:
                 XAXht <- drawAxes(df$data$x, which = "x", main = TRUE, label = TRUE, opts,
-                                  heightOnly = TRUE)
+                                  heightOnly = TRUE, layout.only = layout.only)
                 XAX.hgt2 <- convertWidth(XAXht, "in")
 
                 ## destroy the old one
@@ -825,21 +864,25 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 pushViewport(viewport(layout.pos.row = 2, xscale = xlim,
                                       yscale = if (TYPE == "bar") 100 * ylim else ylim))
                 if (r == nr)  # bottom
-                    drawAxes(X, "x", TRUE, c %% 2 == 1 | !TYPE %in% c("scatter", "grid", "hex"), opts)
+                    drawAxes(X, "x", TRUE, c %% 2 == 1 | !TYPE %in% c("scatter", "grid", "hex"),
+                             opts, layout.only = layout.only)
 
                 if (c == 1)  # left column
-                    drawAxes(if (TYPE == "bar") ylim else Y, "y", TRUE, (nr - r) %% 2 == 0, opts)
+                    drawAxes(if (TYPE == "bar") ylim else Y, "y", TRUE, (nr - r) %% 2 == 0, opts,
+                             layout.only = layout.only)
 
                 if (!TYPE %in% c("dot", "hist")) {
                     if (c == nc | g1id == NG1) # right column (or last plot in top row)
-                        drawAxes(if (TYPE == "bar") ylim else Y, "y", FALSE, (nr - r) %% 2 == 1, opts)
+                        drawAxes(if (TYPE == "bar") ylim else Y, "y", FALSE, (nr - r) %% 2 == 1,
+                                 opts, layout.only = layout.only)
                 }
                 upViewport()
 
                 if (TYPE %in% c("scatter", "grid", "hex")) {
                     pushViewport(viewport(layout.pos.row = 1, xscale = xlim, yscale = ylim))
                     if (r == 1)
-                        drawAxes(X, "x", FALSE, c %% 2 == 0, opts, sub = vspace)
+                        drawAxes(X, "x", FALSE, c %% 2 == 0, opts, sub = vspace,
+                                 layout.only = layout.only)
                     upViewport()
                 }
 

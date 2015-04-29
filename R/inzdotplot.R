@@ -149,9 +149,8 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         xr <- diff(range(sapply(out, function(d) range(d$x))))
         
         mult.width <- ifelse(isDiscrete, 1, 1.2)
-
-        symbol.width <- convertWidth(unit(opts$cex.dotpt, "char"),
-                                     "native", valueOnly = TRUE) * xr
+        
+        symbol.width <- xattr$symbol.width * xr
 
         if (symbol.width < mdiff) {
             ## If the symbols are smaller than the smallest differences,
@@ -159,8 +158,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
             xx <- unique(do.call(c, lapply(out, function(d) unique(d$x))))
             bins <- seq(min(xx) - 0.5 * mdiff, max(xx) + 0.5 * mdiff, by = mdiff)
         } else {
-            wd <- convertWidth(unit(opts$cex.dotpt, "char"),
-                               "npc", valueOnly = TRUE) * 1.2
+            wd <- xattr$symbol.width * 1.2
 
             nbins <- floor(1 / (wd))
         }

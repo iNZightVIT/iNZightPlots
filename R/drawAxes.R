@@ -1,4 +1,5 @@
-drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts, sub = 0, heightOnly = FALSE) {
+drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts, sub = 0, heightOnly = FALSE,
+                     layout.only = FALSE) {
     if (is.numeric(x)) { 
         switch(which,
                "x" = {
@@ -42,7 +43,7 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts, sub = 0, h
                        grid.draw(labText)
                    }
                }, "y" = {
-                   if (!is.null(x)) {
+                   if (!is.null(x) & !layout.only) {
                        labels <- levels(x)
                        Nlab <- length(labels)
                        for (i in 1:Nlab) {
