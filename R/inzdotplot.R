@@ -149,9 +149,13 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         xr <- diff(range(sapply(out, function(d) range(d$x))))
         
         mult.width <- ifelse(isDiscrete, 1, 1.2)
-        
-        symbol.width <- xattr$symbol.width * xr
 
+        if ("symbol.width" %in% names(xattr))
+            symbol.width <- xattr$symbol.width * xr
+        else
+            symbol.width <- convertWidth(unit(opts$cex.dotpt, "char"),
+                                         "native", valueOnly = TRUE)
+        
         if (symbol.width < mdiff) {
             ## If the symbols are smaller than the smallest differences,
             ## then just use all of the values as bins!

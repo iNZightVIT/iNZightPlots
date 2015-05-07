@@ -311,8 +311,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 #        pdf(F, width = S[1], height = S[2])  # create a NULL device with same dimensions
 
         p <- eval(m2, env)
-        
 
+        
         xattr$symbol.width <- convertWidth(unit(opts$cex.dotpt, "char"),
                                            "native", valueOnly = TRUE)
         

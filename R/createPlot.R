@@ -24,7 +24,7 @@ createPlot <- function(df, opts, xattr) {
     type <- switch(plottype,
                    "bar" = ifelse(xfact & (ynull | yfact), plottype, "default"),
                    "hist" = ,
-                   "dot" = ifelse(xnum & !ynum, plottype, "default"),
+                   "dot" = ifelse((xnum & !ynum) | (!xnum & ynum), plottype, "default"),
                    "scatter" = ,
                    "grid" = ,
                    "hex" = ifelse(xnum & ynum, plottype, "default"),
