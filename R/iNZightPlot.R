@@ -25,6 +25,8 @@
 ##' case of a numeric variable, a continuous colour scale is used, otherwise each level of
 ##' the factor is assigned a colour
 ##' @param sizeby the name of a (numeric) variable, which controls the size of points
+##' @param locate variable to label points
+##' @param locate.id id of points (row numbers) to label
 ##' @param data the name of a data set
 ##' @param design the name of a survey object, obtained from the \code{survey} package
 ##' @param freq the name of a frequency variable if the data are frequencies
@@ -48,7 +50,7 @@
 ##' @export
 iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         g2 = NULL, g2.level = NULL, varnames = list(),
-                        colby = NULL, sizeby = NULL,
+                        colby = NULL, sizeby = NULL, locate = NULL, locate.id = NULL,
                         data = NULL, design = NULL, freq = NULL,
                         missing.info = TRUE,
                         xlab = varnames$x, ylab = varnames$y,
@@ -77,53 +79,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
   #
   # +++ How iNZightPlots works +++
   #
-  # There are (going to be) several methods for getting to his function: directly, via a
-  # formula, or through the iNZight software (this will just use the direct method). That
-  # is considered a separate project, and any changes made to this function *should not*
-  # interfere with the overall workings of iNZight (and if it does, you'll need to make
-  # the relevant changes within the iNZight package so it knows about them).
-  #
-  # There is also a global `inzpar()` settings list which contains all of the necessary
-  # style, colour, and additional information for plots, which will be used by all of the
-  # drawing functions (i.e., cex, pch, col, etc.)
-  #
-  # 1. The data step:
-  #    - organise the data into a data.frame, which will allow for much simpler use later
-  #      on.
-  #    - subset the data according to g2(.level) --- this *only* shows the specified
-  #      level(s), unless it is set to "_MULTI" in which case we do a matrix plot.
-  #
-  # 2. The plot setup step
-  #    - now create a list, one element for every level of g1 (if g1 is NULL, simply a
-  #      list with one level) --- the plot methods will take a list argument.
-  #    - remove missing values, *keeping a record of them for the summary function*
-  #    - use the list of plot objects to calculate axis limits etc.
-  #    - now figure out all the necessary sizing of margins, number of plots for subsets,
-  #      and spacing for the legend(s).
-  #
-  # 3. The plot draw step
-  #    - once this is all set up, do an lapply over the plot list and plot each one in the
-  #      appropriate sub-window
-  #
-  # 4. The text step
-  #    - add all of the titles, legends, etc. to the plot
-  #
-  # 5. The return step
-  #    - now return an object with a class of `inzPlot`, which will have `summary()` and
-  #      `inference()` methods (and also a `plot()` method to redraw the plot later, so it
-  #      would be nice if the plot object contained all of the necessary information so it
-  #      can simply jump to step 3 and save redoing calculations)
-  #    - return this invisibly, unless `summary = TRUE` or `inference = TRUE` is
-  #      specified.
-  #
-  # ------------------------------------------------------------------------------------ #
-  #
-  # And that's how this function should work. The *most important* aim of everything is
-  # making everything as extensible as possible. That is, if we want to add new features
-  # at a later date, it needs to be written in such as way that this is as simple as
-  # possible. Use methods where possible (i.e., plot.inzscatter() rather than
-  # iNZscatterPlot()) so the actual code simply states `plot(obj)`, which will call the
-  # appropriate function.
+  # I'll write this later ... 
   #
   # Have fun coding!
   # ------------------------------------------------------------------------------------ #

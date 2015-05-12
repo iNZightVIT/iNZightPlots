@@ -14,7 +14,7 @@ create.inz.scatterplot <- function(obj) {
     missing <- apply(df[ , v %in% c("x", "y")], 1, function(x) any(is.na(x)))
     n.missing <- sum(missing)
     df <- df[!missing, ]
-
+    
     # --- look through inzpar for settings
 
     # Jitter on x and y
@@ -64,7 +64,8 @@ create.inz.scatterplot <- function(obj) {
                 xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
                 ylim = if (nrow(df) > 0) range(df$y, na.rm = TRUE) else c(-Inf, Inf),
                 trend = opts$trend, trend.by = opts$trend.by, smooth = opts$trend,
-                n.boot = opts$n.boot)
+                n.boot = opts$n.boot,
+                text.labels = as.character(df$locate))
     if (xattr$class == "inz.survey")
         out$svy <- obj$df
 
@@ -91,6 +92,20 @@ plot.inzscatter <- function(obj, gen) {
                      lwd = opts$lwd.pt, alpha = opts$alpha,
                      fill = obj$fill.pt),
                 name = "SCATTERPOINTS")
+
+    if ("text.labels" %in% names(obj)) {
+        if (sum(obj$text.labels != "") > 0) {
+            labID <- which(obj$text.labels != "")
+            labs <- obj$text.labels[labID]
+            labx <- unit(obj$x[labID], "native")
+            laby <- unit(obj$y[labID], "native") +
+                (grobHeight(textGrob("0", gp = gpar(cex = obj$propsize))) +
+                 grobHeight(textGrob("0", gp = gpar(cex = 0.6)))) *
+                     ifelse(obj$y[labID] < mean(ylim), 1, -1)
+            
+            grid.text(labs, labx, laby, gp = gpar(cex = 0.6))
+        }
+    }
 
     # Connect by dots if they want it ...
     if (opts$join) {

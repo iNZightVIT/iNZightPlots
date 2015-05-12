@@ -34,7 +34,7 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     names <- names[!sapply(names, is.null)]
     
     # the variables we want to look for in argument list (m)
-    vars <- c("", "x", "y", "g1", "g2", "colby", "sizeby")
+    vars <- c("", "x", "y", "g1", "g2", "colby", "sizeby", "locate")
     mw <- names(m) %in% vars
     mw[1] <- FALSE  # the function name
     mw <- mw & !sapply(as.list(m), is.null)
@@ -67,6 +67,14 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     if (!is.null(df$data$sizeby)) {
         df$data$sizeby <- rescale(df$data$sizeby)
     }
+
+    if (!is.null(df$data$locate)) {
+        label <- character(nrow(df$data))
+        label[eval(m$locate.id)] <- as.character(df$data$locate[eval(m$locate.id)])
+        df$data$locate <- label
+    }
+    
+    
 
     # convert anything that isn't a numeric variable to a factor
     # NOTE: this is just precautionary; as.data.frame should set any
