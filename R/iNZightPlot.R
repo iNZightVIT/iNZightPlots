@@ -806,7 +806,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 pushViewport(viewport(layout.pos.row = R, layout.pos.col = C,
                                       xscale = xlim, yscale = ylim,
                                       gp = gpar(cex = multi.cex)))
-                grid.rect()
+                grid.rect(gp = gpar(fill = "transparent"))
 
                 subt <- g1.level[g1id]
 
