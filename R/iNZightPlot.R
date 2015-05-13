@@ -27,6 +27,7 @@
 ##' @param sizeby the name of a (numeric) variable, which controls the size of points
 ##' @param locate variable to label points
 ##' @param locate.id id of points (row numbers) to label
+##' @param locate.col the colour to locate points if a variable is not specified
 ##' @param data the name of a data set
 ##' @param design the name of a survey object, obtained from the \code{survey} package
 ##' @param freq the name of a frequency variable if the data are frequencies
@@ -50,7 +51,8 @@
 ##' @export
 iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         g2 = NULL, g2.level = NULL, varnames = list(),
-                        colby = NULL, sizeby = NULL, locate = NULL, locate.id = NULL,
+                        colby = NULL, sizeby = NULL,
+                        locate = NULL, locate.id = NULL, locate.col = NULL,
                         data = NULL, design = NULL, freq = NULL,
                         missing.info = TRUE,
                         xlab = varnames$x, ylab = varnames$y,

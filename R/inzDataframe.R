@@ -68,9 +68,17 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
         df$data$sizeby <- rescale(df$data$sizeby)
     }
 
-    if (!is.null(df$data$locate)) {
+    if (!is.null(m$locate.id)) {
         label <- character(nrow(df$data))
-        label[eval(m$locate.id)] <- as.character(df$data$locate[eval(m$locate.id)])
+        if (is.null(df$data$locate)) {
+            if (is.null(m$locate.col))
+                locCol <- "default"
+            else
+                locCol <- m$locate.col
+            label[eval(m$locate.id)] <- paste("col", locCol, sep = ":")
+        } else {
+            label[eval(m$locate.id)] <- as.character(df$data$locate[eval(m$locate.id)])
+        }
         df$data$locate <- label
     }
     

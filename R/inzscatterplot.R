@@ -85,26 +85,49 @@ plot.inzscatter <- function(obj, gen) {
     if (length(obj$x) == 0)
         return()
 
+    ptCols <- colourPoints(obj$colby, col.args, opts)
+
+    ## If locating points:
+    locating <- FALSE
+    if ("text.labels" %in% names(obj)) {
+        if (sum(obj$text.labels != "", na.rm = TRUE) > 0) {
+            locating <- TRUE
+            
+            labID <- which(obj$text.labels != "")
+            
+            if (grepl("col:", obj$text.labels[labID[1]])) {
+                locating <- FALSE
+                newCol <- gsub("col:", "", obj$text.labels[labID])
+                if (all(newCol == "default"))
+                    newCol <- rep(opts$locate.col.def, length(newCol))
+
+                if (length(ptCols) == 1)
+                    ptCols <- rep(ptCols, length(obj$x))
+                ptCols[labID] <- newCol
+
+                ## make them solid:
+                obj$pch[labID] <- 19
+            }
+        }
+    }
+
     grid.points(obj$x, obj$y, pch = obj$pch, 
                 gp =
-                gpar(col = colourPoints(obj$colby, col.args, opts),
+                gpar(col = ptCols,
                      cex = obj$propsize,
                      lwd = opts$lwd.pt, alpha = opts$alpha,
                      fill = obj$fill.pt),
                 name = "SCATTERPOINTS")
 
-    if ("text.labels" %in% names(obj)) {
-        if (sum(obj$text.labels != "") > 0) {
-            labID <- which(obj$text.labels != "")
-            labs <- obj$text.labels[labID]
-            labx <- unit(obj$x[labID], "native")
-            laby <- unit(obj$y[labID], "native") +
-                (grobHeight(textGrob("0", gp = gpar(cex = obj$propsize))) +
-                 grobHeight(textGrob("0", gp = gpar(cex = 0.6)))) *
-                     ifelse(obj$y[labID] < mean(ylim), 1, -1)
-            
-            grid.text(labs, labx, laby, gp = gpar(cex = 0.6))
-        }
+    if (locating) {
+        labs <- obj$text.labels[labID]
+        labx <- unit(obj$x[labID], "native")
+        laby <- unit(obj$y[labID], "native") +
+            (grobHeight(textGrob("0", gp = gpar(cex = obj$propsize))) +
+             grobHeight(textGrob("0", gp = gpar(cex = 0.6)))) *
+                 ifelse(obj$y[labID] < mean(ylim), 1, -1)
+        
+        grid.text(labs, labx, laby, gp = gpar(cex = 0.6))
     }
 
     # Connect by dots if they want it ...

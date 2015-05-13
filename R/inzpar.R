@@ -27,6 +27,7 @@
 ##' \item{'lwd.pt'}{the line width used for points; default is 2}
 ##' \item{'col.line'}{the colour of lines used to join points}
 ##' \item{'col.sub'}{the background colour of subplot labels}
+##' \item{'locate.col.def'}{the default colour for locating points}
 ##' \item{'jitter'}{the axes to add jitter to. Takes values \code{"x"}, \code{"y"},
 ##' or \code{"xy"} (default is en empty string, \code{""})}
 ##' \item{'rugs'}{the axes to add rugs to. Takes same values as \code{jitter}}
@@ -111,6 +112,7 @@ inzpar <- function(...) {
                lwd.pt         = 2,
                col.line       = "blue",
                col.sub        = "wheat",
+               locate.col.def = "red",
                jitter         = "",
                rugs           = "",
                trend          = NULL,
