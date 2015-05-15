@@ -511,6 +511,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             col.args$b.cols <- barcol
         }
 
+        if (!is.null(locate.col)) col.args$locate.col <- locate.col
+
         if ("sizeby" %in% names(varnames) & TYPE %in% c("scatter")) {
             misssize <- any(sapply(plot.list, function(x) sapply(x, function(x2) x2$nasize)))
             if (misssize) {

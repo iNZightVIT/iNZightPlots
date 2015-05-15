@@ -75,7 +75,7 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
                 locCol <- "default"
             else
                 locCol <- m$locate.col
-            label[eval(m$locate.id)] <- paste("col", locCol, sep = ":")
+            label[eval(m$locate.id)] <- paste(" ")#, locCol, sep = ":")
         } else {
             label[eval(m$locate.id)] <- as.character(df$data$locate[eval(m$locate.id)])
         }

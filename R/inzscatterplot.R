@@ -74,7 +74,6 @@ create.inz.scatterplot <- function(obj) {
     out
 }
 
-
 plot.inzscatter <- function(obj, gen) {
     xlim <- current.viewport()$xscale
     ylim <- current.viewport()$yscale
@@ -95,11 +94,13 @@ plot.inzscatter <- function(obj, gen) {
             
             labID <- which(obj$text.labels != "")
             
-            if (grepl("col:", obj$text.labels[labID[1]])) {
-                locating <- FALSE
-                newCol <- gsub("col:", "", obj$text.labels[labID])
-                if (all(newCol == "default"))
-                    newCol <- rep(opts$locate.col.def, length(newCol))
+            #if (grepl("col:", obj$text.labels[labID[1]])) {
+            if (!is.null(col.args$locate.col)) {
+                #locating <- FALSE
+                #newCol <- gsub("col:", "", obj$text.labels[labID])
+                newCol <- col.args$locate.col
+                #if (all(newCol == "default"))
+                #    newCol <- rep(opts$locate.col.def, length(newCol))
 
                 if (length(ptCols) == 1)
                     ptCols <- rep(ptCols, length(obj$x))
