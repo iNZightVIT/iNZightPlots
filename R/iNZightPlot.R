@@ -53,6 +53,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         g2 = NULL, g2.level = NULL, varnames = list(),
                         colby = NULL, sizeby = NULL,
                         locate = NULL, locate.id = NULL, locate.col = NULL,
+                        locate.extreme = NULL,
                         data = NULL, design = NULL, freq = NULL,
                         missing.info = TRUE,
                         xlab = varnames$x, ylab = varnames$y,
@@ -200,6 +201,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     if (!ynull) if (!yfact) xattr$yrange <- range(yy[is.finite(yy)])
     if (!is.null(df$max.freq))
         xattr$max.freq <- df$max.freq
+    if (!is.null(locate.extreme)) xattr$nextreme <- locate.extreme
 
     if (opts$matchplots) {
       # this is the case where the data is subset by g1/g2, but we want the plots to be the same

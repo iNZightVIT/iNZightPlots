@@ -56,6 +56,17 @@ create.inz.scatterplot <- function(obj) {
     pch[is.na(propsize)] <- 4
     propsize[is.na(propsize)] <- 0.6
 
+    if ("extreme.label" %in% v) {
+        eLab <- as.character(df$extreme.label)
+        m <- cbind(df$x, df$y)
+        dist <- mahalanobis(m, colMeans(m, na.rm = TRUE), cov(m, use = "complete.obs"))
+        o <- order(dist, decreasing = TRUE)
+        text.labels <- eLab
+        text.labels[-o[1:min(sum(!is.na(dist)), xattr$nextreme)]] <- ""
+    } else {
+        text.labels <- as.character(df$locate)
+    }
+
     # Combine everything together into a classed list which will have a `plot` method
     out <- list(x = df$x, y = df$y, colby = df$colby, propsize = propsize, pch = pch,
                 fill.pt = opts$fill.pt, n.missing = n.missing,
@@ -65,7 +76,7 @@ create.inz.scatterplot <- function(obj) {
                 ylim = if (nrow(df) > 0) range(df$y, na.rm = TRUE) else c(-Inf, Inf),
                 trend = opts$trend, trend.by = opts$trend.by, smooth = opts$trend,
                 n.boot = opts$n.boot,
-                text.labels = as.character(df$locate))
+                text.labels = text.labels)
     if (xattr$class == "inz.survey")
         out$svy <- obj$df
 
@@ -94,13 +105,8 @@ plot.inzscatter <- function(obj, gen) {
             
             labID <- which(obj$text.labels != "")
             
-            #if (grepl("col:", obj$text.labels[labID[1]])) {
             if (!is.null(col.args$locate.col)) {
-                #locating <- FALSE
-                #newCol <- gsub("col:", "", obj$text.labels[labID])
                 newCol <- col.args$locate.col
-                #if (all(newCol == "default"))
-                #    newCol <- rep(opts$locate.col.def, length(newCol))
 
                 if (length(ptCols) == 1)
                     ptCols <- rep(ptCols, length(obj$x))

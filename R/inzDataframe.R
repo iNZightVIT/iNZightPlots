@@ -77,9 +77,21 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
                 locCol <- m$locate.col
             label[eval(m$locate.id)] <- paste(" ")#, locCol, sep = ":")
         } else {
-            label[eval(m$locate.id)] <- as.character(df$data$locate[eval(m$locate.id)])
+            locVar <- as.character(df$data$locate)
+            locVar[is.na(locVar)] <- "missing"
+            label[eval(m$locate.id)] <- locVar[eval(m$locate.id)]
         }
         df$data$locate <- label
+    } else if (!is.null(m$locate.extreme)) {
+        label <- character(nrow(df$data))
+        if (!is.null(df$data$locate)) {
+            locVar <- as.character(df$data$locate)
+            locVar[is.na(locVar)] <- "missing"
+            label <- locVar
+        } else { # if (!is.null(m$locate.loc)) {
+            label <- as.character(1:nrow(df$data))
+        }
+        df$data$extreme.label <- label
     }
     
     
