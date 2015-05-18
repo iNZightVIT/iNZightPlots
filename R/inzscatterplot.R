@@ -59,10 +59,14 @@ create.inz.scatterplot <- function(obj) {
     if ("extreme.label" %in% v) {
         eLab <- as.character(df$extreme.label)
         m <- cbind(df$x, df$y)
-        dist <- mahalanobis(m, colMeans(m, na.rm = TRUE), cov(m, use = "complete.obs"))
-        o <- order(dist, decreasing = TRUE)
-        text.labels <- eLab
-        text.labels[-o[1:min(sum(!is.na(dist)), xattr$nextreme)]] <- ""
+        if (sum(apply(m, 1, function(k) all(!is.na(k)))) > 0) {
+            dist <- mahalanobis(m, colMeans(m, na.rm = TRUE), cov(m, use = "complete.obs"))
+            o <- order(dist, decreasing = TRUE)
+            text.labels <- eLab
+            text.labels[-o[1:min(sum(!is.na(dist)), xattr$nextreme)]] <- ""
+        } else {
+            text.labels <- character(length(eLab))
+        }
     } else {
         text.labels <- as.character(df$locate)
     }
