@@ -134,19 +134,26 @@ plot.inzscatter <- function(obj, gen) {
                 name = "SCATTERPOINTS")
 
     ## Highlighting:
-    if (!is.null(obj$highlight)) {
+    if (!is.null(obj$highlight) & length(ptCols) > 1) {
         hl <- as.logical(obj$highlight)
-        ##if (length(ptCols) == 1)
-        ##    ptCols <- rep(ptCols, length(obj$x))
+
+        hcol <-
+            if (opts$highlight.col == "shade")
+                shade(ptCols[hl], 0.6)
+            else
+                opts$highlight.col
         
-        ##ptCols[hl] <- darken(ptCols[hl])
-        
-        grid.points(obj$x[hl], obj$y[hl], pch = 1, 
+        grid.points(obj$x[hl], obj$y[hl], pch = 19, 
                     gp =
-                    gpar(col = opts$highlight.col,
-                         cex = obj$propsize * 1.2,
-                         lwd = opts$lwd.pt, alpha = 0.8,
-                         fill = "transparent"))
+                    gpar(col = hcol,
+                         cex = obj$propsize * 1.4,
+                         lwd = opts$lwd.pt))
+        
+        grid.points(obj$x[hl], obj$y[hl], pch = 19, 
+                    gp =
+                    gpar(col = ptCols[hl],
+                         cex = obj$propsize,
+                         lwd = opts$lwd.pt))
     }
     
 

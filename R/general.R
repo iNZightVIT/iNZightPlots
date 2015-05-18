@@ -38,6 +38,48 @@ Darken <- function(x = "#FFFFFF") {
 darken <- Vectorize(Darken)  # allow it to work on a vector of Xs
 
 
+Shade <- function(x, light) {
+    if (x %in% colours()) {
+        x <- rgb(convertColor(t(col2rgb(x)), "sRGB", "Apple RGB"))
+    }
+
+    x <- gsub('#', '', x)
+    if (nchar(x) == 3)
+        x <- paste(rep(strsplit(x, '')[[1]], each = 2), collapse = '')
+
+    ## catch any transparency added to the colours
+    if (nchar(x) == 8) {
+        alpha <- substr(x, 7, 8)
+        x <- substr(x, 1, 6)
+    } else {
+        alpha <- ""
+    }
+
+    if (nchar(x) != 6)
+        stop("Not a valid hexadecimal code!")
+
+    rgb <- c(substr(x, 1, 2),
+             substr(x, 3, 4),
+             substr(x, 5, 6))
+    rgb <- strtoi(rgb, base = 16)
+
+    if (light > 1 | light < -1) {
+        stop("light must be in [-1, 1]")
+    }
+    
+    if (light < 0) {
+        rgb <- (1 + light) * rgb
+    } else {
+        rgb <- (1 - light) * rgb + light * 255
+    }
+
+    rgb <- rgb / 255
+    paste0(rgb(rgb[1], rgb[2], rgb[3]), alpha)
+}
+
+shade <- Vectorize(Shade)
+
+
 ##' Convert a numeric variable in to a factor with four levels.
 ##'
 ##' @title Convert to Factor
