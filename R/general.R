@@ -5,6 +5,10 @@ rescale <- function(x) {
 }
 
 Darken <- function(x = "#FFFFFF") {
+    if (x %in% colours()) {
+        x <- rgb(convertColor(t(col2rgb(x)), "sRGB", "Apple RGB"))
+    }
+    
     x <- gsub('#', '', x)
     if (nchar(x) == 3)
         x <- paste(rep(strsplit(x, '')[[1]], each = 2), collapse = '')

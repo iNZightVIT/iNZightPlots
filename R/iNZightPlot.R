@@ -28,6 +28,8 @@
 ##' @param locate variable to label points
 ##' @param locate.id id of points (row numbers) to label
 ##' @param locate.col the colour to locate points if a variable is not specified
+##' @param locate.extreme \code{numeric}, the number of extreme points to label (using Mahalanobis' distance)
+##' @param highlight \code{numeric} vector consisting of the row numbers/IDs of points to highlight
 ##' @param data the name of a data set
 ##' @param design the name of a survey object, obtained from the \code{survey} package
 ##' @param freq the name of a frequency variable if the data are frequencies
@@ -53,7 +55,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         g2 = NULL, g2.level = NULL, varnames = list(),
                         colby = NULL, sizeby = NULL,
                         locate = NULL, locate.id = NULL, locate.col = NULL,
-                        locate.extreme = NULL,
+                        locate.extreme = NULL, highlight = NULL,
                         data = NULL, design = NULL, freq = NULL,
                         missing.info = TRUE,
                         xlab = varnames$x, ylab = varnames$y,

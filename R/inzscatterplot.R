@@ -79,10 +79,11 @@ create.inz.scatterplot <- function(obj) {
                 xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
                 ylim = if (nrow(df) > 0) range(df$y, na.rm = TRUE) else c(-Inf, Inf),
                 trend = opts$trend, trend.by = opts$trend.by, smooth = opts$trend,
-                n.boot = opts$n.boot,
-                text.labels = text.labels)
+                n.boot = opts$n.boot, text.labels = text.labels)
     if (xattr$class == "inz.survey")
         out$svy <- obj$df
+    if ("highlight" %in% colnames(df))
+        out$highlight <- df$highlight
 
     class(out) <- "inzscatter"
 
@@ -100,7 +101,7 @@ plot.inzscatter <- function(obj, gen) {
         return()
 
     ptCols <- colourPoints(obj$colby, col.args, opts)
-
+    
     ## If locating points:
     locating <- FALSE
     if ("text.labels" %in% names(obj)) {
@@ -115,13 +116,15 @@ plot.inzscatter <- function(obj, gen) {
                 if (length(ptCols) == 1)
                     ptCols <- rep(ptCols, length(obj$x))
                 ptCols[labID] <- newCol
-
+                
                 ## make them solid:
                 obj$pch[labID] <- 19
             }
         }
     }
 
+   
+        
     grid.points(obj$x, obj$y, pch = obj$pch, 
                 gp =
                 gpar(col = ptCols,
@@ -129,6 +132,23 @@ plot.inzscatter <- function(obj, gen) {
                      lwd = opts$lwd.pt, alpha = opts$alpha,
                      fill = obj$fill.pt),
                 name = "SCATTERPOINTS")
+
+    ## Highlighting:
+    if (!is.null(obj$highlight)) {
+        hl <- as.logical(obj$highlight)
+        ##if (length(ptCols) == 1)
+        ##    ptCols <- rep(ptCols, length(obj$x))
+        
+        ##ptCols[hl] <- darken(ptCols[hl])
+        
+        grid.points(obj$x[hl], obj$y[hl], pch = 1, 
+                    gp =
+                    gpar(col = opts$highlight.col,
+                         cex = obj$propsize * 1.2,
+                         lwd = opts$lwd.pt, alpha = 0.8,
+                         fill = "transparent"))
+    }
+    
 
     if (locating) {
         labs <- obj$text.labels[labID]

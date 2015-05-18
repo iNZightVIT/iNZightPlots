@@ -113,6 +113,7 @@ inzpar <- function(...) {
                col.line       = "blue",
                col.sub        = "wheat",
                locate.col.def = "red",
+               highlight.col  = "black",
                jitter         = "",
                rugs           = "",
                trend          = NULL,

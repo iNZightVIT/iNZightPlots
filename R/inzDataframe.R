@@ -93,6 +93,10 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
         }
         df$data$extreme.label <- label
     }
+
+    if (!is.null(m$highlight)) {
+        df$data$highlight <- (1:nrow(df$data)) %in% m$highlight
+    }
     
     
 
