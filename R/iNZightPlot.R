@@ -892,7 +892,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     attr(plot.list, "nplots") <- if (exists("N")) N else NULL
 
     attr(plot.list, "plottype") <- gsub("inz", "", class(plot.list[[1]][[1]]))
-    if (attr(plot.list, "plottype") == "hist")
+    if (attr(plot.list, "plottype") %in% c("dot", "hist"))
         attr(plot.list, "nbins") <- length(plot.list[[1]][[1]]$toplot[[1]]$counts)
 
     class(plot.list) <- "inzplotoutput"
