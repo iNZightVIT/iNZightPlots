@@ -136,24 +136,25 @@ plot.inzscatter <- function(obj, gen) {
     ## Highlighting:
     if (!is.null(obj$highlight) & length(ptCols) > 1) {
         hl <- as.logical(obj$highlight)
-
-        hcol <-
-            if (opts$highlight.col == "shade")
-                shade(ptCols[hl], 0.6)
-            else
-                opts$highlight.col
-        
-        grid.points(obj$x[hl], obj$y[hl], pch = 19, 
-                    gp =
-                    gpar(col = hcol,
-                         cex = obj$propsize * 1.4,
-                         lwd = opts$lwd.pt))
-        
-        grid.points(obj$x[hl], obj$y[hl], pch = 19, 
-                    gp =
-                    gpar(col = ptCols[hl],
-                         cex = obj$propsize,
-                         lwd = opts$lwd.pt))
+        if (sum(hl) > 0) {
+            hcol <-
+                if (opts$highlight.col == "shade")
+                    shade(ptCols[hl], 0.6)
+                else
+                    opts$highlight.col
+            
+            grid.points(obj$x[hl], obj$y[hl], pch = 19, 
+                        gp =
+                        gpar(col = hcol,
+                             cex = obj$propsize * 1.4,
+                             lwd = opts$lwd.pt))
+            
+            grid.points(obj$x[hl], obj$y[hl], pch = 19, 
+                        gp =
+                        gpar(col = ptCols[hl],
+                             cex = obj$propsize,
+                             lwd = opts$lwd.pt))
+        }
     }
     
 

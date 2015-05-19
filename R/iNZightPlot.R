@@ -555,7 +555,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
         ## --- Figure out a subtitle for the plot:
 
-        if ("subtitle" %in% names(dots)) {
+        if (!is.null(dots$subtitle)) {
             SUB <- textGrob(dots$subtitle, gp = gpar(cex = opts$cex.text * 0.8))
         } else if (missing.info & length(missing) > 0) {
             POS.missing <- missing[missing != 0]
