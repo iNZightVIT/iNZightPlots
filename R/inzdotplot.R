@@ -178,7 +178,8 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
                 nacol = if ("colby" %in% v) any(sapply(plist, function(T)
                     if (is.null(T$colby)) FALSE else any(is.na(T$colby)))) else FALSE,
                 xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
-                ylim = c(0, max(sapply(plist, function(p) if (is.null(p)) 0 else max(p$counts)))))
+                ylim = c(0, max(sapply(plist, function(p) if (is.null(p)) 0 else max(p$counts)))),
+                n.label = if (is.null(xattr$nextreme)) c(0, 0) else rep(xattr$nextreme, length = 2))
 
     class(out) <- ifelse(hist, "inzhist", "inzdot")
     
@@ -197,6 +198,9 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
     toplot <- obj$toplot
     boxinfo <- obj$boxinfo
     inflist <- obj$inference.info
+
+    nmin <- obj$n.label[1]
+    nmax <- obj$n.label[2]
     
     nlev <- length(toplot)
     pushViewport(viewport(layout = grid.layout(nrow = nlev),
@@ -237,13 +241,23 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
                               xscale = xlim, yscale = ylim,
                               name = vpname))
 
+        ptCols <- colourPoints(pp$colby, col.args, opts)
+        if (length(ptCols) == 1)
+            ptCols <- rep(ptCols, length(pp$x))
+
+        #if (nmin > 0) {
+        #    ptCols
+        #}
+
         if (length(pp$x) > 0)
             grid.points(pp$x, pp$y, pch = opts$pch,
                         gp =
-                        gpar(col = colourPoints(pp$colby, col.args, opts),
+                        gpar(col = ptCols,
                              cex = opts$cex.dotpt, lwd = opts$lwd.pt,
                              alpha = opts$alpha, fill = obj$fill.pt),
                         name = "DOTPOINTS")
+
+        ## Label extremes
     }
     
     seekViewport("VP:dotplot-levels")
