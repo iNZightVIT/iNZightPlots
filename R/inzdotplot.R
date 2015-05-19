@@ -142,7 +142,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
             diffs[diffs > 0]
         }))
 
-        mdiff <- min(diffs)
+        mdiff <- if (length(diffs) > 0) min(diffs) else 0
         fdiff <- diffs / mdiff
         isDiscrete <- all(round(fdiff) == fdiff)
 
