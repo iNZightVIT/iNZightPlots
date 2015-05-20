@@ -116,6 +116,28 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
                 ret$colby <- d$colby[order(x)]
             }
         }
+
+        if ("extreme.label" %in% v) {
+            eLab <- as.character(d$extreme.label)[order(x)]
+
+            nx <- rep(xattr$nextreme, length = 2)
+            if (sum(nx) >= nrow(d)) {
+                text.labels <- eLab
+            } else {
+                min <- 1:nx[1]
+                max <- (nrow(d) - nx[2] + 1):nrow(d)
+                
+                text.labels <- character(nrow(d))
+                if (nx[1] > 0)
+                    text.labels[min] <- eLab[min]
+                if (nx[2] > 0)
+                    text.labels[max] <- eLab[max]
+            }
+        } else {
+            text.labels <- as.character(d$locate)[order(x)]
+        }
+
+        ret$text.labels <- text.labels
         
         attr(ret, "order") <- order(x)
         ret
@@ -179,7 +201,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
                     if (is.null(T$colby)) FALSE else any(is.na(T$colby)))) else FALSE,
                 xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
                 ylim = c(0, max(sapply(plist, function(p) if (is.null(p)) 0 else max(p$counts)))),
-                n.label = if (is.null(xattr$nextreme)) c(0, 0) else rep(xattr$nextreme, length = 2))
+                n.label = if (is.null(xattr$nextreme)) NULL else rep(xattr$nextreme, length = 2))
 
     class(out) <- ifelse(hist, "inzhist", "inzdot")
     
@@ -199,9 +221,6 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
     boxinfo <- obj$boxinfo
     inflist <- obj$inference.info
 
-    nmin <- obj$n.label[1]
-    nmax <- obj$n.label[2]
-    
     nlev <- length(toplot)
     pushViewport(viewport(layout = grid.layout(nrow = nlev),
                           name = "VP:dotplot-levels"))
@@ -245,12 +264,18 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
         if (length(ptCols) == 1)
             ptCols <- rep(ptCols, length(pp$x))
 
-        #if (nmin > 0) {
-        #    ptCols
-        #}
-
+        ptPch <- rep(opts$pch, length(pp$x))
+        
+        if (!is.null(pp$text.labels)) {
+            locID <- which(pp$text.labels != "")
+            if (!is.null(col.args$locate.col)) {
+                ptCols[locID] <- col.args$locate.col
+                ptPch[locID] <- 19
+            }
+        }
+        
         if (length(pp$x) > 0)
-            grid.points(pp$x, pp$y, pch = opts$pch,
+            grid.points(pp$x, pp$y, pch = ptPch,
                         gp =
                         gpar(col = ptCols,
                              cex = opts$cex.dotpt, lwd = opts$lwd.pt,
@@ -258,6 +283,11 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
                         name = "DOTPOINTS")
 
         ## Label extremes
+        if (!is.null(pp$text.labels))
+            if (sum(!is.na(pp$text.labels) > 0))
+                grid.text(paste0("  ", pp$text.labels[locID]), pp$x[locID], pp$y[locID],
+                          default.units = "native", just = c("left"), rot = 45,
+                          gp = gpar(cex = 0.6))
     }
     
     seekViewport("VP:dotplot-levels")

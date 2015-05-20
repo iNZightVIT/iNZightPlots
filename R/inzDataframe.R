@@ -88,7 +88,7 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
             locVar <- as.character(df$data$locate)
             locVar[is.na(locVar)] <- "missing"
             label <- locVar
-        } else { # if (!is.null(m$locate.loc)) {
+        } else {
             label <- as.character(1:nrow(df$data))
         }
         df$data$extreme.label <- label
