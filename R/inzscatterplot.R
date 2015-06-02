@@ -56,6 +56,7 @@ create.inz.scatterplot <- function(obj) {
     pch[is.na(propsize)] <- 4
     propsize[is.na(propsize)] <- 0.6
 
+    ext.ids <- NULL
     if ("extreme.label" %in% v) {
         eLab <- as.character(df$extreme.label)
         m <- cbind(df$x, df$y)
@@ -63,7 +64,9 @@ create.inz.scatterplot <- function(obj) {
             dist <- mahalanobis(m, colMeans(m, na.rm = TRUE), cov(m, use = "complete.obs"))
             o <- order(dist, decreasing = TRUE)
             text.labels <- eLab
-            text.labels[-o[1:min(sum(!is.na(dist)), xattr$nextreme)]] <- ""
+            ext.ids <- o[1:min(sum(!is.na(dist)), xattr$nextreme)]
+            text.labels[-ext.ids] <- ""
+            ext.ids <- df$pointIDs[ext.ids]
         } else {
             text.labels <- character(length(eLab))
         }
@@ -79,12 +82,13 @@ create.inz.scatterplot <- function(obj) {
                 xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
                 ylim = if (nrow(df) > 0) range(df$y, na.rm = TRUE) else c(-Inf, Inf),
                 trend = opts$trend, trend.by = opts$trend.by, smooth = opts$trend,
-                n.boot = opts$n.boot, text.labels = text.labels)
+                n.boot = opts$n.boot, text.labels = text.labels, extreme.ids = ext.ids)
+    
     if (xattr$class == "inz.survey")
         out$svy <- obj$df
     if ("highlight" %in% colnames(df))
         out$highlight <- df$highlight
-
+    
     class(out) <- "inzscatter"
 
     out

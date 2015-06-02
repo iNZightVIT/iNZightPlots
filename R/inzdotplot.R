@@ -117,12 +117,15 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
             }
         }
 
+        ret$extreme.ids <- NULL
+
         if ("extreme.label" %in% v) {
             eLab <- as.character(d$extreme.label)[order(x)]
 
             nx <- rep(xattr$nextreme, length = 2)
             if (sum(nx) >= nrow(d)) {
                 text.labels <- eLab
+                extreme.ids <- df$pointIDs[order(x)]
             } else {
                 min <- 1:nx[1]
                 max <- (nrow(d) - nx[2] + 1):nrow(d)
@@ -132,12 +135,18 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
                     text.labels[min] <- eLab[min]
                 if (nx[2] > 0)
                     text.labels[max] <- eLab[max]
+
+                pointIDs <- df$pointIDs[order(x)]
+                ret$extreme.ids <- pointIDs[text.labels != ""]
             }
         } else {
             text.labels <- as.character(d$locate)[order(x)]
         }
 
         ret$text.labels <- text.labels
+
+        if ("highlight" %in% colnames(d))
+            ret$highlight <- d$highlight[order(x)]
         
         attr(ret, "order") <- order(x)
         ret
@@ -274,13 +283,36 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
             }
         }
         
-        if (length(pp$x) > 0)
+        if (length(pp$x) > 0) {
             grid.points(pp$x, pp$y, pch = ptPch,
                         gp =
                         gpar(col = ptCols,
                              cex = opts$cex.dotpt, lwd = opts$lwd.pt,
                              alpha = opts$alpha, fill = obj$fill.pt),
                         name = "DOTPOINTS")
+
+            ## Highlighting:
+            if (!is.null(pp$highlight) & length(ptCols) > 1) {
+                hl <- as.logical(pp$highlight)
+                if (sum(hl) > 0) {
+                    hcol <-
+                        if (opts$highlight.col == "shade")
+                            shade(ptCols[hl], 0.6)
+                        else
+                            opts$highlight.col
+                    
+                    grid.points(pp$x[hl], pp$y[hl], pch = 19, 
+                                gp =
+                                gpar(col = hcol,
+                                     cex = opts$cex.dotpt * 1.4, lwd = opts$lwd.pt))
+                    
+                    grid.points(pp$x[hl], pp$y[hl], pch = 19, 
+                                gp =
+                                gpar(col = ptCols[hl],
+                                     cex = opts$cex.dotpt, lwd = opts$lwd.pt))
+                }
+            }
+        }
 
         ## Label extremes
         if (!is.null(pp$text.labels))

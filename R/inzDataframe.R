@@ -75,7 +75,7 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
                 locCol <- "default"
             else
                 locCol <- m$locate.col
-            label[eval(m$locate.id)] <- paste(" ")#, locCol, sep = ":")
+            label[eval(m$locate.id)] <- paste(" ")
         } else {
             locVar <- as.character(df$data$locate)
             locVar[is.na(locVar)] <- "missing"
@@ -89,11 +89,10 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
             locVar[is.na(locVar)] <- "missing"
             label <- locVar
         } else {
-            #label[eval(m$locate.id)] <- paste(" ")
-            #label <- as.character(1:nrow(df$data))
             label <- rep(" ", nrow(df$data))
         }
         df$data$extreme.label <- label
+        df$data$pointIDs <- 1:nrow(df$data)
     }
 
     if (!is.null(m$highlight)) {
