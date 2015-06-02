@@ -284,7 +284,7 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
 
         ## Label extremes
         if (!is.null(pp$text.labels))
-            if (sum(!is.na(pp$text.labels) > 0))
+            if (sum(!is.na(pp$text.labels) > 0) & (length(locID) > 0))
                 grid.text(paste0("  ", pp$text.labels[locID]), pp$x[locID], pp$y[locID],
                           default.units = "native", just = c("left"), rot = 45,
                           gp = gpar(cex = 0.6))
