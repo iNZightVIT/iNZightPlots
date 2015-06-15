@@ -128,7 +128,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
             nx <- rep(xattr$nextreme, length = 2)
             if (sum(nx) >= nrow(d)) {
                 text.labels <- eLab
-                extreme.ids <- df$pointIDs[order(x)]
+                ret$extreme.ids <- d$pointIDs[order(x)]
             } else {
                 min <- 1:nx[1]
                 max <- (nrow(d) - nx[2] + 1):nrow(d)
@@ -139,7 +139,8 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
                 if (nx[2] > 0)
                     text.labels[max] <- eLab[max]
 
-                pointIDs <- df$pointIDs[order(x)]
+                pointIDs <- d$pointIDs[order(x)]
+                
                 ret$extreme.ids <- pointIDs[text.labels != ""]
             }
         } else {
@@ -152,8 +153,9 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
             ret$highlight <- d$highlight[order(x)]
         
         attr(ret, "order") <- order(x)
-        ret
+        ret      
     }
+    
 
     boxinfo <- if (boxplot & (!"mean" %in% opts$inference.par) & nrow(df) > 5)
         boxSummary(out, opts) else NULL
@@ -204,6 +206,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
 
     plist <- lapply(out, makeHist,
                     nbins = nbins, xlim = xattr$xrange, bins = bins)
+
 
     ## Generate a list of the inference information for each plot:
     inflist <- dotinference(obj)
