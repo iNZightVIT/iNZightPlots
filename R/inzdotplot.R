@@ -25,6 +25,9 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
             vn$x <- Xn
             xattr$xrange <- xattr$yrange
             xattr$yrange <- NULL
+
+            obj$df <- df
+            xattr$varnames <- vn
         }
     }
     
@@ -393,7 +396,6 @@ dotinference <- function(obj) {
     }
 
     if (nrow(obj$df) < opts$min.count) return("sample too small")
-
   
     ## for simplicity, if no 'y' factor, just make all the same level for tapply later:
     if (obj$xattr$class == "inz.simple") {
