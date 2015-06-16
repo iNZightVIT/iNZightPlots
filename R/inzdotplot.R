@@ -1,4 +1,5 @@
 create.inz.dotplot <- function(obj, hist = FALSE) {
+    cat("plotting ...\n")
     df <- obj$df
     opts <- obj$opts
     xattr <- obj$xattr
@@ -73,11 +74,11 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
 
     makeHist <- function(d, nbins, xlim, bins = NULL) {
         if (is.null(d)) return(NULL)
-
+        
         if (is.null(nbins)) {
             range <- range(bins)
             cuts <- bins            
-        } else {        
+        } else {
             ## Create even cut points in the given data range:
             range <- xlim
             range <- extendrange(range, f = 0.01) ## is this necessary?
@@ -104,7 +105,9 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
             h$density <- probs / diff(h$breaks)
             h$counts <- probs * sum(weights(d))
         } else {
-            h <- hist(x <- d$x, breaks = cuts, plot = FALSE)
+            x <- d$x
+            print(cuts)
+            h <- hist(x, breaks = cuts, plot = FALSE)
         }
         
         ret <- list(breaks = cuts,
@@ -191,7 +194,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         else
             symbol.width <- convertWidth(unit(opts$cex.dotpt, "char"),
                                          "native", valueOnly = TRUE)
-        
+
         if (symbol.width < mdiff) {
             ## If the symbols are smaller than the smallest differences,
             ## then just use all of the values as bins!
@@ -199,8 +202,17 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
             bins <- seq(min(xx) - 0.5 * mdiff, max(xx) + 0.5 * mdiff, by = mdiff)
         } else {
             wd <- xattr$symbol.width * 1.2
-
+            
             nbins <- floor(1 / (wd))
+            if (nbins == 0) {
+                 nbins <- if (is.null(opts$hist.bins)) {
+                     wd <- convertWidth(unit(1.2 * opts$cex.dotpt, "char"),
+                                        "npc", valueOnly = TRUE)
+                     floor(1 / (wd))
+                 } else {
+                     opts$hist.bins
+                 }
+             }
         }
     }
 
