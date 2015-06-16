@@ -1,5 +1,4 @@
 create.inz.dotplot <- function(obj, hist = FALSE) {
-    cat("plotting ...\n")
     df <- obj$df
     opts <- obj$opts
     xattr <- obj$xattr
@@ -106,7 +105,6 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
             h$counts <- probs * sum(weights(d))
         } else {
             x <- d$x
-            print(cuts)
             h <- hist(x, breaks = cuts, plot = FALSE)
         }
         
