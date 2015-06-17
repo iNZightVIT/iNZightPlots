@@ -4,8 +4,10 @@ create.inz.scatterplot <- function(obj) {
     opts <- obj$opts
     xattr <- obj$xattr
     
-    if (xattr$class == "inz.survey")
-        df <- df$variables
+    if (xattr$class == "inz.survey") {
+        df <- as.data.frame(cbind(df$variables,
+                                  weights = weights(df)))        
+    }
     
     v <- colnames(df)
     vn <- xattr$varnames

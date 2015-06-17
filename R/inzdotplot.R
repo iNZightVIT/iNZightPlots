@@ -73,7 +73,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
 
     makeHist <- function(d, nbins, xlim, bins = NULL) {
         if (is.null(d)) return(NULL)
-        
+
         if (is.null(nbins)) {
             range <- range(bins)
             cuts <- bins            
@@ -174,18 +174,26 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     } else {
         ## compute the smallest non-zero difference, and deduce if it is a common
         ## factor of all the differences:
-        diffs <- do.call(c, lapply(out, function(d) {
-            diffs <- diff(sort(d$x))
-            diffs[diffs > 0]
-        }))
+        #diffs <- do.call(c, lapply(out, function(d) {
+        #    if (is.null(d$x)) return(NULL)
+        #    
+        #    diffs <- diff(sort(d$x))
+        #    diffs[diffs > 0]
+        #}))
 
-        mdiff <- if (length(diffs) > 0) min(diffs) else 0
-        fdiff <- diffs / mdiff
-        isDiscrete <- all(round(fdiff) == fdiff)
+        #mdiff <- if (length(diffs) > 0) min(diffs) else 0
+        #fdiff <- diffs / mdiff
+        #isDiscrete <- all(round(fdiff) == fdiff)
 
-        xr <- diff(range(sapply(out, function(d) range(d$x))))
+        #xr <- diff(range(sapply(out, function(d) if (is.null(d$x)) 0 else range(d$x))))
         
-        mult.width <- ifelse(isDiscrete, 1, 1.2)
+        #mult.width <- ifelse(isDiscrete, 1, 1.2)
+
+        dp <- xattr$dotplotstuff
+        mdiff <- dp$mdiff
+        xr <- dp$xr
+        isDiscrete <- dp$isDiscrete
+        mult.width <- dp$mult.width
 
         if ("symbol.width" %in% names(xattr))
             symbol.width <- xattr$symbol.width * xr
@@ -359,7 +367,7 @@ boxSummary <- function(obj, opts) {
         if (!inherits(o, "survey.design")) {
             quant <- quantile(o$x, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
             min <- min(o$x, na.rm = TRUE)
-            max <- max(o$x, na.rm = TRUE)
+            max <- max(o$x, na.rm = TRUE)            
         } else {
             if (nrow(o$variables) < 5) return(NULL)
             svyobj <- o

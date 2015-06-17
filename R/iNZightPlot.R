@@ -211,7 +211,10 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
       # we just need to go through all plots and test if they should be LARGESAMPLE or not:
         if (is.null(opts$largesample)) {
-            sample.sizes <- do.call(c, lapply(df.list, function(df) sapply(df, nrow)))
+            sample.sizes <- do.call(c, lapply(df.list, function(df) sapply(df, function(a) {
+                o <- nrow(a)
+                if (is.null(o)) 0 else o
+                })))
             smallest.sample <- min(sample.sizes, na.rm = TRUE)
             largest.sample <- max(sample.sizes, na.rm = TRUE)
 
@@ -280,6 +283,21 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
 #        dev.off()
 #        unlink(F)  ## delete the temp file
+
+        ## sort out bin sizing:
+        allX <- if(xfact) df$data$y else df$data$x
+        allX <- allX[!is.na(allX)]
+        diffs <- diff(sort(allX))
+        diffs <- diffs[diffs > 0]
+        mdiff <- min(diffs)
+        fdiff <- diffs / mdiff
+        isDiscrete <- all(round(fdiff) == fdiff)
+        xr <- diff(range(allX, na.rm = TRUE))
+        mult.width <- ifelse(isDiscrete, 1, 1.2)
+
+        xattr$dotplotstuff <- list(mdiff = mdiff,
+                                   xr = xr, isDiscrete = isDiscrete,
+                                   mult.width = mult.width)
     }
 
     ## createPlot - uses various things such as "grobWidth" which causes a new device to open
