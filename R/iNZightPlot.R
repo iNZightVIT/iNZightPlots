@@ -42,6 +42,8 @@
 ##' @param layout.only logical, if \code{TRUE}, only the layout is drawn (useful if a
 ##' custom plot is to be drawn)
 ##' @param plot logical, if \code{FALSE}, the plot is not drawn (used by \code{summary})
+##' @param xlim specify the x limits of the plot
+##' @param ylim specify the y limits of the plot
 ##' @param df compatibility argument
 ##' @param env compatibility argument
 ##' @param ... additional arguments, see \code{inzpar}
@@ -61,6 +63,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         xlab = varnames$x, ylab = varnames$y,
                         new = TRUE,  # compatibility arguments
                         inzpars = inzpar(), layout.only = FALSE, plot = TRUE,
+                        xlim = {range(sapply(plot.list, function(x) sapply(x, function(y) y$xlim)), finite = TRUE)},
+                        ylim = {range(sapply(plot.list, function(x) sapply(x, function(y) y$ylim)), finite = TRUE)},
                         df, env = parent.frame(), ...) {
 
   # ------------------------------------------------------------------------------------ #
@@ -323,8 +327,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     }
 
     ## X and Y axis limits:
-    xlim <- range(sapply(plot.list, function(x) sapply(x, function(y) y$xlim)), finite = TRUE)
-    ylim <- range(sapply(plot.list, function(x) sapply(x, function(y) y$ylim)), finite = TRUE)
+    
     ylim.raw <- ylim
     xlim.raw <- xlim
 
