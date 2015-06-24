@@ -141,16 +141,18 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
         }
     }
 
+    ## WE TURN THIS OFF - leave it up to users to decide if there are too many levels.
+    
     ## another check that there aren't too many levels of colby:
-    if ("colby" %in% colnames(df$data)) {
-        if (is.factor(df$data$colby)) {
-            if (length(levels(df$data$colby)) > 10) {
-                warning("Ignoring colby argument: too many factor levels.")
-                df$data$colby <- NULL
-                varnames$data$colby <- NULL
-            }
-        }
-    }
+    #if ("colby" %in% colnames(df$data)) {
+    #    if (is.factor(df$data$colby)) {
+    #        if (length(levels(df$data$colby)) > 20) {
+    #            warning("Ignoring colby argument: too many factor levels.")
+    #            df$data$colby <- NULL
+    #            varnames$data$colby <- NULL
+    #        }
+    #    }
+    #}
 
     # fix a bug that ensures colby grouping variable is the same as g2 if both specified
     if ("g2" %in% colnames(df$data) & "colby" %in% colnames(df$data))

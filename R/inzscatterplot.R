@@ -182,6 +182,7 @@ plot.inzscatter <- function(obj, gen) {
                             col = opts$col.line))
         } else {
             byy <- as.factor(obj$colby)  # pseudo-by-variable
+            print(byy)
             xtmp <- lapply(levels(byy), function(c) subset(obj$x, obj$colby == c))
             ytmp <- lapply(levels(byy), function(c) subset(obj$y, obj$colby == c))
 
