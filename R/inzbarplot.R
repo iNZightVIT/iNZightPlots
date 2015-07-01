@@ -74,7 +74,7 @@ create.inz.barplot <- function(obj) {
                 full.height = opts$full.height, inference.info = inflist,
                 xlim = c(0, if (ynull) length(tab) else ncol(tab)),
                 ylim = c(0, max(phat, if (!is.null(inflist)) attr(inflist, "max"), na.rm = TRUE)))
-    if (SEG) out$p.colby = p2
+    if (SEG) out$p.colby <- p2[nrow(p2):1, ]
     
     class(out) <- "inzbar"
 
