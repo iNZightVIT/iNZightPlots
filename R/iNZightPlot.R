@@ -63,8 +63,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         xlab = varnames$x, ylab = varnames$y,
                         new = TRUE,  # compatibility arguments
                         inzpars = inzpar(), layout.only = FALSE, plot = TRUE,
-                        xlim = {range(sapply(plot.list, function(x) sapply(x, function(y) y$xlim)), finite = TRUE)},
-                        ylim = {range(sapply(plot.list, function(x) sapply(x, function(y) y$ylim)), finite = TRUE)},
+                        xlim = NULL, ylim = NULL,
                         df, env = parent.frame(), ...) {
 
   # ------------------------------------------------------------------------------------ #
@@ -327,6 +326,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     }
 
     ## X and Y axis limits:
+
+    if (is.null(xlim))
+        xlim <- range(sapply(plot.list, function(x) sapply(x, function(y) y$xlim)), finite = TRUE)
+    if (is.null(ylim))
+        ylim <- range(sapply(plot.list, function(x) sapply(x, function(y) y$ylim)), finite = TRUE)
     
     ylim.raw <- ylim
     xlim.raw <- xlim
