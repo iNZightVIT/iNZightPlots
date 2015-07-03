@@ -249,6 +249,7 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
     mcex <- gen$mcex
     col.args <- gen$col.args
     boxplot <- opts$boxplot
+    expand.points <- 1# if (is.null(opts$expand.points)) 1 else opts$expand.points
 
     toplot <- obj$toplot
     boxinfo <- obj$boxinfo
@@ -256,7 +257,7 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
 
     nlev <- length(toplot)
     pushViewport(viewport(layout = grid.layout(nrow = nlev),
-                          name = "VP:dotplot-levels"))
+                          name = "VP:dotplot-levels", clip = "on"))
     Hgts <- if (boxplot) c(3, 1) else c(1, 0)
     dpLayout <- grid.layout(nrow = 2, heights = unit(Hgts, "null"))
 
@@ -311,7 +312,7 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
             grid.points(pp$x, pp$y, pch = ptPch,
                         gp =
                         gpar(col = ptCols,
-                             cex = opts$cex.dotpt, lwd = opts$lwd.pt,
+                             cex = opts$cex.dotpt / expand.points, lwd = opts$lwd.pt,
                              alpha = opts$alpha, fill = obj$fill.pt),
                         name = "DOTPOINTS")
 

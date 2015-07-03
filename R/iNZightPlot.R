@@ -326,6 +326,17 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     }
 
     ## X and Y axis limits:
+    
+    if (itsADotplot & !is.null(xlim)) {
+        xlim <- NULL  ## We dont want to allow it now
+    }
+    if (1 == 2) {
+        true.xr <- range(sapply(plot.list, function(x) sapply(x, function(y) y$xlim)), finite = TRUE)
+
+        opts$expand.points <-  diff(xlim) / diff(true.xr) 
+        if (xlim[1] > true.xr[1] | xlim[2] < true.xr[2])
+            opts$boxplot <- FALSE
+    }
 
     if (is.null(xlim))
         xlim <- range(sapply(plot.list, function(x) sapply(x, function(y) y$xlim)), finite = TRUE)
@@ -391,7 +402,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 missing$x <- my
             }
         }
-
+        
         if (is.null(xlab))
             xlab <- varnames$x
         if (is.null(ylab))
