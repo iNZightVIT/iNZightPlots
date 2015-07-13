@@ -130,8 +130,9 @@ plot.inzscatter <- function(obj, gen) {
     }
 
    
-        
-    grid.points(obj$x, obj$y, pch = obj$pch, 
+    NotInView <- obj$x < min(xlim) | obj$x > max(xlim) | obj$y < min(ylim) | obj$y > max(ylim)
+    obj$pch[NotInView] <- NA
+    grid.points(obj$x, obj$y, pch = obj$pch,
                 gp =
                 gpar(col = ptCols,
                      cex = obj$propsize,

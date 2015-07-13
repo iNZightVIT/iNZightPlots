@@ -308,6 +308,8 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
         }
         
         if (length(pp$x) > 0) {
+            NotInView <- pp$x < min(xlim) | pp$x > max(xlim)
+            ptPch[NotInView] <- NA
             grid.points(pp$x, pp$y, pch = ptPch,
                         gp =
                         gpar(col = ptCols,

@@ -63,8 +63,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         xlab = varnames$x, ylab = varnames$y,
                         new = TRUE,  # compatibility arguments
                         inzpars = inzpar(), layout.only = FALSE, plot = TRUE,
-                        xlim = {range(sapply(plot.list, function(x) sapply(x, function(y) y$xlim)), finite = TRUE)},
-                        ylim = {range(sapply(plot.list, function(x) sapply(x, function(y) y$ylim)), finite = TRUE)},
+                        xlim = NULL, ylim = NULL,
                         df, env = parent.frame(), ...) {
 
   # ------------------------------------------------------------------------------------ #
@@ -327,9 +326,13 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     }
 
     ## X and Y axis limits:
-    
-    ylim.raw <- ylim
-    xlim.raw <- xlim
+    xlim.raw <- range(sapply(plot.list, function(x) sapply(x, function(y) y$xlim)), finite = TRUE)
+    ylim.raw <- range(sapply(plot.list, function(x) sapply(x, function(y) y$ylim)), finite = TRUE)
+
+    if (is.null(xlim) | class(plot.list[[1]][[1]]) == "inzbar") 
+        xlim <- xlim.raw
+    if (is.null(ylim) | class(plot.list[[1]][[1]]) == "inzbar")
+        ylim <- ylim.raw
 
     TYPE <- gsub("inz", "", class(plot.list[[1]][[1]]))
     if (!TYPE %in% c("bar")) xlim <- extendrange(xlim)
@@ -354,15 +357,27 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         maxcnt <- ylim.raw[2]
     }
 
+    if (class(plot.list[[1]][[1]]) %in% c("inzdot", "inzhist")) {
+        if (class(plot.list[[1]][[1]]) == "inzhist") {
+            nOutofview <- 0
+        } else {
+            nOutofview <-
+                sum(sapply(plot.list, function(x) sapply(x, function(y) sapply(y$toplot, function(z) 
+                    sum(z$x < min(xlim) | z$x > max(xlim))))))
+        }
+    } else if (class(plot.list[[1]][[1]]) != "inzbar") {
+        nOutofview <- sum(sapply(plot.list, function(x) sapply(x, function(z)
+            sum(z$x < min(xlim) | z$x > max(xlim) | z$y < min(ylim) | z$y > max(ylim)))))
+    } else {
+        nOutofview <- 0
+    }
+
     if (is.numeric(df$data$colby))
         opts$trend.by <- FALSE
 
     # Set up the plot layout
 
     if (plot) {
-
-
-
         PAGE.height <- convertHeight(current.viewport()$height, "in", TRUE)  # essentially the height of the window
 
         ## --- there will be some fancy stuff here designing and implementing a grid which adds titles,
@@ -475,7 +490,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         YAX.default.width <- convertWidth(unit(1, "lines"), "in", TRUE) * 2 * opts$cex.axis
         YAX.width <- YAX.width + YAX.default.width
 
-                                        # -- legend(s)
+        ## -- legend(s)
         barplot <- TYPE == "bar"
         leg.grob1 <- leg.grob2 <- leg.grob3 <- NULL
         cex.mult = ifelse("g1" %in% df.vs, 1,
@@ -578,23 +593,32 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
         if (!is.null(dots$subtitle)) {
             SUB <- textGrob(dots$subtitle, gp = gpar(cex = opts$cex.text * 0.8))
-        } else if (missing.info & length(missing) > 0) {
-            POS.missing <- missing[missing != 0]
-            names(POS.missing) <- unlist(varnames[match(names(POS.missing), names(varnames))])
-            missinfo <-
-                if (length(missing) > 1) paste0(" (", paste0(POS.missing, " in ", names(POS.missing),
-                                                             collapse = ", "), ")")
-                else ""
-
-            if (total.missing > 0) {
-                subtitle <- paste0(total.missing, " missing values", missinfo)
-                SUB <- textGrob(subtitle, gp = gpar(cex = opts$cex.text * 0.8))
-            } else {
-                SUB <- NULL
-            }
         } else {
-            SUB <- NULL
+            subtitle <- ""
+            if (missing.info & length(missing) > 0) {
+                POS.missing <- missing[missing != 0]
+                names(POS.missing) <- unlist(varnames[match(names(POS.missing), names(varnames))])
+                missinfo <-
+                    if (length(missing) > 1) paste0(" (", paste0(POS.missing, " in ", names(POS.missing),
+                                                                 collapse = ", "), ")")
+                    else ""
+                
+                if (total.missing > 0) {
+                    subtitle <- paste0(total.missing, " missing values", missinfo)
+                }
+            }
+
+            if (nOutofview > 0) {
+                subtitle <- ifelse(subtitle == "", "", paste0(subtitle, " | "))
+                subtitle <- paste0(subtitle, nOutofview, " points out of view")
+            }
+
+            if (subtitle == "")
+                SUB <- NULL
+            else
+                SUB <- textGrob(subtitle, gp = gpar(cex = opts$cex.text * 0.8))
         }
+
 
         ## --- CREATE the main LAYOUT for the titles + main plot window
         MAIN.hgt <- unit(MAIN.height, "in")
