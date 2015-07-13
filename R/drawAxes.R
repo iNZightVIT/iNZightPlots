@@ -23,8 +23,13 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts, sub = 0, h
     } else {
         if (is.null(opts$ZOOM))
             x.lev <- levels(x)
-        else
-            x.lev <- levels(x)[opts$ZOOM[1]:min(sum(opts$ZOOM) - 1, length(levels(x)))]
+        else {
+            ZOOM <- opts$ZOOM
+            ww <- ZOOM[1]:(sum(ZOOM) - 1)
+            nl <- length(levels(x))
+            ww <- ww - nl * (ww > nl)
+            x.lev <- levels(x)[ww]
+        }
         
         switch(which,
                "x" = {

@@ -70,11 +70,14 @@ create.inz.barplot <- function(obj) {
     ## Cannot have inference on segmented plot (too complicated for now)
     inflist <- if (!SEG) barinference(obj, tab, phat) else NULL
 
+    ymax <- max(phat)
     if (!is.null(ZOOM)) {
         if (ZOOM[1] > ncol(phat))
             next
         
-        ww <- ZOOM[1]:min(sum(ZOOM) - 1, ncol(phat))
+        ww <- ZOOM[1]:(sum(ZOOM) - 1)
+        ww <- ww - ncol(phat) * (ww > ncol(phat))
+        
         phat <- phat[, ww, drop = FALSE]
         if (ynull) {
             tab <- tab[ww]
@@ -87,7 +90,7 @@ create.inz.barplot <- function(obj) {
     out <- list(phat = phat, tab = tab, widths = widths, edges = edges, nx = ncol(phat),
                 full.height = opts$full.height, inference.info = inflist,
                 xlim = c(0, if (ynull) length(tab) else ncol(tab)),
-                ylim = c(0, max(phat, if (!is.null(inflist)) attr(inflist, "max"), na.rm = TRUE)))
+                ylim = c(0, max(ymax, if (!is.null(inflist)) attr(inflist, "max"), na.rm = TRUE)))
     if (SEG) out$p.colby <- p2[nrow(p2):1, ]
     if (!is.null(ZOOM)) out$zoom.index <- ww
     
