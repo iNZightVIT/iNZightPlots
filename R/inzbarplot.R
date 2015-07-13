@@ -4,7 +4,7 @@ create.inz.barplot <- function(obj) {
     opts <- obj$opts
     xattr <- obj$xattr
 
-    
+    ZOOM <- xattr$zoom
 
     inf.type <- opts$inference.type
     inf.par <- "proportion"
@@ -70,11 +70,26 @@ create.inz.barplot <- function(obj) {
     ## Cannot have inference on segmented plot (too complicated for now)
     inflist <- if (!SEG) barinference(obj, tab, phat) else NULL
 
+    if (!is.null(ZOOM)) {
+        if (ZOOM[1] > ncol(phat))
+            next
+        
+        ww <- ZOOM[1]:min(sum(ZOOM) - 1, ncol(phat))
+        phat <- phat[, ww, drop = FALSE]
+        if (ynull) {
+            tab <- tab[ww]
+            widths <- widths[ww]
+        } else {
+            tab <- tab[, ww, drop = FALSE]
+        }
+    }
+
     out <- list(phat = phat, tab = tab, widths = widths, edges = edges, nx = ncol(phat),
                 full.height = opts$full.height, inference.info = inflist,
                 xlim = c(0, if (ynull) length(tab) else ncol(tab)),
                 ylim = c(0, max(phat, if (!is.null(inflist)) attr(inflist, "max"), na.rm = TRUE)))
     if (SEG) out$p.colby <- p2[nrow(p2):1, ]
+    if (!is.null(ZOOM)) out$zoom.index <- ww
     
     class(out) <- "inzbar"
 
@@ -91,7 +106,7 @@ plot.inzbar <- function(obj, gen) {
     if (SEG <- !is.null(obj$p.colby)) {
         seg.cols <- gen$col.args$f.cols
     }
-    
+
     edges <- rep(obj$edges * 0.9 + 0.05, each = 4)
     edges <- edges[3:(length(edges) - 2)]
     xx <- rep(edges, nx) + rep(1:nx - 1, each = 4 * nrow(p))
@@ -142,9 +157,9 @@ plot.inzbar <- function(obj, gen) {
     bounds <- apply(matrix(xx, ncol = 4, byrow = TRUE), 1, function(x) x[2:3])
     
     if (!is.null(inflist)) {
-        addBarInference(inflist, center, opts)
+        addBarInference(inflist, center, opts, obj$zoom.index)
         if (!is.null(inflist$comp))
-            addBarCompLines(inflist$comp, bounds, p, opts)
+            addBarCompLines(inflist$comp, bounds, p, opts, obj$zoom.index)
     }
 }
 
@@ -158,6 +173,7 @@ barinference <- function(obj, tab, phat) {
     inf.type <- opts$inference.type
     bs <- opts$bs.inference
     dat <- obj$df
+    
 
     if (is.null(inf.type)) {
         return(NULL)
@@ -170,6 +186,7 @@ barinference <- function(obj, tab, phat) {
         twoway <- FALSE
         tab <- t(tab)
         phat <- t(phat)
+
     } else {
         twoway <- TRUE
     }

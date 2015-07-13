@@ -44,6 +44,9 @@
 ##' @param plot logical, if \code{FALSE}, the plot is not drawn (used by \code{summary})
 ##' @param xlim specify the x limits of the plot
 ##' @param ylim specify the y limits of the plot
+##' @param zoombars numeric, length 2; when drawing a bar plot, if the number of bars is too large,
+##' the user can specify a subset. The first value is the starting point (1 is the first bar, etc),
+##' while the second number is the number of bars to show.
 ##' @param df compatibility argument
 ##' @param env compatibility argument
 ##' @param ... additional arguments, see \code{inzpar}
@@ -63,7 +66,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         xlab = varnames$x, ylab = varnames$y,
                         new = TRUE,  # compatibility arguments
                         inzpars = inzpar(), layout.only = FALSE, plot = TRUE,
-                        xlim = NULL, ylim = NULL,
+                        xlim = NULL, ylim = NULL, zoombars = NULL, 
                         df, env = parent.frame(), ...) {
 
   # ------------------------------------------------------------------------------------ #
@@ -147,19 +150,24 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ynull <- ! "y" %in% df.vs
     yfact <- if (ynull) NULL else is.factor(df$data$y)
 
-    # check the number of levels for a barchart:
+    ## check the number of levels for a barchart:
+    if (!is.null(zoombars))
+        if (zoombars[2] == 0)
+            zoombars <- NULL
+    
     if (xfact) {
         if (ynull) {
-            if (length(levels(df$data$x)) > params("max.levels")) {
+            if (length(levels(df$data$x)) > params("max.levels") & is.null(zoombars)) {
                 msg <- paste0("Too many levels in ", varnames$x,
                               " to draw a barchart.\n",
                               "(", varnames$x, " has ",
                               length(levels(df$data$x)), " levels.)")
                 stopPlot(msg)
-                return(invisible(NULL))
+                plot <- FALSE
+#                return(invisible(NULL))
             }
         } else if (yfact) {
-            if (length(levels(df$data$x)) * length(levels(df$data$y)) > params("max.levels")) {
+            if (length(levels(df$data$x)) * length(levels(df$data$y)) > params("max.levels") & is.null(zoombars)) {
                 msg <- paste0("Too many levels in ", varnames$x, " and ",
                               varnames$y, " to draw a barchart.\n",
                               "(", varnames$x, " has ",
@@ -167,7 +175,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                               varnames$y, " has ", length(levels(df$data$y)),
                               "levels.)")
                 stopPlot("Too many levels in x and y to draw a barchart.")
-                return(invisible(NULL))
+                plot <- FALSE
+#                return(invisible(NULL))
             }
         }
     }
@@ -207,6 +216,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     if (!is.null(df$max.freq))
         xattr$max.freq <- df$max.freq
     if (!is.null(locate.extreme)) xattr$nextreme <- locate.extreme
+    if (!is.null(zoombars)) xattr$zoom <- zoombars
 
     if (opts$matchplots) {
       # this is the case where the data is subset by g1/g2, but we want the plots to be the same
@@ -611,6 +621,10 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             if (nOutofview > 0) {
                 subtitle <- ifelse(subtitle == "", "", paste0(subtitle, " | "))
                 subtitle <- paste0(subtitle, nOutofview, " points out of view")
+            } else if (!is.null(zoombars)) {
+                subtitle <- ifelse(subtitle == "", "", paste0(subtitle, " | "))
+                subtitle <- paste0(subtitle, zoombars[2], " out of ", length(levels(df$data$x)),
+                                   " levels of ", varnames$x, " visible")
             }
 
             if (subtitle == "")
@@ -872,6 +886,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
                 pushViewport(viewport(layout.pos.row = 2, xscale = xlim,
                                       yscale = if (TYPE == "bar") 100 * ylim else ylim))
+                opts$ZOOM <- zoombars
                 if (r == nr)  # bottom
                     drawAxes(X, "x", TRUE, c %% 2 == 1 | !TYPE %in% c("scatter", "grid", "hex"),
                              opts, layout.only = layout.only)
@@ -894,6 +909,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                                  layout.only = layout.only)
                     upViewport()
                 }
+                opts$ZOOM <- NULL
 
                 ## update the counters
                 if (g1id < NG1) {
