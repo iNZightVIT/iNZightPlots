@@ -282,6 +282,19 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         m2$inference.type <- NULL
         m2$inference.par <- NULL
 
+        ## X and Y axis limits:
+        #if (!is.null(xlim)) {
+        #    true.xr <- range(lapply(df.list, function(df)
+        #        lapply(df, function(d) range(d$x, finite = TRUE))), finite = TRUE)
+        #    
+        #    opts$cex.dotpt <- opts$cex.dotpt * diff(true.xr) / diff(xlim)
+        #    if (xlim[1] > true.xr[1] | xlim[2] < true.xr[2]) {
+        #        opts$boxplot <- FALSE
+        #        m2$boxplot <- FALSE
+        #    }
+        #}
+        
+
         ## we will now attempt something slightly complicated/computationally dumb
         ## HOWEVER: it will give us pretty dotplots
 #        F <- "~/Desktop/file.pdf"#tempfile()
@@ -289,8 +302,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 #        pdf(F, width = S[1], height = S[2])  # create a NULL device with same dimensions
 
         p <- eval(m2, env)
-
-
+        
         xattr$symbol.width <- convertWidth(unit(opts$cex.dotpt, "char"),
                                            "native", valueOnly = TRUE)
 
@@ -335,25 +347,20 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         unlink(FILE)
     }
 
-    ## X and Y axis limits:    
-    if (itsADotplot & !is.null(xlim)) {
-        xlim <- NULL  ## We dont want to allow it now
-    }
-    if (1 == 2) {
-        true.xr <- range(sapply(plot.list, function(x) sapply(x, function(y) y$xlim)), finite = TRUE)
-
-        opts$expand.points <-  diff(xlim) / diff(true.xr) 
-        if (xlim[1] > true.xr[1] | xlim[2] < true.xr[2])
-            opts$boxplot <- FALSE
-    }
-
     xlim.raw <- range(sapply(plot.list, function(x) sapply(x, function(y) y$xlim)), finite = TRUE)
     ylim.raw <- range(sapply(plot.list, function(x) sapply(x, function(y) y$ylim)), finite = TRUE)
 
     if (is.null(xlim) | class(plot.list[[1]][[1]]) == "inzbar") 
         xlim <- xlim.raw
+    #else if (itsADotplot) {
+    #    ## Set up new ylimits
+    #    ylim <- range(0, sapply(plot.list, function(x) sapply(x, function(y) sapply(y$toplot, function(FF)
+    #        range(FF$y[FF$x > min(xlim) & FF$x < max(xlim)], finite = TRUE)))), finite = TRUE)
+    #}
     if (is.null(ylim) | class(plot.list[[1]][[1]]) == "inzbar")
         ylim <- ylim.raw
+
+    
 
     TYPE <- gsub("inz", "", class(plot.list[[1]][[1]]))
     if (!TYPE %in% c("bar")) xlim <- extendrange(xlim)
@@ -375,7 +382,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                              })))
                          })
     } else if (TYPE %in% c("dot", "hist")) {
-        maxcnt <- ylim.raw[2]
+        maxcnt <- ylim[2]#.raw[2]
     }
 
     if (class(plot.list[[1]][[1]]) %in% c("inzdot", "inzhist")) {
