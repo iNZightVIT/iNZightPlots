@@ -21,7 +21,11 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts, sub = 0, h
                    grid.draw(yax)
                })
     } else {
-        x.lev <- levels(x)
+        if (is.null(opts$ZOOM))
+            x.lev <- levels(x)
+        else
+            x.lev <- levels(x)[opts$ZOOM[1]:min(sum(opts$ZOOM) - 1, length(levels(x)))]
+        
         switch(which,
                "x" = {
                    rot <- opts$rot

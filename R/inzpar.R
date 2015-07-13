@@ -83,6 +83,8 @@
 ##' subsets}
 ##' \item{'match.limits'}{a vector of two values used to decide whether to use all small-sample or all
 ##' large-sample plots}
+##' \item{'xlim'}{a vector defining the x axis limits (default NULL will use the data)}
+##' \item{'ylim'}{a vector defining the y axis limits (default NULL will use the data)}
 ##' }
 ##' 
 ##' @title iNZight Plotting Parameters
@@ -157,7 +159,9 @@ inzpar <- function(...) {
                quant.cutoff   = c(200, 1000),
                plottype       = "default",
                matchplots     = TRUE,
-               match.limits   = c(500, 10000))
+               match.limits   = c(500, 10000),
+               xlim           = NULL,
+               ylim           = NULL)
 
     # update any user has specified
     if (length(dots) > 0) {
