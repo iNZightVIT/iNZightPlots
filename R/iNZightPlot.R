@@ -211,10 +211,12 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     xattr <- list(class = class(df), v = colnames(df$data), varnames = as.list(df$varnames),
                   vartypes = structure(vartypes, .Names = names(varnames)))
+
+    ## HERE IS THE SWTICH FOR CHANGING FROM DIFFERENT TYPES OF DOT PLOT ZOOMING
     if (!xfact)
-        if (!is.null(xlim))
-            xattr$xrange <- xlim
-        else
+        #if (!is.null(xlim))
+        #    xattr$xrange <- xlim
+        #else
             xattr$xrange <- range(xx[is.finite(xx)])
     if (!ynull) if (!yfact) xattr$yrange <- range(yy[is.finite(yy)])
     if (!is.null(df$max.freq))
@@ -345,10 +347,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         jpeg(FILE <- tempfile())
     }
 
-    if (!is.null(xlim)) {
-        opts$boxplot <- FALSE
-        xattr$trimX <- xlim
-    }
+    ##### AND ANOTHER METHOD FOR SWITCHING BETWEEN DOTPLOTS ZOOMS
+#    if (!is.null(xlim)) {
+#        opts$boxplot <- FALSE
+#        xattr$trimX <- xlim
+#    }
 
     plot.list <- lapply(df.list, function(df)
         lapply(df, createPlot, opts, xattr))
