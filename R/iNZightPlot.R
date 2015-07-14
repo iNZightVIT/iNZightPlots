@@ -211,7 +211,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     xattr <- list(class = class(df), v = colnames(df$data), varnames = as.list(df$varnames),
                   vartypes = structure(vartypes, .Names = names(varnames)))
-    if (!xfact) xattr$xrange = range(xx[is.finite(xx)])
+    if (!xfact)
+        if (!is.null(xlim))
+            xattr$xrange <- xlim
+        else
+            xattr$xrange <- range(xx[is.finite(xx)])
     if (!ynull) if (!yfact) xattr$yrange <- range(yy[is.finite(yy)])
     if (!is.null(df$max.freq))
         xattr$max.freq <- df$max.freq
@@ -293,6 +297,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         #        m2$boxplot <- FALSE
         #    }
         #}
+
+        
         
 
         ## we will now attempt something slightly complicated/computationally dumb
@@ -339,6 +345,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         jpeg(FILE <- tempfile())
     }
 
+    if (!is.null(xlim)) {
+        opts$boxplot <- FALSE
+        xattr$trimX <- xlim
+    }
+
     plot.list <- lapply(df.list, function(df)
         lapply(df, createPlot, opts, xattr))
 
@@ -352,6 +363,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     if (is.null(xlim) | class(plot.list[[1]][[1]]) == "inzbar") 
         xlim <- xlim.raw
+
     #else if (itsADotplot) {
     #    ## Set up new ylimits
     #    ylim <- range(0, sapply(plot.list, function(x) sapply(x, function(y) sapply(y$toplot, function(FF)

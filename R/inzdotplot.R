@@ -8,6 +8,8 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     v <- colnames(df)
     vn <- xattr$varnames
 
+    trimX <- xattr$trimX
+
     if (xattr$class != "inz.simple")
         hist <- TRUE
 
@@ -29,6 +31,11 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
             obj$df <- df
             xattr$varnames <- vn
         }
+    }
+
+    # 'trim' X values
+    if (!is.null(trimX)) {
+        df <- df[df$x > min(trimX) & df$x < max(trimX), , drop = FALSE]
     }
     
     # first need to remove missing values
