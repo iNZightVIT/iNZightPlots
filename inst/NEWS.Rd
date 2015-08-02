@@ -2,8 +2,8 @@
 \title{NEWS file for the iNZightPlots package}
 \encoding{UTF-8}
 
-\section{Changes in Version XYZ}{
-  RELEASE DATE: TBA
+\section{Changes in Version 2.0.5}{
+  RELEASE DATE: 03 August 2015
   
   \subsection{NEW FEATURES}{
     \itemize{
@@ -18,6 +18,10 @@
 
       \item weighting variable used when drawing a scatter plot of
       survey data
+
+      \item fix an issue where requesting summary of 'dotplots' resulted
+      in creating a new device, which resulted in errors on the Shiny
+      server.
     }
   }
 }
