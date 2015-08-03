@@ -275,7 +275,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         if ((!xfact & yfact) | (xfact & !yfact))
             itsADotplot <- TRUE
     }
-
+    
     if (itsADotplot)
         if (opts$plottype != "dot")
             if (opts$plottype != "default" | (opts$plottype == "default" & opts$largesample))
@@ -300,19 +300,22 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         #    }
         #}
 
-        
-        
 
         ## we will now attempt something slightly complicated/computationally dumb
         ## HOWEVER: it will give us pretty dotplots
 #        F <- "~/Desktop/file.pdf"#tempfile()
-        S <- dev.size("px")
+#        S <- dev.size("px")
 #        pdf(F, width = S[1], height = S[2])  # create a NULL device with same dimensions
-
-        p <- eval(m2, env)
         
-        xattr$symbol.width <- convertWidth(unit(opts$cex.dotpt, "char"),
-                                           "native", valueOnly = TRUE)
+        p <- eval(m2, env)
+
+        if (is.null(dev.list())) {
+            xattr$symbol.width <- 1
+        } else {
+            xattr$symbol.width <- convertWidth(unit(opts$cex.dotpt, "char"),
+                                               "native", valueOnly = TRUE)
+        }
+
 
 #        dev.off()
 #        unlink(F)  ## delete the temp file
@@ -332,6 +335,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                                    xr = xr, isDiscrete = isDiscrete,
                                    mult.width = mult.width)
     }
+
 
     ## createPlot - uses various things such as "grobWidth" which causes a new device to open
     ## so create a NULL device and delete it afterwards ...
