@@ -90,7 +90,7 @@ drawContLegend <- function(var, title = "", height = NULL, cex.mult = 1,
     
     fg <- frameGrob(layout = legend.layout)
     fg <- placeGrob(fg, poly, row = 3, col = 1)
-    fg <- placeGrob(fg, rectGrob(width = unit(rect.wd, "in")),
+    fg <- placeGrob(fg, rectGrob(width = unit(rect.wd, "in"), gp = gpar(fill = "transparent")),
                     col = 1, row = 3)
     fg <- placeGrob(fg, title.grob, row = 1, col = 1:2)
     fg <- placeGrob(fg, yax, row = 3, col = 1)
