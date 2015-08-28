@@ -37,7 +37,11 @@ create.inz.scatterplot <- function(obj) {
     if ("freq" %in% v) {
         propsize <- df$freq / xattr$max.freq * 4 + 0.5
     } else if ("weights" %in% v) {
-        propsize <- df$weights
+        if (length(unique(df$weights)) == 1) {
+            resize <- FALSE
+            propsize <- opts$cex.pt
+        } else
+            propsize <- df$weights       
     } else if ("sizeby" %in% v) {
         propsize <- df$sizeby
     } else {
