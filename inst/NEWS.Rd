@@ -2,6 +2,9 @@
 \title{NEWS file for the iNZightPlots package}
 \encoding{UTF-8}
 
+# Implement confidence and comparison intervals for survey histograms
+# Fix bug where non-existing inference on barplots would crash the plot
+
 \section{Changes in Version 2.1}{
   RELEASE DATE: 04 August 2015
 
