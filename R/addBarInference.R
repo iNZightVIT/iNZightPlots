@@ -1,4 +1,7 @@
 addBarInference <- function(inflist, center, opts, zi) {
+    if (is.null(inflist[[1]]$lower))
+        return(NULL)
+        
     bs <- attr(inflist, "bootstrap")
     col1 <- ifelse(bs, opts$inf.col.comp[2], opts$inf.col.comp[1])
     col2 <- ifelse(bs, opts$inf.col.conf[2], opts$inf.col.conf[1])

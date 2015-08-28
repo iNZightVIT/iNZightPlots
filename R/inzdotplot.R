@@ -479,19 +479,17 @@ dotinference <- function(obj) {
                                 } else {
                                     ## 95% confidence interval (normal theory)
                                     if (svy) {
-                                        ## This doesn't account for clustering
-                                        ##
-                                        ## if ("y" %in% colnames(dat$variables)) {
-                                        ##     fit <- svyglm(x ~ y, design = dat)
-                                        ##     ci <- confint(predict(fit, newdata = data.frame(y = levels(dat$variables$y))))
-                                        ##     dimnames(ci) <- list(levels(dat$variables$y),
-                                        ##                          c("lower", "upper"))
-                                        ## } else {
-                                        ##     fit <- svyglm(x ~ 1, design = dat)
-                                        ##     ci <- confint(fit)
-                                        ##     dimnames(ci) <- list("all", c("lower", "upper"))
-                                        ## }
-                                        ## ci
+                                        if ("y" %in% colnames(dat$variables)) {
+                                            fit <- svyglm(x ~ y, design = dat)
+                                            ci <- confint(predict(fit, newdata = data.frame(y = levels(dat$variables$y))))
+                                            dimnames(ci) <- list(levels(dat$variables$y),
+                                                                 c("lower", "upper"))
+                                        } else {
+                                            fit <- svyglm(x ~ 1, design = dat)
+                                            ci <- confint(fit)
+                                            dimnames(ci) <- list("all", c("lower", "upper"))
+                                        }
+                                        ci
                                     } else {
                                         n <- tapply(dat$x, dat$y, function(z) sum(!is.na(z)))
                                         n <- ifelse(n < 2, NA, n)
@@ -519,7 +517,10 @@ dotinference <- function(obj) {
                                     }
                                 } else {
                                     if (svy) {
-                                        NULL
+                                        fit <- svyglm(x ~ y, design = dat)
+                                        est <- predict(fit, newdata = data.frame(y = levels(dat$variables$y)))
+                                        mfit <- suppressWarnings(moecalc(fit, factorname = "y", est = est))
+                                        cbind(with(mfit, cbind(lower = compL, upper = compU)) + coef(fit)[1], mean = est)
                                     } else {
                                         ## ########################################################## ##
                                         ## This is the old method, an approximately 75% CI ...        ##
@@ -568,7 +569,7 @@ dotinference <- function(obj) {
                                         NULL
                                     } else {
                                         ## YEAR 12 INTERVALS
-                                        iqr <- 
+                                        #iqr <- 
                                         
                                         n <- tapply(dat$x, dat$y, function(z) sum(!is.na(z)))
                                         n <- ifelse(n < 2, NA, n)
