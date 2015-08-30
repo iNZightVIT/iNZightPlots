@@ -36,11 +36,14 @@ create.inz.barplot <- function(obj) {
 
     SEG <- FALSE
     if (ynull) {
-        if (is.null(svy))
+        if (is.null(svy)) {
             tab <- table(df$x)
-        else
+            phat <- matrix(tab / sum(tab), nrow = 1)
+        } else {
             tab <- svytable(~x, design = svy)
-        phat <- matrix(tab / sum(tab), nrow = 1)
+            phat <- matrix(svymean(~x, design = svy), nrow = 1)
+        }
+        
         widths <- rep(1, length(tab))
         edges <- c(0, 1)
 
@@ -58,11 +61,15 @@ create.inz.barplot <- function(obj) {
             p2 <- sweep(tab2, 2, colSums(tab2), "/")
         }
     } else {
-        if (is.null(svy))
+        if (is.null(svy)) {
             tab <- table(df$y, df$x)
-        else
+            phat <- sweep(tab, 1, nn <- rowSums(tab), "/")
+        } else {
             tab <- svytable(~y + x, design = svy)
-        phat <- sweep(tab, 1, nn <- rowSums(tab), "/")
+            phat <- svyby(~x, by = ~y, svy, FUN = svymean)[, 1 + 1:ncol(tab)]
+            nn <- rowSums(tab)
+        }
+        
         widths <- nn / sum(nn)
         edges <- c(0, cumsum(widths))
     }
@@ -189,7 +196,6 @@ barinference <- function(obj, tab, phat) {
         twoway <- FALSE
         tab <- t(tab)
         phat <- t(phat)
-
     } else {
         twoway <- TRUE
     }
@@ -199,7 +205,7 @@ barinference <- function(obj, tab, phat) {
                "conf" = {
                    if (bs) {
                        if (svy) {
-                           NULL
+                           NULL                           
                        } else {
                            if (twoway) {
                                ## For now, we will just all over and not return intervals
@@ -228,7 +234,18 @@ barinference <- function(obj, tab, phat) {
                        }
                    } else {
                        if (svy) {
-                           NULL
+                           if (twoway) {
+                               est <- svyby(~x, by = ~y, obj$df, FUN = svymean, vartype = "ci")[, -1]
+                               nc <- length(levels(obj$df$variables$x))
+                               list(lower = as.matrix(est[, nc + 1:nc]),
+                                    upper = as.matrix(est[, 2 * nc + 1:nc]),
+                                    estimate = as.matrix(est[, 1:nc]))
+                           } else {
+                               ci <- t(confint(svymean(~x, obj$df)))
+                               list(lower = ci[1, , drop = FALSE],
+                                    upper = ci[2, , drop = FALSE],
+                                    estimate = t(phat))
+                           }
                        } else {
                            ## Standard confidence interval:
                            t(apply(tab, 1, function(x) {
