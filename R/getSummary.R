@@ -136,8 +136,6 @@ summary.inzplotoutput <- function(object, summary.type = "summary", width = 100)
     
     obj <- object  ## same typing ... but match default `summary` method arguments
 
-    print(obj)
-
     ## set up some variables/functions to make text processing easier ...
     
     out <- character()
