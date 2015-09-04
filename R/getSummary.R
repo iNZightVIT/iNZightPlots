@@ -136,8 +136,6 @@ summary.inzplotoutput <- function(object, summary.type = "summary", width = 100)
     
     obj <- object  ## same typing ... but match default `summary` method arguments
 
-    print(obj)
-
     ## set up some variables/functions to make text processing easier ...
     
     out <- character()
@@ -164,12 +162,18 @@ summary.inzplotoutput <- function(object, summary.type = "summary", width = 100)
     total.missing <- attr(obj, "total.missing")
     total.obs <- attr(obj, "total.obs")
     bs <- attr(obj, "bootstrap")
-    inzclass <- attr(obj, "inzclass")    
+    inzclass <- attr(obj, "inzclass")
+    
+    is.survey <- attr(obj, "inzclass") == "inz.survey"
+
+    if (is.survey & summary.type == "inference")
+        return("Inference for Survey Designs not yet implemented.")
     
     add(Hrule)
     add(center(switch(summary.type,
                       "summary" =
-                      "iNZight Summary",
+                          paste0("iNZight Summary",
+                                 ifelse(is.survey, " - Survey Design", "")),
                       "inference" =
                       paste("iNZight Inference using",
                             ifelse(bs,
@@ -185,7 +189,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary", width = 100)
     }
 
     ## A tidy header that formats the vames of the variables
-    mat <- cbind(ind(ifelse(scatter, "Response variable: ", "Primary variable of interest: ")),
+    mat <- cbind(ind(ifelse(scatter, "Response/outcome variable: ", "Primary variable of interest: ")),
                  paste0(ifelse(scatter, vnames$y, vnames$x),
                         " (", vartypes[[ifelse(scatter, vnames$y, vnames$x)]], ")"))
     
@@ -229,6 +233,11 @@ summary.inzplotoutput <- function(object, summary.type = "summary", width = 100)
     mat <- cbind(format(mat[, 1], justify = "right"), mat[, 2])
     apply(mat, 1, add)
 
+    if (is.survey) {
+        add(hrule)
+        sapply(capture.output(attr(object, "main.design")), function(o) add(ind(o)))
+        design.list <- attr(object, "design")
+    }
 
     add(Hrule)
     add("")
@@ -292,8 +301,10 @@ summary.inzplotoutput <- function(object, summary.type = "summary", width = 100)
             add(header, underline = TRUE)
             add("")
 
+            pl.design <- if (is.survey) design.list[[this]][[o]] else NULL
+            
             sapply(switch(summary.type,
-                          "summary" = summary(pl, vnames),
+                          "summary" = summary(pl, vn = vnames, des = pl.design),
                           "inference" = inference(pl, bs, inzclass, width = width, vn = vnames, nb = attr(obj, "nboot"))),
                    add)
             

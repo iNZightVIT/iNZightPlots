@@ -991,6 +991,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     attr(plot.list, "inzclass") <- xattr$class
     attr(plot.list, "nplots") <- if (exists("N")) N else NULL
 
+    if (xattr$class == "inz.survey") {
+        attr(plot.list, "main.design") <- design
+        attr(plot.list, "design") <- df.list
+    }
+
     attr(plot.list, "plottype") <- gsub("inz", "", class(plot.list[[1]][[1]]))
     if (attr(plot.list, "plottype") %in% c("dot", "hist"))
         attr(plot.list, "nbins") <- length(plot.list[[1]][[1]]$toplot[[1]]$counts)
