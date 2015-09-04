@@ -49,7 +49,7 @@ summary.inzdot <- function(object, des, ...) {
 
     ## Text formatting to return a character vector - each row of matrix
     rns <- c("Min", "25%", "Median", "75%", "Max", "Mean", "SD", "Sample Size")
-    if (!is.null(des)) rns <- c(rns, "Population Size (se)")
+    if (!is.null(des)) rns <- c(rns, "Population Size")
     mat <- rbind(rns,  mat)
     colnames(mat) <- NULL
 
