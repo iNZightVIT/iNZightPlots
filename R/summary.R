@@ -73,11 +73,10 @@ summary.inzhist <- function(object, des, ...)
 
 
 summary.inzbar <- function(object, des, ...) {
-    tab <- object$tab
+    tab <- round(object$tab)
     perc <- object$phat * 100
 
-    if (!is.null(des))
-        return("Summary for factors not yet implemented for survey designs.")
+    is.survey <- !is.null(des)
 
     twoway <- length(dim(tab)) == 2
     if (twoway) {
@@ -137,41 +136,71 @@ summary.inzscatter <- function(object, vn, des, ...) {
     y <- object$y
     trend <- object$trend
 
-    if (!is.null(des))
-        return("Summary not yet implemented for survey designs.")
+    is.survey <- !is.null(des)
 
     out <- character()
     if ("linear" %in% trend) {
-        beta <- signif(coef(lm(y ~ x)), 4)
-        out <- c(out,
-                 "Linear trend:", "",
-                 paste0("    ",
-                        vn$y, " = ",
-                        beta[1], " + ",
-                        beta[2], " * ", vn$x),
-                 paste0("    Linear correlation: ", round(cor(x, y), 2)),
-                 "")
+        beta <- try({
+            if (is.survey)
+                signif(coef(svyglm(y ~ x, design = des)), 4)
+            else
+                signif(coef(lm(y ~ x)), 4)
+        }, silent = TRUE)
+
+        if (inherits(beta, "try-error"))
+            out <- "Unable to fit linear trend."
+        else
+            out <- c(out,
+                     "Linear trend:", "",
+                     paste0("    ",
+                            vn$y, " = ",
+                            beta[1], " + ",
+                            beta[2], " * ", vn$x),
+                     paste0("    Linear correlation: ",
+                            if (is.survey)
+                                round(cov2cor(as.matrix(svyvar(y~x, design = des)))[1,2], 2)
+                            else
+                                round(cor(x, y), 2)),
+                     "")
     }
     if ("quadratic" %in% trend) {
-        beta <- signif(coef(lm(y ~ x + I(x^2))), 4)
-        out <- c(out,
-                 "Quadratic trend:", "",
-                 paste0("    ",
-                        vn$y, " = ",
-                        beta[1], " + ",
-                        beta[2], " * ", vn$x, " + ",
-                        beta[3], " * ", vn$x, "^2"), "")
+        beta <- try({
+            if (is.survey)
+                signif(coef(svyglm(y ~ x + I(x^2), design = des)), 4)
+            else
+                signif(coef(lm(y ~ x + I(x^2))), 4)
+        }, silent = TRUE)
+        
+        if (inherits(beta, "try-error"))
+            out <- "Unable to fit quadratic trend."
+        else
+            out <- c(out,
+                     "Quadratic trend:", "",
+                     paste0("    ",
+                            vn$y, " = ",
+                            beta[1], " + ",
+                            beta[2], " * ", vn$x, " + ",
+                            beta[3], " * ", vn$x, "^2"), "")
     }
     if ("cubic" %in% trend) {
-        beta <- signif(coef(lm(y ~ x + I(x^2) + I(x^3))), 4)
-        out <- c(out,
-                 "Cubic trend:", "",
-                 paste0("    ",
-                        vn$y, " = ",
-                        beta[1], " + ",
-                        beta[2], " * ", vn$x, " + ",
-                        beta[3], " * ", vn$x, "^2 + ",
-                        beta[4], " * ", vn$x, "^3"), "")
+        beta <- beta <- try({
+            if (is.survey)
+                signif(coef(svyglm(y ~ x + I(x^2) + I(x^3), design = des)), 4)
+            else
+                signif(coef(lm(y ~ x + I(x^2) + I(x^3))), 4)
+        }, silent = TRUE)
+
+        if (inherits(beta, "try-error"))
+            out <- "Unable to fit linear trend."
+        else
+            out <- c(out,
+                     "Cubic trend:", "",
+                     paste0("    ",
+                            vn$y, " = ",
+                            beta[1], " + ",
+                            beta[2], " * ", vn$x, " + ",
+                            beta[3], " * ", vn$x, "^2 + ",
+                            beta[4], " * ", vn$x, "^3"), "")
     }
     
     rank.cor <- cor(x, y, method = "spearman")
