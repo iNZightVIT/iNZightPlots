@@ -55,8 +55,6 @@ summary.inzdot <- function(object, des, ...) {
 
     if (length(toplot) > 1) {
         mat <- cbind(c("", names(toplot)), mat)
-    } else {
-        mat <- mat[, -1]
     }
     rownames(mat) <- NULL
     

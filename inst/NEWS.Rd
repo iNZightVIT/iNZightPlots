@@ -8,6 +8,7 @@
 # Fix bug where inference info for survey scatter plots would break the plot
 # Summary information for dotplots/histograms, scatter plots, and bar plots
 # bug-fix printing summary object
+# Fix a bug where dotplot/histogram summaries of a single variable removed the 'min' columns
 
 \section{Changes in Version 2.1}{
   RELEASE DATE: 04 August 2015
