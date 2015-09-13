@@ -67,13 +67,15 @@ addTrend <-
 function(x, y, order, xlim, col, bs) {
     xx <- seq(xlim[1], xlim[2], length = 1001)
     if (is.svy <- inherits(x, "survey.design")) {
+      if(length(order)==1){
         svy <- x
         expr <- switch(order,
                        formula(y ~ x),
                        formula(y ~ x + I(x^2)),
                        formula(y ~ x + I(x^2) + I(x^3)))
-        yy <- try(predict(svyglm(expr, design = svy), data.frame(x = xx)),
-                  silent = TRUE)
+      }
+      yy <- try(predict(svyglm(expr, design = svy), data.frame(x = xx)),
+                silent = TRUE)
     } else {
         yy <- try(c(predict(lm(y ~ poly(x, order)), data.frame(x = xx))),
                   silent = TRUE)
@@ -120,6 +122,7 @@ addParTrend <- function(x, y, by, order, xlim, cols) {
     xx <- rep(seq(xlim[1], xlim[2], length = 1001), length(lby <- levels(by)))
     byy <- rep(lby, each = 1001)
     if (inherits(x, "survey.design")) {
+      if(length(order)==1){
         svy <- x
         expr <- switch(order,
                        formula(y ~ x + colby),
@@ -127,6 +130,7 @@ addParTrend <- function(x, y, by, order, xlim, cols) {
                        formula(y ~ x + I(x^2) + I(x^3) + colby))
         yy <- try(predict(LM <- svyglm(expr, design = svy), data.frame(x = xx, colby = byy)),
                   silent = TRUE)
+      }
     } else {
         yy <- try(c(predict(LM <- lm(y ~ poly(x, order) + by), data.frame(x = xx, by = byy))),
                   silent = TRUE)
