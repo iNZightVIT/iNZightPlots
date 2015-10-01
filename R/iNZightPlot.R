@@ -523,7 +523,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         XAX.height <- convertWidth(unit(1, "lines"), "in", TRUE) * 2 * opts$cex.axis
 
         ## -- yaxis marks
-        YAX.width <- if (TYPE %in% c("dot", "hist") & !ynull) {
+        YAX.width <- if (TYPE %in% c("dot", "hist") & !ynull & !opts$internal.labels) {
             ## need to grab the factoring variable -> might be x OR y
             yf <- if (is.factor(df$data$y)) df$data$y else df$data$x
             yl <- levels(yf)
@@ -928,7 +928,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                     drawAxes(X, "x", TRUE, c %% 2 == 1 | !TYPE %in% c("scatter", "grid", "hex"),
                              opts, layout.only = layout.only)
 
-                if (c == 1)  # left column
+                if (c == 1 & (!opts$internal.labels | !TYPE %in% c("dot", "hist")))  # left column
                     drawAxes(if (TYPE == "bar") ylim else Y, "y", TRUE, (nr - r) %% 2 == 0, opts,
                              layout.only = layout.only)
 

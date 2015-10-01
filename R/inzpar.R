@@ -160,6 +160,7 @@ inzpar <- function(...) {
                plottype       = "default",
                matchplots     = TRUE,
                match.limits   = c(500, 10000),
+               internal.labels= TRUE,
                xlim           = NULL,
                ylim           = NULL)
 

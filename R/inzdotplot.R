@@ -283,6 +283,8 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
     maxdots <- max(ny, maxcount)
     ylim <- c(0, maxdots * 1.05)
 
+    GROUP.names <- if (nlev > 1 & opts$internal.labels) names(toplot) else NULL
+
     for (i in 1:nlev) {
         pp <- toplot[[i]]
         
@@ -354,6 +356,11 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
                 grid.text(paste0("  ", pp$text.labels[locID]), pp$x[locID], pp$y[locID],
                           default.units = "native", just = c("left"), rot = 45,
                           gp = gpar(cex = 0.6))
+
+        ## Label group
+        if (!is.null(GROUP.names))
+            grid.text(GROUP.names[i], x = 0.01, y = 0.98, just = c("left", "top"),
+                      gp = gpar(cex = 0.8))
     }
     
     seekViewport("VP:dotplot-levels")
