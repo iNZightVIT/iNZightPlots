@@ -11,6 +11,12 @@
       placed inside the plot, rather than in the axis margin: \code{internal.labels=TRUE}
     }
   }
+
+  \subsection{PATCH 2.3.1}{
+    \itemize{
+      \item fix how viewports are named
+    }
+  }
 }
 
 \section{Changes in Version 2.2}{
