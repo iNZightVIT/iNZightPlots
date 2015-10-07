@@ -3,7 +3,7 @@ addUnivarInference <- function(inflist, i, opts) {
     col1 <- ifelse(bs, opts$inf.col.comp[2], opts$inf.col.comp[1])
     col2 <- ifelse(bs, opts$inf.col.conf[2], opts$inf.col.conf[1])
 
-    ## We can only display one type of inference (mean OR median)
+    ## We can only display one type of inference (mean OR median), so take the fist:
     inflist <- inflist[[1]]
 
     if (is.character(inflist)) return()
