@@ -433,7 +433,7 @@ dotinference <- function(obj) {
         return(NULL)
     }
 
-    if (nrow(obj$df) < opts$min.count) return("sample too small")
+    if (nrow(obj$df) < opts$min.count) return(NULL)
   
     ## for simplicity, if no 'y' factor, just make all the same level for tapply later:
     if (obj$xattr$class == "inz.simple") {
@@ -499,7 +499,7 @@ dotinference <- function(obj) {
                                         ci
                                     } else {
                                         n <- tapply(dat$x, dat$y, function(z) sum(!is.na(z)))
-                                        n <- ifelse(n < 2, NA, n)
+                                        n <- ifelse(n < 5, NA, n)
                                         wd <- qt(0.975, df = n - 1) * tapply(dat$x, dat$y, sd,
                                                             na.rm = TRUE) / sqrt(n)
                                         mn <- tapply(dat$x, dat$y, mean, na.rm = TRUE)
@@ -543,10 +543,30 @@ dotinference <- function(obj) {
                                         if(any(is.na(tapply(dat$x, dat$y, length)))) {
                                             NULL
                                         } else {
-                                            fit <- lm(x ~ y, data = dat)
-                                            est <- predict(fit, newdata = data.frame(y = levels(dat$y)))
-                                            mfit <- suppressWarnings(moecalc(fit, factorname = "y", est = est))
-                                            cbind(with(mfit, cbind(lower = compL, upper = compU)) + coef(fit)[1], mean = est)
+                                            ycounts <- with(dat, tapply(x, y, function(x) sum(!is.na(x))))
+                                            if (any(ycounts < 5)) {
+                                                wi <- which(ycounts >= 5)
+                                                if (length(wi) == 1) {
+                                                    NULL
+                                                } else {
+                                                    ylevi <- levels(dat$y)[wi]
+                                                    newdat <- dat[dat$y %in% ylevi, ]
+                                                    newdat$y <- factor(newdat$y)
+                                                    fit <- lm(x ~ y, data = newdat)
+                                                    est <- predict(fit, newdata = data.frame(y = levels(newdat$y)))
+                                                    mfit <- suppressWarnings(moecalc(fit, factorname = "y", est = est))
+                                                    coef.mat <- matrix(NA, ncol = 3, nrow = length(levels(dat$y)))
+                                                    coef.mat[wi, ] <-
+                                                        cbind(with(mfit, cbind(lower = compL, upper = compU)) + coef(fit)[1], mean = est)
+                                                    dimnames(coef.mat) <- list(levels(dat$y), c("lower", "upper", "mean"))
+                                                    coef.mat
+                                                }
+                                            } else {
+                                                fit <- lm(x ~ y, data = dat)
+                                                est <- predict(fit, newdata = data.frame(y = levels(dat$y)))
+                                                mfit <- suppressWarnings(moecalc(fit, factorname = "y", est = est))
+                                                cbind(with(mfit, cbind(lower = compL, upper = compU)) + coef(fit)[1], mean = est)
+                                            }
                                         }
                                     }
                                 }
