@@ -552,20 +552,22 @@ dotinference <- function(obj) {
                                                     ylevi <- levels(dat$y)[wi]
                                                     newdat <- dat[dat$y %in% ylevi, ]
                                                     newdat$y <- factor(newdat$y)
-                                                    fit <- lm(x ~ y, data = newdat)
+                                                    fit <- lm(x ~ y - 1, data = newdat)
                                                     est <- predict(fit, newdata = data.frame(y = levels(newdat$y)))
-                                                    mfit <- suppressWarnings(moecalc(fit, factorname = "y", est = est))
+                                                    ses <- seIndepSes(summary(fit)$coef[, 2])
+                                                    mfit <- suppressWarnings(moecalc(ses, est = est, base = FALSE))
                                                     coef.mat <- matrix(NA, ncol = 3, nrow = length(levels(dat$y)))
                                                     coef.mat[wi, ] <-
-                                                        cbind(with(mfit, cbind(lower = compL, upper = compU)) + coef(fit)[1], mean = est)
+                                                        cbind(with(mfit, cbind(lower = compL, upper = compU)), mean = est)
                                                     dimnames(coef.mat) <- list(levels(dat$y), c("lower", "upper", "mean"))
                                                     coef.mat
                                                 }
                                             } else {
-                                                fit <- lm(x ~ y, data = dat)
+                                                fit <- lm(x ~ y - 1, data = dat)
                                                 est <- predict(fit, newdata = data.frame(y = levels(dat$y)))
-                                                mfit <- suppressWarnings(moecalc(fit, factorname = "y", est = est))
-                                                cbind(with(mfit, cbind(lower = compL, upper = compU)) + coef(fit)[1], mean = est)
+                                                ses <- seIndepSes(summary(fit)$coef[, 2])
+                                                mfit <- suppressWarnings(moecalc(ses, est = est, base = FALSE))
+                                                cbind(with(mfit, cbind(lower = compL, upper = compU)), mean = est)
                                             }
                                         }
                                     }
