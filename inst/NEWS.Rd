@@ -30,6 +30,11 @@
       behaviour ignores small groups and only compares large ones.
     }
   }
+  \subsection{PATCH 2.3.4 - 13/10/2015}{
+    \itemize{
+      \item continuing from 2.3.3, but now use independent covariances 
+    }
+  }
 }
 
 \section{Changes in Version 2.2}{
