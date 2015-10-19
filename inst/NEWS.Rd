@@ -35,6 +35,11 @@
       \item continuing from 2.3.3, but now use independent covariances 
     }
   }
+  \subsection{PATCH 2.3.4 - 13/10/2015}{
+    \itemize{
+      \item FIX for Lite: dotplots by factor labels now also on histograms
+    }
+  }
 }
 
 \section{Changes in Version 2.2}{

@@ -22,6 +22,8 @@ plot.inzhist <- function(obj, gen) {
 
     ylim <- c(0, gen$maxcount * 1.05)
 
+    GROUP.names <- if (nlev > 1 & opts$internal.labels) names(toplot) else NULL
+
     for (i in 1:nlev) {
         pp <- toplot[[i]]
         seekViewport("VP:histplot-levels")
@@ -48,6 +50,11 @@ plot.inzhist <- function(obj, gen) {
                          gpar(fill = opts$bar.fill, col = opts$bar.col,
                               lwd = opts$bar.lwd))
         }
+
+        ## Label group
+        if (!is.null(GROUP.names))
+            grid.text(GROUP.names[i], x = 0.01, y = 0.98, just = c("left", "top"),
+                      gp = gpar(cex = 0.8))
     }
 
     seekViewport("VP:histplot-levels")
