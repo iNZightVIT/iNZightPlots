@@ -40,6 +40,11 @@
       \item FIX for Lite: dotplots by factor labels now also on histograms
     }
   }
+  \subsection{PATCH 2.3.5 - 28/10/2015}{
+    \itemize{
+      \item fix the "number of missing observations" shown in summary output
+    }
+  }
 }
 
 \section{Changes in Version 2.2}{
