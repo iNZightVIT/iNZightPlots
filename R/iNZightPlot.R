@@ -66,7 +66,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         xlab = varnames$x, ylab = varnames$y,
                         new = TRUE,  # compatibility arguments
                         inzpars = inzpar(), layout.only = FALSE, plot = TRUE,
-                        xlim = NULL, ylim = NULL, zoombars = NULL, 
+                        xlim = NULL, ylim = NULL, zoombars = NULL,
                         df, env = parent.frame(), ...) {
 
   # ------------------------------------------------------------------------------------ #
@@ -282,11 +282,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 itsADotplot <- FALSE
 
     if (itsADotplot) {
-        m2 <- match.call(expand.dots = TRUE)
-        m2$plottype <- "hist"
-        m2$layout.only <- TRUE
-        m2$inference.type <- NULL
-        m2$inference.par <- NULL
+        ## m2 <- match.call(expand.dots = TRUE)
+        ## m2$plottype <- "hist"
+        ## m2$layout.only <- TRUE
+        ## m2$inference.type <- NULL
+        ## m2$inference.par <- NULL
 
         ## X and Y axis limits:
         #if (!is.null(xlim)) {
@@ -306,9 +306,40 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 #        F <- "~/Desktop/file.pdf"#tempfile()
 #        S <- dev.size("px")
 #        pdf(F, width = S[1], height = S[2])  # create a NULL device with same dimensions
-        
-        p <- eval(m2, env)
 
+        
+        ## ## Some complicated 'recursion' which we only want to happen when the plot dimensions change.
+        ## if (!is.null(cur.symbol.width)) {
+        ##     ## Check if the size of the points for the previous plot were sent,
+        ##     ## and if so, check they are the same as current:
+
+        ##     widths.match <- round(cur.symbol.width, 5) ==
+        ##         round(convertWidth(unit(opts$cex.dotpt, "char"), "native", valueOnly = TRUE), 5)
+        ## } else {
+        ##     widths.match <- FALSE
+        ## }
+
+        ## print(widths.match)
+        
+        ## if (!widths.match) {
+        ##     ## Only do recursion if needed!
+            
+        ##     p <- eval(m2, env)
+        ## }
+        
+        
+        ## ## This only happens on instrucion from the user (or, iNZight GUI):
+        ## print(redraw.dotplots)
+        ## if (redraw.dotplots) {
+        ##     m2 <- match.call(expand.dots = TRUE)
+        ##     m2$plottype <- "hist"
+        ##     m2$layout.only <- TRUE
+        ##     m2$inference.type <- NULL
+        ##     m2$inference.par <- NULL
+            
+        ##     p <- eval(m2, env)
+        ## }
+        
         if (is.null(dev.list())) {
             xattr$symbol.width <- 1
         } else {
@@ -316,7 +347,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                                                "native", valueOnly = TRUE)
         }
 
-
+        
 #        dev.off()
 #        unlink(F)  ## delete the temp file
 
@@ -999,6 +1030,15 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     attr(plot.list, "plottype") <- gsub("inz", "", class(plot.list[[1]][[1]]))
     if (attr(plot.list, "plottype") %in% c("dot", "hist"))
         attr(plot.list, "nbins") <- length(plot.list[[1]][[1]]$toplot[[1]]$counts)
+
+    if (itsADotplot) {
+        ## some recursion instructions        
+        ## i.e., [original.size, new.size]
+        attr(plot.list, "dotplot.redraw") <-
+            round(xattr$symbol.width, 5) !=
+            round(convertWidth(unit(opts$cex.dotpt, "char"),
+                               "native", valueOnly = TRUE), 5)
+    }
 
     class(plot.list) <- "inzplotoutput"
     return(invisible(plot.list))
