@@ -152,7 +152,16 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     #            varnames$data$colby <- NULL
     #        }
     #    }
-    #}
+                                        #}
+    if ("colby" %in% colnames(df$data)) {
+        if (is.factor(df$data$colby)) {
+            if (length(levels(df$data$colby)) == 1)
+                df$data$colby <- varnames$data$colby <- NULL                
+        } else {
+            if (length(unique(df$data$colby)) == 1)
+                df$data$colby <- varnames$data$colby <- NULL
+        }
+    }
 
     # fix a bug that ensures colby grouping variable is the same as g2 if both specified
     if ("g2" %in% colnames(df$data) & "colby" %in% colnames(df$data))
