@@ -340,6 +340,10 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     if (!is.null(plot.list[[1]][[1]]$draw.axes))
         if (!plot.list[[1]][[1]]$draw.axes)
             xaxis <- yaxis <- FALSE
+
+    ## Allow plot create methods to reserve a global object
+    if (!is.null(plot.list[[1]][[1]]$global.object))
+        global.object <- plot.list[[1]][[1]]$global.object
     
     if (is.null(xlim) | any(plot.class == "inzbar"))
         xlim <- xlim.raw
