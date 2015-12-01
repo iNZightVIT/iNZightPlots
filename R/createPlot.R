@@ -28,26 +28,30 @@ createPlot <- function(df, opts, xattr) {
                    "scatter" = ,
                    "grid" = ,
                    "hex" = ifelse(xnum & ynum, plottype, "default"),
-                   "default")
+                   "other")
 
-    # throw a warning if they give an invalid type
-    if (type != plottype)
+    ## throw a warning if they give an invalid type
+    if (type != plottype & type != "other")
         warning("The plot type specified does not match the supplied data.")
 
-    if (type == "default") {
+    ## 
+    if (type %in% c("default", "other")) {
         if (ynull) {
-            type <- ifelse(xfact, "barplot",
-                           ifelse(large | wts, "histplot", "dotplot"))
+            newtype <- ifelse(xfact, "barplot",
+                              ifelse(large | wts, "histplot", "dotplot"))
         } else {
-            type <- ifelse(xfact,
-                           ifelse(yfact, "barplot",
-                                  ifelse(large | wts, "histplot", "dotplot")),
-                           ifelse(yfact,
-                                  ifelse(large, "histplot", "dotplot"),
-                                  ifelse(large,
-                                         ifelse(wts, "hexplot", "gridplot"),
-                                         "scatterplot")))
+            newtype <- ifelse(xfact,
+                              ifelse(yfact, "barplot",
+                                     ifelse(large | wts, "histplot", "dotplot")),
+                              ifelse(yfact,
+                                     ifelse(large, "histplot", "dotplot"),
+                                     ifelse(large,
+                                            ifelse(wts, "hexplot", "gridplot"),
+                                            "scatterplot")))
         }
+
+        type <- if (type == "other") c(paste0(plottype, "plot"), newtype)
+                else newtype
     } else {
         type <- paste0(type, "plot")
     }
@@ -58,7 +62,14 @@ createPlot <- function(df, opts, xattr) {
     pclass <- paste("inz", type, sep = ".")
     obj <- structure(.Data = list(df = df, opts = opts, xattr = xattr),
                      class = pclass)
-    create(obj)
+
+    tryCatch(create(obj),
+             error = function(e) {
+                 if (grepl('no applicable method for \'create\'', e))
+                     stop(paste0('No method available for plottype = "', plottype, '"'))
+                 else
+                     stop(e)
+             })
 }
 
 create <- function(obj)

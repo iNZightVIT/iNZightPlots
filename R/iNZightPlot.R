@@ -38,23 +38,25 @@
 ##' @param xlab the text for the x-label
 ##' @param ylab the text for the y-label
 ##' @param new logical, used for compatibility
+##' @param df compatibility argument
+##' @param env compatibility argument
+##' @param ... additional arguments, see \code{inzpar}
 ##' @param inzpars allows specification of iNZight plotting parameters over multiple plots
 ##' @param layout.only logical, if \code{TRUE}, only the layout is drawn (useful if a
 ##' custom plot is to be drawn)
 ##' @param plot logical, if \code{FALSE}, the plot is not drawn (used by \code{summary})
+##' @param xaxis logical, whether or not to draw the x-axis
+##' @param yaxis logical, whether or not to draw the y-axis
 ##' @param xlim specify the x limits of the plot
 ##' @param ylim specify the y limits of the plot
 ##' @param zoombars numeric, length 2; when drawing a bar plot, if the number of bars is too large,
 ##' the user can specify a subset. The first value is the starting point (1 is the first bar, etc),
 ##' while the second number is the number of bars to show.
-##' @param df compatibility argument
-##' @param env compatibility argument
-##' @param ... additional arguments, see \code{inzpar}
 ##' @return An \code{inzightplotoutput} object, which contains the information displayed
 ##' in the plot
 ##'
 ##' @import grid boot s20x survey quantreg survey SparseM hexbin iNZightMR
-##' @author tell029
+##' @author Tom Elliott
 ##' @export
 iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         g2 = NULL, g2.level = NULL, varnames = list(),
@@ -66,7 +68,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         xlab = varnames$x, ylab = varnames$y,
                         new = TRUE,  # compatibility arguments
                         inzpars = inzpar(), layout.only = FALSE, plot = TRUE,
-                        xlim = NULL, ylim = NULL, zoombars = NULL,
+                        xaxis = TRUE, yaxis = TRUE, xlim = NULL, ylim = NULL, zoombars = NULL,
                         df, env = parent.frame(), ...) {
 
   # ------------------------------------------------------------------------------------ #
@@ -282,74 +284,13 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 itsADotplot <- FALSE
 
     if (itsADotplot) {
-        ## m2 <- match.call(expand.dots = TRUE)
-        ## m2$plottype <- "hist"
-        ## m2$layout.only <- TRUE
-        ## m2$inference.type <- NULL
-        ## m2$inference.par <- NULL
-
-        ## X and Y axis limits:
-        #if (!is.null(xlim)) {
-        #    true.xr <- range(lapply(df.list, function(df)
-        #        lapply(df, function(d) range(d$x, finite = TRUE))), finite = TRUE)
-        #    
-        #    opts$cex.dotpt <- opts$cex.dotpt * diff(true.xr) / diff(xlim)
-        #    if (xlim[1] > true.xr[1] | xlim[2] < true.xr[2]) {
-        #        opts$boxplot <- FALSE
-        #        m2$boxplot <- FALSE
-        #    }
-        #}
-
-
-        ## we will now attempt something slightly complicated/computationally dumb
-        ## HOWEVER: it will give us pretty dotplots
-#        F <- "~/Desktop/file.pdf"#tempfile()
-#        S <- dev.size("px")
-#        pdf(F, width = S[1], height = S[2])  # create a NULL device with same dimensions
-
-        
-        ## ## Some complicated 'recursion' which we only want to happen when the plot dimensions change.
-        ## if (!is.null(cur.symbol.width)) {
-        ##     ## Check if the size of the points for the previous plot were sent,
-        ##     ## and if so, check they are the same as current:
-
-        ##     widths.match <- round(cur.symbol.width, 5) ==
-        ##         round(convertWidth(unit(opts$cex.dotpt, "char"), "native", valueOnly = TRUE), 5)
-        ## } else {
-        ##     widths.match <- FALSE
-        ## }
-
-        ## print(widths.match)
-        
-        ## if (!widths.match) {
-        ##     ## Only do recursion if needed!
-            
-        ##     p <- eval(m2, env)
-        ## }
-        
-        
-        ## ## This only happens on instrucion from the user (or, iNZight GUI):
-        ## print(redraw.dotplots)
-        ## if (redraw.dotplots) {
-        ##     m2 <- match.call(expand.dots = TRUE)
-        ##     m2$plottype <- "hist"
-        ##     m2$layout.only <- TRUE
-        ##     m2$inference.type <- NULL
-        ##     m2$inference.par <- NULL
-            
-        ##     p <- eval(m2, env)
-        ## }
-        
+       
         if (is.null(dev.list())) {
             xattr$symbol.width <- 1
         } else {
             xattr$symbol.width <- convertWidth(unit(opts$cex.dotpt, "char"),
                                                "native", valueOnly = TRUE)
         }
-
-        
-#        dev.off()
-#        unlink(F)  ## delete the temp file
 
         ## sort out bin sizing:
         allX <- if(xfact) df$data$y else df$data$x
@@ -382,14 +323,10 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         jpeg(FILE <- tempfile())
     }
 
-    ##### AND ANOTHER METHOD FOR SWITCHING BETWEEN DOTPLOTS ZOOMS
-#    if (!is.null(xlim)) {
-#        opts$boxplot <- FALSE
-#        xattr$trimX <- xlim
-#    }
-
     plot.list <- lapply(df.list, function(df)
         lapply(df, createPlot, opts, xattr))
+
+    plot.class <- class(plot.list[[1]][[1]])
 
     if (!plot) {
         dev.off()
@@ -398,30 +335,28 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     xlim.raw <- range(sapply(plot.list, function(x) sapply(x, function(y) y$xlim)), finite = TRUE)
     ylim.raw <- range(sapply(plot.list, function(x) sapply(x, function(y) y$ylim)), finite = TRUE)
-
-    if (is.null(xlim) | class(plot.list[[1]][[1]]) == "inzbar") 
+    
+    ## Allow plot create methods to turn off axes:
+    if (!is.null(plot.list[[1]][[1]]$draw.axes))
+        if (!plot.list[[1]][[1]]$draw.axes)
+            xaxis <- yaxis <- FALSE
+    
+    if (is.null(xlim) | any(plot.class == "inzbar"))
         xlim <- xlim.raw
-
-    #else if (itsADotplot) {
-    #    ## Set up new ylimits
-    #    ylim <- range(0, sapply(plot.list, function(x) sapply(x, function(y) sapply(y$toplot, function(FF)
-    #        range(FF$y[FF$x > min(xlim) & FF$x < max(xlim)], finite = TRUE)))), finite = TRUE)
-    #}
-    if (is.null(ylim) | class(plot.list[[1]][[1]]) == "inzbar")
+    if (is.null(ylim) | "inzbar" %in% plot.class)
         ylim <- ylim.raw
 
     
-
     TYPE <- gsub("inz", "", class(plot.list[[1]][[1]]))
-    if (!TYPE %in% c("bar")) xlim <- extendrange(xlim)
+    if (!any(TYPE %in% c("bar"))) xlim <- extendrange(xlim)
     ylim <-
-        if (TYPE %in% c("scatter", "grid", "hex")) extendrange(ylim)
+        if (any(TYPE %in% c("scatter", "grid", "hex"))) extendrange(ylim)
         else c(0, extendrange(ylim)[2])
 
     maxcnt <- NULL
-    if (TYPE %in% c("grid", "hex")) {
+    if (any(TYPE %in% c("grid", "hex"))) {
       # if there is a `counts` need to get the max:
-        maxcnt <- switch(TYPE,
+        maxcnt <- switch(TYPE[which(TYPE %in% c("grid", "hex"))],
                          "grid" = {
                              warning("Frequency density not constant scale across multiple plots yet.")
                          }, "hex" = {
@@ -431,19 +366,19 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                                  else 0
                              })))
                          })
-    } else if (TYPE %in% c("dot", "hist")) {
+    } else if (any(TYPE %in% c("dot", "hist"))) {
         maxcnt <- ylim[2]#.raw[2]
     }
 
-    if (class(plot.list[[1]][[1]]) %in% c("inzdot", "inzhist")) {
-        if (class(plot.list[[1]][[1]]) == "inzhist") {
+    if (any(plot.class %in% c("inzdot", "inzhist"))) {
+        if (any(plot.class == "inzhist")) {
             nOutofview <- 0
         } else {
             nOutofview <-
                 sum(sapply(plot.list, function(x) sapply(x, function(y) sapply(y$toplot, function(z) 
                     sum(z$x < min(xlim) | z$x > max(xlim))))))
         }
-    } else if (class(plot.list[[1]][[1]]) != "inzbar") {
+    } else if (all(plot.class != "inzbar")) {
         nOutofview <- sum(sapply(plot.list, function(x) sapply(x, function(z)
             sum(z$x < min(xlim) | z$x > max(xlim) | z$y < min(ylim) | z$y > max(ylim)))))
     } else {
@@ -551,10 +486,10 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         }
 
         ## -- xaxis marks
-        XAX.height <- convertWidth(unit(1, "lines"), "in", TRUE) * 2 * opts$cex.axis
+        XAX.height <- convertWidth(unit(1, "lines"), "in", TRUE) * 2 * opts$cex.axis * xaxis
 
         ## -- yaxis marks
-        YAX.width <- if (TYPE %in% c("dot", "hist") & !ynull & !opts$internal.labels) {
+        YAX.width <- if (any(TYPE %in% c("dot", "hist")) & !ynull & !opts$internal.labels) {
             ## need to grab the factoring variable -> might be x OR y
             yf <- if (is.factor(df$data$y)) df$data$y else df$data$x
             yl <- levels(yf)
@@ -566,10 +501,10 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         } else 0
 
         YAX.default.width <- convertWidth(unit(1, "lines"), "in", TRUE) * 2 * opts$cex.axis
-        YAX.width <- YAX.width + YAX.default.width
+        YAX.width <- ifelse(yaxis, YAX.width + YAX.default.width, 0.1)
 
         ## -- legend(s)
-        barplot <- TYPE == "bar"
+        barplot <- any(TYPE == "bar")
         leg.grob1 <- leg.grob2 <- leg.grob3 <- NULL
         cex.mult = ifelse("g1" %in% df.vs, 1,
             ifelse("g1.level" %in% df.vs,
@@ -582,9 +517,9 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
         col.args <- list(missing = opts$col.missing)
         if ("colby" %in% names(varnames) &
-            (TYPE %in% c("dot", "scatter") ||
-             (TYPE %in% c("grid", "hex") & !is.null(opts$trend) & opts$trend.by) ||
-             (TYPE == "bar" & ynull & is.factor(df$data$colby)))) {
+            (any(TYPE %in% c("dot", "scatter")) ||
+             (any(TYPE %in% c("grid", "hex")) & !is.null(opts$trend) & opts$trend.by) ||
+             (any(TYPE == "bar") & ynull & is.factor(df$data$colby)))) {
 
             if (is.factor(df$data$colby)) {
                 nby <- length(levels(as.factor(df$data$colby)))
@@ -594,7 +529,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                     ptcol <- genCols(nby)
                 }
 
-                if (TYPE != "bar")
+                if (all(TYPE != "bar"))
                     misscol <- any(sapply(plot.list, function(x) sapply(x, function(y) y$nacol)))
                 else
                     misscol <- FALSE
@@ -631,7 +566,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
         if (!is.null(locate.col)) col.args$locate.col <- locate.col
 
-        if ("sizeby" %in% names(varnames) & TYPE %in% c("scatter")) {
+        if ("sizeby" %in% names(varnames) & any(TYPE %in% c("scatter"))) {
             misssize <- any(sapply(plot.list, function(x) sapply(x, function(x2) x2$nasize)))
             if (misssize) {
                 misstext <- paste0("missing ", varnames$sizeby)
@@ -719,7 +654,9 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         TOPlayout <- grid.layout(nrow = 6, ncol = 5,
                                  heights = unit.c(MAIN.hgt, XAX.hgt, PLOT.hgt,
                                      XAX.hgt, XLAB.hgt, SUB.hgt),
-                                 widths = unit.c(YLAB.wd, YAX.wd, PLOT.wd, if (TYPE %in% c("scatter", "grid", "hex")) YAX.wd else unit(0.5, "in"), LEG.wd))
+                                 widths = unit.c(YLAB.wd, YAX.wd, PLOT.wd,
+                                     if (any(TYPE %in% c("scatter", "grid", "hex"))) YAX.wd
+                                     else unit(0.5, "in"), LEG.wd))
 
         ## Send the layout to the plot window
         pushViewport(viewport(layout = TOPlayout, name = "VP:TOPlayout"))
@@ -729,7 +666,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         plotWidth <- convertWidth(current.viewport()$width, 'in', TRUE)
         upViewport()
 
-        if (TYPE == "bar") {
+        if (any(TYPE == "bar")) {
             ## If the labels are too wide, we rotate them (and shrink slightly)
             x.lev <- levels(df$data$x)
             nLabs <- length(x.lev)
@@ -832,7 +769,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
         ## if the plots are DOTPLOTS or BARPLOTS, then leave a little bit of space between each
         ## we will need to add a small amount of space between the columns of the layout
-        hspace <- ifelse(TYPE %in% c("scatter", "grid", "hex"), 0, 0.01)
+        hspace <- ifelse(any(TYPE %in% c("scatter", "grid", "hex")), 0, 0.01)
         wds <- rep(unit.c(unit(hspace, "npc"), unit(1, "null")), nc)[-1]
 
         subt <- textGrob("dummy text", gp = gpar(cex = opts$cex.lab, fontface = "bold"))
@@ -882,8 +819,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
                 ## This is necessary to delete the "old" viewport so we can create a new one
                 ## of the same name, but retain it long enough to use it for drawing the axes
-                if (TYPE %in% c("dot", "hist") & !layout.only) {
-                    vp2rm <- try(switch(TYPE,
+                if (any(TYPE %in% c("dot", "hist")) & !layout.only) {
+                    vp2rm <- try(switch(TYPE[which(type %in% c("dot", "hist"))],
                                         "dot" = {
                                             seekViewport("VP:dotplot-levels")
                                             popViewport()
@@ -953,24 +890,24 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 ## ------------
 
                 pushViewport(viewport(layout.pos.row = 2, xscale = xlim,
-                                      yscale = if (TYPE == "bar") 100 * ylim else ylim))
+                                      yscale = if (any(TYPE == "bar")) 100 * ylim else ylim))
                 opts$ZOOM <- zoombars
-                if (r == nr)  # bottom
-                    drawAxes(X, "x", TRUE, c %% 2 == 1 | !TYPE %in% c("scatter", "grid", "hex"),
+                if (r == nr & xaxis)  # bottom
+                    drawAxes(X, "x", TRUE, c %% 2 == 1 | !any(TYPE %in% c("scatter", "grid", "hex")),
                              opts, layout.only = layout.only)
 
-                if (c == 1 & (!opts$internal.labels | !TYPE %in% c("dot", "hist")))  # left column
-                    drawAxes(if (TYPE == "bar") ylim else Y, "y", TRUE, (nr - r) %% 2 == 0, opts,
+                if (c == 1 & (!opts$internal.labels | !any(TYPE %in% c("dot", "hist"))) & yaxis)  # left column
+                    drawAxes(if (any(TYPE == "bar")) ylim else Y, "y", TRUE, (nr - r) %% 2 == 0, opts,
                              layout.only = layout.only)
 
-                if (!TYPE %in% c("dot", "hist")) {
+                if (!any(TYPE %in% c("dot", "hist")) & yaxis) {
                     if (c == nc | g1id == NG1) # right column (or last plot in top row)
-                        drawAxes(if (TYPE == "bar") ylim else Y, "y", FALSE, (nr - r) %% 2 == 1,
+                        drawAxes(if (any(TYPE == "bar")) ylim else Y, "y", FALSE, (nr - r) %% 2 == 1,
                                  opts, layout.only = layout.only)
                 }
                 upViewport()
 
-                if (TYPE %in% c("scatter", "grid", "hex")) {
+                if (any(TYPE %in% c("scatter", "grid", "hex")) & xaxis) {
                     pushViewport(viewport(layout.pos.row = 1, xscale = xlim, yscale = ylim))
                     if (r == 1)
                         drawAxes(X, "x", FALSE, c %% 2 == 0, opts, sub = vspace,
@@ -1027,8 +964,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         attr(plot.list, "design") <- df.list
     }
 
-    attr(plot.list, "plottype") <- gsub("inz", "", class(plot.list[[1]][[1]]))
-    if (attr(plot.list, "plottype") %in% c("dot", "hist"))
+    attr(plot.list, "plottype") <- gsub("inz", "", plot.class)
+    if (any(attr(plot.list, "plottype") %in% c("dot", "hist")))
         attr(plot.list, "nbins") <- length(plot.list[[1]][[1]]$toplot[[1]]$counts)
 
     if (itsADotplot) {
