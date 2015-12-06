@@ -85,6 +85,7 @@
 ##' large-sample plots}
 ##' \item{'xlim'}{a vector defining the x axis limits (default NULL will use the data)}
 ##' \item{'ylim'}{a vector defining the y axis limits (default NULL will use the data)}
+##' \item{'plot.features'}{a list containing any additional features for new plots (e.g., maptype)}
 ##' }
 ##' 
 ##' @title iNZight Plotting Parameters
@@ -162,7 +163,8 @@ inzpar <- function(...) {
                match.limits   = c(500, 10000),
                internal.labels= TRUE,
                xlim           = NULL,
-               ylim           = NULL)
+               ylim           = NULL,
+               plot.features  = list())
 
     # update any user has specified
     if (length(dots) > 0) {
