@@ -25,6 +25,8 @@
 ##' case of a numeric variable, a continuous colour scale is used, otherwise each level of
 ##' the factor is assigned a colour
 ##' @param sizeby the name of a (numeric) variable, which controls the size of points
+##' @param extra.vars the names of any additional variables to be passed through the internal functions
+##' to the create and plot methods.
 ##' @param locate variable to label points
 ##' @param locate.id id of points (row numbers) to label
 ##' @param locate.col the colour to locate points if a variable is not specified
@@ -60,7 +62,7 @@
 ##' @export
 iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         g2 = NULL, g2.level = NULL, varnames = list(),
-                        colby = NULL, sizeby = NULL,
+                        colby = NULL, sizeby = NULL, extra.vars,
                         locate = NULL, locate.id = NULL, locate.col = NULL,
                         locate.extreme = NULL, highlight = NULL,
                         data = NULL, design = NULL, freq = NULL,
