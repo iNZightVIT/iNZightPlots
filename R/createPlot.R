@@ -71,9 +71,10 @@ createPlot <- function(df, opts, xattr) {
                      stop(e)
              })
 }
-##' .. content for \description{} (no empty lines) ..
+
+
+##' Create a Plot Object
 ##'
-##' .. content for \details{} ..
 ##' @title Method for creating plots for iNZight
 ##' @param obj an object
 ##' @return a plotable object

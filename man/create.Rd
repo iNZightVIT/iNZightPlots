@@ -13,10 +13,7 @@ create(obj)
 a plotable object
 }
 \description{
-.. content for \description{} (no empty lines) ..
-}
-\details{
-.. content for \details{} ..
+Create a Plot Object
 }
 \author{
 Tom Elliott

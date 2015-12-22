@@ -6,7 +6,7 @@
 \usage{
 iNZightPlot(x, y = NULL, g1 = NULL, g1.level = NULL, g2 = NULL,
   g2.level = NULL, varnames = list(), colby = NULL, sizeby = NULL,
-  locate = NULL, locate.id = NULL, locate.col = NULL,
+  extra.vars, locate = NULL, locate.id = NULL, locate.col = NULL,
   locate.extreme = NULL, highlight = NULL, data = NULL, design = NULL,
   freq = NULL, missing.info = TRUE, xlab = varnames$x,
   ylab = varnames$y, new = TRUE, inzpars = inzpar(),
@@ -42,6 +42,9 @@ case of a numeric variable, a continuous colour scale is used, otherwise each le
 the factor is assigned a colour}
 
 \item{sizeby}{the name of a (numeric) variable, which controls the size of points}
+
+\item{extra.vars}{the names of any additional variables to be passed through the internal functions
+to the create and plot methods.}
 
 \item{locate}{variable to label points}
 
