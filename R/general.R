@@ -1,5 +1,7 @@
 rescale <- function(x) {
-    r <- 4 * (x - min(x, na.rm = TRUE)) / diff(range(x, na.rm = TRUE)) + 0.5
+    ## r <- 4 * (x - min(x, na.rm = TRUE)) / diff(range(x, na.rm = TRUE)) + 0.5
+    r <- (x - min(x, na.rm = TRUE)) / diff(range(x, na.rm = TRUE))
+    ## r <- x / max(x, na.rm = TRUE)
     r[is.na(x)] <- NA
     r
 }

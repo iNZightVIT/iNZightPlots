@@ -51,12 +51,21 @@ create.inz.scatterplot <- function(obj) {
 
     if (resize) {
         ## Try from half cex to 2 x cex
-        cex.range <- opts$cex.pt * c(0.5, 4)
-        propsize.range <- range(propsize, na.rm = TRUE)
+        cex.range <- c(0.25, 4)
+        propsize.range <- 0:1 #range(propsize, na.rm = TRUE)
         
-        ## Calculate new sizes
-        pr.size <- (propsize - propsize.range[1]) / (propsize.range[2] - propsize.range[1])
+        ## -- Calculate new sizes
+        
+        ## transform values [0,1] -> [-1, 1]
+        pr.size <- 2 * (propsize - 0.5)
+
+        ## attribute value [-1, 1] -> [0.25, 4] in area -> [0.5, 2] in cex
+        
+        
         propsize <- pr.size * (cex.range[2] - cex.range[1]) + cex.range[1]
+        #propsize <- pr.size * (cex.range[2] - cex.range[1]) + cex.range[1]
+        print(propsize)
+        propsize <- propsize * opts$cex.pt
     }
     
     pch[is.na(propsize)] <- 4
