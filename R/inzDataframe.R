@@ -152,9 +152,16 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     }
 
     if ("extra.vars" %in% names(m)) {
+        fun.list <- attr(m$extra.vars, "fun")
         if (is.character(m$extra.vars))
             sapply(m$extra.vars, function(v) {
-                       df$data[v] <<- data[v]
+                       tmp <- data[v]
+                       print(tmp)
+                       if (!is.null(fun.list))
+                           if (!is.null(fun.list[[v]]))
+                               tmp <- fun.list[[v]](tmp)
+                       print(tmp)
+                       df$data[v] <<- tmp
                    })
         else
             warning("`extra.vars` must be supplied as a character vector.")
