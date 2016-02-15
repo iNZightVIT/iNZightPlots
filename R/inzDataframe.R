@@ -65,7 +65,7 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     }
 
     if (!is.null(df$data$sizeby)) {
-        df$data$sizeby <- rescale(df$data$sizeby)
+        ## df$data$sizeby <- rescale(df$data$sizeby, type =)
     }
 
     if (!is.null(m$locate.id)) {

@@ -43,30 +43,30 @@ create.inz.scatterplot <- function(obj) {
         } else
             propsize <- df$weights       
     } else if ("sizeby" %in% v) {
-        propsize <- df$sizeby
+        propsize <- df$.cex
     } else {
-        propsize <- opts$cex.pt
+        propsize <- 1# opts$cex.pt
         resize <- FALSE
     }
 
-    if (resize) {
+    propsize <- propsize * opts$cex.pt
+    ## if (resize) {
         ## Try from half cex to 2 x cex
-        cex.range <- c(0.25, 4)
-        propsize.range <- 0:1 #range(propsize, na.rm = TRUE)
+        ## cex.range <- c(0.25, 4)
+        ## propsize.range <- 0:1 #range(propsize, na.rm = TRUE)
         
         ## -- Calculate new sizes
         
         ## transform values [0,1] -> [-1, 1]
-        pr.size <- 2 * (propsize - 0.5)
+        ## pr.size <- 2 * (propsize - 0.5)
 
         ## attribute value [-1, 1] -> [0.25, 4] in area -> [0.5, 2] in cex
         
         
-        propsize <- pr.size * (cex.range[2] - cex.range[1]) + cex.range[1]
+        ## propsize <- pr.size * (cex.range[2] - cex.range[1]) + cex.range[1]
         #propsize <- pr.size * (cex.range[2] - cex.range[1]) + cex.range[1]
-        print(propsize)
-        propsize <- propsize * opts$cex.pt
-    }
+    ##     propsize <- propsize * opts$cex.pt
+    ## }
     
     pch[is.na(propsize)] <- 4
     propsize[is.na(propsize)] <- 0.6

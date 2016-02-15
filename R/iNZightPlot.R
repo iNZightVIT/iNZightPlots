@@ -185,6 +185,24 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         }
     }
 
+    dots <- list(...)  # capture the additional arguments
+    opts <- inzpars
+    wopt <- names(dots) %in% names(opts)  # which additional settings have been specified
+    opts <- modifyList(opts, dots[wopt])
+
+    ## --- SIZING
+    if ("sizeby" %in% df.vs) {
+        if (#(all(df$data$sizeby >= 0) || all(df$data$sizeby <= 0)) &&
+            opts$resize.method == "proportional") {
+            cex.trans <- sqrt(df$data$sizeby)
+            df$data$.cex <- cex.trans / mean(cex.trans, na.rm = TRUE)
+        } else {
+            if (opts$resize.method == "proportional") warning("Using method `emphasize`.")
+            df$data$.cex <- sqrt(rescale((df$data$sizeby)))
+        }
+    }
+    
+
     # subset the data by g2 (keep everything, so xlims can be calculated)
     # g2 can take values (0 = "_ALL", 1:ng2, ng2+1 = "_MULTI")
     dfsub <- gSubset(df, g1.level, g2.level, df.vs, missing)
@@ -204,11 +222,6 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     # The aim of this step is to produce a list of things to plot, each element pertaining to a
     # level of g1 and g2, containing the necessary information.
-
-    dots <- list(...)  # capture the additional arguments
-    opts <- inzpars
-    wopt <- names(dots) %in% names(opts)  # which additional settings have been specified
-    opts <- modifyList(opts, dots[wopt])
 
     if (!xfact) xx <- df$data$x
     if (!ynull) if (!yfact) yy <- df$data$y
