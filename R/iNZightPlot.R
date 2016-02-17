@@ -839,7 +839,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 ## This is necessary to delete the "old" viewport so we can create a new one
                 ## of the same name, but retain it long enough to use it for drawing the axes
                 if (any(TYPE %in% c("dot", "hist")) & !layout.only) {
-                    vp2rm <- try(switch(TYPE[which(type %in% c("dot", "hist"))],
+                    vp2rm <- try(switch(TYPE,
                                         "dot" = {
                                             seekViewport("VP:dotplot-levels")
                                             popViewport()
