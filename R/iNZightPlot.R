@@ -57,7 +57,7 @@
 ##' @return An \code{inzightplotoutput} object, which contains the information displayed
 ##' in the plot
 ##'
-##' @import grid boot s20x survey quantreg survey SparseM hexbin iNZightMR
+##' @import grid boot s20x survey quantreg survey SparseM hexbin iNZightMR colorspace
 ##' @author Tom Elliott
 ##' @export
 iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
@@ -545,7 +545,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 if (length(opts$col.pt) >= nby) {
                     ptcol <- opts$col.pt[1:nby]
                 } else {
-                    ptcol <- genCols(nby)
+                    ptcol <- if (!is.null(opts$col.fun)) opts$col.fun(nby) else opts$col.default$cat(nby)
                 }
 
                 if (all(TYPE != "bar"))
@@ -575,7 +575,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             if (length(opts$col.pt) >= nby) {
                 barcol <- opts$col.pt[1:nby]
             } else {
-                barcol <- genCols(nby)
+                barcol <- if (!is.null(opts$col.fun)) opts$col.fun(nby) else opts$col.default$cat(nby)
             }
 
             leg.grob1 <- drawLegend(levels(as.factor(df$data$y)), col = barcol, pch = 22,

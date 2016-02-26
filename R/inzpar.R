@@ -99,6 +99,10 @@ inzpar <- function(...) {
     
     ip <- list(pch            = 1,
                col.pt         = "grey50",
+               col.fun        = NULL,
+               col.default    =
+                   list(cat  = function(n) hcl((1:n) / n * 360, c = 80, l = 50),
+                        cont = function(n) rainbow(n, start = 1/6)),
                col.missing    = "#cccccc",
                cex            = 1,
                cex.pt         = 0.8,

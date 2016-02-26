@@ -86,7 +86,8 @@ drawContLegend <- function(var, title = "", height = NULL, cex.mult = 1,
     xx <- rep(c(0, 1, 1, 0), 200)
     yy <- rep(0:200 / 200, each = 4)[1:800 + 2]
     id <- rep(1:200, each = 4)
-    poly <- polygonGrob(xx, yy, id = id, gp = gpar(lty = 0, fill = (n.cols <- rainbow(200, start = 1/6))))
+    n.cols <- if (!is.null(opts$col.fun)) opts$col.fun(200) else opts$col.default$cont(200)
+    poly <- polygonGrob(xx, yy, id = id, gp = gpar(lty = 0, fill = n.cols))
     
     fg <- frameGrob(layout = legend.layout)
     fg <- placeGrob(fg, poly, row = 3, col = 1)
