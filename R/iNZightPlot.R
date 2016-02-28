@@ -333,7 +333,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         dev.hold()
         grid.newpage()
         pushViewport(viewport(gp = gpar(cex = opts$cex), name = "container"))
-        grid.rect(gp = gpar(fill = opts$bg, col = opts$bg))
+        grid.rect(gp = gpar(fill = "white")) ## opts$bg, col = opts$bg))
     } else {
         jpeg(FILE <- tempfile())
     }
@@ -884,9 +884,9 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 nameVP <- if (NG1 == 1 && NG2 == 1) "VP:locate.these.points" else paste0("VP:locate.these.points", g2id, g1id)
                 pushViewport(viewport(layout.pos.row = 2, xscale = xlim, yscale = ylim, clip = "on",
                                       name = nameVP))
-                ##pushViewport(viewport(layout.pos.row = 2, xscale = xlim, yscale = ylim, clip = "on",
-                ##                      name = "VP:locate.these.points"))
                 if (!layout.only) {
+                    ## background color:
+                    grid.rect(gp = gpar(fill = opts$bg))
                     plot(plot.list[[g2id]][[g1id]], gen =
                          list(opts = opts, mcex = multi.cex, col.args = col.args,
                               maxcount = maxcnt))
