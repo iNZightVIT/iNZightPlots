@@ -63,7 +63,7 @@ plot.inzhex <- function(obj, gen) {
     mcex <- gen$mcex
     col.args <- gen$col.args
 
-    grid.hexagons(obj$hex, style = "centroids", maxcnt = gen$maxcount)
+    grid.hexagons(obj$hex, style = "centroids", maxcnt = gen$maxcount, border = opts$col.pt, pen = opts$col.pt)
     
     ## ---------------------------------------------------------------------------- ##
     ## Now that the main plot has been drawn, time to add stuff to it!
