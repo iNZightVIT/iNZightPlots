@@ -118,8 +118,8 @@ plot.inzscatter <- function(obj, gen) {
 
     ## adding grid lines?
     if (opts$grid.lines) {
-        at.x <- pretty(obj$xlim)
-        at.y <- pretty(obj$ylim)
+        at.x <- pretty(gen$LIM[1:2])
+        at.y <- pretty(gen$LIM[3:4])
         at.X <- c(rep(at.x, each = 2), rep(current.viewport()$xscale, length(at.y)))
         at.Y <- c(rep(current.viewport()$yscale, length(at.x)), rep(at.y, each = 2))
         col.grid <- opts$col.grid

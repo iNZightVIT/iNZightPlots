@@ -333,7 +333,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         dev.hold()
         grid.newpage()
         pushViewport(viewport(gp = gpar(cex = opts$cex), name = "container"))
-        grid.rect(gp = gpar(fill = "white")) ## opts$bg, col = opts$bg))
+        ## grid.rect(gp = gpar(fill = "white")) ## opts$bg, col = opts$bg))
     } else {
         jpeg(FILE <- tempfile())
     }
@@ -853,7 +853,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 pushViewport(viewport(layout.pos.row = R, layout.pos.col = C,
                                       xscale = xlim, yscale = ylim,
                                       gp = gpar(cex = multi.cex)))
-                grid.rect(gp = gpar(fill = "transparent"))
+                ## grid.rect(gp = gpar(fill = "transparent"))
 
                 subt <- g1.level[g1id]
 
@@ -872,13 +872,6 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                     unit(1, "null"))
                 pushViewport(viewport(layout = grid.layout(2, 1, heights = hgt)))
 
-                if (!is.null(p.title)) {
-                    pushViewport(viewport(layout.pos.row = 1))
-                    grid.rect(gp = gpar(fill = opts$col.sub))
-                    grid.draw(subt)
-                    upViewport()
-                }
-
                 ## I found "VP:locate.these.points" so far is just using here and no other
                 ## depencies so I think giving the its an uniqe name would be a good idea here.
                 nameVP <- if (NG1 == 1 && NG2 == 1) "VP:locate.these.points" else paste0("VP:locate.these.points", g2id, g1id)
@@ -889,9 +882,18 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                     grid.rect(gp = gpar(fill = opts$bg))
                     plot(plot.list[[g2id]][[g1id]], gen =
                          list(opts = opts, mcex = multi.cex, col.args = col.args,
-                              maxcount = maxcnt))
+                              maxcount = maxcnt, LIM = c(xlim.raw, ylim.raw)))
                 }
                 upViewport()
+
+                if (!is.null(p.title)) {
+                    pushViewport(viewport(layout.pos.row = 1))
+                    grid.rect(gp = gpar(fill = opts$col.sub))
+                    grid.draw(subt)
+                    upViewport()
+                }
+
+                grid.rect(gp = gpar(fill = "transparent"))
 
 
                 ## add the appropriate axes:
