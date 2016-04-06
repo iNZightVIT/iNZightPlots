@@ -335,7 +335,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         pushViewport(viewport(gp = gpar(cex = opts$cex), name = "container"))
         ## grid.rect(gp = gpar(fill = "white")) ## opts$bg, col = opts$bg))
     } else {
-        jpeg(FILE <- tempfile())
+        try({jpeg(FILE <- tempfile())}, silent = TRUE)
     }
 
     plot.list <- lapply(df.list, function(df)
@@ -344,8 +344,10 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     plot.class <- class(plot.list[[1]][[1]])
 
     if (!plot) {
-        dev.off()
-        unlink(FILE)
+        try({
+            dev.off()
+            unlink(FILE)
+        }, silent = TRUE)
     }
 
     xlim.raw <- range(sapply(plot.list, function(x) sapply(x, function(y) y$xlim)), finite = TRUE)
