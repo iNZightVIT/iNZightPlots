@@ -536,7 +536,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
         col.args <- list(missing = opts$col.missing)
         if ("colby" %in% names(varnames) &
-            (any(TYPE %in% c("dot", "scatter")) ||
+            (any(TYPE %in% c("dot", "scatter", "hex")) ||
              (any(TYPE %in% c("grid", "hex")) & !is.null(opts$trend) & opts$trend.by) ||
              (any(TYPE == "bar") & ynull & is.factor(df$data$colby)))) {
 

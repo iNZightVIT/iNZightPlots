@@ -14,7 +14,7 @@ Imports:
     survey,
     quantreg,
     SparseM,
-    hexbin,
+    hexbin, hextri,
     iNZightMR,
     colorspace,
     dichromat
