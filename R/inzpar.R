@@ -163,7 +163,7 @@ inzpar <- function(...) {
                large.sample.size = 5001,
                largesample    = NULL,
                scatter.grid.bins = 50,
-               hex.bins       = 40,
+               hex.bins       = 20,
                hex.style      = "size",
                hex.diffuse    = TRUE,
                hist.bins      = NULL,
