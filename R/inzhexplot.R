@@ -18,15 +18,6 @@ create.inz.hexplot <- function(obj) {
     df <- df[!missing, ]
 
     xbins <- opts$hex.bins
-        #if (is.null(opts$hex.bins)) {
-        #    if ((cpt <- opts$cex.pt) > 1) {
-        #        (1 - (cpt - 1) / 2.5) * (25) + 5
-        #    } else {
-        #        (1 - (cpt - 0.05) / 0.95) * 70 + 30
-        #    }
-        #} else {
-        #    opts$hex.bins
-        #}
     
     ## hexbin returns an S4 object, so need to use the @ operator
     hb <- hexbin(df$x, df$y, IDs = TRUE, xbins = xbins)
@@ -45,10 +36,11 @@ create.inz.hexplot <- function(obj) {
                                function(i) weighted.mean(df$x[i], W[i])))
 
     out <- list(hex = hb, n.missing = n.missing, svy = obj$df,
-                colby = df$colby, nacol = FALSE,
-                xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
-                ylim = if (nrow(df) > 0) range(df$y, na.rm = TRUE) else c(-Inf, Inf),
-                x = df$x, y = df$y,
+                colby = df$colby,
+                nacol = if ("colby" %in% v) any(is.na(df$colby)) else FALSE,
+                xlim = if (nrow(df) > 0) hb@xbnds else c(-Inf, Inf),
+                ylim = if (nrow(df) > 0) hb@ybnds else c(-Inf, Inf),
+                x = df$x, y = df$y, n.bins = xbins,
                 trend = opts$trend, trend.by = opts$trend.by, smooth = opts$trend,
                 n.boot = opts$n.boot)
     class(out) <- "inzhex"
@@ -63,7 +55,50 @@ plot.inzhex <- function(obj, gen) {
     mcex <- gen$mcex
     col.args <- gen$col.args
 
-    grid.hexagons(obj$hex, style = "centroids", maxcnt = gen$maxcount, border = opts$col.pt, pen = opts$col.pt)
+    ## adding grid lines?
+    if (opts$grid.lines) {
+        at.x <- pretty(gen$LIM[1:2])
+        at.y <- pretty(gen$LIM[3:4])
+        at.X <- c(rep(at.x, each = 2), rep(current.viewport()$xscale, length(at.y)))
+        at.Y <- c(rep(current.viewport()$yscale, length(at.x)), rep(at.y, each = 2))
+        col.grid <- opts$col.grid
+        if (sum(col2rgb(opts$bg) / 255) > 0.95 * 3) {
+            col.grid <- "#cccccc"
+        } else {
+            
+        }
+        grid.polyline(at.X, at.Y, id.lengths = rep(2, length(at.X)/2),
+                      default.units = "native",
+                      gp = gpar(col = col.grid, lwd = 1))
+    }
+
+    if (!is.null(obj$colby)) {
+        if (any(is.na(obj$colby))) {
+            levels(obj$colby) <- c(levels(obj$colby), "missing")
+            obj$colby[is.na(obj$colby)] <- "missing"
+            colours <- c(col.args$f.cols, col.args$missing)
+        } else {
+            colours <- col.args$f.cols
+        }
+        hextri::panel.hextri(x = obj$x, y = obj$y, groups = levels(obj$colby),
+                             subscripts = as.numeric(obj$colby), colours = colours,
+                             nbins = obj$n.bins, style = opts$hex.style, diffuse = opts$hex.diffuse,
+                             shape = convertHeight(current.viewport()$height, "in", TRUE) /
+                                 convertWidth(current.viewport()$width, "in", TRUE))
+    } else {
+        if (opts$hex.style == "alpha") {
+            style <- "colorscale"
+            colRGB <- col2rgb(opts$col.pt[1]) / 255
+            colramp <- function(n)
+                rgb(colRGB[1], colRGB[2], colRGB[3], seq(0, 1, length = n))
+        } else {
+            style <- "centroids"
+            colramp <- NULL
+        }
+        grid.hexagons(obj$hex, style = style, maxcnt = gen$maxcount,
+                      border = FALSE, #if (style == "size") opts$col.pt else FALSE,
+                      pen = opts$col.pt[1], colramp = colramp)
+    }
     
     ## ---------------------------------------------------------------------------- ##
     ## Now that the main plot has been drawn, time to add stuff to it!

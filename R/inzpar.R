@@ -75,6 +75,7 @@
 ##' \item{'scatter.grid.bins'}{the number, N, of bins to use for the scatter-grid plot,
 ##' producing an N x N matrix}
 ##' \item{'hex.bins'}{the number of bins to use for hexagonal binning}
+##' \item{'hex.style'}{the style of the hexagons, one of "size" or "alpha"}
 ##' \item{'quant.cutoff'}{if \code{quant.smooth = "default"}, these sample size values are used
 ##' to determine which quantiles are drawn}
 ##' \item{'plottype'}{used to override the default plot type. Possible values, depending on data type,
@@ -163,6 +164,8 @@ inzpar <- function(...) {
                largesample    = NULL,
                scatter.grid.bins = 50,
                hex.bins       = 40,
+               hex.style      = "size",
+               hex.diffuse    = TRUE,
                hist.bins      = NULL,
                quant.cutoff   = c(200, 1000),
                plottype       = "default",
