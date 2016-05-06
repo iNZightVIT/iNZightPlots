@@ -6,7 +6,7 @@ rescale <- function(x) {
     r
 }
 
-Darken <- function(x = "#FFFFFF") {
+Darken <- function(x = "#FFFFFF", v = 0.6) {
     if (x %in% colours()) {
         x <- rgb(convertColor(t(col2rgb(x)), "sRGB", "Apple RGB"))
     }
@@ -32,7 +32,7 @@ Darken <- function(x = "#FFFFFF") {
     g <- substr(x, 3, 4)
     b <- substr(x, 5, 6)
 
-    dark <- strtoi(c(r, g, b), base = 16) * 0.6 / 255
+    dark <- strtoi(c(r, g, b), base = 16) * v / 255
     
     paste0(rgb(dark[1], dark[2], dark[3]), alpha)
 }

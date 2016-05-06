@@ -25,6 +25,7 @@
 ##' case of a numeric variable, a continuous colour scale is used, otherwise each level of
 ##' the factor is assigned a colour
 ##' @param sizeby the name of a (numeric) variable, which controls the size of points
+##' @param symbolby the name of a factor variable to code point symbols
 ##' @param extra.vars the names of any additional variables to be passed through the internal functions
 ##' to the create and plot methods.
 ##' @param locate variable to label points
@@ -62,7 +63,7 @@
 ##' @export
 iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         g2 = NULL, g2.level = NULL, varnames = list(),
-                        colby = NULL, sizeby = NULL, extra.vars,
+                        colby = NULL, sizeby = NULL, symbolby = NULL, extra.vars,
                         locate = NULL, locate.id = NULL, locate.col = NULL,
                         locate.extreme = NULL, highlight = NULL,
                         data = NULL, design = NULL, freq = NULL,
@@ -526,7 +527,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
         ## -- legend(s)
         barplot <- any(TYPE == "bar")
-        leg.grob1 <- leg.grob2 <- leg.grob3 <- NULL
+        leg.grob1 <- leg.grob2 <- leg.grob3 <- leg.grob4 <- NULL
         cex.mult = ifelse("g1" %in% df.vs, 1,
             ifelse("g1.level" %in% df.vs,
                    ifelse(length(levels(df$g1.level)) >= 6, 0.7, 1), 1))
@@ -555,9 +556,26 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 else
                     misscol <- FALSE
 
+                legPch <-
+                    if (barplot) {
+                        22
+                    } else if (!is.null(varnames$symbolby)) {
+                        if (varnames$colby == varnames$symbolby) {
+                            tmp <- (21:25)[1:length(levels(df$data$symbolby))]
+                            if (any(is.na(df$data$symbolby)))
+                                tmp <- c(tmp, 3)
+                            tmp
+                        } else {
+                            opts$pch
+                        }
+                    } else {
+                        opts$pch
+                    }
+
                 leg.grob1 <- drawLegend(f.levels <- levels(as.factor(df$data$colby)), col = ptcol,
-                                        pch = ifelse(barplot, 22, opts$pch),
+                                        pch = legPch,
                                         title = varnames$colby, any.missing = misscol, opts = opts)
+                
                 if (misscol) {
                     ptcol <- c(ptcol, opts$col.missing)
                     f.levels <- c(f.levels, "missing")
@@ -607,7 +625,23 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             leg.grob3 <- drawLinesLegend(ddd, opts = opts, cex.mult = cex.mult * 0.8)
         }
 
-        hgts <- numeric(3)
+        if ("symbolby" %in% names(varnames) & any(TYPE %in% c("scatter", "dot"))) {
+            skip <- FALSE
+            if (!is.null(varnames$colby)) if (varnames$colby == varnames$symbolby) skip <- TRUE
+
+            if (!skip) {
+                legPch <- (21:25)[1:length(levels(df$data$symbolby))]
+                legLvls <- levels(df$data$symbolby)
+                if (any(is.na(df$data$symbolby))) {
+                    legPch <- c(legPch, 3)
+                    legLvls <- c(legLvls, "missing")
+                }
+                leg.grob4 <- drawLegend(legLvls, col = rep("#333333", length(legLvls)),
+                                        pch = legPch, title = varnames$symbolby, opts = opts)
+            }
+        }
+
+        hgts <- numeric(4)
         wdth <- 0
 
         if (!is.null(leg.grob1)) {
@@ -621,6 +655,10 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         if (!is.null(leg.grob3)) {
             hgts[3] <- convertHeight(grobHeight(leg.grob3), "in", TRUE)
             wdth <- max(wdth, convertWidth(grobWidth(leg.grob3), "in", TRUE))
+        }
+        if (!is.null(leg.grob4)) {
+            hgts[4] <- convertHeight(grobHeight(leg.grob4), "in", TRUE)
+            wdth <- max(wdth, convertWidth(grobWidth(leg.grob4), "in", TRUE))
         }
 
         ## --- Figure out a subtitle for the plot:
@@ -733,7 +771,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         if (wdth > 0) {
             seekViewport("VP:TOPlayout")
             pushViewport(viewport(layout.pos.col = 5, layout.pos.row = 3))
-            leg.layout <- grid.layout(3, heights = unit(hgts, "in"))
+            leg.layout <- grid.layout(4, heights = unit(hgts, "in"))
             pushViewport(viewport(layout = leg.layout, name = "VP:LEGlayout"))
 
             if (hgts[1] > 0) {
@@ -750,6 +788,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 seekViewport("VP:LEGlayout")
                 pushViewport(viewport(layout.pos.row = 3))
                 grid.draw(leg.grob3)
+            }
+            if (hgts[4] > 0) {
+                seekViewport("VP:LEGlayout")
+                pushViewport(viewport(layout.pos.row = 4))
+                grid.draw(leg.grob4)
             }
         }
 

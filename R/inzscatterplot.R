@@ -25,12 +25,17 @@ create.inz.scatterplot <- function(obj) {
     if ("y" %in% strsplit(opts$jitter, '')[[1]])
         df$y <- jitter(df$y)
 
-
     ## The plotting symbol:
-    pch <- rep(ifelse(opts$alpha == 1,
-                      ifelse(opts$fill.pt == "transparent", opts$pch, 21),
-                      19), nrow(df))
-
+    if ("symbolby" %in% v) {
+        pch <- (21:25)[as.numeric(df$symbolby)]
+        pch[is.na(pch)] <- 3
+    } else {
+        pch <- rep(ifelse(opts$pch == 1, 21, opts$pch), nrow(df))
+    }
+    if (opts$fill.pt == "transparent" & opts$alpha < 1) {
+        opts$fill.pt <- "fill"
+    }
+    
     ## --- this is where FREQUENCY or SURVEY information is used to control sizes of points
     # size of points
     resize <- TRUE
@@ -51,7 +56,7 @@ create.inz.scatterplot <- function(obj) {
 
     propsize <- propsize * opts$cex.pt
     
-    pch[is.na(propsize)] <- 4
+    pch[is.na(propsize)] <- ifelse(pch[is.na(propsize)] == 3, 8, 4)
     propsize[is.na(propsize)] <- 0.6
 
     ext.ids <- NULL
@@ -150,7 +155,7 @@ plot.inzscatter <- function(obj, gen) {
                 gpar(col = ptCols,
                      cex = obj$propsize,
                      lwd = opts$lwd.pt, alpha = opts$alpha,
-                     fill = obj$fill.pt),
+                     fill = if (obj$fill.pt == "fill") ptCols else obj$fill.pt),
                 name = "SCATTERPOINTS")
 
     ## Highlighting:

@@ -37,12 +37,9 @@ function(lab, col, pch = opts$pch, cex.mult = 1,
     fg <- frameGrob(layout = leg.layout)
     fg <- placeGrob(fg, title.grob, row = 1, col = 1:2)
 
-    ## change pch into filled in one:
-    if (pch %in% c(1, 2, 5, 6))
-        pch <- switch(which(pch == c(1, 2, 5, 6)), 21, 24, 23, 25)
-
+    if (length(pch) == 1) pch <- rep(ifelse(pch == 1, 21, pch), n)
     for (i in 1:n) {
-        fg <- placeGrob(fg, pointsGrob(0.5, 0.5, pch = pch,
+        fg <- placeGrob(fg, pointsGrob(0.5, 0.5, pch = pch[i],
                                        gp =
                                        gpar(col = col[i], cex = legcex, lwd = opts$lwd.pt,
                                             fill = col[i])),

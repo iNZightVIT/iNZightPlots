@@ -34,7 +34,7 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     names <- names[!sapply(names, is.null)]
     
     # the variables we want to look for in argument list (m)
-    vars <- c("", "x", "y", "g1", "g2", "colby", "sizeby", "locate")
+    vars <- c("", "x", "y", "g1", "g2", "colby", "sizeby", "symbolby", "locate")
     mw <- names(m) %in% vars
     mw[1] <- FALSE  # the function name
     mw <- mw & !sapply(as.list(m), is.null)
@@ -62,10 +62,6 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     } else {
         df$data <- as.data.frame(lapply(m[mw], eval, data, env))
         class(df) <- "inz.simple"
-    }
-
-    if (!is.null(df$data$sizeby)) {
-        ## df$data$sizeby <- rescale(df$data$sizeby, type =)
     }
 
     if (!is.null(m$locate.id)) {
@@ -150,6 +146,13 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
                 df$data$colby <- varnames$data$colby <- NULL
         }
     }
+    if ("symbolby" %in% colnames(df$data)) {
+        df$data$symbolby <- convert.to.factor(df$data$symbolby)
+        if (length(levels(df$data$symbolby)) == 1 | length(levels(df$data$symbolby)) > 5) {
+                df$data$symbolby <- varnames$data$symbolby <- NULL                
+        }
+    }
+    
 
     if ("extra.vars" %in% names(m)) {
         fun.list <- attr(m$extra.vars, "fun")
