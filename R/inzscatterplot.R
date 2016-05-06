@@ -150,6 +150,7 @@ plot.inzscatter <- function(obj, gen) {
    
     NotInView <- obj$x < min(xlim) | obj$x > max(xlim) | obj$y < min(ylim) | obj$y > max(ylim)
     obj$pch[NotInView] <- NA
+    ptOrdering <- sample(length(obj$x))
     grid.points(obj$x, obj$y, pch = obj$pch,
                 gp =
                 gpar(col = ptCols,
@@ -167,7 +168,7 @@ plot.inzscatter <- function(obj, gen) {
                     shade(ptCols[hl], 0.6)
                 else
                     opts$highlight.col
-            
+
             grid.points(obj$x[hl], obj$y[hl], pch = 19, 
                         gp =
                         gpar(col = hcol,
