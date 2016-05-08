@@ -46,7 +46,7 @@ createPlot <- function(df, opts, xattr) {
                               ifelse(yfact,
                                      ifelse(large, "histplot", "dotplot"),
                                      ifelse(large,
-                                            ifelse(wts, "hexplot", "gridplot"),
+                                            "hexplot", ## ifelse(wts, "hexplot", "gridplot"),
                                             "scatterplot")))
         }
 
