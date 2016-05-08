@@ -3,6 +3,17 @@ create.inz.scatterplot <- function(obj) {
     df <- obj$df
     opts <- obj$opts
     xattr <- obj$xattr
+    features <- opts$plot.features
+    if ("order.first" %in% names(features)) {
+        print(features$order.first)
+        ord <- (1:nrow(df))
+        wi <- which(ord %in% features$order.first)
+        ord <- c(ord[-wi], ord[wi])
+                 print(ord)
+        df <- df[ord, ]
+    } else {
+        df <- df[sample(nrow(df)), ]
+    }
     
     if (xattr$class == "inz.survey") {
         df <- as.data.frame(cbind(df$variables,

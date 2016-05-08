@@ -159,11 +159,9 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
         if (is.character(m$extra.vars))
             sapply(m$extra.vars, function(v) {
                        tmp <- data[v]
-                       print(tmp)
                        if (!is.null(fun.list))
                            if (!is.null(fun.list[[v]]))
                                tmp <- fun.list[[v]](tmp)
-                       print(tmp)
                        df$data[v] <<- tmp
                    })
         else
