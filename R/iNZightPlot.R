@@ -841,7 +841,6 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         vspace <- if (matrix.plot) sub.hgt else unit(0, "in")
         hgts <- rep(unit.c(vspace, unit(1, "null")), nr)
 
-
         PLOTlayout <- grid.layout(nrow = length(hgts), ncol = length(wds),
                                   heights = hgts, widths = wds)
         seekViewport("VP:TOPlayout")
