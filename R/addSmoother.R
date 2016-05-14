@@ -37,7 +37,8 @@ addXYsmoother <- function(obj, opts, col.args, xlim, ylim) {
             for (q in 1:length(qp))
                 try(addQuantileSmoother(x, y, quantile = qp[q],
                                         col = opts$col.smooth,
-                                        lty = lty[q], lwd = lwd[q]), TRUE)
+                                        lty = lty[q], lwd = lwd[q],
+                                        opts = opts), TRUE)
         }
     } else if (!is.null(opts$smooth)) {
       # Smoothers
@@ -47,7 +48,8 @@ addXYsmoother <- function(obj, opts, col.args, xlim, ylim) {
             } else {
                 if (length(unique(obj$col)) == 1 | !opts$trend.by) {
                     try(addSmoother(x, y, f = opts$smooth,
-                                    col = opts$col.smooth, bs = opts$bs.inference), TRUE)
+                                    col = opts$col.smooth, bs = opts$bs.inference,
+                                    opts = opts), TRUE)
                 } else {
                     byy <- as.factor(obj$col)  # pseudo-by-variable
                     xtmp <- lapply(levels(byy), function(c) subset(x, obj$col == c))
@@ -57,7 +59,8 @@ addXYsmoother <- function(obj, opts, col.args, xlim, ylim) {
                         try(addSmoother(xtmp[[b]], ytmp[[b]],
                                         f = opts$smooth,
                                         col = darken(col.args$f.cols[b]),
-                                        bs = FALSE, lty = opts$smoothby.lty), TRUE)
+                                        bs = FALSE, lty = opts$smoothby.lty,
+                                        opts = opts), TRUE)
                 }
             }
         }
@@ -65,7 +68,7 @@ addXYsmoother <- function(obj, opts, col.args, xlim, ylim) {
 }
 
 addSmoother <-
-function(x, y = NULL, f, col, bs, lty = 1) {
+function(x, y = NULL, f, col, bs, lty = 1, opts) {
     if (is.null(y) & inherits(x, "survey.design")) {
         sm <- svysmooth(y ~ x, design = x, method = "locpoly")[[1]]
     } else {
@@ -73,7 +76,7 @@ function(x, y = NULL, f, col, bs, lty = 1) {
     }
     grid.lines(sm$x, sm$y,
                default.units = "native",
-               gp = gpar(col = col, lwd = 2, lty = lty))
+               gp = gpar(col = col, lwd = 2 * opts$lwd, lty = lty))
 
     if (bs) {
         for (i in 1:30) {
@@ -84,13 +87,13 @@ function(x, y = NULL, f, col, bs, lty = 1) {
             sm <- lowess(x2, y2, f = f)
             grid.lines(sm$x, sm$y,
                        default.units = "native",
-                       gp = gpar(col = col, lwd = 1, lty = 3))
+                       gp = gpar(col = col, lwd = 1 * opts$lwd, lty = 3))
         }
     }
 }
 
 addQuantileSmoother <-
-function(x, y = NULL, quantile, col, lty, lwd) {    
+function(x, y = NULL, quantile, col, lty, lwd, opts) {    
   # Draws quantiles on a plot.
     if (quantile < 0.5)  # symmetry
         quantile <- c(quantile, 1 - quantile)
@@ -107,7 +110,7 @@ function(x, y = NULL, quantile, col, lty, lwd) {
                          s <- svysmooth(y ~ x, design = des,
                                         method = "quantreg", quantile = a)$x
                          grid.lines(s$x, s$y, default.units = "native",
-                                    gp = gpar(col = col, lty = lty, lwd = lwd))
+                                    gp = gpar(col = col, lty = lty, lwd = lwd * opts$lwd))
                      }))
 }
 

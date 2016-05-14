@@ -37,14 +37,14 @@ addXYtrend <- function(obj, opts, col.args, xlim, ylim) {
             lapply(opts$trend, function(o) {
                 order = which(c("linear", "quadratic", "cubic") == o)  # gives us 1, 2, or 3
                 addTrend(x, y, order = order, xlim = xlim,
-                         col = opts$col.trend[[o]], bs = opts$bs.inference)
+                         col = opts$col.trend[[o]], bs = opts$bs.inference, opts = opts)
             })
         } else if (opts$trend.parallel) {
             byy <- as.factor(obj$col)
             lapply(opts$trend, function(o) {
                 order = which(c("linear", "quadratic", "cubic") == o)
                 addParTrend(x, y, byy, order = order, xlim = xlim,
-                            cols = col.args$f.cols)
+                            cols = col.args$f.cols, opts = opts)
             })
         } else {
             byy <- as.factor(obj$col)  # pseudo-by-variable
@@ -57,14 +57,14 @@ addXYtrend <- function(obj, opts, col.args, xlim, ylim) {
                     addTrend(xtmp[[b]], ytmp[[b]],
                              order = order, xlim = xlim,
                              col = col.args$f.cols[b],
-                             bs = opts$bs.inference)
+                             bs = opts$bs.inference, opts = opts)
                 })
         }
     }
 }
 
 addTrend <-
-function(x, y, order, xlim, col, bs) {
+function(x, y, order, xlim, col, bs, opts) {
     xx <- seq(xlim[1], xlim[2], length = 1001)
     if (is.svy <- inherits(x, "survey.design")) {
       if(length(order)==1){
@@ -86,7 +86,7 @@ function(x, y, order, xlim, col, bs) {
     if (!inherits(yy, "try-error")) {
         grid.lines(xx, yy,
                    default.units = "native",
-                   gp = gpar(col = col, lwd = 2, lty = order))
+                   gp = gpar(col = col, lwd = 2 * opts$lwd, lty = order))
 
         if (bs) {
             bs.lines <- vector("list", 30)
@@ -113,12 +113,12 @@ function(x, y, order, xlim, col, bs) {
             all.lines <- do.call(rbind, bs.lines)
             grid.polyline(all.lines[, 1], all.lines[, 2], id = all.lines[, 3],
                           default.units = "native",
-                          gp = gpar(col = col, lwd = 1, lty = 3))
+                          gp = gpar(col = col, lwd = 1 * opts$lwd, lty = 3))
         }
     }
 }
 
-addParTrend <- function(x, y, by, order, xlim, cols) {
+addParTrend <- function(x, y, by, order, xlim, cols, opts) {
     xx <- rep(seq(xlim[1], xlim[2], length = 1001), length(lby <- levels(by)))
     byy <- rep(lby, each = 1001)
     if (inherits(x, "survey.design")) {
@@ -142,7 +142,7 @@ addParTrend <- function(x, y, by, order, xlim, cols) {
         for (i in 1:length(lby)) {
             grid.lines(xx[byy == lby[i]], yy[byy == lby[i]],
                        default.units = "native",
-                       gp = gpar(col = (cols[i]), lwd = 2, lty = order))
+                       gp = gpar(col = (cols[i]), lwd = 2 * opts$lwd, lty = order))
         }
     }
 }

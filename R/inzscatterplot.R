@@ -4,11 +4,16 @@ create.inz.scatterplot <- function(obj) {
     opts <- obj$opts
     xattr <- obj$xattr
     features <- opts$plot.features
-    if (!is.null(features$order.first)) {
-        ord <- (1:nrow(df))
-        wi <- which(ord %in% features$order.first)
-        ord <- c(ord[-wi], ord[wi])
-        df <- df[ord, ]
+    if (opts$join) {
+        df <- df
+    } else if (!is.null(features$order.first)) {
+        ## can specify value = -1 to ignore reordering
+        if (all(features$order.first > 0)) {
+            ord <- (1:nrow(df))
+            wi <- which(ord %in% features$order.first)
+            ord <- c(ord[-wi], ord[wi])
+            df <- df[ord, ]
+        }
     } else {
         df <- df[sample(nrow(df)), ]
     }
