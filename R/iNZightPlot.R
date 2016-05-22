@@ -353,6 +353,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     xlim.raw <- range(sapply(plot.list, function(x) sapply(x, function(y) y$xlim)), finite = TRUE)
     ylim.raw <- range(sapply(plot.list, function(x) sapply(x, function(y) y$ylim)), finite = TRUE)
+    if (!is.null(xlim)) xlim.raw <- xlim
+    if (!is.null(ylim)) ylim.raw <- ylim
     
     ## Allow plot create methods to turn off axes:
     if (!is.null(plot.list[[1]][[1]]$draw.axes))

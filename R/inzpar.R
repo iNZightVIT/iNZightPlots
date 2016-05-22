@@ -45,6 +45,8 @@
 ##' by the specified variable}
 ##' \item{'col.trend'}{a named list of colors to be used for drawing the lines. The default is
 ##' \code{list(linear = "blue", quadratic = "red", cubic = "green4")}}
+##' \item{'lty.trend'}{a named list of line types for various types of trend lines. The default is
+##' \code{list(linear = 1, quadratic = 2, cubic = 3)}}
 ##' \item{'trend.by'}{logical, if \code{TRUE}, then trend lines are drawn separately for
 ##' each group specified by \code{colby}}
 ##' \item{'trend.parallel'}{logical, if \code{TRUE}, the trend lines by group are given the same slope;
@@ -136,9 +138,13 @@ inzpar <- function(...) {
                join           = FALSE,
                lines.by       = TRUE,
                col.trend =
-               list(linear = "blue",
-                    quadratic = "red",
-                    cubic ="green4"),
+                   list(linear = "blue",
+                        quadratic = "red",
+                        cubic ="green4"),
+               lty.trend =
+                   list(linear = 1,
+                        quadratic = 2,
+                        cubic = 3),
                trend.by       = FALSE,
                trend.parallel = TRUE,
                col.smooth     = c("magenta"),

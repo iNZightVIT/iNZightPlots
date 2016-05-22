@@ -116,7 +116,7 @@ drawLinesLegend <- function(x, opts = inzpar(), cex.mult = 1) {
                 for (i in 1:length(opts$trend)) {
                     lines.list <- c(lines.list,
                                     list(c(opts$trend[i], "black",
-                                           which(opts$trend[i] == c("linear", "quadratic", "cubic")),
+                                           opts$lty.trend[[opts$trend[i]]],
                                            opts$lwd)))
                 }
             } else {
@@ -124,7 +124,7 @@ drawLinesLegend <- function(x, opts = inzpar(), cex.mult = 1) {
                     lines.list <- c(lines.list,
                                     list(c(opts$trend[i],
                                            opts$col.trend[[opts$trend[i]]],
-                                           opts$lty, opts$lwd)))
+                                           opts$lty.trend[[opts$trend[i]]], opts$lwd)))
                 }
             }
         }

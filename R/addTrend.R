@@ -80,13 +80,14 @@ function(x, y, order, xlim, col, bs, opts) {
         yy <- try(c(predict(lm(y ~ poly(x, order)), data.frame(x = xx))),
                   silent = TRUE)
     }
+    ord <- switch(order, "linear", "quadratic", "cubic")
 
   # Sometimes, there might not be enough data points do run poly(),
   # so in this case simply don't draw.
     if (!inherits(yy, "try-error")) {
         grid.lines(xx, yy,
                    default.units = "native",
-                   gp = gpar(col = col, lwd = 2 * opts$lwd, lty = order))
+                   gp = gpar(col = col, lwd = 2 * opts$lwd, lty = opts$lty.trend[[ord]]))
 
         if (bs) {
             bs.lines <- vector("list", 30)
@@ -135,14 +136,15 @@ addParTrend <- function(x, y, by, order, xlim, cols, opts) {
         yy <- try(c(predict(LM <- lm(y ~ poly(x, order) + by), data.frame(x = xx, by = byy))),
                   silent = TRUE)
     }
-
+    ord <- switch(order, "linear", "quadratic", "cubic")
+    
   # Sometimes, there might not be enough data points do run poly(),
   # so in this case simply don't draw.
     if (!inherits(yy, "try-error")) {
         for (i in 1:length(lby)) {
             grid.lines(xx[byy == lby[i]], yy[byy == lby[i]],
                        default.units = "native",
-                       gp = gpar(col = (cols[i]), lwd = 2 * opts$lwd, lty = order))
+                       gp = gpar(col = (cols[i]), lwd = 2 * opts$lwd, lty = opts$lty.trend[[ord]]))
         }
     }
 }
