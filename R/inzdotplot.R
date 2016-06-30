@@ -2,9 +2,19 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     df <- obj$df
     opts <- obj$opts
     xattr <- obj$xattr
+    features <- opts$plot.features
+    if (!is.null(features$order.first)) {
+        ## can specify value = -1 to ignore reordering
+        if (all(features$order.first > 0)) {
+            ord <- (1:nrow(df))
+            wi <- which(ord %in% features$order.first)
+            ord <- c(ord[-wi], ord[wi])
+            df <- df[ord, ]
+        }
+    }
 
     boxplot <- opts$boxplot
-    
+
     v <- colnames(df)
     vn <- xattr$varnames
 
@@ -37,7 +47,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     #if (!is.null(trimX)) {
     #    df <- df[df$x > min(trimX) & df$x < max(trimX), , drop = FALSE]
     #}
-    
+
     # first need to remove missing values
     missing <- is.na(df$x)
     if ("y" %in% colnames(df)) {
@@ -46,13 +56,24 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     }
 
     n.missing <- sum(missing)
-    
+
     if ("y" %in% colnames(df)) {
         attr(n.missing, "levels") <- tapply(missing, df$y, sum)
     }
-    
+
     df <- df[!missing, , drop = FALSE]
-    
+
+    ## The plotting symbol:
+    if ("symbolby" %in% v) {
+        df$pch <- (21:25)[as.numeric(df$symbolby)]
+        df$pch[is.na(df$pch)] <- 3
+    } else {
+        df$pch <- rep(ifelse(opts$pch == 1, 21, opts$pch), nrow(df))
+    }
+    if (opts$fill.pt == "transparent" & opts$alpha < 1) {
+        opts$fill.pt <- "fill"
+    }
+
     ## Return a LIST for each level of y
     if ("y" %in% colnames(df)) {
         out <- vector("list", length(levels(df$y)))
@@ -62,11 +83,11 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         out <- list(all = NULL)
         id <- rep("all", nrow(df))
     }
-    
+
     for (i in unique(id)) {
         dfi <- subset(df, id == i)
         dfi$y <- NULL
-        
+
         if (xattr$class == "inz.freq")
             di <- svydesign(ids=~1, weights = dfi$freq, data = dfi)
         else if (xattr$class == "inz.survey") {
@@ -83,7 +104,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
 
         if (is.null(nbins)) {
             range <- range(bins)
-            cuts <- bins            
+            cuts <- bins
         } else {
             ## Create even cut points in the given data range:
             range <- xlim
@@ -93,38 +114,41 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
 
         bin.min <- cuts[-(nbins + 1)]
         bin.max <- cuts[-1]
-                
+
         ## Cut the data and calculate counts:
         if (inherits(d, "survey.design")) {
             ## To do this, we will pretty much grab stuff from the `survey` package, however it
             ## cannot be used separately to produce the bins etc without plotting it; so copyright
             ## for the next few lines goes to Thomas Lumley.
             h <- hist(x <- d$variables$x, breaks = cuts, plot = FALSE)
-            
+
             ## We can run into problems with PSUs have single clusters, so:
             oo <- options()$survey.lonely.psu
             options(survey.lonely.psu = "certainty")
             probs <- coef(svymean(~cut(d$variables$x, h$breaks, include.lowest = TRUE,
                                        deff = FALSE, estimate.only = TRUE), d, na.rm = TRUE))
             options(survey.lonely.psu = oo)
-            
+
             h$density <- probs / diff(h$breaks)
             h$counts <- probs * sum(weights(d))
         } else {
             x <- d$x
             h <- hist(x, breaks = cuts, plot = FALSE)
         }
-        
+
         ret <- list(breaks = cuts,
                     counts = as.numeric(h$counts),
                     density = as.numeric(h$density),
                     mids = h$mids,
                     x = sort(x))
-        
+
         if (!hist) {
             ret$y <- unlist(sapply(h$counts[h$counts != 0], function(c) 1:c))
             if ("colby" %in% colnames(d)) {
                 ret$colby <- d$colby[order(x)]
+            }
+            if ("pch" %in% colnames(d)) {
+              ret$pch <- d$pch[order(x)]
             }
         }
 
@@ -140,7 +164,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
             } else {
                 min <- 1:nx[1]
                 max <- (nrow(d) - nx[2] + 1):nrow(d)
-                
+
                 text.labels <- character(nrow(d))
                 if (nx[1] > 0)
                     text.labels[min] <- eLab[min]
@@ -148,7 +172,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
                     text.labels[max] <- eLab[max]
 
                 pointIDs <- d$pointIDs[order(x)]
-                
+
                 ret$extreme.ids <- pointIDs[text.labels != ""]
             }
         } else {
@@ -159,11 +183,11 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
 
         if ("highlight" %in% colnames(d))
             ret$highlight <- d$highlight[order(x)]
-        
+
         attr(ret, "order") <- order(x)
-        ret      
+        ret
     }
-    
+
 
     boxinfo <- if (boxplot & (!"mean" %in% opts$inference.par) & nrow(df) > 5)
         boxSummary(out, opts) else NULL
@@ -183,7 +207,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         ## factor of all the differences:
         #diffs <- do.call(c, lapply(out, function(d) {
         #    if (is.null(d$x)) return(NULL)
-        #    
+        #
         #    diffs <- diff(sort(d$x))
         #    diffs[diffs > 0]
         #}))
@@ -193,7 +217,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         #isDiscrete <- all(round(fdiff) == fdiff)
 
         #xr <- diff(range(sapply(out, function(d) if (is.null(d$x)) 0 else range(d$x))))
-        
+
         #mult.width <- ifelse(isDiscrete, 1, 1.2)
 
         dp <- xattr$dotplotstuff
@@ -215,7 +239,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
             bins <- seq(min(xx) - 0.5 * mdiff, max(xx) + 0.5 * mdiff, by = mdiff)
         } else {
             wd <- xattr$symbol.width * 1.2
-            
+
             nbins <- floor(1 / (wd))
             if (nbins == 0) {
                  nbins <- if (is.null(opts$hist.bins)) {
@@ -237,6 +261,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     inflist <- dotinference(obj)
 
     out <- list(toplot = plist, n.missing = n.missing, boxinfo = boxinfo, inference.info = inflist,
+                fill.pt = opts$fill.pt,
                 nacol = if ("colby" %in% v) any(sapply(plist, function(T)
                     if (is.null(T$colby)) FALSE else any(is.na(T$colby)))) else FALSE,
                 xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
@@ -244,7 +269,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
                 n.label = if (is.null(xattr$nextreme)) NULL else rep(xattr$nextreme, length = 2))
 
     class(out) <- ifelse(hist, "inzhist", "inzdot")
-    
+
     out
 }
 
@@ -257,6 +282,22 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
     col.args <- gen$col.args
     boxplot <- opts$boxplot
     expand.points <- 1# if (is.null(opts$expand.points)) 1 else opts$expand.points
+
+    ## adding grid lines?
+    if (opts$grid.lines) {
+        at.x <- pretty(gen$LIM[1:2])
+        at.X <- rep(at.x, each = 2)
+        at.Y <- rep(current.viewport()$yscale, length(at.x))
+        col.grid <- opts$col.grid
+        if (sum(col2rgb(opts$bg) / 255) > 0.95 * 3) {
+            col.grid <- "#cccccc"
+        } else {
+
+        }
+        grid.polyline(at.X, at.Y, id.lengths = rep(2, length(at.X)/2),
+                      default.units = "native",
+                      gp = gpar(col = col.grid, lwd = 1))
+    }
 
     toplot <- obj$toplot
     boxinfo <- obj$boxinfo
@@ -287,7 +328,7 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
 
     for (i in 1:nlev) {
         pp <- toplot[[i]]
-        
+
         seekViewport("VP:dotplot-levels")
         pushViewport(viewport(layout.pos.row = i))
         pushViewport(viewport(layout = dpLayout))
@@ -298,7 +339,7 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
         upViewport()
 
         vpname <- ifelse(nlev == 1, "VP:plotregion", paste0("VP:plotregion-", i))
-        
+
         pushViewport(viewport(layout.pos.row = 1,
                               xscale = xlim, yscale = ylim,
                               name = vpname))
@@ -308,7 +349,7 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
             ptCols <- rep(ptCols, length(pp$x))
 
         ptPch <- rep(opts$pch, length(pp$x))
-        
+
         if (!is.null(pp$text.labels)) {
             locID <- which(pp$text.labels != "")
             if (!is.null(col.args$locate.col)) {
@@ -316,15 +357,16 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
                 ptPch[locID] <- 19
             }
         }
-        
+
         if (length(pp$x) > 0) {
             NotInView <- pp$x < min(xlim) | pp$x > max(xlim)
             ptPch[NotInView] <- NA
-            grid.points(pp$x, pp$y, pch = ptPch,
+            grid.points(pp$x, pp$y, pch = pp$pch,
                         gp =
                         gpar(col = ptCols,
                              cex = opts$cex.dotpt / expand.points, lwd = opts$lwd.pt,
-                             alpha = opts$alpha, fill = obj$fill.pt),
+                             alpha = opts$alpha,
+                             fill = if (obj$fill.pt == "fill") ptCols else obj$fill.pt),
                         name = "DOTPOINTS")
 
             ## Highlighting:
@@ -336,13 +378,13 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
                             shade(ptCols[hl], 0.6)
                         else
                             opts$highlight.col
-                    
-                    grid.points(pp$x[hl], pp$y[hl], pch = 19, 
+
+                    grid.points(pp$x[hl], pp$y[hl], pch = 19,
                                 gp =
                                 gpar(col = hcol,
                                      cex = opts$cex.dotpt * 1.4, lwd = opts$lwd.pt))
-                    
-                    grid.points(pp$x[hl], pp$y[hl], pch = 19, 
+
+                    grid.points(pp$x[hl], pp$y[hl], pch = 19,
                                 gp =
                                 gpar(col = ptCols[hl],
                                      cex = opts$cex.dotpt, lwd = opts$lwd.pt))
@@ -362,7 +404,7 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
             grid.text(GROUP.names[i], x = 0.01, y = 0.98, just = c("left", "top"),
                       gp = gpar(cex = 0.8))
     }
-    
+
     seekViewport("VP:dotplot-levels")
     upViewport()
 
@@ -384,7 +426,7 @@ boxSummary <- function(obj, opts) {
         if (!inherits(o, "survey.design")) {
             quant <- quantile(o$x, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
             min <- min(o$x, na.rm = TRUE)
-            max <- max(o$x, na.rm = TRUE)            
+            max <- max(o$x, na.rm = TRUE)
         } else {
             if (nrow(o$variables) < 5) return(NULL)
             svyobj <- o
@@ -403,7 +445,7 @@ addBoxplot <- function(x) {
     opts <- x$opts
     if (is.null(x))
         return()
-    
+
     xx <- rep(x$quantiles, each = 4)[3:10]
     yy <- rep(c(0.2, 0.8, 0.8, 0.2), 2)
     id <- rep(1:2, each = 4)
@@ -412,7 +454,7 @@ addBoxplot <- function(x) {
     grid.polyline(unit(c(x$min, x$quantiles[1], x$quantiles[3], x$max), "native"),
                   rep(0.5, 4), id = rep(1:2, each = 2),
                   gp = gpar(lwd = opts$box.lwd[2]))
-                  
+
 }
 
 
@@ -434,7 +476,7 @@ dotinference <- function(obj) {
     }
 
     if (nrow(obj$df) < opts$min.count) return(NULL)
-  
+
     ## for simplicity, if no 'y' factor, just make all the same level for tapply later:
     if (obj$xattr$class == "inz.simple") {
         svy <- FALSE
@@ -537,9 +579,9 @@ dotinference <- function(obj) {
                                         ## mn <- tapply(dat$x, dat$y, mean, na.rm = TRUE)             ##
                                         ## cbind(lower = mn - wd, upper = mn + wd)                    ##
                                         ## ########################################################## ##
-                                        
+
                                         ## The new method uses iNZightMR:
-                                        
+
                                         if(any(is.na(tapply(dat$x, dat$y, length)))) {
                                             NULL
                                         } else {
@@ -598,8 +640,8 @@ dotinference <- function(obj) {
                                         NULL
                                     } else {
                                         ## YEAR 12 INTERVALS
-                                        #iqr <- 
-                                        
+                                        #iqr <-
+
                                         n <- tapply(dat$x, dat$y, function(z) sum(!is.na(z)))
                                         n <- ifelse(n < 2, NA, n)
                                         wd <- 1.5 * #qt(0.975, df = n - 1) *
@@ -637,7 +679,7 @@ dotinference <- function(obj) {
                     })
                 },
                 "iqr" = {
-                    list(conf = 
+                    list(conf =
                              if ("conf" %in% inf.type & bs) {
                                  if (svy) {
                                      NULL

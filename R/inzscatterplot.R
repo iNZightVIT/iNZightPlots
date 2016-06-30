@@ -17,20 +17,20 @@ create.inz.scatterplot <- function(obj) {
     } else {
         df <- df[sample(nrow(df)), ]
     }
-    
+
     if (xattr$class == "inz.survey") {
         df <- as.data.frame(cbind(df$variables,
-                                  weights = weights(df)))        
+                                  weights = weights(df)))
     }
-    
+
     v <- colnames(df)
     vn <- xattr$varnames
-        
+
     # first need to remove missing values
     missing <- apply(df[ , v %in% c("x", "y")], 1, function(x) any(is.na(x)))
     n.missing <- sum(missing)
     df <- df[!missing, ]
-    
+
     # --- look through inzpar for settings
 
     # Jitter on x and y
@@ -49,7 +49,7 @@ create.inz.scatterplot <- function(obj) {
     if (opts$fill.pt == "transparent" & opts$alpha < 1) {
         opts$fill.pt <- "fill"
     }
-    
+
     ## --- this is where FREQUENCY or SURVEY information is used to control sizes of points
     # size of points
     resize <- TRUE
@@ -60,7 +60,7 @@ create.inz.scatterplot <- function(obj) {
             resize <- FALSE
             propsize <- opts$cex.pt
         } else
-            propsize <- df$weights       
+            propsize <- df$weights
     } else if ("sizeby" %in% v) {
         propsize <- df$.cex
     } else {
@@ -69,7 +69,7 @@ create.inz.scatterplot <- function(obj) {
     }
 
     propsize <- propsize * opts$cex.pt
-    
+
     pch[is.na(propsize)] <- ifelse(pch[is.na(propsize)] == 3, 8, 4)
     propsize[is.na(propsize)] <- 0.6
 
@@ -100,12 +100,12 @@ create.inz.scatterplot <- function(obj) {
                 ylim = if (nrow(df) > 0) range(df$y, na.rm = TRUE) else c(-Inf, Inf),
                 trend = opts$trend, trend.by = opts$trend.by, smooth = opts$trend,
                 n.boot = opts$n.boot, text.labels = text.labels, extreme.ids = ext.ids)
-    
+
     if (xattr$class == "inz.survey")
         out$svy <- obj$df
     if ("highlight" %in% colnames(df))
         out$highlight <- df$highlight
-    
+
     class(out) <- "inzscatter"
 
     out
@@ -128,7 +128,7 @@ plot.inzscatter <- function(obj, gen) {
         if (sum(col2rgb(opts$bg) / 255) > 0.95 * 3) {
             col.grid <- "#cccccc"
         } else {
-            
+
         }
         grid.polyline(at.X, at.Y, id.lengths = rep(2, length(at.X)/2),
                       default.units = "native",
@@ -139,29 +139,29 @@ plot.inzscatter <- function(obj, gen) {
         return()
 
     ptCols <- colourPoints(obj$colby, col.args, opts)
-    
+
     ## If locating points:
     locating <- FALSE
     if ("text.labels" %in% names(obj)) {
         if (sum(obj$text.labels != "", na.rm = TRUE) > 0) {
             locating <- TRUE
-            
+
             labID <- which(obj$text.labels != "")
-            
+
             if (!is.null(col.args$locate.col)) {
                 newCol <- col.args$locate.col
 
                 if (length(ptCols) == 1)
                     ptCols <- rep(ptCols, length(obj$x))
                 ptCols[labID] <- newCol
-                
+
                 ## make them solid:
                 obj$pch[labID] <- 19
             }
         }
     }
 
-   
+
     NotInView <- obj$x < min(xlim) | obj$x > max(xlim) | obj$y < min(ylim) | obj$y > max(ylim)
     obj$pch[NotInView] <- NA
     ptOrdering <- sample(length(obj$x))
@@ -183,20 +183,20 @@ plot.inzscatter <- function(obj, gen) {
                 else
                     opts$highlight.col
 
-            grid.points(obj$x[hl], obj$y[hl], pch = 19, 
+            grid.points(obj$x[hl], obj$y[hl], pch = 19,
                         gp =
                         gpar(col = hcol,
                              cex = obj$propsize * 1.4,
                              lwd = opts$lwd.pt))
-            
-            grid.points(obj$x[hl], obj$y[hl], pch = 19, 
+
+            grid.points(obj$x[hl], obj$y[hl], pch = 19,
                         gp =
                         gpar(col = ptCols[hl],
                              cex = obj$propsize,
                              lwd = opts$lwd.pt))
         }
     }
-    
+
 
     if (locating) {
         labs <- obj$text.labels[labID]
@@ -205,7 +205,7 @@ plot.inzscatter <- function(obj, gen) {
             (grobHeight(textGrob("0", gp = gpar(cex = obj$propsize))) +
              grobHeight(textGrob("0", gp = gpar(cex = 0.6)))) *
                  ifelse(obj$y[labID] < mean(ylim), 1, -1)
-        
+
         grid.text(labs, labx, laby, gp = gpar(cex = 0.6))
     }
 
@@ -228,7 +228,7 @@ plot.inzscatter <- function(obj, gen) {
                                 col = col.args$f.cols[b]))
         }
     }
-    
+
     ## add rugs --- these only make sense for a scatter plot
     if ("x" %in% strsplit(opts$rug, '')[[1]]) {
       # Add marks on the x-axis at the location of every data point
@@ -260,6 +260,6 @@ plot.inzscatter <- function(obj, gen) {
     # Add additional features to plot:
     addXYsmoother(obj, opts, col.args, xlim, ylim)
     addXYtrend(obj, opts, col.args, xlim, ylim)
-    
+
     invisible(NULL)
 }
