@@ -80,7 +80,8 @@ plot.inzhex <- function(obj, gen) {
         } else {
             colours <- col.args$f.cols
         }
-        hextri::panel.hextri(x = obj$x, y = obj$y, groups = as.factor(levels(obj$colby)),
+        hextri::panel.hextri(x = obj$x, y = obj$y,
+                             groups = factor(levels(obj$colby), levels = levels(obj$colby)),
                              subscripts = as.numeric(obj$colby), colours = colours,
                              nbins = obj$n.bins, style = opts$hex.style, diffuse = opts$hex.diffuse,
                              shape = convertHeight(current.viewport()$height, "in", TRUE) /
