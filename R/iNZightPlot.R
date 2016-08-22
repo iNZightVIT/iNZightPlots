@@ -159,7 +159,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     if (!is.null(zoombars))
         if (zoombars[2] == 0)
             zoombars <- NULL
-    
+
     if (xfact) {
         if (ynull) {
             if (length(levels(df$data$x)) > params("max.levels") & is.null(zoombars)) {
@@ -202,7 +202,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             df$data$.cex <- sqrt(rescale((df$data$sizeby)))
         }
     }
-    
+
 
     # subset the data by g2 (keep everything, so xlims can be calculated)
     # g2 can take values (0 = "_ALL", 1:ng2, ng2+1 = "_MULTI")
@@ -293,14 +293,14 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         if ((!xfact & yfact) | (xfact & !yfact))
             itsADotplot <- TRUE
     }
-    
+
     if (itsADotplot)
         if (opts$plottype != "dot")
             if (opts$plottype != "default" | (opts$plottype == "default" & opts$largesample))
                 itsADotplot <- FALSE
 
     if (itsADotplot) {
-       
+
         if (is.null(dev.list())) {
             xattr$symbol.width <- 1
         } else {
@@ -355,7 +355,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ylim.raw <- range(sapply(plot.list, function(x) sapply(x, function(y) y$ylim)), finite = TRUE)
     if (!is.null(xlim)) xlim.raw <- xlim
     if (!is.null(ylim)) ylim.raw <- ylim
-    
+
     ## Allow plot create methods to turn off axes:
     if (!is.null(plot.list[[1]][[1]]$draw.axes))
         if (!plot.list[[1]][[1]]$draw.axes)
@@ -364,13 +364,13 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ## Allow plot create methods to reserve a global object
     if (!is.null(plot.list[[1]][[1]]$global.object))
         global.object <- plot.list[[1]][[1]]$global.object
-    
+
     if (is.null(xlim) | any(plot.class == "inzbar"))
         xlim <- xlim.raw
     if (is.null(ylim) | "inzbar" %in% plot.class)
         ylim <- ylim.raw
 
-    
+
     TYPE <- gsub("inz", "", class(plot.list[[1]][[1]]))
     if (!any(TYPE %in% c("bar"))) xlim <- extendrange(xlim)
     ylim <-
@@ -399,7 +399,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             nOutofview <- 0
         } else {
             nOutofview <-
-                sum(sapply(plot.list, function(x) sapply(x, function(y) sapply(y$toplot, function(z) 
+                sum(sapply(plot.list, function(x) sapply(x, function(y) sapply(y$toplot, function(z)
                     sum(z$x < min(xlim) | z$x > max(xlim))))))
         }
     } else if (all(plot.class != "inzbar")) {
@@ -439,7 +439,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 missing$x <- my
             }
         }
-        
+
         if (is.null(xlab))
             xlab <- varnames$x
         if (is.null(ylab))
@@ -540,10 +540,14 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         ynum <- if (ynull) FALSE else !yfact
 
         col.args <- list(missing = opts$col.missing)
-        if ("colby" %in% names(varnames) &
+        if ("colby" %in% names(varnames) &&
             (any(TYPE %in% c("dot", "scatter", "hex")) ||
-             (any(TYPE %in% c("grid", "hex")) & !is.null(opts$trend) & opts$trend.by) ||
-             (any(TYPE == "bar") & ynull & is.factor(df$data$colby)))) {
+             (any(TYPE %in% c("grid", "hex")) && !is.null(opts$trend) && opts$trend.by) ||
+             (any(TYPE == "bar") && ynull && is.factor(df$data$colby)))) {
+
+            if (TYPE == "hex") {
+              df$data$colby <- convert.to.factor(df$data$colby)
+            }
 
             if (is.factor(df$data$colby)) {
                 nby <- length(levels(as.factor(df$data$colby)))
@@ -577,7 +581,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 leg.grob1 <- drawLegend(f.levels <- levels(as.factor(df$data$colby)), col = ptcol,
                                         pch = legPch,
                                         title = varnames$colby, any.missing = misscol, opts = opts)
-                
+
                 if (misscol) {
                     ptcol <- c(ptcol, opts$col.missing)
                     f.levels <- c(f.levels, "missing")
@@ -676,7 +680,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                     if (length(missing) > 1) paste0(" (", paste0(POS.missing, " in ", names(POS.missing),
                                                                  collapse = ", "), ")")
                     else ""
-                
+
                 if (total.missing > 0) {
                     subtitle <- paste0(total.missing, " missing values", missinfo)
                 }
@@ -1036,7 +1040,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         attr(plot.list, "nbins") <- length(plot.list[[1]][[1]]$toplot[[1]]$counts)
 
     if (itsADotplot) {
-        ## some recursion instructions        
+        ## some recursion instructions
         ## i.e., [original.size, new.size]
         attr(plot.list, "dotplot.redraw") <-
             round(xattr$symbol.width, 5) !=

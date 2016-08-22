@@ -9,22 +9,22 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
             if (g2.level == "_ALL") {
                 m$g1 <- NULL
                 m$g2 <- NULL
-                
+
                 m$g1.level <- NULL
                 m$g2.level <- NULL
-                
+
                 g1.level <- NULL
                 g2.level <- NULL
-                
+
                 names$g1 <- NULL
                 names$g2 <- NULL
             } else {
                 m$g1.level <- NULL
                 names(m) <- gsub("^g2", "g1", names(m))
-                
+
                 g1.level <- g2.level
                 g2.level <- NULL
-                
+
                 names$g1 <- names$g2
                 names$g2 <- NULL
             }
@@ -32,7 +32,7 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     }
 
     names <- names[!sapply(names, is.null)]
-    
+
     # the variables we want to look for in argument list (m)
     vars <- c("", "x", "y", "g1", "g2", "colby", "sizeby", "symbolby", "locate")
     mw <- names(m) %in% vars
@@ -42,9 +42,9 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     # take the names and replace if specified
     names <- names[names != ""]
     varnames <- modifyList(as.list(m[mw]), names)
-    
+
     df <- list()  # initialise the object
-    
+
     ## ----- DATA TYPES:
     # here, it is possible to add new data types (add the necessary conditions, etc,
     # and then simply add the appropriate class)
@@ -94,8 +94,8 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     if (!is.null(m$highlight)) {
         df$data$highlight <- (1:nrow(df$data)) %in% m$highlight
     }
-    
-    
+
+
 
     # convert anything that isn't a numeric variable to a factor
     # NOTE: this is just precautionary; as.data.frame should set any
@@ -124,7 +124,7 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
             # g2.level can only be of length 1
             if (length(g2.level) > 1)
                 stop("g2.level must be of length 1 or NULL")
-        
+
             if (g2.level %in% c(length(levels(df$data$g2)) + 1, "_MULTI")) {
                 # need to replace g1 with g2
                 varnames$g1 <- varnames$g2
@@ -140,7 +140,7 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     if ("colby" %in% colnames(df$data)) {
         if (is.factor(df$data$colby)) {
             if (length(levels(df$data$colby)) == 1)
-                df$data$colby <- varnames$data$colby <- NULL                
+                df$data$colby <- varnames$data$colby <- NULL
         } else {
             if (length(unique(df$data$colby)) == 1)
                 df$data$colby <- varnames$data$colby <- NULL
@@ -149,10 +149,10 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     if ("symbolby" %in% colnames(df$data)) {
         df$data$symbolby <- convert.to.factor(df$data$symbolby)
         if (length(levels(df$data$symbolby)) == 1 | length(levels(df$data$symbolby)) > 5) {
-                df$data$symbolby <- varnames$data$symbolby <- NULL                
+                df$data$symbolby <- varnames$data$symbolby <- NULL
         }
     }
-    
+
 
     if ("extra.vars" %in% names(m)) {
         fun.list <- attr(m$extra.vars, "fun")

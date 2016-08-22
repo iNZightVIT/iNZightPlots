@@ -5,10 +5,10 @@ create.inz.hexplot <- function(obj) {
     df <- obj$df
     opts <- obj$opts
     xattr <- obj$xattr
-    
+
     if (xattr$class == "inz.survey")
         df <- df$variables
-    
+
     v <- colnames(df)
     vn <- xattr$varnames
 
@@ -18,10 +18,10 @@ create.inz.hexplot <- function(obj) {
     df <- df[!missing, ]
 
     xbins <- opts$hex.bins
-    
+
     ## hexbin returns an S4 object, so need to use the @ operator
     hb <- hexbin(df$x, df$y, IDs = TRUE, xbins = xbins)
-    
+
     cellid <- hb@cID
     ## now manipulate the counts with the weight variable
     W <- switch(xattr$class,
@@ -36,7 +36,7 @@ create.inz.hexplot <- function(obj) {
                                function(i) weighted.mean(df$x[i], W[i])))
 
     out <- list(hex = hb, n.missing = n.missing, svy = obj$df,
-                colby = df$colby,
+                colby = convert.to.factor(df$colby),
                 nacol = if ("colby" %in% v) any(is.na(df$colby)) else FALSE,
                 xlim = if (nrow(df) > 0) hb@xbnds else c(-Inf, Inf),
                 ylim = if (nrow(df) > 0) hb@ybnds else c(-Inf, Inf),
@@ -65,7 +65,7 @@ plot.inzhex <- function(obj, gen) {
         if (sum(col2rgb(opts$bg) / 255) > 0.95 * 3) {
             col.grid <- "#cccccc"
         } else {
-            
+
         }
         grid.polyline(at.X, at.Y, id.lengths = rep(2, length(at.X)/2),
                       default.units = "native",
@@ -80,6 +80,7 @@ plot.inzhex <- function(obj, gen) {
         } else {
             colours <- col.args$f.cols
         }
+        print(obj$colby)
         hextri::panel.hextri(x = obj$x, y = obj$y,
                              groups = factor(levels(obj$colby), levels = levels(obj$colby)),
                              subscripts = as.numeric(obj$colby), colours = colours,
@@ -100,7 +101,7 @@ plot.inzhex <- function(obj, gen) {
                       border = FALSE, #if (style == "size") opts$col.pt else FALSE,
                       pen = opts$col.pt[1], colramp = colramp)
     }
-    
+
     ## ---------------------------------------------------------------------------- ##
     ## Now that the main plot has been drawn, time to add stuff to it!
 
@@ -113,6 +114,6 @@ plot.inzhex <- function(obj, gen) {
 
     addXYsmoother(obj, opts, col.args, xlim, ylim)
     addXYtrend(obj, opts, col.args, xlim, ylim)
-    
+
     invisible(NULL)
 }
