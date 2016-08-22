@@ -33,12 +33,6 @@ create.inz.scatterplot <- function(obj) {
 
     # --- look through inzpar for settings
 
-    # Jitter on x and y
-    if ("x" %in% strsplit(opts$jitter, '')[[1]])
-        df$x <- jitter(df$x)
-    if ("y" %in% strsplit(opts$jitter, '')[[1]])
-        df$y <- jitter(df$y)
-
     ## The plotting symbol:
     if ("symbolby" %in% v) {
         pch <- (21:25)[as.numeric(df$symbolby)]
@@ -137,6 +131,12 @@ plot.inzscatter <- function(obj, gen) {
 
     if (length(obj$x) == 0)
         return()
+
+    ## Jitter on x and y
+    if ("x" %in% strsplit(opts$jitter, '')[[1]])
+        obj$x <- jitter(obj$x)
+    if ("y" %in% strsplit(opts$jitter, '')[[1]])
+        obj$y <- jitter(obj$y)
 
     ptCols <- colourPoints(obj$colby, col.args, opts)
 
