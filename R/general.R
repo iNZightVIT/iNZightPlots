@@ -40,7 +40,9 @@ Darken <- function(x = "#FFFFFF", v = 0.6) {
 darken <- Vectorize(Darken)  # allow it to work on a vector of Xs
 
 
-Shade <- function(x, light) {
+Shade <- function(x, light, method = c("relative", "absolute")) {
+    method <- match.arg(method)
+    
     if (x %in% colours()) {
         x <- rgb(convertColor(t(col2rgb(x)), "sRGB", "Apple RGB"))
     }
@@ -65,14 +67,16 @@ Shade <- function(x, light) {
              substr(x, 5, 6))
     rgb <- strtoi(rgb, base = 16)
 
-    if (light > 1 | light < -1) {
-        stop("light must be in [-1, 1]")
-    }
-    
-    if (light < 0) {
-        rgb <- (1 + light) * rgb
+    if (method == "relative") {
+        if (light > 1 | light < -1) stop("light must be in [-1, 1]")
+        
+        if (light < 0) {
+            rgb <- (1 + light) * rgb
+        } else {
+            rgb <- (1 - light) * rgb + light * 255
+        }
     } else {
-        rgb <- (1 - light) * rgb + light * 255
+        rgb <- pmax(0, pmin(255, rgb + light))
     }
 
     rgb <- rgb / 255

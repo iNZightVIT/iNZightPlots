@@ -119,7 +119,7 @@ inzpar <- function(...) {
                alpha          = 1,
                bg             = "#eeeeee",
                grid.lines     = TRUE,
-               col.grid       = "#ffffff",
+               col.grid       = "default",
                fill.pt        = "transparent",
                lwd            = 1,
                lty            = 1,

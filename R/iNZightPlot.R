@@ -929,7 +929,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                                       name = nameVP))
                 if (!layout.only) {
                     ## background color:
-                    grid.rect(gp = gpar(fill = opts$bg))
+                    grid.rect(gp = gpar(fill = opts$bg, lty = 0))
                     plot(plot.list[[g2id]][[g1id]], gen =
                          list(opts = opts, mcex = multi.cex, col.args = col.args,
                               maxcount = maxcnt, LIM = c(xlim.raw, ylim.raw)))

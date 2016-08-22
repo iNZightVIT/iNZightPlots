@@ -119,10 +119,14 @@ plot.inzscatter <- function(obj, gen) {
         at.X <- c(rep(at.x, each = 2), rep(current.viewport()$xscale, length(at.y)))
         at.Y <- c(rep(current.viewport()$yscale, length(at.x)), rep(at.y, each = 2))
         col.grid <- opts$col.grid
-        if (sum(col2rgb(opts$bg) / 255) > 0.95 * 3) {
-            col.grid <- "#cccccc"
-        } else {
-
+        if (col.grid == "default") {
+            if (sum(col2rgb(opts$bg) / 255) > 0.85 * 3) {
+                ## bg is light
+                col.grid <- "#00000010" ##shade(opts$bg, 0.9) ## -30, method = "absolute")
+            } else {
+                ## bg is dark
+                col.grid <- "#ffffff20" ##shade(opts$bg, 0.1) ## 30, method = "absolute")
+            }
         }
         grid.polyline(at.X, at.Y, id.lengths = rep(2, length(at.X)/2),
                       default.units = "native",
