@@ -611,7 +611,9 @@ dotinference <- function(obj) {
                                                 est <- predict(fit, newdata = data.frame(y = levels(dat$y)))
                                                 ses <- seIndepSes(summary(fit)$coef[, 2])
                                                 mfit <- suppressWarnings(moecalc(ses, est = est, base = FALSE))
-                                                cbind(with(mfit, cbind(lower = compL, upper = compU)), mean = est)
+                                                mat <- cbind(with(mfit, cbind(lower = compL, upper = compU)), mean = est)
+                                                rownames(mat) <- levels(dat$y)
+                                                mat
                                             }
                                         }
                                     }
