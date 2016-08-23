@@ -191,6 +191,22 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     wopt <- names(dots) %in% names(opts)  # which additional settings have been specified
     opts <- modifyList(opts, dots[wopt])
 
+    ## --- colour by
+    if (!is.numeric(df$data$colby))
+        opts$col.method <- "linear"
+
+    if (opts$col.method == "rank") {
+        ranks <- rank(df$data$colby, na.last = "keep") - 1
+        df$data$colby <- ranks * 100 / max(ranks, na.rm = TRUE)
+        rm(ranks)
+    }
+
+    if (opts$reverse.palette) {
+        opts$.colfun <- opts$col.fun
+        opts$col.fun <- function(n) rev(opts$.colfun(n))
+    }
+    
+
     ## --- SIZING
     if ("sizeby" %in% df.vs) {
         if (#(all(df$data$sizeby >= 0) || all(df$data$sizeby <= 0)) &&

@@ -106,8 +106,9 @@ inzpar <- function(...) {
                col.default    =
                    list(cat  = function(n) hcl((1:n) / n * 360, c = 80, l = 50),
                         cont = function(n) hcl((1:n) / n * 320 + 60, c = 100, l = 50)),
-                            #rainbow(n, start = 1/6)),
                col.missing    = "#cccccc",
+               reverse.palette= FALSE,
+               col.method     = "linear",
                cex            = 1,
                cex.pt         = 0.8,
                cex.dotpt      = 0.5,

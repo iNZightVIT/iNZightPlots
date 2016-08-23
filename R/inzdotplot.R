@@ -289,10 +289,12 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
         at.X <- rep(at.x, each = 2)
         at.Y <- rep(current.viewport()$yscale, length(at.x))
         col.grid <- opts$col.grid
-        if (sum(col2rgb(opts$bg) / 255) > 0.95 * 3) {
-            col.grid <- "#cccccc"
-        } else {
-
+        if (col.grid == "default") {
+            if (sum(col2rgb(opts$bg) / 255) > 0.85 * 3) {
+                col.grid <- "#00000010"
+            } else {
+                col.grid <- "#ffffff20"
+            }
         }
         grid.polyline(at.X, at.Y, id.lengths = rep(2, length(at.X)/2),
                       default.units = "native",

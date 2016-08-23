@@ -145,6 +145,7 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
             if (length(unique(df$data$colby)) == 1)
                 df$data$colby <- varnames$data$colby <- NULL
         }
+        
     }
     if ("symbolby" %in% colnames(df$data)) {
         df$data$symbolby <- convert.to.factor(df$data$symbolby)

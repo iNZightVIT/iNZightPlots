@@ -37,6 +37,9 @@ function(lab, col, pch = opts$pch, cex.mult = 1,
     fg <- frameGrob(layout = leg.layout)
     fg <- placeGrob(fg, title.grob, row = 1, col = 1:2)
 
+    ## if (opts$reverse.palette)
+    ##     col <- rev(col)
+
     if (length(pch) == 1) pch <- rep(ifelse(pch == 1, 21, pch), n)
     for (i in 1:n) {
         fg <- placeGrob(fg, pointsGrob(0.5, 0.5, pch = pch[i],
@@ -64,7 +67,14 @@ drawContLegend <- function(var, title = "", height = NULL, cex.mult = 1,
     title.hgt <- convertHeight(grobHeight(title.grob), "in") * 2
 
     vp <- viewport(yscale = range(var, na.rm = TRUE))
-    yax <- yaxisGrob(main = FALSE, vp = vp, gp = gpar(cex = legcex * opts$cex.axis))
+    if (opts$col.method == "rank") {
+        at <- seq(0, 100, by = 20)
+        label <- paste0(at, "%")
+    } else {
+        at <- NULL
+        label <- TRUE
+    }
+    yax <- yaxisGrob(at = at, label = label, main = FALSE, vp = vp, gp = gpar(cex = legcex * opts$cex.axis))
 
     ## need legend to fit the longest label
     var2 <- if (any.missing) c(var, "missing") else  var
@@ -84,6 +94,8 @@ drawContLegend <- function(var, title = "", height = NULL, cex.mult = 1,
     yy <- rep(0:200 / 200, each = 4)[1:800 + 2]
     id <- rep(1:200, each = 4)
     n.cols <- if (!is.null(opts$col.fun)) opts$col.fun(200) else opts$col.default$cont(200)
+    ## if (opts$reverse.palette)
+    ##     n.cols <- rev(n.cols)
     poly <- polygonGrob(xx, yy, id = id, gp = gpar(lty = 0, fill = n.cols))
     
     fg <- frameGrob(layout = legend.layout)
