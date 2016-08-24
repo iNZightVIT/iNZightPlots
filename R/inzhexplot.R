@@ -36,7 +36,7 @@ create.inz.hexplot <- function(obj) {
                                function(i) weighted.mean(df$x[i], W[i])))
 
     out <- list(hex = hb, n.missing = n.missing, svy = obj$df,
-                colby = convert.to.factor(df$colby),
+                colby = if("colby" %in% v) convert.to.factor(df$colby) else NULL,
                 nacol = if ("colby" %in% v) any(is.na(df$colby)) else FALSE,
                 xlim = if (nrow(df) > 0) hb@xbnds else c(-Inf, Inf),
                 ylim = if (nrow(df) > 0) hb@ybnds else c(-Inf, Inf),
@@ -55,22 +55,7 @@ plot.inzhex <- function(obj, gen) {
     mcex <- gen$mcex
     col.args <- gen$col.args
 
-    ## adding grid lines?
-    if (opts$grid.lines) {
-        at.x <- pretty(gen$LIM[1:2])
-        at.y <- pretty(gen$LIM[3:4])
-        at.X <- c(rep(at.x, each = 2), rep(current.viewport()$xscale, length(at.y)))
-        at.Y <- c(rep(current.viewport()$yscale, length(at.x)), rep(at.y, each = 2))
-        col.grid <- opts$col.grid
-        if (sum(col2rgb(opts$bg) / 255) > 0.95 * 3) {
-            col.grid <- "#cccccc"
-        } else {
-
-        }
-        grid.polyline(at.X, at.Y, id.lengths = rep(2, length(at.X)/2),
-                      default.units = "native",
-                      gp = gpar(col = col.grid, lwd = 1))
-    }
+    addGrid(x = TRUE, y = TRUE, gen = gen, opts = opts)
 
     if (!is.null(obj$colby)) {
         if (any(is.na(obj$colby))) {

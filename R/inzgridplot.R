@@ -91,6 +91,8 @@ plot.inzgrid <- function(obj, gen) {
     opts <- gen$opts
     mcex <- gen$mcex
     col.args <- gen$col.args
+
+    addGrid(TRUE, TRUE, gen, opts)
     
     gr <- obj$makeRects(obj$args, xlim, ylim)
     

@@ -64,3 +64,35 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts, sub = 0, h
                })
     }
 }
+
+
+addGrid <- function(x = FALSE, y = FALSE, gen, opts) {
+    if (!opts$grid.lines) return()
+    if (!any(x, y)) return()
+
+    col.grid <- opts$col.grid
+    if (col.grid == "default") {
+        if (any(col2rgb(opts$bg) > 230)) {
+            col.grid <- "#00000020"
+        } else {
+            col.grid <- "#ffffff30"
+        }
+    }
+
+    if (x) {
+        at.x <- pretty(gen$LIM[1:2])
+        at.X <- rep(at.x, each = 2)
+        at.Y <- rep(current.viewport()$yscale, length(at.x))
+        grid.polyline(at.X, at.Y, id.lengths = rep(2, length(at.X)/2),
+                      default.units = "native",
+                      gp = gpar(col = col.grid, lwd = 1))
+    }
+    if (y) {
+        at.y <- pretty(gen$LIM[3:4])
+        at.Y <- rep(at.y, each = 2)
+        at.X <- rep(current.viewport()$xscale, length(at.y))
+        grid.polyline(at.X, at.Y, id.lengths = rep(2, length(at.Y)/2),
+                      default.units = "native",
+                      gp = gpar(col = col.grid, lwd = 1))
+    }
+}

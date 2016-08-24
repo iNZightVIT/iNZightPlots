@@ -283,23 +283,7 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
     boxplot <- opts$boxplot
     expand.points <- 1# if (is.null(opts$expand.points)) 1 else opts$expand.points
 
-    ## adding grid lines?
-    if (opts$grid.lines) {
-        at.x <- pretty(gen$LIM[1:2])
-        at.X <- rep(at.x, each = 2)
-        at.Y <- rep(current.viewport()$yscale, length(at.x))
-        col.grid <- opts$col.grid
-        if (col.grid == "default") {
-            if (sum(col2rgb(opts$bg) / 255) > 0.85 * 3) {
-                col.grid <- "#00000010"
-            } else {
-                col.grid <- "#ffffff20"
-            }
-        }
-        grid.polyline(at.X, at.Y, id.lengths = rep(2, length(at.X)/2),
-                      default.units = "native",
-                      gp = gpar(col = col.grid, lwd = 1))
-    }
+    addGrid(x = TRUE, gen = gen, opts = opts)
 
     toplot <- obj$toplot
     boxinfo <- obj$boxinfo

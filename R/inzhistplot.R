@@ -10,6 +10,8 @@ plot.inzhist <- function(obj, gen) {
     mcex <- gen$mcex
     boxplot <- opts$boxplot
 
+    addGrid(x = TRUE, gen = gen, opts = opts)
+
     toplot <- obj$toplot
     boxinfo <- obj$boxinfo
     inflist <- obj$inference.info

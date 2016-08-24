@@ -192,20 +192,22 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     opts <- modifyList(opts, dots[wopt])
 
     ## --- colour by
-    if (!is.numeric(df$data$colby))
-        opts$col.method <- "linear"
-
-    if (opts$col.method == "rank") {
-        ranks <- rank(df$data$colby, na.last = "keep") - 1
-        df$data$colby <- ranks * 100 / max(ranks, na.rm = TRUE)
-        rm(ranks)
+    if (!is.null(df$data$colby)) {
+        if (!is.numeric(df$data$colby))
+            opts$col.method <- "linear"
+        
+        if (opts$col.method == "rank") {
+            ranks <- rank(df$data$colby, na.last = "keep") - 1
+            df$data$colby <- ranks * 100 / max(ranks, na.rm = TRUE)
+            rm(ranks)
+        }
     }
 
+    ## out of previous if() for case of barplots
     if (opts$reverse.palette) {
         opts$.colfun <- opts$col.fun
-        opts$col.fun <- function(n) rev(opts$.colfun(n))
-    }
-    
+        opts$col.fun <- function(n) rev(opts$.colfun(n)[1:n])
+    }    
 
     ## --- SIZING
     if ("sizeby" %in% df.vs) {
