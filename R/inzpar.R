@@ -97,15 +97,17 @@
 ##' @return an object of class \code{inzpar.list}
 ##' @author tell029
 ##' @export
-inzpar <- function(...) {
+inzpar <- function(..., .viridis = requireNamespace("viridis", quietly = TRUE)) {
     dots <- list(...)
     
     ip <- list(pch            = 1,
                col.pt         = "grey50",
                col.fun        = NULL,
                col.default    =
-                   list(cat  = function(n) hcl((1:n) / n * 360, c = 80, l = 50),
-                        cont = function(n) hcl((1:n) / n * 320 + 60, c = 100, l = 50)),
+                   list(cat  = if (.viridis) viridis::viridis
+                               else function(n) hcl((1:n) / n * 360, c = 80, l = 50),
+                        cont = if (.viridis) viridis::viridis
+                               else function(n) hcl((1:n) / n * 320 + 60, c = 100, l = 50)),
                col.missing    = "#cccccc",
                reverse.palette= FALSE,
                col.method     = "linear",

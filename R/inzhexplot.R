@@ -80,7 +80,6 @@ plot.inzhex <- function(obj, gen) {
         } else {
             colours <- col.args$f.cols
         }
-        print(obj$colby)
         hextri::panel.hextri(x = obj$x, y = obj$y,
                              groups = factor(levels(obj$colby), levels = levels(obj$colby)),
                              subscripts = as.numeric(obj$colby), colours = colours,

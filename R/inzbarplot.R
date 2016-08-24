@@ -111,6 +111,24 @@ plot.inzbar <- function(obj, gen) {
     p <- obj$phat
     nx <- obj$nx
 
+    ## adding grid lines?
+    if (opts$grid.lines) {
+        at.y <- pretty(gen$LIM[3:4])
+        at.Y <- rep(at.y, each = 2)
+        at.X <- rep(current.viewport()$xscale, length(at.y))
+        col.grid <- opts$col.grid
+        if (col.grid == "default") {
+            if (sum(col2rgb(opts$bg) / 255) > 0.85 * 3) {
+                col.grid <- "#00000010"
+            } else {
+                col.grid <- "#ffffff20"
+            }
+        }
+        grid.polyline(at.X, at.Y, id.lengths = rep(2, length(at.Y)/2),
+                      default.units = "native",
+                      gp = gpar(col = col.grid, lwd = 1))
+    }
+
     inflist <- obj$inference.info
 
     if (SEG <- !is.null(obj$p.colby)) {
