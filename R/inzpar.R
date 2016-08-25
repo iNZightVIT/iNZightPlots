@@ -104,8 +104,18 @@ inzpar <- function(..., .viridis = requireNamespace("viridis", quietly = TRUE)) 
                col.pt         = "grey50",
                col.fun        = NULL,
                col.default    =
-                   list(cat  = if (.viridis) viridis::viridis
-                               else function(n) hcl((1:n) / n * 360, c = 80, l = 50),
+                   list(cat  =
+                            if (.viridis) {
+                                function(n)
+                                    if (n > 10) viridis(n)
+                                    else c( "#E69F00", "#56AAE9", "#D55E00", "#0072B2", "#F0D705",
+                                           "#ADD9FF", "#9BCD9B", "#CC79A7", "#68468C", "#8B0000")[1:n]
+                            } else {
+                                function(n)
+                                    if (n > 10) hcl((1:n) / n * 360, c = 80, l = 50)
+                                    else c( "#E69F00", "#56AAE9", "#D55E00", "#0072B2", "#F0D705",
+                                           "#ADD9FF", "#9BCD9B", "#CC79A7", "#68468C", "#8B0000")[1:n]
+                            },
                         cont = if (.viridis) viridis::viridis
                                else function(n) hcl((1:n) / n * 320 + 60, c = 100, l = 50)),
                col.missing    = "#cccccc",
