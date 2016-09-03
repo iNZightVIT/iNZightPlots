@@ -26,7 +26,8 @@
 ##' \item{'lty'}{the line type of lines (for joining points)}
 ##' \item{'lwd.pt'}{the line width used for points; default is 2}
 ##' \item{'col.line'}{the colour of lines used to join points}
-##' \item{'col.sub'}{the background colour of subplot labels}
+##' \item{'col.sub'}{vector of up to two colours for the background of subplot labels.
+##' If only one specified, it is used for both.}
 ##' \item{'locate.col.def'}{the default colour for locating points}
 ##' \item{'jitter'}{the axes to add jitter to. Takes values \code{"x"}, \code{"y"},
 ##' or \code{"xy"} (default is en empty string, \code{""})}
@@ -90,7 +91,7 @@
 ##' \item{'ylim'}{a vector defining the y axis limits (default NULL will use the data)}
 ##' \item{'plot.features'}{a list containing any additional features for new plots (e.g., maptype)}
 ##' }
-##' 
+##'
 ##' @title iNZight Plotting Parameters
 ##' @param ... If arguments are supplied, then these values are set. If left empty, then
 ##' the default list is returned.
@@ -99,7 +100,7 @@
 ##' @export
 inzpar <- function(..., .viridis = requireNamespace("viridis", quietly = TRUE)) {
     dots <- list(...)
-    
+
     ip <- list(pch            = 1,
                col.pt         = "grey50",
                col.fun        = NULL,
@@ -138,7 +139,7 @@ inzpar <- function(..., .viridis = requireNamespace("viridis", quietly = TRUE)) 
                lty            = 1,
                lwd.pt         = 2,
                col.line       = "blue",
-               col.sub        = "wheat",
+               col.sub        = c("#cccccc", "#999999"),
                locate.col.def = "red",
                highlight.col  = "shade",
                jitter         = "",

@@ -195,7 +195,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     if (!is.null(df$data$colby)) {
         if (!is.numeric(df$data$colby))
             opts$col.method <- "linear"
-        
+
         if (opts$col.method == "rank") {
             ranks <- rank(df$data$colby, na.last = "keep") - 1
             df$data$colby <- ranks * 100 / max(ranks, na.rm = TRUE)
@@ -207,7 +207,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     if (opts$reverse.palette) {
         opts$.colfun <- opts$col.fun
         opts$col.fun <- function(n) rev(opts$.colfun(n)[1:n])
-    }    
+    }
 
     ## --- SIZING
     if ("sizeby" %in% df.vs) {
@@ -896,7 +896,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 seekViewport("VP:PLOTlayout")
                 pushViewport(viewport(layout.pos.row = R - 1,
                                       gp = gpar(cex = multi.cex, fontface = "bold")))
-                grid.rect(gp = gpar(fill = "lightblue"))
+                grid.rect(gp = gpar(fill = rep(opts$col.sub, length = 2)[2]))
                 grid.text(paste(varnames$g2, "=", g2.level[g2id]), gp = gpar(cex = opts$cex.lab, fontface = "bold"))
             }
 
@@ -956,7 +956,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
                 if (!is.null(p.title)) {
                     pushViewport(viewport(layout.pos.row = 1))
-                    grid.rect(gp = gpar(fill = opts$col.sub))
+                    grid.rect(gp = gpar(fill = opts$col.sub[1]))
                     grid.draw(subt)
                     upViewport()
                 }
