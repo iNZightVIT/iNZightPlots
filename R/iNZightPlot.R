@@ -897,7 +897,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 pushViewport(viewport(layout.pos.row = R - 1,
                                       gp = gpar(cex = multi.cex, fontface = "bold")))
                 grid.rect(gp = gpar(fill = rep(opts$col.sub, length = 2)[2]))
-                grid.text(paste(varnames$g2, "=", g2.level[g2id]), gp = gpar(cex = opts$cex.lab, fontface = "bold"))
+                grid.text(paste(varnames$g2, "=", g2.level[g2id]), gp = gpar(cex = opts$cex.lab, col="#ffffff",fontface = "bold"))
             }
 
             for (c in 1:nc) {

@@ -139,7 +139,7 @@ inzpar <- function(..., .viridis = requireNamespace("viridis", quietly = TRUE)) 
                lty            = 1,
                lwd.pt         = 2,
                col.line       = "blue",
-               col.sub        = c("#cccccc", "#999999"),
+               col.sub        = c("#cccccc", "#444444"),
                locate.col.def = "red",
                highlight.col  = "shade",
                jitter         = "",
