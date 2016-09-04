@@ -1,4 +1,15 @@
-# Changes in Version 2.5
+# Version ...
+__Release date__:
+
+
+## Minor Changes
+
+- change the g1/g2 group labels to light/dark gray respectively. Can use `col.sub = c("g1col", "g2col")` to adjust them.
+
+
+
+***
+# Version 2.5
 __Release date__: 5 September 2016
 
 ## Major Changes
