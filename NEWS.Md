@@ -1,14 +1,3 @@
-# Version ...
-__Release date__:
-
-
-## Minor Changes
-
-- change the g1/g2 group labels to light/dark gray respectively. Can use `col.sub = c("g1col", "g2col")` to adjust them.
-
-
-
-***
 # Version 2.5
 __Release date__: 5 September 2016
 
@@ -31,12 +20,14 @@ __Release date__: 5 September 2016
 - hex is now the default plot for large data sets
 - size of "large" data sets increased to 5001
 - allow control of line type
+- change the g1/g2 group labels to light/dark gray respectively. Can use `col.sub = c("g1col", "g2col")` to adjust them.
 
 
 ## Bug Fixes
 
 - subsetting bug fix in dot plots and histograms
 - many other minor bugs fixed while implementing changes
+
 
 ***
 # Changes in Version 2.3
