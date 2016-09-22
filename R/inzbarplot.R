@@ -77,7 +77,7 @@ create.inz.barplot <- function(obj) {
     ## Cannot have inference on segmented plot (too complicated for now)
     inflist <- if (!SEG) barinference(obj, tab, phat) else NULL
 
-    ymax <- max(phat)
+    ymax <- max(phat, na.rm = TRUE)
     if (!is.null(ZOOM)) {
         if (ZOOM[1] > ncol(phat))
             next
