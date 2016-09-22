@@ -29,6 +29,13 @@ __Release date__: 5 September 2016
 - many other minor bugs fixed while implementing changes
 
 
+## Patches
+
+### 2.5.1 - 23/09/2016
+
+- Fix a bug causing two-way bar plots to fail in presence of empty levels
+
+
 ***
 # Changes in Version 2.3
 __Release date__: 1 October 2015
