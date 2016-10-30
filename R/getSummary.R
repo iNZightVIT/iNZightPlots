@@ -225,7 +225,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary", width = 100)
         nn <- allnames[allnames %in% names(missing)]
         nn <- nn[sapply(missing[nn], function(m) m > 0)]
         mat <- rbind(mat,
-                     cbind(ind("Number ommitted due to missingness: "),
+                     cbind(ind("Number omitted due to missingness: "),
                            paste0(total.missing,
                                   if (length(missing) > 1) {
                                       paste0(" (",
