@@ -37,9 +37,13 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            colby = NULL, sizeby = NULL,
                            data = NULL, design = NULL, freq = NULL,
                            missing.info = TRUE, inzpars = inzpar(),
-                           summary.type = "summary",
+                           summary.type = "summary", paired = FALSE,
                            hypothesis.value = 0,
                            hypothesis.alt = c("two.sided", "less", "greater"),
+                           hypothesis.var.equal = FALSE,
+                           hypothesis = list(value = hypothesis.value,
+                                             alternative = match.arg(hypothesis.alt),
+                                             var.equal = hypothesis.var.equal),
                            ...) {
 
     ## Grab a plot object!
@@ -71,7 +75,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            design = design, freq = freq, missing.info = missing.info,
                            new = new, inzpars = inzpars,
                            env = env,
-                           summary.type = summary.type, ...)
+                           summary.type = summary.type, paired = paired, hypothesis = hypothesis, ...)
         }
     }
     
@@ -130,14 +134,11 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     ### Now we just loop over everything ...
 
-    summary(obj, summary.type,
-            hypothesis =
-                list(value = hypothesis.value,
-                     alternative = match.arg(hypothesis.alt)))
+    summary(obj, summary.type, paired, hypothesis)
 }
 
 
-summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis = NULL, width = 100) {
+summary.inzplotoutput <- function(object, summary.type = "summary", paired, hypothesis = NULL, width = 100) {
     if (length(summary.type) > 1) {
         warning("Only using the first element of `summary.type`")
         summary.type <- summary.type[1]
@@ -320,6 +321,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
                           "summary" = summary(pl, vn = vnames, des = pl.design),
                           "inference" = inference(pl, bs, inzclass, width = width,
                                                   vn = vnames, nb = attr(obj, "nboot"),
+                                                  paired = paired,
                                                   hypothesis = hypothesis)),
                    add)
             

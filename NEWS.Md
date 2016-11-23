@@ -1,3 +1,12 @@
+# Version 2.6-dev
+__Releast date__: TBA
+
+## Major Changes
+
+- implementation of statistical hypothesis tests
+
+
+***
 # Version 2.5
 __Release date__: 5 September 2016
 
