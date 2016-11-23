@@ -2,7 +2,7 @@ inference <- function(object, ...)
     UseMethod("inference")
 
 
-inference.inzdot <- function(object, bs, class, width, ...) {
+inference.inzdot <- function(object, bs, class, width, hypothesis, ...) {
     toplot <- object$toplot
     inf <- object$inference.info
 
@@ -168,7 +168,26 @@ inference.inzdot <- function(object, bs, class, width, ...) {
         } else {
             out <- c(out, "", "Unable to compute confidence intervals and p-values.")
         }
+    } else if (!is.null(hypothesis)) {
+        ## hypothesis testing
+        test.out <- t.test(toplot$all$x,
+                           alternative = hypothesis$alternative,
+                           mu = hypothesis$value)
+        pval <- format.pval(test.out$p.value)
+        out <- c(out, "",
+                 "One Sample t-test", "",
+                 paste0("   t = ", format(test.out$statistic, digits = 5),
+                        ", df = ", test.out$parameter,
+                        ", p-value ", ifelse(substr(pval, 1, 1) == "<", "", "= "), pval),
+                 "",
+                 paste0("          Null Hypothesis: true mean is equal to ", test.out$null.value),
+                 paste0("   Alternative Hypothesis: true mean is ",
+                        ifelse(test.out$alternative == "two.sided", "not equal to",
+                               paste0(test.out$alternative, " than")), " ", test.out$null.value)
+                 )
     }
+
+    
     
     out
 }
