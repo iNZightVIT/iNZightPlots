@@ -55,6 +55,7 @@
 ##' @param zoombars numeric, length 2; when drawing a bar plot, if the number of bars is too large,
 ##' the user can specify a subset. The first value is the starting point (1 is the first bar, etc),
 ##' while the second number is the number of bars to show.
+##' @param hide.legend logical, if TRUE, the \code{legend} will not be drawn
 ##' @return An \code{inzightplotoutput} object, which contains the information displayed
 ##' in the plot
 ##'
@@ -72,6 +73,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                         new = TRUE,  # compatibility arguments
                         inzpars = inzpar(), layout.only = FALSE, plot = TRUE,
                         xaxis = TRUE, yaxis = TRUE, xlim = NULL, ylim = NULL, zoombars = NULL,
+                        hide.legend = FALSE,
                         df, env = parent.frame(), ...) {
 
   # ------------------------------------------------------------------------------------ #
@@ -668,6 +670,9 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         hgts <- numeric(4)
         wdth <- 0
 
+        if (hide.legend) {
+            leg.grob1 <- leg.grob2 <- leg.grob3 <- leg.grob4 <- NULL
+        }
         if (!is.null(leg.grob1)) {
             hgts[1] <- convertHeight(grobHeight(leg.grob1), "in", TRUE)
             wdth <- max(wdth, convertWidth(grobWidth(leg.grob1), "in", TRUE))
