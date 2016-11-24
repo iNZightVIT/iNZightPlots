@@ -112,14 +112,15 @@ inference.inzdot <- function(object, bs, class, width, paired, hypothesis, ...) 
 
     
     ### NOTE: this doesn't account for SURVEY design yet.
-    
     if (byFactor & !bs) {
         if (length(toplot) == 2) {
             ## Two sample t-test
 
-            ttest <- t.test(toplot[[1]]$x, toplot[[2]]$x)
+            ttest <- t.test(toplot[[1]]$x, toplot[[2]]$x, paired = paired)
             mat <- rbind(c("Lower", "Mean", "Upper"),
-                         format(c(ttest$conf.int[1], diff(rev(ttest$estimate)), ttest$conf.int[2]),
+                         format(c(ttest$conf.int[1],
+                                  if (paired) ttest$estimate else diff(rev(ttest$estimate)),
+                                  ttest$conf.int[2]),
                                 digits = 4))
             colnames(mat) <- NULL
 
@@ -132,7 +133,8 @@ inference.inzdot <- function(object, bs, class, width, paired, hypothesis, ...) 
             mat <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
                 
             out <- c(out, "",
-                     paste0("Difference in ", ifelse(paired, "paired ", "group "), "means with 95% Confidence Interval"),
+                     paste0(ifelse(paired, "Mean of the paired differences",
+                                   "Difference in group means"), " with 95% Confidence Interval"),
                      "", mat)
 
             if (!is.null(hypothesis)) {
@@ -142,7 +144,8 @@ inference.inzdot <- function(object, bs, class, width, paired, hypothesis, ...) 
 
                 pval <- format.pval(test.out$p.value)
                 out <- c(out, "",
-                         paste0(ifelse(hypothesis$var.equal, "", "Welch "), "Two Sample t-test"), "",
+                         ifelse(paired, "Paired t-test",
+                                paste0(ifelse(hypothesis$var.equal, "", "Welch "), "Two Sample t-test")), "",
                          paste0("   t = ", format(test.out$statistic, digits = 5),
                                 ", df = ", format(test.out$parameter, digits = 5),
                                 ", p-value ", ifelse(substr(pval, 1, 1) == "<", "", "= "), pval),

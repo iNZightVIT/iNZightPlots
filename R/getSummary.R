@@ -1,4 +1,4 @@
-##' Generate summary or inference information for an iNZight plot
+6##' Generate summary or inference information for an iNZight plot
 ##'
 ##' Works much the same as \code{iNZightPlot}
 ##' @title iNZight Plot Summary and Inference
