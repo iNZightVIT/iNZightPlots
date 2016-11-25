@@ -2,7 +2,7 @@ inference <- function(object, ...)
     UseMethod("inference")
 
 
-inference.inzdot <- function(object, bs, class, width, paired, hypothesis, ...) {
+inference.inzdot <- function(object, bs, class, width, hypothesis, ...) {
     toplot <- object$toplot
     inf <- object$inference.info
 
@@ -116,10 +116,10 @@ inference.inzdot <- function(object, bs, class, width, paired, hypothesis, ...) 
         if (length(toplot) == 2) {
             ## Two sample t-test
 
-            ttest <- t.test(toplot[[1]]$x, toplot[[2]]$x, paired = paired)
+            ttest <- t.test(toplot[[1]]$x, toplot[[2]]$x)
             mat <- rbind(c("Lower", "Mean", "Upper"),
                          format(c(ttest$conf.int[1],
-                                  if (paired) ttest$estimate else diff(rev(ttest$estimate)),
+                                  diff(rev(ttest$estimate)),
                                   ttest$conf.int[2]),
                                 digits = 4))
             colnames(mat) <- NULL
@@ -132,20 +132,16 @@ inference.inzdot <- function(object, bs, class, width, paired, hypothesis, ...) 
 
             mat <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
                 
-            out <- c(out, "",
-                     paste0(ifelse(paired, "Mean of the paired differences",
-                                   "Difference in group means"), " with 95% Confidence Interval"),
-                     "", mat)
+            out <- c(out, "", "Difference in group means with 95% Confidence Interval", "", mat)
 
             if (!is.null(hypothesis)) {
                 test.out <- t.test(toplot[[1]]$x, toplot[[2]]$x,
                                    mu = hypothesis$value, alternative = hypothesis$alternative,
-                                   paired = paired, var.equal = hypothesis$var.equal)
+                                   var.equal = hypothesis$var.equal)
 
                 pval <- format.pval(test.out$p.value)
                 out <- c(out, "",
-                         ifelse(paired, "Paired t-test",
-                                paste0(ifelse(hypothesis$var.equal, "", "Welch "), "Two Sample t-test")), "",
+                         paste0(ifelse(hypothesis$var.equal, "", "Welch "), "Two Sample t-test"), "",
                          paste0("   t = ", format(test.out$statistic, digits = 5),
                                 ", df = ", format(test.out$parameter, digits = 5),
                                 ", p-value ", ifelse(substr(pval, 1, 1) == "<", "", "= "), pval),
@@ -156,8 +152,11 @@ inference.inzdot <- function(object, bs, class, width, paired, hypothesis, ...) 
                                        paste0(test.out$alternative, " than")), " ", test.out$null.value)
                          )
                 if (hypothesis$var.equal) {
+                    svar <- sapply(toplot, function(d) var(d$x))
+                    sn <- sapply(toplot, function(d) length(d$x))
+                    var.pooled <- sum((sn - 1) * svar) / sum(sn - 1)
                     out <- c(out, "",
-                             paste0("          Pooled Variance: ", "<value>"))
+                             paste0("          Pooled Variance: ", format(var.pooled, digits = 5)))
                 }
             }
             
