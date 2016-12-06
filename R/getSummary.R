@@ -1,4 +1,4 @@
-6##' Generate summary or inference information for an iNZight plot
+##' Generate summary or inference information for an iNZight plot
 ##'
 ##' Works much the same as \code{iNZightPlot}
 ##' @title iNZight Plot Summary and Inference
@@ -210,7 +210,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
                                                   "Predictor/explanatory", "Secondary"),
                                            " variable: ")),
                                 paste0(ifelse(scatter, vnames$x, vnames$y),
-                                       " (", vartypes[[ifelse(scatter, vnames$x, vnames$y)]], ")")))
+                                       " (", gsub("factor", "categorical", vartypes[[ifelse(scatter, vnames$x, vnames$y)]]), ")")))
 
     wg <- c("g1", "g2") %in% names(vnames)
 
