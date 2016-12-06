@@ -141,7 +141,8 @@ inference.inzdot <- function(object, bs, class, width, hypothesis, ...) {
 
                 pval <- format.pval(test.out$p.value)
                 out <- c(out, "",
-                         paste0(ifelse(hypothesis$var.equal, "", "Welch "), "Two Sample t-test"), "",
+                         paste0(ifelse(hypothesis$var.equal, "", "Welch "), "Two Sample t-test",
+                                ifelse(hypothesis$var.equal, " assuming equal variance", "")), "",
                          paste0("   t = ", format(test.out$statistic, digits = 5),
                                 ", df = ", format(test.out$parameter, digits = 5),
                                 ", p-value ", ifelse(substr(pval, 1, 1) == "<", "", "= "), pval),
@@ -152,11 +153,20 @@ inference.inzdot <- function(object, bs, class, width, hypothesis, ...) {
                                        paste0(test.out$alternative, " than")), " ", test.out$null.value)
                          )
                 if (hypothesis$var.equal) {
+                    ## F test for equal variance
+                    ftest <- var.test(toplot[[1]]$x, toplot[[2]]$x)
+                    
                     svar <- sapply(toplot, function(d) var(d$x))
                     sn <- sapply(toplot, function(d) length(d$x))
                     var.pooled <- sum((sn - 1) * svar) / sum(sn - 1)
+                    pval <- format.pval(ftest$p.value)
                     out <- c(out, "",
-                             paste0("          Pooled Variance: ", format(var.pooled, digits = 5)))
+                             "F-test for equal variance [NOTE: very sensitive to non-normality]",
+                             "",
+                             paste0("   F = ", format(ftest$statistic, digits = 5),
+                                    ", df = ", paste(format(ftest$parameter, digits = 5), collapse = " and "),
+                                    ", p-value ", ifelse(substr(pval, 1, 1) == "<", "", "= "), pval),
+                             paste0("   Pooled Variance: ", format(var.pooled, digits = 5)))
                 }
             }
             
