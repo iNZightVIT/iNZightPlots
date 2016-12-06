@@ -187,7 +187,7 @@ inference.inzdot <- function(object, bs, class, width, hypothesis, ...) {
             
             fstat <- summary(fit)$fstatistic
             
-            Ftest <- c("Overall F-test", "",
+            Ftest <- c("Overall F-test (one-way analysis of variance)", "",
                        paste0("F: ", signif(fstat[1], 5), "   ", 
                               "df: ", fstat[2], " and ", fstat[3], "   ",
                               "p-value: ",
