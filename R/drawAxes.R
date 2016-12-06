@@ -72,10 +72,10 @@ addGrid <- function(x = FALSE, y = FALSE, gen, opts) {
 
     col.grid <- opts$col.grid
     if (col.grid == "default") {
-        if (any(col2rgb(opts$bg) > 230)) {
+        if (any(col2rgb(opts$bg) <= 230)) {
             col.grid <- "#00000020"
         } else {
-            col.grid <- "#ffffff30"
+            col.grid <- "#ffffff"
         }
     }
 
