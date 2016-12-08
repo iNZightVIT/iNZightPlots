@@ -28,6 +28,11 @@
 ##' displayed in the plot
 ##' @param inzpars allows specification of iNZight plotting parameters over multiple plots
 ##' @param summary.type one of \code{"summary"} or \code{"inference"}
+##' @param hypothesis.value H0 value for hypothesis test
+##' @param hypothesis.alt alternative hypothesis (!=, <, >)
+##' @param hypothesis.var.equal use equal variance assumption for t-test?
+##' @param hypothesis.test in some cases (currently just two-samples) can perform multiple tests (t-test or ANOVA)
+##' @param hypothesis either NULL for no test, or missing (in which case above arguments are used)
 ##' @param ... additional arguments, see \code{inzpar}
 ##' @return an \code{inzight.plotsummary} object with a print method
 ##' @author tell029
@@ -41,9 +46,11 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            hypothesis.value = 0,
                            hypothesis.alt = c("two.sided", "less", "greater"),
                            hypothesis.var.equal = FALSE,
+                           hypothesis.test = c("default", "t.test", "anova"),
                            hypothesis = list(value = hypothesis.value,
                                              alternative = match.arg(hypothesis.alt),
-                                             var.equal = hypothesis.var.equal),
+                                             var.equal = hypothesis.var.equal,
+                                             test = match.arg(hypothesis.test)),
                            ...) {
 
     ## Grab a plot object!

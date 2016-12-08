@@ -1041,10 +1041,8 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         plot.list$xlim <- xlim
         plot.list$ylim <- ylim
     } else {
-        plot.list$gen <- list(opts = opts,
-                              maxcount = maxcnt)
-        plot.list$xlim <- xlim
-        plot.list$ylim <- ylim
+        attr(plot.list, "plotargs") <- list(gen = list(opts = opts, maxcount = maxcnt),
+                                            xlim = xlim, ylim = ylim)
     }
 
     attr(plot.list, "varnames") <- varnames

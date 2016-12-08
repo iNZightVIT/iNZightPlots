@@ -133,12 +133,14 @@ inference.inzdot <- function(object, bs, class, width, hypothesis, ...) {
             mat <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
                 
             out <- c(out, "", "Difference in group means with 95% Confidence Interval", "", mat)
+        }
 
-            if (!is.null(hypothesis)) {
+        if (!is.null(hypothesis)) {
+            if (length(toplot) == 2 && hypothesis$test %in% c("default", "t.test")) {
                 test.out <- t.test(toplot[[1]]$x, toplot[[2]]$x,
                                    mu = hypothesis$value, alternative = hypothesis$alternative,
                                    var.equal = hypothesis$var.equal)
-
+                
                 pval <- format.pval(test.out$p.value)
                 out <- c(out, "",
                          paste0(ifelse(hypothesis$var.equal, "", "Welch "), "Two Sample t-test",
@@ -161,41 +163,45 @@ inference.inzdot <- function(object, bs, class, width, hypothesis, ...) {
                     var.pooled <- sum((sn - 1) * svar) / sum(sn - 1)
                     pval <- format.pval(ftest$p.value)
                     out <- c(out, "",
+                             paste0("          Pooled Variance: ", format(var.pooled, digits = 5)), "",
                              "F-test for equal variance [NOTE: very sensitive to non-normality]",
                              "",
                              paste0("   F = ", format(ftest$statistic, digits = 5),
                                     ", df = ", paste(format(ftest$parameter, digits = 5), collapse = " and "),
-                                    ", p-value ", ifelse(substr(pval, 1, 1) == "<", "", "= "), pval),
-                             paste0("   Pooled Variance: ", format(var.pooled, digits = 5)))
+                                    ", p-value ", ifelse(substr(pval, 1, 1) == "<", "", "= "), pval))
                 }
             }
-            
-                     
-        } else {
+        }
+
+        dat <- do.call(rbind, lapply(names(toplot),
+                                     function(t) {
+                                         if (is.null(toplot[[t]]$x))
+                                             NULL
+                                         else
+                                             data.frame(x = toplot[[t]]$x, y = t)
+                                     }
+                                     ))
+        fit <- lm(x ~ y, data = dat)
+
+        if (!is.null(hypothesis) && (length(toplot) > 2 | hypothesis$test == "anova")) {
+            fstat <- summary(fit)$fstatistic
+
+            fpval <- format.pval(pf(fstat[1], fstat[2], fstat[3], lower.tail = FALSE),
+                                 digits = 5)
+            Ftest <- c("One-way Analysis of Variance (ANOVA F-test)", "",
+                       paste0("   F = ", signif(fstat[1], 5),
+                              ", df = ", fstat[2], " and ", fstat[3],
+                              ", p-value ", ifelse(substr(fpval, 1, 1) == "<", "", "= "), fpval))
+            out <- c(out, "", Ftest, "",
+                     "          Null Hypothesis: true group means are equal",
+                     "   Alternative Hypothesis: true group means are not equal")
+        }
+
+        if (length(toplot) > 2) {
             ## For x ~ factor, we also include an F test, and multiple comparisons
             ## (estimates, pvalues, and confidence intervals).
             
-            dat <- do.call(rbind, lapply(names(toplot),
-                                         function(t) {
-                                             if (is.null(toplot[[t]]$x))
-                                                 NULL
-                                             else
-                                                 data.frame(x = toplot[[t]]$x, y = t)
-                                         }
-                                         ))
-            fit <- lm(x ~ y, data = dat)
-            
-            fstat <- summary(fit)$fstatistic
-            
-            Ftest <- c("Overall F-test (one-way analysis of variance)", "",
-                       paste0("F: ", signif(fstat[1], 5), "   ", 
-                              "df: ", fstat[2], " and ", fstat[3], "   ",
-                              "p-value: ",
-                              format.pval(pf(fstat[1], fstat[2], fstat[3], lower.tail = FALSE),
-                                          digits = 2)))
-            
-            out <- c(out, "", Ftest, "",
-                     "", "   *** Differences between Group Means (column - row) ***", "")
+            out <- c(out, "", "", "   *** Differences between Group Means (column - row) ***", "")
             
             means <- predict(fit, newdata = data.frame(y = levels(dat$y)))
             names(means) <- LEVELS <- levels(dat$y)
@@ -227,8 +233,9 @@ inference.inzdot <- function(object, bs, class, width, hypothesis, ...) {
                 out <- c(out, "", "Unable to compute confidence intervals and p-values.")
             }
         }
+
     } else if (!is.null(hypothesis) & !bs) {
-        ## hypothesis testing
+        ## hypothesis testing - one sample
         test.out <- t.test(toplot$all$x,
                            alternative = hypothesis$alternative,
                            mu = hypothesis$value)
