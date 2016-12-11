@@ -210,7 +210,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
     ## A tidy header that formats the vames of the variables
     mat <- cbind(ind(ifelse(scatter, "Response/outcome variable: ", "Primary variable of interest: ")),
                  paste0(ifelse(scatter, vnames$y, vnames$x),
-                        " (", vartypes[[ifelse(scatter, vnames$y, vnames$x)]], ")"))
+                        " (", gsub("factor", "categorical", vartypes[[ifelse(scatter, vnames$y, vnames$x)]]), ")"))
     
     if ("y" %in% names(vnames))
         mat <- rbind(mat, cbind(ind(paste0(ifelse(scatter,

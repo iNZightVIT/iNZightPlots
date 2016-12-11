@@ -307,12 +307,12 @@ formatMat <- function(mat, digits = 4) {
 
     mat
 }
-inference.inzhist <- function(object, bs, class, width, ...)
-    inference.inzdot(object, bs, class, width, ...)
+inference.inzhist <- function(object, bs, class, width, hypothesis, ...)
+    inference.inzdot(object, bs, class, width, hypothesis, ...)
 
 
 
-inference.inzbar <- function(object, bs, vn, nb, ...) {
+inference.inzbar <- function(object, bs, vn, nb, hypothesis, ...) {
     phat <- object$phat
     inf <- object$inference.info
 
@@ -326,6 +326,26 @@ inference.inzbar <- function(object, bs, vn, nb, ...) {
         return("Not enough data to perform bootstraps.")
 
     twoway <- nrow(phat) > 1
+    
+    if (!is.null(hypothesis) && !bs) {
+        chi2 <- suppressWarnings(chisq.test(object$tab))
+        
+        piece1 <- ifelse(twoway,
+                         sprintf("distribution of %s does not depend on %s", vn$x, vn$y),
+                         "true proportions in each category are equal")
+        piece2 <- ifelse(twoway,
+                         sprintf("distribution of %s changes with %s", vn$x, vn$y),
+                         "true proportions in each category are not equal")
+        
+        HypOut <- c("Chi-square test for equal proportions", "",
+                    paste0("   X^2 = ", format(signif(chi2$statistic, 5)), ", ",
+                           "df = ", format(signif(chi2$parameter, 5)), ", ",
+                           "p-value ", ifelse(chi2$p.value < 2.2e-16, "", "= "), format.pval(chi2$p.value, digits = 5)), "",
+                    sprintf("          Null Hypothesis: %s", piece1),
+                    sprintf("   Alternative Hypothesis: %s", piece2), "")
+    } else {
+        HypOut <- NULL
+    }
 
     if (twoway) {
         mat <- inf$conf$estimate
@@ -377,7 +397,7 @@ inference.inzbar <- function(object, bs, vn, nb, ...) {
         out <- c(out, "", paste0("95%", bsCI, " Confidence Intervals"), "",
                  apply(cis, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
 
-        out <- c(out, "", "",
+        out <- c(out, "", HypOut, "",
                  paste0("   *** Differences between proportions of ", vn$y, " for each level of ", vn$x, " ***"))
 
         if (bs) {
@@ -518,22 +538,13 @@ inference.inzbar <- function(object, bs, vn, nb, ...) {
             cis <- formatMat(cis)
         }
 
-        out <- c(out, "", "",
+        out <- c(out, "", HypOut, "",
                  "   *** Differences between Proportions (column - row) ***", "",
                  "Estimates", "",
                  apply(diffs, 1, function(x) paste0("   ", paste(x, collapse = "   "))),
                  "",
                  paste0("95%", bsCI, " Confidence Intervals"), "",
                  apply(cis, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
-    }
-
-    if (!bs) {
-        chi2 <- suppressWarnings(chisq.test(object$tab))
-        out <- c(out, "", "",
-                 "   *** Chi-square test for equal proportions ***", "",
-                 paste0("   X-squared = ", format(signif(chi2$statistic, 5)), ", ",
-                        "df = ", format(signif(chi2$parameter, 5)), ", ",
-                        "p-value ", ifelse(chi2$p.value < 2.2e-16, "", "= "), format.pval(chi2$p.value, digits = 4)))
     }
     
     out

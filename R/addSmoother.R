@@ -72,7 +72,7 @@ function(x, y = NULL, f, col, bs, lty = 1, opts) {
     if (is.null(y) & inherits(x, "survey.design")) {
         sm <- svysmooth(y ~ x, design = x, method = "locpoly")[[1]]
     } else {
-        sm <- lowess(x, y, f = f)
+        sm <- loess.smooth(x, y, span = f, family = "gaussian")
     }
     grid.lines(sm$x, sm$y,
                default.units = "native",
