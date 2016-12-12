@@ -269,6 +269,12 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
               sep="", collapse=" ")
     }
     stype <- simpleCap(summary.type)
+
+    if (!is.null(vnames$y) && vartypes[[vnames$x]] == "factor" && vartypes[[vnames$y]] == "numeric") {
+        tmpx <- vnames$y
+        vnames$y <- vnames$x
+        vnames$x <- tmpx
+    }
     
     ## Cycle through G2 first
     lapply(names(obj), function(this) {

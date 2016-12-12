@@ -2,7 +2,7 @@ inference <- function(object, ...)
     UseMethod("inference")
 
 
-inference.inzdot <- function(object, bs, class, width, hypothesis, ...) {
+inference.inzdot <- function(object, bs, class, width, vn, hypothesis, ...) {
     toplot <- object$toplot
     inf <- object$inference.info
 
@@ -201,7 +201,9 @@ inference.inzdot <- function(object, bs, class, width, hypothesis, ...) {
             ## For x ~ factor, we also include an F test, and multiple comparisons
             ## (estimates, pvalues, and confidence intervals).
             
-            out <- c(out, "", "", "   *** Differences between Group Means (column - row) ***", "")
+            out <- c(out, "", "",
+                     sprintf("### Difference in mean %s between %s groups", vn$x, vn$y), 
+                     "    (col group - row group)", "")
             
             means <- predict(fit, newdata = data.frame(y = levels(dat$y)))
             names(means) <- LEVELS <- levels(dat$y)
@@ -307,12 +309,12 @@ formatMat <- function(mat, digits = 4) {
 
     mat
 }
-inference.inzhist <- function(object, bs, class, width, hypothesis, ...)
+inference.inzhist <- function(object, bs, class, width, vn, hypothesis, ...)
     inference.inzdot(object, bs, class, width, hypothesis, ...)
 
 
 
-inference.inzbar <- function(object, bs, vn, nb, hypothesis, ...) {
+inference.inzbar <- function(object, bs, nb, vn, hypothesis, ...) {
     phat <- object$phat
     inf <- object$inference.info
 
@@ -398,7 +400,7 @@ inference.inzbar <- function(object, bs, vn, nb, hypothesis, ...) {
                  apply(cis, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
 
         out <- c(out, "", HypOut, "",
-                 paste0("   *** Differences between proportions of ", vn$y, " for each level of ", vn$x, " ***"))
+                 paste0("### Differences in proportions of ", vn$y, " with the specified ", vn$x))
 
         if (bs) {
             tab <- object$tab
@@ -439,7 +441,8 @@ inference.inzbar <- function(object, bs, vn, nb, hypothesis, ...) {
             }
 
             out <- c(out, "",
-                     paste0("### ", vn$x, " = ", lev), "",
+                     paste0("  # Group differences between proportions with: ", vn$x, " = ", lev),
+                     "    (col group - row group)", "",
                      "Estimates", "",
                      apply(diff, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
 
@@ -539,7 +542,8 @@ inference.inzbar <- function(object, bs, vn, nb, hypothesis, ...) {
         }
 
         out <- c(out, "", HypOut, "",
-                 "   *** Differences between Proportions (column - row) ***", "",
+                 sprintf("### Differences in proportions of %s", vn$x),
+                 "    (col group - row group)", "",
                  "Estimates", "",
                  apply(diffs, 1, function(x) paste0("   ", paste(x, collapse = "   "))),
                  "",
