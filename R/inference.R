@@ -374,10 +374,10 @@ inference.inzbar <- function(object, bs, nb, vn, hypothesis, ...) {
         
         out <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
         out <- c("Estimated Proportions", "",  out)
-        
+
         cis <- inf$conf
         cis <- rbind(cis$lower, cis$upper)
-        cis <- cis[c(1:nrow(phat) * 2 - 1, 1:nrow(phat) * 2), ]
+        cis <- cis[rep(1:nrow(phat), each = 2) + c(0, nrow(phat)), ]
 
         cis <- matrix(apply(cis, 2, function(col) {
             format(col, digits = 3)
