@@ -1,9 +1,18 @@
-# Version 2.6-dev
-__Releast date__: TBA
+# Version 2.6
+__Releast date__: 12 December 2016
 
 ## Major Changes
 
 - implementation of statistical hypothesis tests
+
+## Minor Changes
+
+- adjust grid lines to be less distracting
+- allow legend to be hidden (`hide.legend`, logical)
+
+## Bug Fixes
+
+- fix critical bug in inference output where CI's and p-values for reorded factors wern't reordered!
 
 
 ***
