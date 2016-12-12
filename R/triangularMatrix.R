@@ -17,10 +17,15 @@ triangularMatrix <- function(factorLvls, output, statType) {
             
             output.df <- as.data.frame(statsMatrix)
             output.df$name <- rownames(output.df)
-            
-            fake <- data.frame(name=rns)
-            statsMatrix <- as.matrix(merge(output.df, fake, by = "name", all.y = TRUE)[, -1])
-            rownames(statsMatrix) <- rns
+
+            print(output.df)
+
+            ## No idea what these three lines are supposed to be doing ... 
+            ## fake <- data.frame(name = rns)
+            ## statsMatrix <- as.matrix(merge(output.df, fake, by = "name", all.y = TRUE)[, -1])
+            ## rownames(statsMatrix) <- rns
+
+            statsMatrix <- output
         }
         else condition <- FALSE
     } else {
