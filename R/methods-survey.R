@@ -47,7 +47,6 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
             missing$g2 <- sum(is.na(dd[, g2]))
             df1 <- lapply(g2l,
                           function(l) {
-                              print(l)
                               dft <- eval(parse(text = sprintf("subset(des, %s == '%s')", vn$g2, l)))
                               #dft[, colnames(dft) != "g2"]
                           })
@@ -95,35 +94,15 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
     df.list <- lapply(df1, function(df2) {
         df3 <- lapply(g1l, function(x) {
             if (x == "all") dfo <- df2
-            else dfo <- eval(parse(text = sprintf("subset(df2, %s == '%s')", vn$g1, g1l)))
+            else dfo <- eval(parse(text = sprintf("subset(df2, g1 == '%s')", x)))
 
             if (nrow(dfo$variables) >= 1) return(dfo)
             else return(NULL)
-            
-            ## if (x != "all") {
-            ##     w <- df2$g1 == x
-            ##     dfnew <- df2[w & !is.na(w), , drop = FALSE]
-            ## } else {
-            ##     dfnew <- df2
-            ## }
-            ## if (is.null(g1)) {
-            ##     dfo <- dfnew
-            ## } else {
-            ##     dfo <- dfnew[, colnames(dfnew) != "g1", drop = FALSE]
-            ## }
-
-            ## if (nrow(dfo) > 1) {
-            ##   # turn it into a svydesign:
-            ##     return(eval(parse(text = modifyData(df$design$call, "dfo"))))
-            ## } else if (nrow(dfo) == 1) {
-            ##     return(list(variables = dfo))
-            ## } else {
-            ##     return(NULL)
-            ## }
         })
         names(df3) <- g1l
         df3
     })
+    
 
     ## sum up all of the missing values
     w.df <-

@@ -263,6 +263,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     if (!is.null(locate.extreme)) xattr$nextreme <- locate.extreme
     if (!is.null(zoombars)) xattr$zoom <- zoombars
 
+    if (inherits(df.list, "inz.survey")) {
+        xattr$max.weight <- max(weights(df$design))
+    }
+    
+
     if (opts$matchplots) {
       # this is the case where the data is subset by g1/g2, but we want the plots to be the same
       # across all levels

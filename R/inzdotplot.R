@@ -85,14 +85,15 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     }
 
     for (i in unique(id)) {
-        dfi <- subset(df, id == i)
-        dfi$y <- NULL
-
         if (xattr$class == "inz.freq")
             di <- svydesign(ids=~1, weights = dfi$freq, data = dfi)
         else if (xattr$class == "inz.survey") {
-            di <- eval(parse(text = modifyData(obj$df$call, "dfi")))
+            if ("y" %in% colnames(obj$df$variables)) {
+                di <- subset(obj$df, y == i)
+            } else di <- obj$df
         } else {
+            dfi <- subset(df, id == i)
+            dfi$y <- NULL
             di <- dfi
         }
 

@@ -52,7 +52,8 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
 
     if (inherits(data, "survey.design")) {
         df$data <- as.data.frame(lapply(m[mw], eval, data$variables, env))
-        df$design <- eval(data, env)
+        newDat <- cbind(data$variables, df$data)
+        df$design <- eval(parse(text = modifyCall(data$call, "data", "newDat")))
         class(df) <- "inz.survey"
     } else if ("freq" %in% names(m)) {
         df$data <- as.data.frame(lapply(m[mw & names(m) != "sizeby"], eval, data, env))

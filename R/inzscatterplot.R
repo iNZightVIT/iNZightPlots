@@ -4,7 +4,7 @@ create.inz.scatterplot <- function(obj) {
     opts <- obj$opts
     xattr <- obj$xattr
     features <- opts$plot.features
-
+    
     
     if (opts$join) {
         df <- df
@@ -57,7 +57,7 @@ create.inz.scatterplot <- function(obj) {
             resize <- FALSE
             propsize <- opts$cex.pt
         } else
-            propsize <- df$weights
+            propsize <- df$weights / xattr$max.weight * 2 + 0.5
     } else if ("sizeby" %in% v) {
         propsize <- df$.cex
     } else {

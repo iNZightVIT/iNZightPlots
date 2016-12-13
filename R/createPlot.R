@@ -8,7 +8,7 @@ createPlot <- function(df, opts, xattr) {
     large <- ifelse(is.null(lg <- opts$largesample),
     (if (inherits(df, "survey.design")) nrow(df$variables) else nrow(df)) > opts$large.sample.size, lg)
     wts <- xattr$class != "inz.simple"
-    
+
     v <- xattr$v
     vt <- xattr$vartypes
     xfact <- vt$x == "factor"
@@ -61,7 +61,7 @@ createPlot <- function(df, opts, xattr) {
     pclass <- paste("inz", type, sep = ".")
     obj <- structure(.Data = list(df = df, opts = opts, xattr = xattr),
                      class = pclass)
-    
+
     tryCatch(create(obj),
              error = function(e) {
                  if (grepl('no applicable method for \'create\'', e))
