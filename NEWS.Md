@@ -13,7 +13,7 @@ __Releast date__: 12 December 2016
 ## Bug Fixes
 
 - fix critical bug in inference output where CI's and p-values for reorded factors wern't reordered!
-
+- fix issue where confidence intervals for two-way table row proportions were ordered incorrectly
 
 ***
 # Version 2.5
