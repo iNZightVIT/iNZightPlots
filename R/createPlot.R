@@ -1,12 +1,12 @@
 createPlot <- function(df, opts, xattr) {
-  # This function takes a data.frame object and creates the necessary object which will have a
-  # `plot` method.
+    ## This function takes a data.frame object and creates the necessary object which will have a
+    ## `plot` method.
 
     if (is.null(df))
         return(nullPlot(opts, xattr))
 
     large <- ifelse(is.null(lg <- opts$largesample),
-                    nrow(df) > opts$large.sample.size, lg)
+    (if (inherits(df, "survey.design")) nrow(df$variables) else nrow(df)) > opts$large.sample.size, lg)
     wts <- xattr$class != "inz.simple"
     
     v <- xattr$v
@@ -34,7 +34,6 @@ createPlot <- function(df, opts, xattr) {
     if (type != plottype & type != "other")
         warning("The plot type specified does not match the supplied data.")
 
-    ## 
     if (type %in% c("default", "other")) {
         if (ynull) {
             newtype <- ifelse(xfact, "barplot",
@@ -62,7 +61,7 @@ createPlot <- function(df, opts, xattr) {
     pclass <- paste("inz", type, sep = ".")
     obj <- structure(.Data = list(df = df, opts = opts, xattr = xattr),
                      class = pclass)
-
+    
     tryCatch(create(obj),
              error = function(e) {
                  if (grepl('no applicable method for \'create\'', e))

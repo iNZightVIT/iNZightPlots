@@ -126,6 +126,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         df <- inzDataframe(m, data = md, names = varnames, g1.level, g2.level, env = env)
     }
 
+
     total.missing <- sum(apply(df$data, 1, function(x) any(is.na(x))))
     total.obs <- nrow(df$data)
 
@@ -269,9 +270,13 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
       # we just need to go through all plots and test if they should be LARGESAMPLE or not:
         if (is.null(opts$largesample)) {
             sample.sizes <- do.call(c, lapply(df.list, function(df) sapply(df, function(a) {
-                o <- nrow(a)
+                if (inherits(a, "survey.design")) {
+                    o <- nrow(a$variables)
+                } else {
+                    o <- nrow(a)
+                }
                 if (is.null(o)) 0 else o
-                })))
+            })))
             smallest.sample <- min(sample.sizes, na.rm = TRUE)
             largest.sample <- max(sample.sizes, na.rm = TRUE)
 
