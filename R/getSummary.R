@@ -251,6 +251,9 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
                      cbind(ind("Total number of observations used: "),
                            total.obs - total.missing))
     }
+    if (is.survey) {
+        mat <- rbind(mat, cbind("Estimated population size: ", NA))
+    }
     mat <- cbind(format(mat[, 1], justify = "right"), mat[, 2])
     apply(mat, 1, add)
 
@@ -329,7 +332,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
             add("")
 
             pl.design <- if (is.survey) design.list[[this]][[o]] else NULL
-            if (is.survey) hypothesis <- NULL
+            if (is.survey) hypothesis <- NULL  ## no hypothesis testing in survey designs (yet)
 
             sapply(switch(summary.type,
                           "summary" = summary(pl, vn = vnames, des = pl.design),

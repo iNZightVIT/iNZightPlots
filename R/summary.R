@@ -19,42 +19,71 @@ summary.inzdot <- function(object, des, ...) {
                 )
             s[!is.finite(s)] <- NA
             s
-        })) -> mat
+        })) -> matb
+        rns <- c("Min", "25%", "Median", "75%", "Max", "Mean", "SD", "Sample Size")
     } else {
         dv <- des$variables
-        if ("y" %in% colnames(dv))
+        if ("y" %in% colnames(dv)) {
             mat <- cbind(tapply(dv$x, dv$y, min),
                          svyby(~x, ~y, des, svyquantile, quantiles = c(0.25, 0.5, 0.75), keep.var = FALSE)[, -1],
                          tapply(dv$x, dv$y, max),
-                         svyby(~x, ~y, des, svymean)[, "x"],
-                         sqrt(svyby(~x, ~y, des, svyvar)[, "x"]),
-                         as.vector(table(dv$y)),
-                         svyby(~x, ~y, des, svytotal)[, "x"])
-        else
+                         coef(svyby(~x, ~y, des, svymean)),
+                         coef(svyby(~x, ~y, des, svyvar)),
+                         coef(svyby(~x, ~y, des, svytotal)),
+                         NaN,
+                         as.vector(table(dv$y)))
+
+            semat <- cbind(NA,
+                           suppressWarnings(
+                               SE(svyby(~x, ~y, des, svyquantile, quantiles = c(0.25, 0.5, 0.75), ci = TRUE, se = TRUE))
+                           ),
+                           NA,
+                           SE(svyby(~x, ~y, des, svymean)),
+                           SE(svyby(~x, ~y, des, svyvar)),
+                           SE(svyby(~x, ~y, des, svytotal)),
+                           NA,
+                           NA)
+
+            dimnames(semat) <- dimnames(mat)
+            mat <- rbind(mat, semat)
+        } else {
             mat <- cbind(min(dv$x, na.rm = TRUE),
                          svyquantile(~x, des, quantiles = c(0.25, 0.5, 0.75)),
                          max(dv$x),
-                         svymean(~x, des)[["x"]],
-                         sqrt(svyvar(~x, des)[["x"]]),
-                         nrow(dv),
-                         svytotal(~x, des)[["x"]])
+                         coef(svymean(~x, des)),
+                         coef(svyvar(~x, des)),
+                         svytotal(~x, des)[["x"]], NaN,
+                         nrow(dv))
+
+            semat <- cbind(NA,
+                           NA, NA, NA,
+                           NA,
+                           SE(svymean(~x, des)),
+                           SE(svyvar(~x, des)),
+                           SE(svytotal(~x, des)), NA,
+                           NA)
+
+            mat <- rbind(mat, semat)
+        }
+        rns <- c("Min", "25%", "Median", "75%", "Max", "Mean", "Variance", "Est. Pop. Size", "|", "Sample Size")
     }
-    
+
     mat <- matrix(apply(mat, 2, function(col) {
         format(col, digits = 4)
     }), nrow = nrow(mat))
 
     ## Remove NA's and replace with an empty space
     mat[grep("NA", mat)] <- ""
+    mat <- gsub("NaN", "|", mat)
 
     ## Text formatting to return a character vector - each row of matrix
-    rns <- c("Min", "25%", "Median", "75%", "Max", "Mean", "SD", "Sample Size")
-    if (!is.null(des)) rns <- c(rns, "Population Size")
     mat <- rbind(rns,  mat)
     colnames(mat) <- NULL
 
+    
     if (length(toplot) > 1) {
-        mat <- cbind(c("", names(toplot)), mat)
+        print(c("", rep(names(toplot), ifelse(exists("semat"), 2, 1))))
+        mat <- cbind(c("", rep(names(toplot), ifelse(exists("semat"), 2, 1))), mat)
     }
     rownames(mat) <- NULL
     
@@ -63,7 +92,17 @@ summary.inzdot <- function(object, des, ...) {
     }), nrow = nrow(mat))
 
     mat <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
-    mat
+    
+    if (exists("semat")) {
+        top <- 1:((length(mat)-1)/2+1)
+        bot <- ((length(mat)-1)/2+2):length(mat)
+        out <- c("Population estimates:", "", mat[top], "",
+                 "Standard error of estimates:", "", mat[bot])
+    } else {
+        out <- c("Population estimates:", "", mat)
+    }
+
+    out
 }
 summary.inzhist <- function(object, des, ...)
     summary.inzdot(object, des, ...)

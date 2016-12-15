@@ -120,16 +120,16 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
             ## Two sample t-test
 
             if (is.survey) {
-                ttest <- svyttest(if (is.numeric(des$variables$x)) x ~ y else y ~ x, design = des)
+                ## ttest <- svyttest(if (is.numeric(des$variables$x)) x ~ y else y ~ x, design = des)
 
-                fit <- svyglm(if (is.numeric(des$variables$x)) x ~ y else y ~ x, design = des)
-                ci <- confint(fit)
-                mat <- rbind(c("Lower", "Mean", "Upper"),
-                             format(c(ci[2,1],
-                                      coef(fit)[2],
-                                      ci[2, 2]),
-                                    digits = 4))
-                colnames(mat) <- NULL
+                ## fit <- svyglm(if (is.numeric(des$variables$x)) x ~ y else y ~ x, design = des)
+                ## ci <- confint(fit)
+                ## mat <- rbind(c("Lower", "Mean", "Upper"),
+                ##              format(c(ci[2,1],
+                ##                       coef(fit)[2],
+                ##                       ci[2, 2]),
+                ##                     digits = 4))
+                ## colnames(mat) <- NULL
             } else {
                 ttest <- t.test(toplot[[1]]$x, toplot[[2]]$x)
                 mat <- rbind(c("Lower", "Mean", "Upper"),
