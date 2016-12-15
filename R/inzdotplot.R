@@ -516,14 +516,14 @@ dotinference <- function(obj) {
                                     ## 95% confidence interval (normal theory)
                                     if (svy) {
                                         if ("y" %in% colnames(dat$variables)) {
-                                            fit <- svyglm(x ~ y, design = dat)
-                                            ci <- confint(predict(fit, newdata = data.frame(y = levels(dat$variables$y))))
+                                            ##fit <- svyglm(x ~ y, design = dat)
+                                            ci <- svyby(~x, ~y, design = dat, svymean, vartype = "ci")[, 2:4]
                                             dimnames(ci) <- list(levels(dat$variables$y),
-                                                                 c("lower", "upper"))
+                                                                 c("mean", "lower", "upper"))
                                         } else {
-                                            fit <- svyglm(x ~ 1, design = dat)
-                                            ci <- confint(fit)
-                                            dimnames(ci) <- list("all", c("lower", "upper"))
+                                            fit <- svymean(~x, dat)
+                                            ci <- rbind(c(fit[1], confint(fit)))
+                                            dimnames(ci) <- list("all", c("mean", "lower", "upper"))
                                         }
                                         ci
                                     } else {

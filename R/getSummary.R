@@ -185,8 +185,8 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
     
     is.survey <- attr(obj, "inzclass") == "inz.survey"
 
-    if (is.survey & summary.type == "inference")
-        return("Inference for Survey Designs not yet implemented.")
+    #if (is.survey & summary.type == "inference")
+    #    return("Inference for Survey Designs not yet implemented.")
     
     add(Hrule)
     add(center(switch(summary.type,
@@ -228,8 +228,8 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
         mat <- rbind(mat, "")
         mat <- rbind(mat, cbind(ind("Subset by: "),
                                 do.call(paste, c(vnames[c("g1", "g2")[wg]], list(sep = " and ")))))
-        if (is.survey)
-            mat <- rbind(mat, c("NOTE: ", "survey summaries are not yet reliable for subsets."))
+        #if (is.survey)
+        #    mat <- rbind(mat, c("NOTE: ", "survey summaries are not yet reliable for subsets."))
     }
 
     mat <- rbind(mat, "",
@@ -329,10 +329,12 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
             add("")
 
             pl.design <- if (is.survey) design.list[[this]][[o]] else NULL
-            
+            if (is.survey) hypothesis <- NULL
+
             sapply(switch(summary.type,
                           "summary" = summary(pl, vn = vnames, des = pl.design),
-                          "inference" = inference(pl, bs, inzclass, width = width,
+                          "inference" = inference(pl, bs, inzclass, des = pl.design,
+                                                  width = width,
                                                   vn = vnames, nb = attr(obj, "nboot"),
                                                   hypothesis = hypothesis)),
                    add)

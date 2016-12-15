@@ -2,7 +2,7 @@ inference <- function(object, ...)
     UseMethod("inference")
 
 
-inference.inzdot <- function(object, bs, class, width, vn, hypothesis, ...) {
+inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...) {
     toplot <- object$toplot
     inf <- object$inference.info
 
@@ -11,6 +11,8 @@ inference.inzdot <- function(object, bs, class, width, vn, hypothesis, ...) {
     
     if (is.null(inf[[1]]$conf))
         stop("Please specify `inference.type = conf` to get inference information.")
+
+    is.survey <- !is.null(des)
 
     mat <- inf$mean$conf[, c("lower", "mean", "upper"), drop = FALSE]
 
@@ -40,11 +42,14 @@ inference.inzdot <- function(object, bs, class, width, vn, hypothesis, ...) {
     plural <- ifelse(byFactor, "s", "")
     bsCI <- ifelse(bs, " Percentile Bootstrap", "")
     out <- c(paste0(ifelse(byFactor,
-                           "Group Means", "Mean"),
+                           ifelse(is.survey, "Population Means", "Group Means"),
+                           ifelse(is.survey, "Population Mean", "Mean")),
                     " with 95%", bsCI, " Confidence Interval", plural), "",
              out)
 
     if (bs) {
+        if (is.survey) return("Bootstrap inference not yet implemented for survey data.")
+        
         ## BOOTSTRAP MEDIAN
         mat <- inf$median$conf[, c("lower", "mean", "upper"), drop = FALSE]
 
@@ -109,20 +114,31 @@ inference.inzdot <- function(object, bs, class, width, vn, hypothesis, ...) {
                     " with 95%", bsCI, " Confidence Interval", plural), "", mat)
     }
 
-
-    
     ### NOTE: this doesn't account for SURVEY design yet.
     if (byFactor & !bs) {
         if (length(toplot) == 2) {
             ## Two sample t-test
 
-            ttest <- t.test(toplot[[1]]$x, toplot[[2]]$x)
-            mat <- rbind(c("Lower", "Mean", "Upper"),
+            if (is.survey) {
+                ttest <- svyttest(if (is.numeric(des$variables$x)) x ~ y else y ~ x, design = des)
+
+                fit <- svyglm(if (is.numeric(des$variables$x)) x ~ y else y ~ x, design = des)
+                ci <- confint(fit)
+                mat <- rbind(c("Lower", "Mean", "Upper"),
+                             format(c(ci[2,1],
+                                      coef(fit)[2],
+                                      ci[2, 2]),
+                                    digits = 4))
+                colnames(mat) <- NULL
+            } else {
+                ttest <- t.test(toplot[[1]]$x, toplot[[2]]$x)
+                mat <- rbind(c("Lower", "Mean", "Upper"),
                          format(c(ttest$conf.int[1],
                                   diff(rev(ttest$estimate)),
                                   ttest$conf.int[2]),
                                 digits = 4))
-            colnames(mat) <- NULL
+                colnames(mat) <- NULL
+            }
 
             mat <- cbind(c("", paste0(names(toplot)[1], " - ", names(toplot)[2])), mat)
 
@@ -132,7 +148,10 @@ inference.inzdot <- function(object, bs, class, width, vn, hypothesis, ...) {
 
             mat <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
                 
-            out <- c(out, "", "Difference in group means with 95% Confidence Interval", "", mat)
+            out <- c(out, "",
+                     sprintf("Difference in %s means with 95%s Confidence Interval",
+                             ifelse(is.survey, "population", "group"), "%"),
+                     "", mat)
         }
 
         if (!is.null(hypothesis)) {
@@ -238,9 +257,13 @@ inference.inzdot <- function(object, bs, class, width, vn, hypothesis, ...) {
 
     } else if (!is.null(hypothesis) & !bs) {
         ## hypothesis testing - one sample
-        test.out <- t.test(toplot$all$x,
-                           alternative = hypothesis$alternative,
-                           mu = hypothesis$value)
+        ##if (is.survey) {
+            #test.out <- svyttest(I(x - hypothesis$value) ~ 1, des)
+        ##} else {
+            test.out <- t.test(toplot$all$x,
+                               alternative = hypothesis$alternative,
+                               mu = hypothesis$value)
+        ##}
         pval <- format.pval(test.out$p.value)
         out <- c(out, "",
                  "One Sample t-test", "",
@@ -309,8 +332,8 @@ formatMat <- function(mat, digits = 4) {
 
     mat
 }
-inference.inzhist <- function(object, bs, class, width, vn, hypothesis, ...)
-    inference.inzdot(object, bs, class, width, hypothesis, ...)
+inference.inzhist <- function(object, des, bs, class, width, vn, hypothesis, ...)
+    inference.inzdot(object, des, bs, class, width, vn, hypothesis, ...)
 
 
 
@@ -630,7 +653,7 @@ pDiffCI <- function(p1, p2, n1, n2, z = 1.96) {
 }
 
 
-inference.inzscatter <- function(object, bs, nboot, vn, ...) {
+inference.inzscatter <- function(object, des, bs, nb, vn, ...) {
     d <- data.frame(x = object$x, y = object$y)
     trend <- object$trend
     
@@ -639,6 +662,8 @@ inference.inzscatter <- function(object, bs, nboot, vn, ...) {
 
     if (bs & nrow(d) < 10)
         return("Not enough observations to perform bootstrap simulation.")
+
+    is.survey <- !is.null(des)
 
     ## Ensure the order is linear/quad/cubic
     allT <- c("linear", "quadratic", "cubic")
@@ -654,6 +679,8 @@ inference.inzscatter <- function(object, bs, nboot, vn, ...) {
             break
         } else {
             if (bs) {
+                if (is.survey) return("Bootstrap inference not yet implemented for survey data.")
+                
                 b <- boot(d,
                           function(dat, f) {
                               fit <- switch(t,
@@ -669,10 +696,17 @@ inference.inzscatter <- function(object, bs, nboot, vn, ...) {
                           sprintf("%.5g", apply(b$t, 2, quantile, probs = 0.975, na.rm = TRUE)))
                 
             } else {
-                fit <- switch(t,
-                              lm(y ~ x, data = d),
-                              lm(y ~ x + I(x^2), data = d),
-                              lm(y ~ x + I(x^2) + I(x^3), data = d))
+                if (is.survey) {
+                    fit <- switch(t,
+                                  svyglm(y ~ x, des),
+                                  svyglm(y ~ x + I(x^2), des),
+                                  svyglm(y ~ x + I(x^2) + I(x^3), des))
+                } else {
+                    fit <- switch(t,
+                                  lm(y ~ x, data = d),
+                                  lm(y ~ x + I(x^2), data = d),
+                                  lm(y ~ x + I(x^2) + I(x^3), data = d))
+                }
                 
                 cc <- summary(fit)$coef
                 ci <- confint(fit)
@@ -688,6 +722,7 @@ inference.inzscatter <- function(object, bs, nboot, vn, ...) {
                 covMat <- mat[3, ]
                 mat <- mat[1:2, ]
             }
+            
             
             mat <- rbind(c("Estimate", "Lower", "Upper", if (!bs) "p-value"), mat)
             
