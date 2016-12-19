@@ -68,7 +68,7 @@ create.inz.barplot <- function(obj) {
             phat <- sweep(tab, 1, nn <- rowSums(tab), "/")
         } else {
             tab <- svytable(~y + x, design = svy)
-            phat <- svyby(~x, by = ~y, svy, FUN = svymean)[, 1 + 1:ncol(tab)]
+            phat <- svyby(~x, by = ~y, svy, FUN = svymean, drop.empty.groups = FALSE)[, 1 + 1:ncol(tab)]
             nn <- rowSums(tab)
         }
         

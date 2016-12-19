@@ -24,7 +24,6 @@ summary.inzdot <- function(object, des, ...) {
     } else {
         dv <- des$variables
         if ("y" %in% colnames(dv)) {
-            print(svytable(~y, des))
             mat <- cbind(tapply(dv$x, dv$y, min),
                          svyby(~x, ~y, des, svyquantile, quantiles = c(0.25, 0.5, 0.75),
                                keep.var = FALSE, drop.empty.groups = FALSE)[, -1],
@@ -144,25 +143,50 @@ summary.inzbar <- function(object, des, ...) {
             format(col, justify = "right")
         }), nrow = nrow(mat2))
 
-        c("Table of Counts:", "",
-          apply(mat1, 1, function(x) paste0("   ", paste(x, collapse = "   "))),
-          "",
-          "Table of Percentages:", "",
-          apply(mat2, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
-        
+        out <- c(sprintf("Table of %sCounts:", ifelse(is.survey, "Estimated Population ", "")), "",
+                 apply(mat1, 1, function(x) paste0("   ", paste(x, collapse = "   "))),
+                 "",
+                 sprintf("Table of %sPercentages:", ifelse(is.survey, "Estimated Population ", "")), "",
+                 apply(mat2, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
+
+        if (is.survey) {
+            mat <- format(SE(svyby(~x, ~y, des, svymean, drop.empty.groups = FALSE)) * 100, digits = 4)            
+            mat <- cbind(c("", rownames(tab)), rbind(colnames(tab), mat))
+            mat <- matrix(apply(mat, 2, function(col) {
+                format(col, justify = "right")
+            }), nrow = nrow(mat))
+            mat[grep("NA", mat)] <- ""
+            mat <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
+            out <- c(out, "",
+                     "Standard error of estimated percentages:", "",
+                     mat)
+        }
+        return(out)
     } else {
         mat <- rbind(c(names(tab), "Total"),
                      c(tab, sum(tab)),
                      paste0(c(format(perc, digits = 4), "100"), "%"))
 
         mat <- cbind(c("", "Count", "Percent"), mat)
+        if (is.survey) {
+            mat <- rbind(mat, "", c("Standard Error (%)",
+                                    format(SE(svymean(~x, des)) * 100, digits = 4), NA))
+        }
 
         mat <- matrix(apply(mat, 2, function(col) {
             format(col, justify = "right")
         }), nrow = nrow(mat))
+
+        mat[grep("NA", mat)] <- ""
         
         mat <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
-        mat
+        
+        
+        if (is.survey) {
+            return(c("Population Estimates:", "", mat))
+        } else {
+            return(mat)
+        }
     }
 }
 

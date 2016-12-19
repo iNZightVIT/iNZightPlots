@@ -251,6 +251,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
                            total.obs - total.missing))
     }
     if (is.survey) {
+        des <- attr(obj, "main.design")
         mat <- rbind(mat, cbind("Estimated population size: ",
                                 paste0(round(coef(svytotal(matrix(rep(1, nrow(des$variables)), ncol = 1), des))),
                                        "  [standard error = ",
@@ -288,7 +289,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
             add(Hrule)
             add(ind("For the subset where ", 5), vnames$g2, " = ", this)
         }
-        
+
         lapply(names(obj[[this]]), function(o) {
             pl <- obj[[this]][[o]]
 

@@ -179,5 +179,11 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
                           function(x) ifelse(!is.character(x), deparse(x), x))
     df$glevels <- list(g1.level = g1.level, g2.level = g2.level)
 
+    if (!is.null(df$design)) {
+        if ("g1" %in% colnames(df$data))
+            df$design <- update(df$design, g1 = df$data$g1)
+        if ("g2" %in% colnames(df$data))
+            df$design <- update(df$design, g2 = df$data$g2)        
+    }
     df
 }

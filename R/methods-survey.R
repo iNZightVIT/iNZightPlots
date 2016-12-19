@@ -68,13 +68,13 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
         if (is.null(g1.level)) g1.level <- "_MULTI"
 
         if (is.numeric(g1.level)) {
-            if (any(g1.level > length(levels(dd[, g1])))) g1.level <- 0
-            g1.level <- if (any(g1.level == 0)) "_MULTI" else levels(df$data$g1)[g1.level]
+            if (any(g1.level > length(levels(dd$g1)))) g1.level <- 0
+            g1.level <- if (any(g1.level == 0)) "_MULTI" else levels(dd$g1)[g1.level]
         }
 
         if (any(g1.level == "_MULTI"))
             g1.level <- levels(df$data$g1)
-
+        
         # track missing values due to missingness in g1
         missing$g1 <- sum(is.na(df$data$g1))
     } else {
@@ -101,7 +101,6 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
         names(df3) <- g1l
         df3
     })
-    
 
     ## sum up all of the missing values
     w.df <-
@@ -121,7 +120,6 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
                     sum(is.na(d$variables$y)) else 0))))
 
     class(df.list) <- "inz.survey"
-
     list(df = df.list, matrix = matrix.plot, missing = missing,
          g1.level = g1.level, g2.level = g2.level)
 }
