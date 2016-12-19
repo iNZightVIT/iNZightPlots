@@ -68,10 +68,10 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ## Any varnames supplied that AREN'T needed must be removed, otherwise errors:
     nullVars <- sapply(as.list(m)[names(varnames)], is.null)
     varnames[nullVars] <- NULL
-
+    
     ## fix up some subsetting group stuff
     if (is.null(m$g1)) {
-        if (!is.null(g2)) {
+        if (!is.null(m$g2)) {
             if (length(varnames) > 0) {
                 varnames$g1 <- varnames$g2
                 varnames$g2 <- NULL
@@ -130,7 +130,6 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ##     else
     ##         bs.inference <- dots$bs.inference
     ## }
-
     
     obj <- iNZightPlot(x = x, y = y, g1 = g1, g1.level = g1.level,
                        g2 = g2, g2.level = g2.level, varnames = varnames,
@@ -152,7 +151,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
     }
     if (!summary.type %in% c("summary", "inference"))
         stop("`summary.type` must be either `summary` or `inference`")
-    
+
     obj <- object  ## same typing ... but match default `summary` method arguments
 
     ## set up some variables/functions to make text processing easier ...
@@ -252,7 +251,11 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
                            total.obs - total.missing))
     }
     if (is.survey) {
-        mat <- rbind(mat, cbind("Estimated population size: ", NA))
+        mat <- rbind(mat, cbind("Estimated population size: ",
+                                paste0(round(coef(svytotal(matrix(rep(1, nrow(des$variables)), ncol = 1), des))),
+                                       "  [standard error = ",
+                                       signif(SE(svytotal(matrix(rep(1, nrow(des$variables)), ncol = 1), des))),
+                                       "]")))
     }
     mat <- cbind(format(mat[, 1], justify = "right"), mat[, 2])
     apply(mat, 1, add)

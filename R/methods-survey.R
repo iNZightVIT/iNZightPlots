@@ -47,8 +47,7 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
             missing$g2 <- sum(is.na(dd[, g2]))
             df1 <- lapply(g2l,
                           function(l) {
-                              dft <- eval(parse(text = sprintf("subset(des, %s == '%s')", vn$g2, l)))
-                              #dft[, colnames(dft) != "g2"]
+                              dft <- eval(parse(text = sprintf("subset(des, g2 == '%s')", l)))
                           })
             names(df1) <- g2l
         }
@@ -109,7 +108,7 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
         if (is.null(g2.level)) "all"
         else if (g2.level == "_MULTI") 1:length(df.list)
         else g2.level
-    
+
     missing$x <- sum(sapply(df.list[w.df], function(df)
                             sum(sapply(df, function(d)
                                        if (!is.null(d))

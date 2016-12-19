@@ -6,7 +6,7 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
 
     if ("g2" %in% names(m) & (!("g1" %in% names(m)) | is.null(m$g1))) {
         if (!is.null(m$g2)) {
-            if (g2.level == "_ALL") {
+            if (is.null(g2.level) || g2.level == "_ALL") {
                 m$g1 <- NULL
                 m$g2 <- NULL
 

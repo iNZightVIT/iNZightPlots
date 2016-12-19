@@ -10,8 +10,10 @@ create.inz.barplot <- function(obj) {
     inf.par <- "proportion"
     bs <- opts$bs.inference
 
-    if (xattr$class == "inz.survey")
+    if (xattr$class == "inz.survey") {
+        des <- df
         df <- df$variables
+    }
 
     ynull <- !"y" %in% colnames(df)
 
@@ -27,7 +29,7 @@ create.inz.barplot <- function(obj) {
 
     svy <- switch(xattr$class,
                   "inz.survey" = {
-                      eval(parse(text = modifyData(obj$df$call, "df")))
+                      des          
                   }, "inz.freq" = {
                       svydesign(ids=~1, weights = ~freq, data = df)
                   }, "inz.simple" = {
