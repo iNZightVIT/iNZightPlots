@@ -336,7 +336,6 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
             add("")
 
             pl.design <- if (is.survey) design.list[[this]][[o]] else NULL
-            if (is.survey) hypothesis <- NULL  ## no hypothesis testing in survey designs (yet)
 
             sapply(switch(summary.type,
                           "summary" = summary(pl, vn = vnames, des = pl.design),

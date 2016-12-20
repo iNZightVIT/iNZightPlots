@@ -9,8 +9,10 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
     if (is.character(inf))
         return("Sample too small to get inference")
     
-    if (is.null(inf[[1]]$conf))
-        stop("Please specify `inference.type = conf` to get inference information.")
+    if (is.null(inf[[1]]$conf)) {
+        warning("Please specify `inference.type = conf` to get inference information.")
+        return("No inference information available. Sample size too small?")
+    }
 
     is.survey <- !is.null(des)
 
@@ -120,16 +122,16 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
             ## Two sample t-test
 
             if (is.survey) {
-                ## ttest <- svyttest(if (is.numeric(des$variables$x)) x ~ y else y ~ x, design = des)
-
-                ## fit <- svyglm(if (is.numeric(des$variables$x)) x ~ y else y ~ x, design = des)
-                ## ci <- confint(fit)
-                ## mat <- rbind(c("Lower", "Mean", "Upper"),
-                ##              format(c(ci[2,1],
-                ##                       coef(fit)[2],
-                ##                       ci[2, 2]),
-                ##                     digits = 4))
-                ## colnames(mat) <- NULL
+                fit <- try(svyglm(if (is.numeric(des$variables$x)) x ~ y else y ~ x, design = des), TRUE)
+                if (inherits(fit, "try-error")) {
+                    mat <- rbind(c("Lower", "Mean", "Upper"),
+                                 rep(NA, 3))
+                } else {
+                    ci <- confint(fit)
+                    mat <- rbind(c("Lower", "Mean", "Upper"),
+                                 format(c(ci[2,1], coef(fit)[2], ci[2, 2]), digits = 4))
+                    colnames(mat) <- NULL
+                }
             } else {
                 ttest <- t.test(toplot[[1]]$x, toplot[[2]]$x)
                 mat <- rbind(c("Lower", "Mean", "Upper"),
@@ -140,54 +142,66 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
                 colnames(mat) <- NULL
             }
 
-            mat <- cbind(c("", paste0(names(toplot)[1], " - ", names(toplot)[2])), mat)
-
-            mat <- matrix(apply(mat, 2, function(col) {
-                format(col, justify = "right")
-            }), nrow = nrow(mat))
-
-            mat <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
+            if (any(is.na(mat))) {
+                out <- c(out, "")
+            } else {            
+                mat <- cbind(c("", paste0(names(toplot)[1], " - ", names(toplot)[2])), mat)
                 
-            out <- c(out, "",
-                     sprintf("Difference in %s means with 95%s Confidence Interval",
-                             ifelse(is.survey, "population", "group"), "%"),
-                     "", mat)
+                mat <- matrix(apply(mat, 2, function(col) {
+                    format(col, justify = "right")
+                }), nrow = nrow(mat))
+                
+                mat <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
+                
+                out <- c(out, "",
+                         sprintf("Difference in %s means with 95%s Confidence Interval",
+                                 ifelse(is.survey, "population", "group"), "%"),
+                         "", mat)
+            }
         }
 
         if (!is.null(hypothesis)) {
             if (length(toplot) == 2 && hypothesis$test %in% c("default", "t.test")) {
-                test.out <- t.test(toplot[[1]]$x, toplot[[2]]$x,
-                                   mu = hypothesis$value, alternative = hypothesis$alternative,
-                                   var.equal = hypothesis$var.equal)
-                
-                pval <- format.pval(test.out$p.value)
-                out <- c(out, "",
-                         paste0(ifelse(hypothesis$var.equal, "", "Welch "), "Two Sample t-test",
-                                ifelse(hypothesis$var.equal, " assuming equal variance", "")), "",
-                         paste0("   t = ", format(test.out$statistic, digits = 5),
-                                ", df = ", format(test.out$parameter, digits = 5),
-                                ", p-value ", ifelse(substr(pval, 1, 1) == "<", "", "= "), pval),
-                         "",
-                         paste0("          Null Hypothesis: true difference in means is equal to ", test.out$null.value),
-                         paste0("   Alternative Hypothesis: true difference in means is ",
-                                ifelse(test.out$alternative == "two.sided", "not equal to",
-                                       paste0(test.out$alternative, " than")), " ", test.out$null.value)
-                         )
-                if (hypothesis$var.equal) {
-                    ## F test for equal variance
-                    ftest <- var.test(toplot[[1]]$x, toplot[[2]]$x)
-                    
-                    svar <- sapply(toplot, function(d) var(d$x))
-                    sn <- sapply(toplot, function(d) length(d$x))
-                    var.pooled <- sum((sn - 1) * svar) / sum(sn - 1)
-                    pval <- format.pval(ftest$p.value)
+                if (is.survey) {
+                    test.out <- try(svyttest(if (is.numeric(des$variables$x)) x ~ y else y ~ x, des), TRUE)
+                } else {
+                    test.out <- t.test(toplot[[1]]$x, toplot[[2]]$x,
+                                       mu = hypothesis$value, alternative = hypothesis$alternative,
+                                       var.equal = hypothesis$var.equal)
+                }
+
+                if (!inherits(test.out, "try-error")) {
+                    pval <- format.pval(test.out$p.value)
                     out <- c(out, "",
-                             paste0("          Pooled Variance: ", format(var.pooled, digits = 5)), "",
-                             "F-test for equal variance [NOTE: very sensitive to non-normality]",
+                             ifelse(is.survey, "Design-based Two Sample T-test",
+                                    paste0(ifelse(hypothesis$var.equal, "", "Welch "), "Two Sample t-test",
+                                           ifelse(hypothesis$var.equal, " assuming equal variance", ""))),
                              "",
-                             paste0("   F = ", format(ftest$statistic, digits = 5),
-                                    ", df = ", paste(format(ftest$parameter, digits = 5), collapse = " and "),
-                                    ", p-value ", ifelse(substr(pval, 1, 1) == "<", "", "= "), pval))
+                             paste0("   t = ", format(test.out$statistic, digits = 5),
+                                    ", df = ", format(test.out$parameter, digits = 5),
+                                    ", p-value ", ifelse(substr(pval, 1, 1) == "<", "", "= "), pval),
+                             "",
+                             paste0("          Null Hypothesis: true difference in means is equal to ", test.out$null.value),
+                             paste0("   Alternative Hypothesis: true difference in means is ",
+                                    ifelse(test.out$alternative == "two.sided", "not equal to",
+                                           paste0(test.out$alternative, " than")), " ", test.out$null.value)
+                             )
+                    if (!is.survey && hypothesis$var.equal) {
+                        ## F test for equal variance
+                        ftest <- var.test(toplot[[1]]$x, toplot[[2]]$x)
+                        
+                        svar <- sapply(toplot, function(d) var(d$x))
+                        sn <- sapply(toplot, function(d) length(d$x))
+                        var.pooled <- sum((sn - 1) * svar) / sum(sn - 1)
+                        pval <- format.pval(ftest$p.value)
+                        out <- c(out, "",
+                                 paste0("          Pooled Variance: ", format(var.pooled, digits = 5)), "",
+                                 "F-test for equal variance [NOTE: very sensitive to non-normality]",
+                                 "",
+                                 paste0("   F = ", format(ftest$statistic, digits = 5),
+                                        ", df = ", paste(format(ftest$parameter, digits = 5), collapse = " and "),
+                                        ", p-value ", ifelse(substr(pval, 1, 1) == "<", "", "= "), pval))
+                    }
                 }
             }
         }
@@ -200,9 +214,13 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
                                              data.frame(x = toplot[[t]]$x, y = t)
                                      }
                                      ))
-        fit <- lm(x ~ y, data = dat)
+        if (is.survey) {
+            fit <- try(svyglm(x ~ y, data = dat), TRUE)
+        } else {
+            fit <- lm(x ~ y, data = dat)
+        }
 
-        if (!is.null(hypothesis) && (length(toplot) > 2 | hypothesis$test == "anova")) {
+        if (!inherits(fit, "try-error") && !is.null(hypothesis) && (length(toplot) > 2 | hypothesis$test == "anova")) {
             fstat <- summary(fit)$fstatistic
 
             fpval <- format.pval(pf(fstat[1], fstat[2], fstat[3], lower.tail = FALSE),
@@ -257,24 +275,26 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
 
     } else if (!is.null(hypothesis) & !bs) {
         ## hypothesis testing - one sample
-        ##if (is.survey) {
-            #test.out <- svyttest(I(x - hypothesis$value) ~ 1, des)
-        ##} else {
+        if (is.survey) {
+            des <- update(des, .h0 = x - hypothesis$value)
+            test.out <- svyttest(.h0 ~ 0, des)
+        } else {
             test.out <- t.test(toplot$all$x,
                                alternative = hypothesis$alternative,
                                mu = hypothesis$value)
-        ##}
+        }
         pval <- format.pval(test.out$p.value)
         out <- c(out, "",
-                 "One Sample t-test", "",
+                 sprintf("%sOne Sample t-test", ifelse(is.survey, "Design-based ", "")),
+                 "",
                  paste0("   t = ", format(test.out$statistic, digits = 5),
                         ", df = ", test.out$parameter,
                         ", p-value ", ifelse(substr(pval, 1, 1) == "<", "", "= "), pval),
                  "",
-                 paste0("          Null Hypothesis: true mean is equal to ", test.out$null.value),
+                 paste0("          Null Hypothesis: true mean is equal to ", hypothesis$value),
                  paste0("   Alternative Hypothesis: true mean is ",
                         ifelse(test.out$alternative == "two.sided", "not equal to",
-                               paste0(test.out$alternative, " than")), " ", test.out$null.value)
+                               paste0(test.out$alternative, " than")), " ", hypothesis$value)
                  )
     }
 
@@ -337,9 +357,10 @@ inference.inzhist <- function(object, des, bs, class, width, vn, hypothesis, ...
 
 
 
-inference.inzbar <- function(object, bs, nb, vn, hypothesis, ...) {
+inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
     phat <- object$phat
     inf <- object$inference.info
+    is.survey <- !is.null(des)
 
     if (! "conf" %in% names(inf))
         stop("Please specify `inference.type = conf` to get inference information.")
@@ -351,23 +372,32 @@ inference.inzbar <- function(object, bs, nb, vn, hypothesis, ...) {
         return("Not enough data to perform bootstraps.")
 
     twoway <- nrow(phat) > 1
+    if (is.survey && !twoway) hypothesis <- NULL
     
     if (!is.null(hypothesis) && !bs) {
-        chi2 <- suppressWarnings(chisq.test(object$tab))
-        
-        piece1 <- ifelse(twoway,
-                         sprintf("distribution of %s does not depend on %s", vn$x, vn$y),
-                         "true proportions in each category are equal")
-        piece2 <- ifelse(twoway,
-                         sprintf("distribution of %s changes with %s", vn$x, vn$y),
-                         "true proportions in each category are not equal")
-        
-        HypOut <- c("Chi-square test for equal proportions", "",
-                    paste0("   X^2 = ", format(signif(chi2$statistic, 5)), ", ",
-                           "df = ", format(signif(chi2$parameter, 5)), ", ",
-                           "p-value ", ifelse(chi2$p.value < 2.2e-16, "", "= "), format.pval(chi2$p.value, digits = 5)), "",
-                    sprintf("          Null Hypothesis: %s", piece1),
-                    sprintf("   Alternative Hypothesis: %s", piece2), "")
+        if (is.survey) {
+            chi2 <- try(svychisq(~y+x, des), TRUE)
+        } else {
+            chi2 <- suppressWarnings(chisq.test(object$tab))
+        }
+
+        if (inherits(chi2, "try-error")) {
+            HypOut <- NULL
+        } else {
+            piece1 <- ifelse(twoway,
+                             sprintf("distribution of %s does not depend on %s", vn$x, vn$y),
+                             "true proportions in each category are equal")
+            piece2 <- ifelse(twoway,
+                             sprintf("distribution of %s changes with %s", vn$x, vn$y),
+                             "true proportions in each category are not equal")
+            
+            HypOut <- c("Chi-square test for equal proportions", "",
+                        paste0("   X^2 = ", format(signif(chi2$statistic, 5)), ", ",
+                               "df = ", format(signif(chi2$parameter, 5)), ", ",
+                               "p-value ", ifelse(chi2$p.value < 2.2e-16, "", "= "), format.pval(chi2$p.value, digits = 5)), "",
+                        sprintf("          Null Hypothesis: %s", piece1),
+                        sprintf("   Alternative Hypothesis: %s", piece2), "")
+        }
     } else {
         HypOut <- NULL
     }
@@ -513,7 +543,8 @@ inference.inzbar <- function(object, bs, nb, vn, hypothesis, ...) {
         out <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
         
         bsCI <- ifelse(bs, " Percentile Bootstrap", "")
-        out <- c(paste0("Estimated Proportion with 95%", bsCI, " Confidence Interval"), "",
+        out <- c(paste0(sprintf("Estimated %sProportions with 95%s", ifelse(is.survey, "Population ", ""), "%"),
+                                bsCI, " Confidence Interval"), "",
                  out)
 
         if (bs) {

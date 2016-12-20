@@ -239,7 +239,8 @@ barinference <- function(obj, tab, phat) {
                    } else {
                        if (svy) {
                            if (twoway) {
-                               est <- svyby(~x, by = ~y, obj$df, FUN = svymean, vartype = "ci")[, -1]
+                               est <- svyby(~x, by = ~y, obj$df, FUN = svymean, vartype = "ci",
+                                            drop.empty.groups = FALSE)[, -1]
                                nc <- length(levels(obj$df$variables$x))
                                list(lower = as.matrix(est[, nc + 1:nc]),
                                     upper = as.matrix(est[, 2 * nc + 1:nc]),
