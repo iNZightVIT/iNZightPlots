@@ -215,12 +215,12 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
                                      }
                                      ))
         if (is.survey) {
-            fit <- try(svyglm(x ~ y, data = dat), TRUE)
+            fit <- try(svyglm(x ~ y, des), TRUE)
         } else {
             fit <- lm(x ~ y, data = dat)
         }
 
-        if (!inherits(fit, "try-error") && !is.null(hypothesis) && (length(toplot) > 2 | hypothesis$test == "anova")) {
+        if (!is.survey && !is.null(hypothesis) && (length(toplot) > 2 | hypothesis$test == "anova")) {
             fstat <- summary(fit)$fstatistic
 
             fpval <- format.pval(pf(fstat[1], fstat[2], fstat[3], lower.tail = FALSE),
@@ -250,26 +250,28 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
             out <- c(out,
                      "Estimates", "",
                      apply(diffMat, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
-            
-            mc <- try(s20x::multipleComp(fit))
-            if (!inherits(mc, "try-error")) {
-                cimat <- triangularMatrix(LEVELS, mc, "ci")
-                cimat <- formatMat(cimat)
-                
-                out <- c(out, "",
-                         "95% Confidence Intervals (adjusted for multiple comparisons)", "",
-                         apply(cimat, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
-                
-                
-                pmat <- triangularMatrix(LEVELS, mc, "p-values")
-                pmat <- formatMat(pmat, 2)
-                
-                out <- c(out, "",
-                         "P-values", "",
-                         apply(pmat, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
-                
-            } else {
-                out <- c(out, "", "Unable to compute confidence intervals and p-values.")
+
+            if (!is.survey) {
+                mc <- try(s20x::multipleComp(fit))
+                if (!inherits(mc, "try-error")) {
+                    cimat <- triangularMatrix(LEVELS, mc, "ci")
+                    cimat <- formatMat(cimat)
+                    
+                    out <- c(out, "",
+                             "95% Confidence Intervals (adjusted for multiple comparisons)", "",
+                             apply(cimat, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
+                    
+                    
+                    pmat <- triangularMatrix(LEVELS, mc, "p-values")
+                    pmat <- formatMat(pmat, 2)
+                    
+                    out <- c(out, "",
+                             "P-values", "",
+                             apply(pmat, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
+                    
+                } else {
+                    out <- c(out, "", "Unable to compute confidence intervals and p-values.")
+                }
             }
         }
 
@@ -499,23 +501,25 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
                      "Estimates", "",
                      apply(diff, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
 
-            cis <- matrix(NA, nrow = 2 * (n - 1), ncol = n - 1)
-            for (k in 2:n) {
-                for (l in 1:(k - 1)) {
-                    wr <- (k - 2) * 2 + 1
-                    cis[wr:(wr + 1), l] <-
-                        if (bs) quantile(b$t[, j], c(0.025, 0.975), na.rm = TRUE)
-                        else pDiffCI(p[k], p[l], sum[k], sum[l])
+            if (!is.survey) {
+                cis <- matrix(NA, nrow = 2 * (n - 1), ncol = n - 1)
+                for (k in 2:n) {
+                    for (l in 1:(k - 1)) {
+                        wr <- (k - 2) * 2 + 1
+                        cis[wr:(wr + 1), l] <-
+                            if (bs) quantile(b$t[, j], c(0.025, 0.975), na.rm = TRUE)
+                            else pDiffCI(p[k], p[l], sum[k], sum[l])
+                    }
                 }
+                colnames(cis) <- dn[[1]][-n]
+                rownames(cis) <- c(rbind(dn[[1]][-1], ""))
+                
+                cis <- formatMat(cis, 3)
+                
+                out <- c(out, "",
+                         paste0("95% ", bsCI, " Confidence Intervals"), "",
+                         apply(cis, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
             }
-            colnames(cis) <- dn[[1]][-n]
-            rownames(cis) <- c(rbind(dn[[1]][-1], ""))
-            
-            cis <- formatMat(cis, 3)
-            
-            out <- c(out, "",
-                     paste0("95% ", bsCI, " Confidence Intervals"), "",
-                     apply(cis, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
         }
     } else {
         mat <- t(rbind(inf$conf$lower, inf$conf$estimate, inf$conf$upper))

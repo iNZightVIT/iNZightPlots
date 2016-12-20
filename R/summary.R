@@ -28,6 +28,7 @@ summary.inzdot <- function(object, des, ...) {
                                keep.var = FALSE, drop.empty.groups = FALSE)[, -1],
                          coef(svyby(~x, ~y, des, svymean, drop.empty.groups = FALSE)),
                          coef(svyby(~x, ~y, des, svyvar, drop.empty.groups = FALSE)),
+                         coef(svyby(~x, ~y, des, svytotal, drop.empty.groups = FALSE)),
                          coef(svytotal(~y, des)),
                          NaN, as.vector(table(dv$y)),
                          tapply(dv$x, dv$y, min, na.rm = TRUE), tapply(dv$x, dv$y, max, na.rm = TRUE))
@@ -38,6 +39,7 @@ summary.inzdot <- function(object, des, ...) {
                            ),
                            SE(svyby(~x, ~y, des, svymean, drop.empty.groups = FALSE)),
                            SE(svyby(~x, ~y, des, svyvar, drop.empty.groups = FALSE)),
+                           SE(svyby(~x, ~y, des, svytotal, drop.empty.groups = FALSE)),
                            SE(svytotal(~y, des)),
                            NA, NA, NA, NA)
 
@@ -47,18 +49,20 @@ summary.inzdot <- function(object, des, ...) {
             mat <- cbind(svyquantile(~x, des, quantiles = c(0.25, 0.5, 0.75)),
                          coef(svymean(~x, des)),
                          coef(svyvar(~x, des)),
+                         coef(svytotal(~x, des)),
                          coef(svytotal(matrix(rep(1, nrow(des$variables)), ncol = 1), des)),
                          NaN, nrow(dv), min(dv$x, na.rm = TRUE), max(dv$x, na.rm = TRUE))
             
             semat <- cbind(rbind(SE(svyquantile(~x, des, quantiles = c(0.25, 0.5, 0.75), se = TRUE))),
                            SE(svymean(~x, des)),
                            SE(svyvar(~x, des)),
+                           SE(svytotal(~x, des)),
                            SE(svytotal(matrix(rep(1, nrow(des$variables)), ncol = 1), des)),
                            NA, NA, NA, NA)
 
             mat <- rbind(mat, semat)
         }
-        rns <- c("25%", "Median", "75%", "Mean", "Variance", "Est. Pop. Size",
+        rns <- c("25%", "Median", "75%", "Mean", "Variance", "Total", "Est. Pop. Size",
                  "|", "Sample Size", "Min", "Max")
     }
 
