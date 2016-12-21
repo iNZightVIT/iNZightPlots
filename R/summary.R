@@ -40,7 +40,7 @@ summary.inzdot <- function(object, des, ...) {
                            SE(svyby(~x, ~y, des, svymean, drop.empty.groups = FALSE)),
                            SE(svyby(~x, ~y, des, svyvar, drop.empty.groups = FALSE)),
                            SE(svyby(~x, ~y, des, svytotal, drop.empty.groups = FALSE)),
-                           SE(svytotal(~y, des)),
+                           NA,
                            NA, NA, NA, NA)
 
             dimnames(semat) <- dimnames(mat)
@@ -48,22 +48,26 @@ summary.inzdot <- function(object, des, ...) {
         } else {
             mat <- cbind(svyquantile(~x, des, quantiles = c(0.25, 0.5, 0.75)),
                          coef(svymean(~x, des)),
-                         coef(svyvar(~x, des)),
+                         coef(svycontrast(svyvar(~x, des), quote(sqrt(`x`)))),
                          coef(svytotal(~x, des)),
                          coef(svytotal(matrix(rep(1, nrow(des$variables)), ncol = 1), des)),
                          NaN, nrow(dv), min(dv$x, na.rm = TRUE), max(dv$x, na.rm = TRUE))
             
             semat <- cbind(rbind(SE(svyquantile(~x, des, quantiles = c(0.25, 0.5, 0.75), se = TRUE))),
                            SE(svymean(~x, des)),
-                           SE(svyvar(~x, des)),
+                           SE(svycontrast(svyvar(~x, des), quote(sqrt(`x`)))),
                            SE(svytotal(~x, des)),
-                           SE(svytotal(matrix(rep(1, nrow(des$variables)), ncol = 1), des)),
+                           NA,
                            NA, NA, NA, NA)
 
             mat <- rbind(mat, semat)
         }
-        rns <- c("25%", "Median", "75%", "Mean", "Variance", "Total", "Est. Pop. Size",
+        rns <- c("25%", "Median", "75%", "Mean", "SD", "Total", "Est. Pop. Size",
                  "|", "Sample Size", "Min", "Max")
+        if (!all(weights(des) == 0 | weights(des) >= 1)) {
+            mat <- mat[, -(6:7)]
+            rns <- rns[-(6:7)]
+        }
     }
 
     mat <- matrix(apply(mat, 2, function(col) {
@@ -264,14 +268,21 @@ summary.inzscatter <- function(object, vn, des, ...) {
     }
 
     if (is.survey) {
-        rank.cor <- cov2cor(coef(svyvar(rank(y) ~ rank(x), design = des)))[1,2]
+        ## rank.cor <- cov2cor(coef(svyvar(rank(y) ~ rank(x), design = des)))[1,2]
+        if (!"linear" %in% trend) {
+            cor <- round(cov2cor(as.matrix(svyvar(y~x, design = des)))[1,2], 2)
+            out <- c(out,
+                     paste0("Correlation: ", sprintf("%.2f", cor),
+                            "  (using Pearson's Correlation)"))
+        }
     } else {
         rank.cor <- cor(x, y, method = "spearman")
+        out <- c(out,
+                 paste0("Rank correlation: ", sprintf("%.2f", rank.cor),
+                        "  (using Spearman's Rank Correlation)"))
     }
-    out <- c(out,
-             paste0("Rank correlation: ", sprintf("%.2f", rank.cor),
-                    "  (using Spearman's Rank Correlation)"))
-      
+
+    out
 }
 summary.inzgrid <- function(object, vn, des, ...)
     summary.inzscatter(object, vn, des, ...)

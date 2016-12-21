@@ -253,10 +253,10 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
     if (is.survey) {
         des <- attr(obj, "main.design")
         mat <- rbind(mat, cbind("Estimated population size: ",
-                                paste0(round(coef(svytotal(matrix(rep(1, nrow(des$variables)), ncol = 1), des))),
-                                       "  [standard error = ",
-                                       signif(SE(svytotal(matrix(rep(1, nrow(des$variables)), ncol = 1), des))),
-                                       "]")))
+                                paste0(round(coef(svytotal(matrix(rep(1, nrow(des$variables)), ncol = 1), des)))
+                                       )
+                                )
+                     )
     }
     mat <- cbind(format(mat[, 1], justify = "right"), mat[, 2])
     apply(mat, 1, add)
