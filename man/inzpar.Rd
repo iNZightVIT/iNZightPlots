@@ -4,7 +4,7 @@
 \alias{inzpar}
 \title{iNZight Plotting Parameters}
 \usage{
-inzpar(...)
+inzpar(..., .viridis = requireNamespace("viridis", quietly = TRUE))
 }
 \arguments{
 \item{...}{If arguments are supplied, then these values are set. If left empty, then
@@ -43,7 +43,8 @@ smaller, while values larger than 1 will magnify everything}
 \item{'lty'}{the line type of lines (for joining points)}
 \item{'lwd.pt'}{the line width used for points; default is 2}
 \item{'col.line'}{the colour of lines used to join points}
-\item{'col.sub'}{the background colour of subplot labels}
+\item{'col.sub'}{vector of up to two colours for the background of subplot labels.
+If only one specified, it is used for both.}
 \item{'locate.col.def'}{the default colour for locating points}
 \item{'jitter'}{the axes to add jitter to. Takes values \code{"x"}, \code{"y"},
 or \code{"xy"} (default is en empty string, \code{""})}
@@ -62,6 +63,8 @@ uses the sample size to decide on an approprite set of quantile smoothers}
 by the specified variable}
 \item{'col.trend'}{a named list of colors to be used for drawing the lines. The default is
 \code{list(linear = "blue", quadratic = "red", cubic = "green4")}}
+\item{'lty.trend'}{a named list of line types for various types of trend lines. The default is
+\code{list(linear = 1, quadratic = 2, cubic = 3)}}
 \item{'trend.by'}{logical, if \code{TRUE}, then trend lines are drawn separately for
 each group specified by \code{colby}}
 \item{'trend.parallel'}{logical, if \code{TRUE}, the trend lines by group are given the same slope;
@@ -92,6 +95,7 @@ to obtain the intervals}
 \item{'scatter.grid.bins'}{the number, N, of bins to use for the scatter-grid plot,
 producing an N x N matrix}
 \item{'hex.bins'}{the number of bins to use for hexagonal binning}
+\item{'hex.style'}{the style of the hexagons, one of "size" or "alpha"}
 \item{'quant.cutoff'}{if \code{quant.smooth = "default"}, these sample size values are used
 to determine which quantiles are drawn}
 \item{'plottype'}{used to override the default plot type. Possible values, depending on data type,
