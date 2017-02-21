@@ -1,20 +1,24 @@
-//Combined barplot + table JS - for one way, two way bar plots (NOT STACKED).
-/* Browser compatibility:
-Tested and fully works: Chrome 56, FireFox 38.3 and later
-                        Edg, IE11, 10, 9
-Unavailable: IE8 and earlier
+/* JS code for one way (excludes stacked - refer to other file) and
+two way bar plots.
+ Code is split in 3 sections: table properties,
+                              bar and label properties,
+                              and interaction code.
+Browser compatibility: Chrome 56, FireFox 38.3 and later
+                        Edge, IE11, 10, 9 (unavailable for earlier versions) */
 
-/*---------------------------------------------------
+ // Parsing data:
+ var prop = JSON.parse(prop);
+ var counts = JSON.parse(counts);
+
+/*-----------------------------------------------------
                   Table properties:
 Code to label table cells (with classes or ids), rows,
 columns. Additional headings, conversion to counts and
 percentage buttons are all coded and dynamically inserted
 in HTML via JS.
+Includes buttons relating to table (counts and percentage
+conversion, 'View Table' button).
 -----------------------------------------------------*/
-
-// Parsing data:
-prop = JSON.parse(prop);
-counts = JSON.parse(counts); // percent! unless it's used to separate if something's stacked or not.
 
 //defining table element
 var table = document.getElementById('table');
@@ -60,8 +64,8 @@ var tc = document.getElementById('tc' + i);
 tc.style.fontWeight = "bold";
 }
 
-xrow = table.insertRow(0);
-xhead = xrow.insertCell(0);
+var xrow = table.insertRow(0);
+var xhead = xrow.insertCell(0);
 xhead.innerHTML = document.getElementsByTagName('tspan')[2].innerHTML;
 xhead.style.fontStyle = "italic";
 xhead.style.textDecoration = "underline";
@@ -202,19 +206,14 @@ showTable = function() {
 
 
 /* ---------------------------------------------------------------------------
-BarPlot - code below here powers interactivity on single/double variable bar plots.
-For stacked bar plots, see the other javascript file. In the future, may be compiled to
-one JS file.
+BarPlot - code below here assigns and create labels for each bar, and defines
+          some of their properties.
 Anything with prop[0].Var1 != undefined -> signifies two way bar plots.
 ------------------------------------------------------------------------------ */
 
 // Adding some padding:
 document.body.style.padding = "20px";
 var svg = document.getElementsByTagName('svg')[0];
-
-//try make the svg responsive to page:
- /* svg.setAttribute('width', '100%');
-svg.setAttribute('height', '100%');  - only works on FF, Chrome. */
 
 //Increasing plotRegion out to show labels:
 rect = document.getElementsByTagName('rect')[0];
@@ -295,7 +294,7 @@ for (i = 1; i <= count; i++) {
         gRect.setAttributeNS(null,'fill-opacity', '0.8');
         gRect.setAttributeNS(null,'rx', '5');
         gRect.setAttributeNS(null, 'ry', '5');
-        gRect.setAttributeNS(null, 'stroke', 'none');
+        gRect.setAttributeNS(null, 'stroke', 'lightgray');
     gLabel = document.getElementById('gLabel' + i);
     gLabel.appendChild(gRect);
   };
@@ -305,14 +304,7 @@ for (i = 1; i <= count; i++) {
 }
 
 //Function to create individual labels
-label = function(Grob, id, textinput, i) {
-
- if (y-sy < 60) {
-    r = 'translate('+ ((x+sx)/2) + ', ' + (y + 30) +') scale(1, -1)';
-  } else { // for two way bar plots, it's slightly different.     label.setAttributeNS(null, 'transform', 'translate('+ ((x+sx)/2) + ', ' + (y + 5) +') scale(1, -1)'
-    r = 'translate('+ ((x+sx)/2) + ', ' + (y - 60) +') scale(1, -1)';
-  };
-
+label = function(Grob, id, textinput, i, tf) {
 
 //attributes for the text SVG element
   var label = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -324,7 +316,7 @@ label = function(Grob, id, textinput, i) {
     label.setAttributeNS(null, 'fill-opacity', '1');
     label.setAttributeNS(null, 'text-anchor', 'middle');
     label.setAttributeNS(null, 'visibility', 'inherit');
-    label.setAttributeNS(null, 'transform', r);
+    label.setAttributeNS(null, 'transform', 'translate('+ ((x+sx)/2) + ', ' + (y + tf) +') scale(1, -1)');
     label.setAttributeNS(null, 'id', id + i);
 
 // Creating the text label element:
@@ -332,7 +324,7 @@ label = function(Grob, id, textinput, i) {
   var textNode = document.createTextNode(text);
 
     label.appendChild(textNode);
-    gLabel = document.getElementById('gLabel' + i);
+    var gLabel = document.getElementById('gLabel' + i);
     gLabel.appendChild(label);
 };
 
@@ -349,38 +341,38 @@ for (i  = 1; i < count; i++) {
   var y = Number(coordsxy.split(",")[1]);
 
   if (prop[0].Var1 != undefined) { //for two way bar plots
-      freq = counts[i-1].Freq;
-      pp = prop[i-1].Freq;
-      gOne = counts[i-1].Var1;
-      gTwo = counts[i-1].Var2;
-      p = 'translate(' + ((x + sx)/2) + ', ' + (y + 30) + ') scale(1, -1)';
+    var freq = counts[i-1].Freq;
+    var pp = prop[i-1].Freq;
+    var gOne = counts[i-1].Var1;
+    var gTwo = counts[i-1].Var2;
+    var p = 30;
   } else { // for one way bar plots
-    freq = counts[i-1].Freq;
-    pp = prop[i-1].V1;
-    gOne = counts[i-1].Var1;
-    gTwo = ' ';
+  var freq = counts[i-1].Freq;
+  var pp = prop[i-1].V1;
+  var gOne = counts[i-1].Var1;
+  var gTwo = ' ';
   };
 
+//position of text labels:
     if (y-sy < 60) {
-    p = 'translate(' + + ((x + sx)/2) + ', ' + (y + 45) + ') scale(1, -1)';
-    q = 'translate(' + ((x + sx)/2) + ', ' + (y + 60) + ') scale(1, -1)';
+    var p = 30;
+    var q = 45;
+    var r = 60;
   } else {
-    p = 'translate(' + ((x + sx)/2) + ', ' + (y - 45) + ') scale(1, -1)';
-    q = 'translate(' + ((x + sx)/2) + ', ' + (y - 30) + ') scale(1, -1)';
+    var p = -60;
+    var q = -45;
+    var r = -30;
   };
 
-  label(Grob, 'label', (Number(pp)*100).toFixed(2) + "%", i);
+  label(Grob, 'label', (Number(pp)*100).toFixed(2) + "%", i, p);
 
   //making count labels:
-    label(Grob, 'countLabel' + gOne + gTwo, "N = " + freq, i);
-    var countLabel = document.getElementById('countLabel' + gOne + gTwo + i);
-        countLabel.setAttribute('transform', p);
+    label(Grob, 'countLabel' + gOne + gTwo, "N = " + freq, i, q);
 
   //making group labels:
-  label(Grob, 'groupLabel' + gOne + gTwo, gOne + ' ' +  gTwo, i);
+  label(Grob, 'groupLabel' + gOne + gTwo, gOne + ' ' +  gTwo, i, r);
       var groupLabel = document.getElementById('groupLabel' + gOne + gTwo + i);
       groupLabel.style.fontWeight = "bold";
-      groupLabel.setAttribute('transform', q);
 
       // Attach and draw rectangles to labels according to the size of the gLabel (with all labels attached)
         var gLabel = document.getElementById('gLabel' + i);
@@ -388,7 +380,6 @@ for (i  = 1; i < count; i++) {
         var gRect = document.getElementById('gRect' + i);
         gRect.setAttribute('x', rectParam.x-10);
         gRect.setAttribute('y', rectParam.y-10);
-        gRect.setAttribute('stroke', 'lightgray');
         gRect.setAttribute('width', rectParam.width+20);
         gRect.setAttribute('height', rectParam.height + 20);
 
@@ -400,19 +391,19 @@ for (i  = 1; i < count; i++) {
 /// INTERACTION CODE: Hovers, Clicks, Legends
 //Hovers on bars and labels:
 for (i = 1; i < count; i++) {
- bar = document.getElementById(Grob + '.' + i);
+ var bar = document.getElementById(Grob + '.' + i);
  bar.setAttribute('onmouseover', 'light('+ i + ')');
  bar.setAttribute('onmouseout', 'normal(' + i +')');
  bar.setAttribute('onclick', 'fade(' + i +')');
  }
 
  light = function(i) {
-   bar = document.getElementById(Grob + '.' + i);
+   var bar = document.getElementById(Grob + '.' + i);
    bar.setAttribute('style', 'fill-opacity: 0.75');
  };
 
  normal = function(i) {
-   bar = document.getElementById(Grob + '.' + i);
+   var bar = document.getElementById(Grob + '.' + i);
    bar.setAttribute('style', 'fill-opacity: 1');
 
  };
@@ -422,8 +413,8 @@ for (i = 1; i < count; i++) {
 fade = function(i) {
   for (j = 1; j < count; j ++) { //rows differ for twowayBP.
 
-    bar = document.getElementById(Grob + '.' + j);
-    gLabel = document.getElementById('gLabel' + j);
+    var bar = document.getElementById(Grob + '.' + j);
+    var gLabel = document.getElementById('gLabel' + j);
 
   if(prop[0].Var1 != undefined) {
     var row = document.getElementById('tr' + ((j-1)%(nrow-1)+1));

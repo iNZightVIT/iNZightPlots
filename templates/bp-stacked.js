@@ -1,5 +1,9 @@
-//JS code for one way stacked bar plots:
-// @ author: Yu Han Soh
+/*-------------------------------------------------------------------
+JS code for one way stacked bar plots:
+ Code is split in 3 sections: table properties (from line 27),
+                              bar and label properties (from line 211),
+                              and interaction code (from line 368).
+ -------------------------------------------------------------------*/
 
 //Parsing JSON data:
 var prop = JSON.parse(prop);
@@ -35,7 +39,7 @@ cellNo = td.length;
 //no. of rows in table
 nrow = document.getElementById('table').rows.length;
 for (i = 1; i < nrow; i ++) {
-  if(i == nrow-2) {
+  if(i == nrow-2) { // last two rows are the rows containing totals and counts
     tr[i].setAttribute('class', 'total');
   } else if (i == nrow-1) {
     tr[i].setAttribute('class', 'countRow');
@@ -89,8 +93,8 @@ var sum = countsTab.reduce(function(a, b) { return a + b; }, 0);
 
 
 //Inserting table headers:
-xrow = table.insertRow(0);
-xhead = xrow.insertCell(0);
+var xrow = table.insertRow(0);
+var xhead = xrow.insertCell(0);
 xhead.innerHTML = document.getElementsByTagName('tspan')[2].innerHTML;
 xhead.style.fontStyle = "italic";
 xhead.style.textDecoration = "underline";
@@ -106,7 +110,7 @@ yHeading.style.fontWeight = "normal";
 yHeading.style.textDecoration = "underline";
 
 
-//Creating buttons:
+//Creating buttons and setting attributes:
 button = function(name, color) {
   var button = document.createElement('button');
   button.setAttribute("type", "button");
@@ -130,20 +134,20 @@ changePercentage = function() {
       var total = document.getElementById('total' + ((i-1)%ncol)); //will need to be modified once the rev. issue is solved.
       var countsCol = document.getElementById('counts' + ((i-1)%ncol));
       if (td != undefined) {
-      if ((td.innerHTML.indexOf(".") >= 0) && (td.innerHTML.indexOf('%') == -1)) {
+      if ((td.innerHTML.indexOf(".") >= 0) && (td.innerHTML.indexOf('%') == -1)) { // change proportion to percentages
       td.innerHTML = (td.innerHTML*100).toFixed(2) + "%";
       total.innerHTML = "100%";
       countsCol.innerHTML = countsCol.innerHTML;
-    } else if (td.innerHTML.indexOf('%') >= 0) {
+    } else if (td.innerHTML.indexOf('%') >= 0) { // remain as percentages
       td.innerHTML = td.innerHTML;
       total.innerHTML = total.innerHTML;
       countsCol.innerHTML = countsCol.innerHTML;
-    } else {
+    } else { // change counts to percentages
       td.innerHTML = (Number(td.innerHTML)/countsTab[((i-1)%ncol)-1]*100).toFixed(2) + "%";
       total.innerHTML = "100%";
       countsCol.innerHTML = countsTab[((i-1)%ncol)-1];
     }
-  document.getElementById('yGroup' + (nrow - 1)).innerHTML = "Col N";
+  document.getElementById('yGroup' + (nrow - 1)).innerHTML = "Col N"; // change from 'Total %' to 'Col N'
 }
 }
 };
@@ -152,29 +156,29 @@ changePercentage = function() {
 changeCount = function() {
   for(i = 1; i <= cellNo; i++) {
       var td = document.getElementById('td' + i);
-      var total = document.getElementById('total' + ((i-1)%ncol));
+      var total = document.getElementById('total' + ((i-1)%ncol)); // by columns
       var countsCol = document.getElementById('counts' + ((i-1)%ncol));
       if (td != undefined && total != undefined) {
-      if (td.innerHTML.indexOf('%') >= 0){
+      if (td.innerHTML.indexOf('%') >= 0){ // convert percentage to counts
       td.innerHTML = Math.round(Number(td.innerHTML.substring(0,td.innerHTML.lastIndexOf('%')))/100 * countsTab[((i-1)%ncol)-1]);
       countsCol.innerHTML = (countsTab[((i-1)%ncol)-1]/sum*100).toFixed(2) + "%";
       total.innerHTML = Math.round(countsTab[((i-1)%ncol)-1]);
-    } else if ((td.innerHTML.indexOf(".") >= 0) && (td.innerHTML.indexOf('%') >= -1)){
+    } else if ((td.innerHTML.indexOf(".") >= 0) && (td.innerHTML.indexOf('%') >= -1)){ //converts proportions to counts
       td.innerHTML = Math.round(Number(td.innerHTML) * countsTab[((i-1)%ncol)-1]);
       countsCol.innerHTML = (countsTab[((i-1)%ncol)-1]/sum*100).toFixed(2) + "%";
       total.innerHTML = Math.round(countsTab[((i-1)%ncol)-1]);
-    } else {
+    } else { // remain as counts (if already converted to counts)
       td.innerHTML = td.innerHTML;
       total.innerHTML = total.innerHTML;
     }
   }
 }
-  document.getElementById('yGroup' + (nrow - 1)).innerHTML = "Total %";
+  document.getElementById('yGroup' + (nrow - 1)).innerHTML = "Total %"; // change from 'Col N' to 'total %'
 };
 
 
 //drive the viewTable button:
-  viewTable = document.getElementById('viewTable');
+var viewTable = document.getElementById('viewTable');
   t = true;
 showTable = function() {
   if(t) {
@@ -198,13 +202,14 @@ showTable = function() {
 
 
 
-//Stacked category bar plots:
+/*------------------------------------------------------------------
+                  Bar plot properties:
+Code to identify bars, show and hide lines and appropriate bars.
+Addition of appropriate labels to each bar.
+-------------------------------------------------------------------*/
 
 document.body.style.padding = "20px";
 var svg = document.getElementsByTagName('svg')[0];
-
-
-document.getElementById('svg-container').style.padding = "20px";
 
 //test rectangle out to show labels:
 var rect = document.getElementsByTagName('rect')[1];
@@ -213,15 +218,14 @@ rect.setAttribute('height', rect.getAttribute('height')*1.5);
 rect.setAttribute('x', rect.getAttribute('x')-20);
 rect.setAttribute('y', rect.getAttribute('y')-20);
 
-
-var count = counts.length*colorCounts.length + 1;
-var groups = counts.length;
+var count = counts.length*colorCounts.length + 1; //total no. of different combinations + 1
+var groups = counts.length; // no. of groups (corresponds to one of the variables)
 
 //Identifying bars
 var  p = document.getElementsByTagName('polygon');
 var id = p[0].getAttribute('id');
 var Grob = id.substring(0, id.lastIndexOf('.'));
-var panel = document.getElementsByTagName('g')[0];
+var panel = document.getElementById(Grob);
 
 for (i = 1; i < p.length; i++) {
   if (p[i].id.indexOf(Grob) >= 0) {
@@ -266,9 +270,26 @@ for (i = 1; i < count; i++) {
   gLabel(Grob, i);
 }
 
+//function to create rectangles for labels:
+  gRect = function(i) {
+    var gRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        gRect.setAttributeNS(null, 'visibility', 'inherit');
+        gRect.setAttributeNS(null, 'id', 'gRect' + i);
+        gRect.setAttributeNS(null,'fill', 'white');
+        gRect.setAttributeNS(null,'fill-opacity', '0.8');
+        gRect.setAttributeNS(null,'rx', '5');
+        gRect.setAttributeNS(null, 'ry', '5');
+        gRect.setAttributeNS(null, 'stroke', 'lightgray');
+    gLabel = document.getElementById('gLabel' + i);
+    gLabel.appendChild(gRect);
+  };
+
+for (i = 1; i < count; i++) {
+  gRect(i);
+}
 
 //creating labels:
-label = function(id, textinput, i) {
+label = function(id, textinput, i, tf) {
 //attributes for the text SVG element
   var label = document.createElementNS("http://www.w3.org/2000/svg", "text");
     label.setAttributeNS(null, 'x', '0');
@@ -277,9 +298,9 @@ label = function(id, textinput, i) {
     label.setAttributeNS(null, 'fill', 'black');
     label.setAttributeNS(null, 'stroke', 'none');
     label.setAttributeNS(null, 'fill-opacity', '1');
-    label.setAttributeNS(null, 'transform', 'translate('+ ((x+sx)/2) + ', ' + (y - 20) +') scale(1, -1)');
+    label.setAttributeNS(null, 'transform', 'translate('+ ((x+sx)/2) + ', ' + (y - tf) +') scale(1, -1)');
     label.setAttributeNS(null, 'text-anchor', 'middle');
-    label.setAttributeNS(null, 'visibility', 'inherit'); //hidden
+    label.setAttributeNS(null, 'visibility', 'inherit');
     label.setAttributeNS(null, 'id', id + i);
 
 // Creating the text label element:
@@ -295,6 +316,7 @@ label = function(id, textinput, i) {
 for (j = 1; j <= groups; j++) {
 for (i  = 1; i < count; i++) {
   var bar = document.getElementById(Grob + '.' + i);
+      bar.setAttribute("class", counts[j-1].Var1 +i);
   var coords = bar.getAttribute('points');
   var small = coords.split(" ")[1];
   var sx = Number(small.split(",")[0]);
@@ -302,27 +324,46 @@ for (i  = 1; i < count; i++) {
   var x = Number(coordsxy.split(",")[0]); //co-ordinates based upon SVG elements.
   var y = Number(coordsxy.split(",")[1]);
   if (i%groups == j) {
-  label('label', counts[j-1].Var1 + "\n" + colorCounts[Math.floor((i+groups-1)/groups-1)]._row , i);
-  label( 'countLabel','N = ' +  Math.round(eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[j-1].Var1 + "']")*counts[j-1].Freq) + ", " + ((eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[j-1].Var1 + "']")*100).toFixed(2)) + "%" , i);
-  var countLabel = document.getElementById('countLabel' + i);
-      p = 'translate(' + ((x + sx)/2) + ', ' + (y - 35) + ') scale(1, -1)';
-      countLabel.setAttribute('transform', p);
-      bar.setAttribute("class", counts[j-1].Var1 +i);
-
+    var text = counts[j-1].Var1 + "\n" + colorCounts[Math.floor((i+groups-1)/groups-1)]._row;
+  label('label', text, i, 30);
+    var text = 'N = ' +  Math.round(eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[j-1].Var1 + "']")*counts[j-1].Freq) + ", " + ((eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[j-1].Var1 + "']")*100).toFixed(2)) + "%";
+  label( 'countLabel', text, i, 45);
 }
-  if ((i+1)%groups == 1) {
-  label('label', counts[groups-1].Var1 + "\n" + colorCounts[Math.floor((i+groups-1)/groups-1)]._row , i);
-  label('countLabel','N = ' +  Math.round(eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[groups-1].Var1 + "']")*counts[groups-1].Freq) + ", " + ((eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[counts.length-1].Var1 + "']")*100).toFixed(2)) + "%", i);
-  var countLabel = document.getElementById('countLabel' + i);
-      p = 'translate(' + ((x + sx)/2) + ', ' + (y - 35) + ') scale(1, -1)';
-      countLabel.setAttribute('transform', p);
-      bar.setAttribute("class", counts[counts.length-1].Var1 +i); // there appears to be some weird looping going on here - especially for the final element. TEXT appears like so many times!! TT_TT
+  if (i%groups == 0 && j == groups) {
+    var text = counts[groups-1].Var1 + "\n" + colorCounts[Math.floor((i+groups-1)/groups-1)]._row;
+  label('label', text, i, 30);
+    var text = 'N = ' +  Math.round(eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[groups-1].Var1 + "']")*counts[groups-1].Freq) + ", " + ((eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[counts.length-1].Var1 + "']")*100).toFixed(2)) + "%"
+  label('countLabel',text, i, 45);
+    bar.setAttribute("class", counts[counts.length-1].Var1 +i);
 }
   }
 };
 
+//Attach rectangles to lables + setting styles:
+for (i  = 1; i < count; i++) {
+// Attach and draw rectangles to labels according to the size of the gLabel (with all labels attached)
+  var gLabel = document.getElementById('gLabel' + i);
+  rectParam = gLabel.getBBox();
+  var gRect = document.getElementById('gRect' + i);
+  gRect.setAttribute('x', rectParam.x-10);
+  gRect.setAttribute('y', rectParam.y-10);
+  gRect.setAttribute('width', rectParam.width+20);
+  gRect.setAttribute('height', rectParam.height + 20);
 
-/// INTERACTION CODE: Hovers, Clicks, Legends
+// making labels bold:
+  var label = document.getElementById('label' + i);
+  label.style.fontWeight = "bold";
+};
+
+
+/*------------------------------------------------------------------
+                  Interaction and event handlers:
+Code for mouse events - hovers, clicks on each bar to show labels, and
+highlights in table.
+Includes function for reset button which attempts to return the plot to
+its original state.
+-------------------------------------------------------------------*/
+// INTERACTION CODE: Hovers, Clicks
 //Hovers on bars and labels:
 for (i = 1; i < count; i++) {
  bar = document.getElementById(Grob + '.' + i);
@@ -343,21 +384,16 @@ for (i = 1; i < count; i++) {
 
  };
 
-
 //table interaction:
 fade = function(i) {
   for (j = 1; j < count; j ++) { //individuals
 
-     var label = document.getElementById('label' + j);
-       label.setAttribute('style', 'font-weight: bold');
-
-     var countLabel = document.getElementById('countLabel' + j);
+     var gLabel = document.getElementById('gLabel' + j);
      var data = table.getElementsByClassName('td' + j)[0];
 
     if (i == j) {
 
-      label.setAttribute('visibility', 'visible');
-      countLabel.setAttribute('visibility', 'visible');
+      gLabel.setAttribute('visibility', 'visible');
 
       // Relation to table:
         data.setAttribute('style', 'font-weight:bold');
@@ -366,13 +402,11 @@ fade = function(i) {
         data.style.backgroundColor = "rgba(" + lp + ",0.5)";
         data.style.opacity = "1";
 
-
     }  else {
 
-      label.setAttribute('visibility', 'hidden');
-      countLabel.setAttribute('visibility', 'hidden');
+      gLabel.setAttribute('visibility', 'hidden');
 
-      //Ideally to relate to table:
+      //Relation to table
       data.setAttribute('style', 'font-weight:normal');
       data.style.backgroundColor = "white";
 

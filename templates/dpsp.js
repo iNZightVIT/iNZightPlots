@@ -1,9 +1,15 @@
-//JavaScript code for dot plots and scatterplots:
-//works for iNZightMaps scatterplots.
-/* Issues: labels do not automatically resize when variables are hidden
+/* JavaScript code for dot plots and scatterplots (inclusive of iNZightMaps):
+Code is split into 3 sections: table properties,
+                                interactions,
+                                selectionCanvas (for multi-selection of points).
+  Issues: labels do not automatically resize when variables are hidden
            Cross-browser compatibility
+  Browser Compatibility: Google Chrome 56.0, Safari 10.2,
+                        FireFox (except for multi-select)
+   Labels appear for Edge, IE11, IE10. Table selection needs fixing. */
+
 /* -----------------------------------------------------
-                interactiveTable
+                Table properties:
 Code to assign classes, ids to table cells and rows to
 link up to interactions on the plot.
 Creation of HTML form/select to allow user to select
@@ -15,10 +21,10 @@ table.style.padding = "20px";
 table.style.display = "none";
 
 //no. of rows in table
-nrow = document.getElementById('table').rows.length;
+var nrow = document.getElementById('table').rows.length;
 
 //no. of columns in table
-ncol = document.getElementsByTagName('th').length;
+var ncol = document.getElementsByTagName('th').length;
 
 var td = document.getElementsByTagName('td');
 cellNo = td.length;
@@ -35,7 +41,7 @@ for (j = 1; j <= ncol; j++) {
   th[j-1].setAttribute('class', j-1);
 
   for (i=1; i <= cellNo; i++) {
-    td = document.getElementsByTagName('td');
+  var td = document.getElementsByTagName('td');
     if (i%ncol == j) {
       td[i].setAttribute('class', j);
     }
@@ -45,20 +51,20 @@ for (j = 1; j <= ncol; j++) {
 //no. of rows in table
 nrow = document.getElementById('table').rows.length;
 for (i = 1; i < nrow; i ++) {
-  tr = document.getElementsByTagName('tr');
+  var tr = document.getElementsByTagName('tr');
   tr[i].setAttribute('id', 'tr' + i);
   tr[i].setAttribute('align', 'center');
 };
 
 //  Select option for interactivity: to select variables accordingly
-form = document.createElement('form');
+var form = document.createElement('form');
 form.setAttribute('class', 'form-inline');
 form.setAttribute('id', 'form');
 form.style.display = "inline";
 form.style.padding = "20px";
 document.getElementById('control').appendChild(form);
 
-selectVar = document.createElement('select');
+var selectVar = document.createElement('select');
 selectVar.setAttribute('class', 'form-control');
 selectVar.setAttribute('id', 'selectVar');
 selectVar.setAttribute('onchange', 'selected()');
@@ -81,7 +87,7 @@ for (i = 0; i<=ncol-1; i++){
 };
 
 //drive the viewTable button:
-  viewTable = document.getElementById('viewTable');
+  var viewTable = document.getElementById('viewTable');
   t = true;
 showTable = function() {
   if(t) {
@@ -108,7 +114,7 @@ showTable = function() {
 var svg = document.getElementsByTagName('svg')[0];
 svg.setAttribute('preserveAspectRatio', 'xMinYMin meet');
 //set container with no style padding:
-svgContainer = document.getElementById('svg-container');
+var svgContainer = document.getElementById('svg-container');
 svgContainer.setAttribute('style', 'margin-left:0; padding:0; margin-right:0;');
 
 //to expand plotRegion rectangle to show labels:
@@ -139,9 +145,9 @@ if (boxData != undefined) {
   */
 
   //Obtaining the 'polygon' boxes associated with the boxplot:
-  polygonBox = document.getElementsByTagName('polygon');
-  polygonId = polygonBox[polygonBox.length -1].id;
-  idLine = polygonId.substring(0, polygonId.lastIndexOf('.'));
+  var polygonBox = document.getElementsByTagName('polygon');
+  var polygonId = polygonBox[polygonBox.length -1].id;
+  var idLine = polygonId.substring(0, polygonId.lastIndexOf('.'));
 
   for (i = 1; i <= polygonBox.length; i ++) {
     if (polygonBox[i-1].id.indexOf(idLine) >= 0){
@@ -150,7 +156,7 @@ if (boxData != undefined) {
   }
 
   //Min and Max - obtaining the ends of of the boxplot (lines): these are identified as the last two lines in the 'polyline' group.
-  polyLines = document.getElementsByTagName('polyline');
+  var polyLines = document.getElementsByTagName('polyline');
   for (i = 1; i <= polyLines.length; i++) {
   if (polyLines[i-1].id.indexOf('GRID') >= 0) {
     polyLines[i-1].setAttribute("class", "line");
@@ -185,16 +191,21 @@ if (boxData != undefined) {
 
   boxLabelSet = function(p, r, q, textinput) {
     if (textinput == "Min" ||  textinput == "Max") {
-      line = document.getElementById(lastLine + '.' +  p); // p will either be 1 or 2 -> 1 = minLine, 2 = maxLine
+      var line = document.getElementById(lastLine + '.' +  p); // p will either be 1 or 2 -> 1 = minLine, 2 = maxLine
       line.setAttribute('class', 'box');
-      boxPoints = line.getAttribute('points').split(" ")[r].split(",");
+      var boxPoints = line.getAttribute('points').split(" ")[r].split(",");
     } else {
-      box = document.getElementsByClassName('box')[p]; // boxplot split into two boxes - lowerbox (p = 0) and upperbox (p = 1)
-      boxPoints = box.getAttribute('points').split(" ")[r].split(",");
+      var box = document.getElementsByClassName('box')[p]; // boxplot split into two boxes - lowerbox (p = 0) and upperbox (p = 1)
+      var boxPoints = box.getAttribute('points').split(" ")[r].split(",");
     }
     x = boxPoints[0];
     y = boxPoints[1];
-    text = textinput + ": " + boxData[q].quantiles; // this is associated with the boxData imported from R.
+
+    if (textinput == "Median") { // move median label below the box plot
+     y = boxPoints[1] - 25;
+    }
+    
+    text = textinput + ": " + boxData[q].quantiles; // this is associated with the boxData imported from R. q = 0 (LQ), 1 (UQ), 2 (Median), 3 (Min), 4 (Max)
     boxLabel(text);
   };
 
@@ -230,7 +241,7 @@ if (boxData != undefined) {
   };
 
   showBox = function() {
-    boxData = document.getElementsByClassName('boxData');
+    var boxData = document.getElementsByClassName('boxData');
     for (i =0; i < boxData.length; i++) {
       boxData[i].setAttribute('visibility', 'visible');
   }
@@ -238,7 +249,7 @@ if (boxData != undefined) {
 
 } else {
   var Grob = "SCATTERPOINTS.1";
-  count = document.getElementById(Grob).childElementCount;
+  var count = document.getElementById(Grob).childElementCount;
 }
 
 var panel = document.getElementsByTagName('g')[0];
@@ -262,7 +273,7 @@ var gEl = document.createElementNS("http://www.w3.org/2000/svg", "g");
         gRect.setAttributeNS(null,'fill-opacity', '0.8');
         gRect.setAttributeNS(null,'rx', '5');
         gRect.setAttributeNS(null, 'ry', '5');
-        gRect.setAttributeNS(null, 'stroke', 'none');
+        gRect.setAttributeNS(null, 'stroke', 'lightgray');
     gLabel = document.getElementById('gLabel' + i);
     gLabel.appendChild(gRect);
   };
@@ -285,7 +296,7 @@ var label = document.createElementNS("http://www.w3.org/2000/svg", "text");
   label.setAttributeNS(null, 'font-size', "12");
   label.setAttributeNS(null, 'fill', 'black');
   label.setAttributeNS(null, 'fill-opacity', '1');
-  label.setAttributeNS(null, 'text-anchor', 'middle');
+  label.setAttributeNS(null, 'text-anchor', 'right');
   label.setAttributeNS(null, 'visibility', 'inherit');
   label.setAttributeNS(null, 'transform', 'translate(' + Number(x) + ',' + (Number(y) + varNo*15) + ') scale(1, -1)'); //hardcoded!
   label.setAttributeNS(null, 'id', id + i);
@@ -303,9 +314,10 @@ tLabel = function(id, textinput, i) {
   var tLabel = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
   tLabel.setAttributeNS(null, 'visibility', 'inherit');
   tLabel.setAttributeNS(null, 'id', id + i);
-  tLabel.setAttributeNS(null, 'font-weight', 'bold');
+  tLabel.style.fontWeight = "bold";
 
-  tLabel.innerHTML = textinput;
+  textNode = document.createTextNode(textinput);
+  tLabel.appendChild(textNode);
   lab.appendChild(tLabel);
 
 };
@@ -321,8 +333,8 @@ for (i  = 1; i <= count; i++) {
   var textNo = 'No: ' + i;
   label('labelNo', textNo, i);
   text = [];
-  text[j] = names[j] + ": " ;
-  label('label' + '.' + (j+1) + '.', text[j], i);
+  text[j] = names[j] + ": ";
+  label('label' + '.' + (j+1) + '.' , text[j], i);
   p = 'translate(' + Number(x) + ',' + (Number(y) + 15*(varNo-j-1)) + ') scale(1, -1)';
   lab = document.getElementById('label' + '.' + (j+1) + '.' + i);
   tLabel('tLabel', tableData[i-1][names[j]], i);
@@ -333,10 +345,10 @@ for (i  = 1; i <= count; i++) {
   var gLabel = document.getElementById('gLabel' + i);
   rectParam = gLabel.getBBox(); // possibly need to state that if this does not work on the browser (as it only works on Chrome, Firefox, Safari), skip this code.
   var gRect = document.getElementById('gRect' + i);
-  gRect.setAttribute('x', rectParam.x-5);
-  gRect.setAttribute('y', rectParam.y);
-  gRect.setAttribute('width', rectParam.width+10);
-  gRect.setAttribute('height', rectParam.height);
+  gRect.setAttribute('x', rectParam.x-1);
+  gRect.setAttribute('y', rectParam.y-2);
+  gRect.setAttribute('width', rectParam.width+2);
+  gRect.setAttribute('height', rectParam.height+2);
 
   }
 };
@@ -352,6 +364,7 @@ for (i =1; i <= count; i++) {
   point.setAttribute('onclick', 'info(' + i + ')');
 };
 
+//Hover on:
 show = function(i) {
   var point = document.getElementById(Grob + "." + i);
   point.style.fill = point.getAttribute('stroke');
@@ -362,6 +375,7 @@ show = function(i) {
   gLabel.setAttribute('visibility', 'visible');
 };
 
+//Hover out:
 normal = function(i) {
   var point = document.getElementById(Grob + "." + i);
   point.style.fill = "none";
@@ -372,7 +386,7 @@ normal = function(i) {
 
 };
 
-
+//On click:
 info = function(i) {
   for (j = 1; j <= count; j++) {
     point = document.getElementById(Grob + "." + j);
@@ -406,10 +420,11 @@ info = function(i) {
 }
 };
 
-//LEGEND INTERACTION: - what if there is no legend?
-//grabbing keys and text from the legend:
+//LEGEND INTERACTION:
 
-if (colGroupNo != (0 || undefined)) {
+
+if (colGroupNo != (0 || undefined)) { // if there is a legend, colGroupNo should be a value
+//grabbing keys and text from the legend:
 var keys = document.getElementsByTagName('use');
 var text = document.getElementsByTagName('text');
 
@@ -420,28 +435,39 @@ for (i = 1; i <= colGroupNo; i ++) { //colGroupNo -> colby levels from R (nlevel
   key.setAttribute('onmouseout', 'out(' + i + ')');
   key.setAttribute('onclick', 'subset(' + i + ')');
   var keyText = document.getElementById(text[i+3].id);
+  if (Grob == "DOTPOINTS.1") { // for dot plots - legend text differs
+    var keyText = document.getElementById(text[i+2].id);
+  }
   keyText.setAttribute('onmouseover', 'inner(' + i +')');
   keyText.setAttribute('onmouseout', 'out(' + i +')');
   keyText.setAttribute('onclick', 'subset(' + i + ')');
 };
 
-
+// hover on a legend group:
  inner = function(i) {
   var keyText = document.getElementById(text[i+3].id);
+  if (Grob == "DOTPOINTS.1") {
+    var keyText = document.getElementById(text[i+2].id);
+  }
   var key = document.getElementById(keys[i-1].id);
   keyText.setAttribute('style', 'fill:' + key.getAttribute('fill'));
   keyText.setAttribute('font-size', '115%');
   key.setAttribute('fill-opacity', '0.5');
 };
 
+//hover out:
 out = function(i) {
   var keyText = document.getElementById(text[i+3].id);
+  if (Grob == "DOTPOINTS.1") {
+    var keyText = document.getElementById(text[i+2].id);
+  }
   var key = document.getElementById(keys[i-1].id);
   keyText.setAttribute('style', 'fill: black');
   keyText.setAttribute('font-size', '100%');
   key.setAttribute('fill-opacity', '1');
 };
 
+//on click, subsetting occurs:
 subset = function(i) {
   for (j = 1; j <= count; j++) {
     var point = document.getElementById(Grob + '.' + j);
@@ -464,10 +490,14 @@ if (key.getAttribute('fill') == point.getAttribute('stroke')) {
 };
 
 
+/* Link to interactive table + labels - "Variables to display" select/option box:
+- may rewrite this in jQuery for detachment.
+Note - maybe a shortcut using CSS where you can show/hide using classes which
+could possibly increase speed?
+*/
 
-// Link to interactive table + labels - "Variables to display" select/option box:
 selected = function() {
-sOpt = selectVar.selectedOptions;
+sOpt = selectVar.selectedOptions; // this does not work on IE, and not fully supported. May need to replace this.
 s = [];
 for (i =0; i < sOpt.length; i++) {
   s.push(sOpt[i].value);
@@ -483,7 +513,7 @@ for (i =1; i <= ncol-1; i++) {
     } else {
     column[j-1].style.display = "none";
     if (j <= labels.length) {
-    labels[j-1].style.display = "none"; // I have no idea why all of a sudden the display attribute is being used.
+    labels[j-1].style.display = "none";
     labels[j-1].visibility = "hidden";
   }
 }
@@ -496,7 +526,6 @@ for (i=0; i <= s.length; i++) {
     labels = svg.getElementsByClassName(s[i]);
     for (j = 1; j <= column.length; j++) {
       column[j-1].style.display = "table-cell";
-//Note - maybe a shortcut using CSS where you can show/hide using classes which could possibly increase speed?
       if (j <= labels.length) {
      labels[j-1].style.display = "inherit";
      labels[j-1].visibility = "inherit";
@@ -507,20 +536,22 @@ for (i=0; i <= s.length; i++) {
 };
 
 
-/* --------------------------------------------------
+/* --------------------------------------------------------------
                 selectionCanvas.js
 
 Code to select over a group of points via mouse drag.
 //issues: breaks when user zooms, or when document
 had padding to SVG.
 ISSUES: Does not support FF, IE. - may rewrite in jQuery.
+- Note: this may need to be revised as foreignObjects are not
+supported in IE...
 
---------------------------------------------------- */
+----------------------------------------------------------------- */
 
 width = svg.width.baseVal.value;
 height = svg.height.baseVal.value;
 
-//Need to create canvas in order to draw rectangle on an svg element: - it requires a foreignObject.
+//Need to create canvas in order to draw rectangle on an svg element: - it requires a foreignObject. - NOT supported on IE!
 var foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
     foreignObject.setAttributeNS(null, 'id', 'foreignObject');
     foreignObject.setAttributeNS(null,'width', width);
@@ -550,31 +581,30 @@ ctx.fillStyle = "rgba(112,112,112, 0.25)";
 var isDrawing = false;
 
 //mouse events attached to svg element
-svg.setAttribute('onmousedown', 'MouseDown()');
-svg.setAttribute('onmouseup', 'MouseUp()');
-svg.setAttribute('onmousemove', 'MouseMove()');
+svg.setAttribute('onmousedown', 'MouseDown(event)');
+svg.setAttribute('onmouseup', 'MouseUp(event)');
+svg.setAttribute('onmousemove', 'MouseMove(event)');
 
 var selectBox = {};
 
-//MouseUp - what happens after the user finishes drawing the rectangle.
-MouseUp = function(e) {
-  var evt = window.event || e;
-	canvas.style.cursor = "default";
-  selectBox["endX"] = evt.pageX;
-  selectBox["endY"] = evt.pageY;
-  selectBox["isDrawing"] = false;
-  foreignObject.setAttribute('visibility', 'hidden');
-  //ctx.saveImageData()
-}
+//When the user begins to draw the rectangle...
+function MouseDown(e) {
+  var e = window.event || e;
+  canvas.style.cursor = "crosshair";
+  selectBox["isDrawing"] = true;
+    selectBox["startX"] = e.pageX;
+    selectBox["startY"] = e.pageY;
+  };
 
-MouseMove = function(e) {
-  var evt = window.event || e;
+// What happens when the user moves the mouse...
+function MouseMove(e) {
+  var e = window.event || e;
 if(selectBox["isDrawing"]) {
   //when drawing - foreignObject visibility is on, to allow user to draw canvas rectangle.
   foreignObject.setAttribute('visibility', 'visible');
   window.scrollTo(0, 0);
-    selectBox["endX"] = evt.pageX;
-    selectBox["endY"] = evt.pageY;
+    selectBox["endX"] = e.pageX;
+    selectBox["endY"] = e.pageY;
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		ctx.beginPath();
 		ctx.rect(selectBox["startX"], selectBox["startY"], selectBox["endX"]-selectBox["startX"], selectBox["endY"]-selectBox["startY"]);
@@ -582,7 +612,7 @@ if(selectBox["isDrawing"]) {
 
 
     //Because the y-axis is inverted in the plot - need to invert the scale
-     tVal = document.getElementsByTagName('g')[0].getAttribute('transform').substring(13, 16); //bit iffy on using substring values.
+     tVal = document.getElementsByTagName('g')[0].getAttribute('transform').substring(13, 16);
 
      //Because canvas can draw rectangles in any position (positive and negative!) - to calculate positions:
     if(selectBox["startX"] < selectBox["endX"]) {
@@ -609,7 +639,7 @@ if(selectBox["isDrawing"]) {
       x = point.x.baseVal.value;
       y = point.y.baseVal.value;
 
-      if (point.getAttribute('visibility') != 'hidden') {
+      if (point.getAttribute('visibility') != 'hidden') { // condition run on subsetted group
 
       //Condition run - where if the point lies within the rectangle selection box drawn:
       if((x1 <= x && x <= x2) && (y1 <= y && y <= y2))  {
@@ -621,14 +651,14 @@ if(selectBox["isDrawing"]) {
          dataRow.style.backgroundColor = "rgba" + lp + ", 0.25)";
          dataRow.style.display = "table-row";
 
-       } else {
+       } else { // hides points if it's not in the drawn region
          point.setAttribute('class', 'none');
          gLabel.setAttribute('visibility', 'hidden');
          point.style.opacity = "0.3";
         dataRow.style.backgroundColor = "white";
          dataRow.style.display = "none";
        }
-	} else {
+	} else {  // those that are hidden, remain hidden
     point.setAttribute('visibility', 'hidden');
     gLabel.setAttribute('visibility', 'hidden');
   }
@@ -636,13 +666,16 @@ if(selectBox["isDrawing"]) {
 }
 };
 
-MouseDown = function(e) {
-  var evt = window.event || e;
-  canvas.style.cursor = "crosshair";
-  selectBox["isDrawing"] = true;
-    selectBox["startX"] = evt.pageX;
-    selectBox["startY"] = evt.pageY;
-  };
+//MouseUp - what happens after the user finishes drawing the rectangle.
+function MouseUp(e) {
+  var e = window.event || e;
+	canvas.style.cursor = "default";
+  selectBox["endX"] = e.pageX;
+  selectBox["endY"] = e.pageY;
+  selectBox["isDrawing"] = false;
+  foreignObject.setAttribute('visibility', 'hidden'); // hides the foreignObject.
+}
+
 
 /* -------------------------------------------------
       Reset button - attempts to return to original state
@@ -650,17 +683,18 @@ MouseDown = function(e) {
 //Reset Button:
   reset = function() {
     for (i = 1; i <= count; i++) {
-      point = document.getElementById(Grob + "." + i);
+    var point = document.getElementById(Grob + "." + i);
       point.style.opacity = '1';
       point.setAttribute('visibility', 'visible');
-      gLabel = document.getElementById('gLabel' + i);
+    var gLabel = document.getElementById('gLabel' + i);
       gLabel.setAttribute('visibility', 'hidden');
-      dataRow = document.getElementById('tr' + i);
+    var dataRow = document.getElementById('tr' + i);
       dataRow.style.display = "table-row";
       dataRow.style.backgroundColor = "white";
       dataRow.style.opacity = "1";
 
-    selectRect = document.getElementById('selectRect');
+
+    var selectRect = document.getElementById('selectRect');
     if (selectRect != undefined) {
       selectRect.setAttribute('x', 0);
       selectRect.setAttribute('y', 0);
@@ -671,4 +705,11 @@ MouseDown = function(e) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     foreignObject.setAttribute('visibility', 'hidden');
   }
+for (i =1; i <= ncol-1; i++) {
+    column = table.getElementsByClassName(i);
+    for (j = 1; j <=column.length; j++) {
+    column.style.display = "table-cell";
+  }
+}
+selectedVar.selectedIndex = "0";
 };

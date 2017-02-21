@@ -1,10 +1,11 @@
 //JavaScript code for histograms:
-// @author: Yu Han Soh
 /* A histogram has code that is very similar to a one way bar plot
 with boxplot properties. JSON data objects differ (class intervals). */
 
 /* --------------------------------------------
-  table stuff - frequency distribution table
+  Table properties (Frequency distribution table):
+  Includes identifying cells, rows, properties of
+  the table, and the viewTable button.
 ---------------------------------------------*/
 
 var table = document.getElementById('table');
@@ -61,13 +62,13 @@ showTable = function() {
 };
 
 /* -------------------------------------------------------------
-          Creating labels for histogram:
+          Histogram bars and label properties:
+Creating labels, identifying histogram bars, and assigning attributes
+and properties to bars and labels.
 ---------------------------------------------------------------*/
 
 
 var svg = document.getElementsByTagName('svg')[0];
-svg.setAttribute('width', '100%'); // change to 100% for full width + responsive.
-svg.setAttribute('height', '100%');
 
 //hide rectangles:
 //rectangle = document.getElementsByTagName('rect');
@@ -93,7 +94,7 @@ count = counts.length;
 p = document.getElementsByTagName('polygon')[2]; // to skip the first two polygons that correspond to the boxplot at the bottom.
 var id = p.getAttribute('id');
 var Grob = id.substring(0, id.lastIndexOf('.'));
-var panel = document.getElementsByTagName('g')[1];
+var panel = document.getElementsByTagName('g')[0];
 
 //creating group labels:
 gLabel = function(Grob, i) {
@@ -113,7 +114,7 @@ gRect = function(i) {
         gRect.setAttributeNS(null,'fill-opacity', '0.8');
         gRect.setAttributeNS(null,'rx', '5');
         gRect.setAttributeNS(null, 'ry', '5');
-        gRect.setAttributeNS(null, 'stroke', 'none');
+        gRect.setAttributeNS(null, 'stroke', 'lightgray');
     gLabel = document.getElementById('gLabel' + i);
     gLabel.appendChild(gRect);
   };
@@ -260,6 +261,11 @@ boxLabelSet = function(p, r, q, textinput) {
   }
   x = boxPoints[0];
   y = boxPoints[1];
+
+  if (textinput == "Median") { // move median label below the box plot
+   y = boxPoints[1] - 25;
+  }
+
   text = textinput + ": " + boxData[q].quantiles; // this is associated with the boxData imported from R.
   boxLabel(text);
 };
@@ -273,7 +279,9 @@ boxLabelSet(2, 1, 4, 'Max');
 /* -------------------------------------------------------
                   Box Plot interactions:
 ---------------------------------------------------------*/
-box = document.getElementsByClassName('box');
+var box = document.getElementsByClassName('box');
+var boxData = document.getElementsByClassName('boxData');
+var totalRow = document.getElementById('totalRow');
 
 //setting interactions and colors for box plot:
 for (i = 0; i < box.length; i++) {
@@ -284,20 +292,22 @@ box[i].setAttribute('onmouseout', 'normalBox()');
 box[i].setAttribute('onclick', 'showBox()');
 }
 
+//on hover:
 fillBox = function() {
   for (i = 0; i < box.length; i++) {
   box[i].setAttribute('fill-opacity', '0.3');
 }
 };
 
+//hover out:
 normalBox = function() {
   for (i = 0; i < box.length; i++) {
     box[i].setAttribute('fill-opacity', '0.5');
 }
 };
 
+//on click:
 showBox = function() {
-  boxData = document.getElementsByClassName('boxData');
   for (i =0; i < boxData.length; i++) {
     boxData[i].setAttribute('visibility', 'visible');
 }
@@ -310,38 +320,40 @@ showBox = function() {
 ---------------------------------------------------------------*/
 //setting mouse events:
 for (i = 1; i <= count; i++) {
- bar = document.getElementById(Grob + '.' + i);
+ var bar = document.getElementById(Grob + '.' + i);
  bar.setAttribute('onmouseover', 'light('+ i + ')');
  bar.setAttribute('onmouseout', 'normal(' + i +')');
-bar.setAttribute('onclick', 'fade(' + i +')');
+ bar.setAttribute('onclick', 'fade(' + i +')');
  }
 
+//on hover:
  light = function(i) {
-   bar = document.getElementById(Grob + '.' + i);
+   var bar = document.getElementById(Grob + '.' + i);
    bar.setAttribute('fill-opacity', '0.5');
-   gLabel = document.getElementById('gLabel' + i);
+   var gLabel = document.getElementById('gLabel' + i);
    gLabel.setAttribute('visibility', 'visible');
  };
 
+//on hover out:
  normal = function(i) {
-   bar = document.getElementById(Grob + '.' + i);
+   var bar = document.getElementById(Grob + '.' + i);
    bar.setAttribute('fill-opacity', '1');
-   gLabel = document.getElementById('gLabel' + i);
+   var gLabel = document.getElementById('gLabel' + i);
    gLabel.setAttribute('visibility', 'hidden');
  };
 
-
+// on click:
  fade = function(i) {
    for (j = 1; j <= count; j ++) {
 
-     bar = document.getElementById(Grob + '.' + j);
-        l = bar.getAttribute('fill');
-       lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
+     var bar = document.getElementById(Grob + '.' + j);
+      var l = bar.getAttribute('fill');
+      var lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
 
-     gLabel = document.getElementById('gLabel' + j);
+     var gLabel = document.getElementById('gLabel' + j);
      //tablerow:
-     dataRow = document.getElementById('tr' + j);
-     totalRow = document.getElementById('totalRow');
+     var dataRow = document.getElementById('tr' + j);
+
      totalRow.style.display = "none";
 
      if (i == j) {
@@ -358,7 +370,6 @@ bar.setAttribute('onclick', 'fade(' + i +')');
        dataRow.style.display = "none";
      }
  }
- boxData = document.getElementsByClassName('boxData');
   for (k = 0; k < boxData.length; k++) {
     boxData[k].setAttribute('visibility', 'hidden');
   }
@@ -368,20 +379,19 @@ bar.setAttribute('onclick', 'fade(' + i +')');
  //Reset Button:
    reset = function() {
      for (i = 1; i <= count; i++) {
-       bar = document.getElementById(Grob + "." + i);
+       var bar = document.getElementById(Grob + "." + i);
        bar.setAttribute('opacity', '1');
        bar.setAttribute('visibility', 'visible');
-       gLabel = document.getElementById('gLabel' + i);
+       var gLabel = document.getElementById('gLabel' + i);
        gLabel.setAttribute('visibility', 'hidden');
-       dataRow = document.getElementById('tr' + i);
+       var dataRow = document.getElementById('tr' + i);
        dataRow.style.display = "table-row";
        dataRow.style.backgroundColor = "white";
        dataRow.style.opacity = "1";
        dataRow.style.fontWeight = "normal";
-       totalRow = document.getElementById('totalRow');
+       var totalRow = document.getElementById('totalRow');
        totalRow.style.display = "table-row";
    }
-   boxData = document.getElementsByClassName('boxData');
     for (k = 0; k < boxData.length; k++) {
       boxData[k].setAttribute('visibility', 'hidden');
     }
