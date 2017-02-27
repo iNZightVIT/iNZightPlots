@@ -1,12 +1,7 @@
 /* JavaScript code for dot plots and scatterplots (inclusive of iNZightMaps):
 Code is split into 3 sections: table properties,
                                 interactions,
-                                selectionCanvas (for multi-selection of points).
-  Issues: labels do not automatically resize when variables are hidden
-           Cross-browser compatibility
-  Browser Compatibility: Google Chrome 56.0, Safari 10.2,
-                        FireFox (except for multi-select)
-   Labels appear for Edge, IE11, IE10. Table selection needs fixing. */
+                                selectionCanvas (for multi-selection of points)
 
 /* -----------------------------------------------------
                 Table properties:
@@ -15,10 +10,7 @@ link up to interactions on the plot.
 Creation of HTML form/select to allow user to select
 the variables to display in labels and in the table.
 -------------------------------------------------------- */
-
 var table = document.getElementById('table');
-table.style.padding = "20px";
-table.style.display = "none";
 
 //no. of rows in table
 var nrow = document.getElementById('table').rows.length;
@@ -30,14 +22,11 @@ var td = document.getElementsByTagName('td');
 cellNo = td.length;
 
 for (i = 1; i <= cellNo; i ++) {
-  td[i-1].setAttribute('align', 'center');
   td[i-1].setAttribute('id', i);
 };
 
 for (j = 1; j <= ncol; j++) {
-
   th = document.getElementsByTagName('th');
-  th[j-1].style.textAlign = "center";
   th[j-1].setAttribute('class', j-1);
 
   for (i=1; i <= cellNo; i++) {
@@ -53,15 +42,12 @@ nrow = document.getElementById('table').rows.length;
 for (i = 1; i < nrow; i ++) {
   var tr = document.getElementsByTagName('tr');
   tr[i].setAttribute('id', 'tr' + i);
-  tr[i].setAttribute('align', 'center');
 };
 
 //  Select option for interactivity: to select variables accordingly
 var form = document.createElement('form');
 form.setAttribute('class', 'form-inline');
 form.setAttribute('id', 'form');
-form.style.display = "inline";
-form.style.padding = "20px";
 document.getElementById('control').appendChild(form);
 
 var selectVar = document.createElement('select');
@@ -80,7 +66,7 @@ for (i = 0; i<=ncol-1; i++){
     selectVar.appendChild(opt);
     if (opt.value == 0 || opt.value == undefined) {
       opt.value = 0;
-      opt.style.fontWeight = "bold";
+      opt.classList.add('select');
       opt.innerHTML = "Variables to display";
       opt.selected = "selected";
     }
@@ -92,11 +78,11 @@ for (i = 0; i<=ncol-1; i++){
 showTable = function() {
   if(t) {
     viewTable.innerHTML = "Hide Table";
-    table.style.display =  "table";
+    table.classList.remove('hidden');
     t = false;
   } else {
     viewTable.innerHTML = "View Table";
-    table.style.display = "none";
+    table.classList.add('hidden');
     t = true
   }
 };
@@ -114,15 +100,13 @@ showTable = function() {
 var svg = document.getElementsByTagName('svg')[0];
 svg.setAttribute('preserveAspectRatio', 'xMinYMin meet');
 //set container with no style padding:
+document.body.style.padding = "0px";
 var svgContainer = document.getElementById('svg-container');
-svgContainer.setAttribute('style', 'margin-left:0; padding:0; margin-right:0;');
+svgContainer.classList.add('contained');
 
 //to expand plotRegion rectangle to show labels:
 var rect = document.getElementsByTagName('rect')[0];
-rect.setAttribute('width', rect.getAttribute('width')*2);
-rect.setAttribute('height', rect.getAttribute('height')*2);
-rect.setAttribute('x', 0);
-rect.setAttribute('y', 0);
+rect.setAttribute('class', 'rect');
 
 //PARSING Data:
 var names = JSON.parse(names);
@@ -137,11 +121,14 @@ if (boxData != undefined) {
   var boxData = JSON.parse(boxData);
   var Grob = "DOTPOINTS.1";
   count = document.getElementById(Grob).childElementCount;
-  var panel = document.getElementById(Grob);
+  var panel = document.getElementsByTagName('g')[0];
 
   //BOX PLOT LABELS:
-  /* The box plot is made up of 2 lines (line that extends to the minimum, and the other extending to the maximum)
-  and two 'polygon' rectangles that make up the box (a lower box that draws up to the median, while the upper draws from the median to the upper quartile value).
+  /* The box plot is made up of 2 lines (line that extends to the minimum, and
+  the other extending to the maximum)
+  and two 'polygon' rectangles that make up the box (a lower box that draws up
+  to the median, while the upper draws from the median to the upper quartile
+  value).
   */
 
   //Obtaining the 'polygon' boxes associated with the boxplot:
@@ -155,7 +142,8 @@ if (boxData != undefined) {
     }
   }
 
-  //Min and Max - obtaining the ends of of the boxplot (lines): these are identified as the last two lines in the 'polyline' group.
+  //Min and Max - obtaining the ends of of the boxplot (lines): these are
+  //identified as the last two lines in the 'polyline' group.
   var polyLines = document.getElementsByTagName('polyline');
   for (i = 1; i <= polyLines.length; i++) {
   if (polyLines[i-1].id.indexOf('GRID') >= 0) {
@@ -170,42 +158,37 @@ if (boxData != undefined) {
 
   //functions to create boxLabels:
   boxLabel = function(textinput) {
-// Note: could possibly shorten this and call a single text label function for the whole document.
   var boxLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    boxLabel.setAttributeNS(null, 'x', '0');
-    boxLabel.setAttributeNS(null, 'y', '0');
-    boxLabel.setAttributeNS(null, 'font-size', "12");
-    boxLabel.setAttributeNS(null, 'fill', 'black');
-    boxLabel.setAttributeNS(null, 'fill-opacity', '1');
-    boxLabel.setAttributeNS(null, 'text-anchor', 'middle');
-    boxLabel.setAttributeNS(null, 'visibility', 'hidden');
-    boxLabel.setAttributeNS(null, 'transform', 'translate(' + Number(x) + ',' + (Number(y) + 10) + ') scale(1, -1)'); //hardcoded!
+    boxLabel.setAttribute('class', 'label boxData hidden');
+    boxLabel.setAttributeNS(null, 'transform', 'translate(' + Number(x) + ',' + (Number(y) + 10) + ') scale(1, -1)');
     boxLabel.setAttributeNS(null, 'id', textinput);
-    boxLabel.setAttributeNS(null, 'class', 'boxData');
 
     var textNode = document.createTextNode(textinput);
-
-      boxLabel.appendChild(textNode);
-      panel.appendChild(boxLabel);
+    boxLabel.appendChild(textNode);
+    panel.appendChild(boxLabel);
   };
 
   boxLabelSet = function(p, r, q, textinput) {
     if (textinput == "Min" ||  textinput == "Max") {
-      var line = document.getElementById(lastLine + '.' +  p); // p will either be 1 or 2 -> 1 = minLine, 2 = maxLine
+      var line = document.getElementById(lastLine + '.' +  p);
+      // p will either be 1 or 2 -> 1 = minLine, 2 = maxLine
       line.setAttribute('class', 'box');
       var boxPoints = line.getAttribute('points').split(" ")[r].split(",");
     } else {
-      var box = document.getElementsByClassName('box')[p]; // boxplot split into two boxes - lowerbox (p = 0) and upperbox (p = 1)
+      var box = document.getElementsByClassName('box')[p];
+      // boxplot split into two boxes - lowerbox (p = 0) and upperbox (p = 1)
       var boxPoints = box.getAttribute('points').split(" ")[r].split(",");
     }
     x = boxPoints[0];
     y = boxPoints[1];
 
-    if (textinput == "Median") { // move median label below the box plot
+    if (textinput == "Median") {
+      // move median label below the box plot
      y = boxPoints[1] - 25;
     }
-    
-    text = textinput + ": " + boxData[q].quantiles; // this is associated with the boxData imported from R. q = 0 (LQ), 1 (UQ), 2 (Median), 3 (Min), 4 (Max)
+
+    text = textinput + ": " + boxData[q].quantiles;
+    // this is associated with the boxData imported from R. q = 0 (LQ), 1 (UQ), 2 (Median), 3 (Min), 4 (Max)
     boxLabel(text);
   };
 
@@ -215,14 +198,11 @@ if (boxData != undefined) {
   boxLabelSet(1, 0, 3, 'Min');
   boxLabelSet(2, 1, 4, 'Max');
 
-
   //Box Plot interactions:
   box = document.getElementsByClassName('box');
 
   //setting interactions and colors for box plot:
   for (i = 0; i < box.length; i++) {
-  box[i].setAttribute('fill', 'gray');
-  box[i].setAttribute('fill-opacity', '0.5');
   box[i].setAttribute('onmouseover', 'fillBox()');
   box[i].setAttribute('onmouseout', 'normalBox()');
   box[i].setAttribute('onclick', 'showBox()');
@@ -230,20 +210,20 @@ if (boxData != undefined) {
 
   fillBox = function() {
     for (i = 0; i < box.length; i++) {
-    box[i].setAttribute('fill-opacity', '0.3');
+    box[i].classList.add('fillBox');
   }
   };
 
   normalBox = function() {
     for (i = 0; i < box.length; i++) {
-      box[i].setAttribute('fill-opacity', '0.5');
+      box[i].classList.remove('fillBox');
   }
   };
 
   showBox = function() {
     var boxData = document.getElementsByClassName('boxData');
     for (i =0; i < boxData.length; i++) {
-      boxData[i].setAttribute('visibility', 'visible');
+      boxData[i].classList.remove('hidden');
   }
   }
 
@@ -260,20 +240,15 @@ gLabel = function(i) {
 
 var gEl = document.createElementNS("http://www.w3.org/2000/svg", "g");
     gEl.setAttributeNS(null, 'id', 'gLabel' + i);
-    gEl.setAttributeNS(null, 'visibility', 'hidden');
+    gEl.setAttributeNS(null, 'class', 'gLabel invisible');
     panel.appendChild(gEl);
   };
 
 //function to create rectangles for labels:
   gRect = function(i) {
     var gRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        gRect.setAttributeNS(null, 'visibility', 'inherit');
         gRect.setAttributeNS(null, 'id', 'gRect' + i);
-        gRect.setAttributeNS(null,'fill', 'white');
-        gRect.setAttributeNS(null,'fill-opacity', '0.8');
-        gRect.setAttributeNS(null,'rx', '5');
-        gRect.setAttributeNS(null, 'ry', '5');
-        gRect.setAttributeNS(null, 'stroke', 'lightgray');
+        gRect.setAttributeNS(null, 'class', 'gRect');
     gLabel = document.getElementById('gLabel' + i);
     gLabel.appendChild(gRect);
   };
@@ -288,17 +263,11 @@ for (i = 1; i <= count; i++) {
 }
 
 //function to create text labels for scatterpoints:
-label = function(id, textinput, i) {
+label = function(id, textinput, i, j) {
 
 var label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  label.setAttributeNS(null, 'x', '0');
-  label.setAttributeNS(null, 'y', '0');
-  label.setAttributeNS(null, 'font-size', "12");
-  label.setAttributeNS(null, 'fill', 'black');
-  label.setAttributeNS(null, 'fill-opacity', '1');
-  label.setAttributeNS(null, 'text-anchor', 'right');
-  label.setAttributeNS(null, 'visibility', 'inherit');
-  label.setAttributeNS(null, 'transform', 'translate(' + Number(x) + ',' + (Number(y) + varNo*15) + ') scale(1, -1)'); //hardcoded!
+  label.setAttributeNS(null, 'class', 'label');
+  label.setAttributeNS(null, 'transform', 'translate(' + Number(x) + ',' + (Number(y) + (varNo-j)*15) + ') scale(1, -1)'); //hardcoded!
   label.setAttributeNS(null, 'id', id + i);
 
   var textNode = document.createTextNode(textinput);
@@ -312,11 +281,10 @@ var label = document.createElementNS("http://www.w3.org/2000/svg", "text");
 //creating tspan labels - for customizing text in bold:
 tLabel = function(id, textinput, i) {
   var tLabel = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-  tLabel.setAttributeNS(null, 'visibility', 'inherit');
+  tLabel.setAttributeNS(null, 'class', 'tLabel');
   tLabel.setAttributeNS(null, 'id', id + i);
-  tLabel.style.fontWeight = "bold";
 
-  textNode = document.createTextNode(textinput);
+  var textNode = document.createTextNode(textinput);
   tLabel.appendChild(textNode);
   lab.appendChild(tLabel);
 
@@ -331,19 +299,18 @@ for (i  = 1; i <= count; i++) {
   var x = point.getAttribute('x');
   var y = point.getAttribute('y');
   var textNo = 'No: ' + i;
-  label('labelNo', textNo, i);
+  label('labelNo', textNo, i, 0);
   text = [];
   text[j] = names[j] + ": ";
-  label('label' + '.' + (j+1) + '.' , text[j], i);
-  p = 'translate(' + Number(x) + ',' + (Number(y) + 15*(varNo-j-1)) + ') scale(1, -1)';
-  lab = document.getElementById('label' + '.' + (j+1) + '.' + i);
+  label('label' + '.' + (j+1) + '.' , text[j], i, j+1);
+
+  var lab = document.getElementById('label' + '.' + (j+1) + '.' + i);
   tLabel('tLabel', tableData[i-1][names[j]], i);
-  lab.setAttribute('transform', p);
-  lab.setAttribute('class', (j+1));
+  lab.classList.add((j+1));
 
 // Attach and draw rectangles to labels according to the size of the gLabel (with all labels attached)
   var gLabel = document.getElementById('gLabel' + i);
-  rectParam = gLabel.getBBox(); // possibly need to state that if this does not work on the browser (as it only works on Chrome, Firefox, Safari), skip this code.
+  var rectParam = gLabel.getBBox();
   var gRect = document.getElementById('gRect' + i);
   gRect.setAttribute('x', rectParam.x-1);
   gRect.setAttribute('y', rectParam.y-2);
@@ -359,69 +326,69 @@ for (i  = 1; i <= count; i++) {
 for (i =1; i <= count; i++) {
   point = document.getElementById(Grob + "." + i);
   point.style.stroke = point.getAttribute('stroke');
-  point.setAttribute('onmouseover', 'show(' + i + ')');
+  point.setAttribute('onmouseover', 'light(' + i + ')');
   point.setAttribute('onmouseout', 'normal(' + i + ')');
   point.setAttribute('onclick', 'info(' + i + ')');
 };
 
 //Hover on:
-show = function(i) {
+light = function(i) {
   var point = document.getElementById(Grob + "." + i);
-  point.style.fill = point.getAttribute('stroke');
-  point.setAttribute('stroke-width', point.getAttribute('stroke-width')*2);
-  point.style.fillOpacity = "1";
-
+  point.classList.add('showPoint');
   var gLabel = document.getElementById('gLabel' + i);
-  gLabel.setAttribute('visibility', 'visible');
+  gLabel.classList.remove('invisible');
+
 };
 
 //Hover out:
 normal = function(i) {
   var point = document.getElementById(Grob + "." + i);
-  point.style.fill = "none";
-  point.setAttribute('stroke-width', point.getAttribute('stroke-width')/2);
+  point.classList.remove('showPoint');
 
   var gLabel =document.getElementById('gLabel' + i);
-  gLabel.setAttribute('visibility', 'hidden');
+  gLabel.classList.add('invisible');
 
 };
 
 //On click:
 info = function(i) {
   for (j = 1; j <= count; j++) {
-    point = document.getElementById(Grob + "." + j);
-    gLabel = document.getElementById('gLabel' + j);
+    var point = document.getElementById(Grob + "." + j);
+    var gLabel = document.getElementById('gLabel' + j);
 
-    l = point.getAttribute('stroke');
-    lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
+    var l = point.getAttribute('stroke');
+    var lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
 
-    dataRow = document.getElementById('tr' + j);
+    var dataRow = document.getElementById('tr' + j);
 
     if (i == j) {
-      gLabel.setAttribute('visibility', 'visible');
-      point.style.opacity = "1";
+      gLabel.classList.remove('invisible');
+
+      point.setAttribute('class', 'point selected');
 
       dataRow.style.backgroundColor = "rgba" + lp + ", 0.25)";
-      dataRow.style.display = "table-row";
-      dataRow.style.opacity = "1";
+      dataRow.classList.remove('hidden');
+      dataRow.classList.add('rowSelect');
 
     } else {
-      gLabel.setAttribute('visibility', 'hidden');
-      point.style.opacity = "0.3";
+      gLabel.classList.add('invisible');
+      point.setAttribute('class', 'point none');
+
+      dataRow.classList.remove('rowSelect');
+      dataRow.classList.add('hidden');
       dataRow.style.backgroundColor = "white";
-      dataRow.style.display = "none";
+
     }
   }
   if (boxData != undefined) {
  boxData = document.getElementsByClassName('boxData');
   for (i =0; i < boxData.length; i++) {
-    boxData[i].setAttribute('visibility', 'hidden');
+    boxData[i].classList.add('hidden');
   }
 }
 };
 
 //LEGEND INTERACTION:
-
 
 if (colGroupNo != (0 || undefined)) { // if there is a legend, colGroupNo should be a value
 //grabbing keys and text from the legend:
@@ -431,28 +398,29 @@ var text = document.getElementsByTagName('text');
 //assigning mouse events:
 for (i = 1; i <= colGroupNo; i ++) { //colGroupNo -> colby levels from R (nlevels)
   var key = document.getElementById(keys[i-1].id);
-  key.setAttribute('onmouseover', 'inner(' + i +')');
+  key.setAttribute('onmouseover', 'show(' + i +')');
   key.setAttribute('onmouseout', 'out(' + i + ')');
   key.setAttribute('onclick', 'subset(' + i + ')');
   var keyText = document.getElementById(text[i+3].id);
   if (Grob == "DOTPOINTS.1") { // for dot plots - legend text differs
     var keyText = document.getElementById(text[i+2].id);
   }
-  keyText.setAttribute('onmouseover', 'inner(' + i +')');
+  keyText.setAttribute('onmouseover', 'show(' + i +')');
   keyText.setAttribute('onmouseout', 'out(' + i +')');
   keyText.setAttribute('onclick', 'subset(' + i + ')');
 };
 
 // hover on a legend group:
- inner = function(i) {
+show = function(i) {
   var keyText = document.getElementById(text[i+3].id);
   if (Grob == "DOTPOINTS.1") {
     var keyText = document.getElementById(text[i+2].id);
   }
   var key = document.getElementById(keys[i-1].id);
-  keyText.setAttribute('style', 'fill:' + key.getAttribute('fill'));
-  keyText.setAttribute('font-size', '115%');
-  key.setAttribute('fill-opacity', '0.5');
+  keyText.setAttribute('fill', key.getAttribute('fill'));
+  keyText.setAttribute('class', 'show');
+  key.setAttribute('class', 'show');
+
 };
 
 //hover out:
@@ -462,9 +430,9 @@ out = function(i) {
     var keyText = document.getElementById(text[i+2].id);
   }
   var key = document.getElementById(keys[i-1].id);
-  keyText.setAttribute('style', 'fill: black');
-  keyText.setAttribute('font-size', '100%');
-  key.setAttribute('fill-opacity', '1');
+  keyText.setAttribute('class', 'out keyText');
+  key.setAttribute('class', 'out');
+
 };
 
 //on click, subsetting occurs:
@@ -472,18 +440,21 @@ subset = function(i) {
   for (j = 1; j <= count; j++) {
     var point = document.getElementById(Grob + '.' + j);
     var key = document.getElementById(keys[i-1].id);
-    var label = document.getElementById('gLabel' + j);
+    var gLabel = document.getElementById('gLabel' + j);
     var dataRow = document.getElementById('tr' + j);
-    label.setAttribute('visibility', 'hidden');
 
 if (key.getAttribute('fill') == point.getAttribute('stroke')) {
-  point.setAttribute('visibility', 'visible');
-  point.setAttribute('opacity', '1');
-  dataRow.style.display = "table-row";
+  point.setAttribute('class', 'point selected');
+
+  dataRow.classList.remove('hidden');
+  dataRow.classList.add('rowSelect');
+
   dataRow.style.backgroundColor = "white";
 } else {
-    point.setAttribute('visibility', 'hidden');
-    dataRow.style.display = "none";
+  point.setAttribute('class', 'point none');
+  dataRow.classList.add('hidden');
+  dataRow.style.backgroundColor = "white";
+
 }
 }
 }
@@ -491,13 +462,12 @@ if (key.getAttribute('fill') == point.getAttribute('stroke')) {
 
 
 /* Link to interactive table + labels - "Variables to display" select/option box:
-- may rewrite this in jQuery for detachment.
-Note - maybe a shortcut using CSS where you can show/hide using classes which
-could possibly increase speed?
-*/
+- may rewrite this in jQuery for detachment. Requires revision due to browser
+incompatibility. */
 
 selected = function() {
-sOpt = selectVar.selectedOptions; // this does not work on IE, and not fully supported. May need to replace this.
+sOpt = selectVar.selectedOptions;
+// this does not work on IE, and not fully supported. May need to replace this.
 s = [];
 for (i =0; i < sOpt.length; i++) {
   s.push(sOpt[i].value);
@@ -513,7 +483,6 @@ for (i =1; i <= ncol-1; i++) {
     } else {
     column[j-1].style.display = "none";
     if (j <= labels.length) {
-    labels[j-1].style.display = "none";
     labels[j-1].visibility = "hidden";
   }
 }
@@ -551,15 +520,16 @@ supported in IE...
 width = svg.width.baseVal.value;
 height = svg.height.baseVal.value;
 
-//Need to create canvas in order to draw rectangle on an svg element: - it requires a foreignObject. - NOT supported on IE!
+//Need to create canvas in order to draw rectangle on an svg element:
+//- it requires a foreignObject. - NOT supported on IE!
 var foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
     foreignObject.setAttributeNS(null, 'id', 'foreignObject');
     foreignObject.setAttributeNS(null,'width', width);
     foreignObject.setAttributeNS(null, 'height', height);
-    foreignObject.setAttributeNS(null, 'x', '0');
-    foreignObject.setAttributeNS(null, 'y', '0');
-    // The foreignObject containing the canvas is set to hidden to prevent it from affecting other mouse events.
-    //Visibility is turned on when the user drags as written below (enables the user to draw a selection box over the plot.)
+/* The foreignObject containing the canvas is set to hidden to prevent it from
+ affecting other mouse events.
+ Visibility is turned on when the user drags as written below (enables the
+ user to draw a selection box over the plot.) */
     foreignObject.setAttributeNS(null, 'visibility', 'hidden');
     svg.appendChild(foreignObject);
 
@@ -569,8 +539,6 @@ var canvas = document.createElementNS('http://www.w3.org/1999/xhtml', 'xhtml:can
   canvas.setAttributeNS(null, 'id', 'canvas');
   canvas.setAttributeNS(null, 'width', width);
   canvas.setAttributeNS(null, 'height', height);
-  canvas.setAttributeNS(null, 'x', '0');
-  canvas.setAttributeNS(null, 'y', '0');
   foreignObject.appendChild(canvas);
 
 //Get canvas context to draw rectangles according to mouse events:
@@ -643,24 +611,28 @@ if(selectBox["isDrawing"]) {
 
       //Condition run - where if the point lies within the rectangle selection box drawn:
       if((x1 <= x && x <= x2) && (y1 <= y && y <= y2))  {
-         point.setAttribute('class', 'selected');
+         point.setAttribute('class', ' point selected');
          l = point.getAttribute('stroke');
          lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
-         point.style.opacity = "1";
-         gLabel.setAttribute('visibility', 'visible');
+
+         gLabel.classList.remove('invisible');
+         dataRow.classList.remove('hidden');
+         dataRow.classList.add('rowSelect');
          dataRow.style.backgroundColor = "rgba" + lp + ", 0.25)";
-         dataRow.style.display = "table-row";
+
 
        } else { // hides points if it's not in the drawn region
-         point.setAttribute('class', 'none');
-         gLabel.setAttribute('visibility', 'hidden');
-         point.style.opacity = "0.3";
-        dataRow.style.backgroundColor = "white";
-         dataRow.style.display = "none";
+         point.setAttribute('class', 'point none');
+         gLabel.classList.add('invisible');
+
+         dataRow.classList.add('hidden');
+         dataRow.classList.remove('rowSelect');
+         dataRow.style.backgroundColor = "white";
+
        }
 	} else {  // those that are hidden, remain hidden
-    point.setAttribute('visibility', 'hidden');
-    gLabel.setAttribute('visibility', 'hidden');
+    point.classList.add('hidden');
+    gLabel.classList.add('invisible');
   }
 }
 }
@@ -676,7 +648,6 @@ function MouseUp(e) {
   foreignObject.setAttribute('visibility', 'hidden'); // hides the foreignObject.
 }
 
-
 /* -------------------------------------------------
       Reset button - attempts to return to original state
 -------------------------------------------------- */
@@ -684,15 +655,16 @@ function MouseUp(e) {
   reset = function() {
     for (i = 1; i <= count; i++) {
     var point = document.getElementById(Grob + "." + i);
-      point.style.opacity = '1';
-      point.setAttribute('visibility', 'visible');
-    var gLabel = document.getElementById('gLabel' + i);
-      gLabel.setAttribute('visibility', 'hidden');
-    var dataRow = document.getElementById('tr' + i);
-      dataRow.style.display = "table-row";
-      dataRow.style.backgroundColor = "white";
-      dataRow.style.opacity = "1";
+      point.setAttribute('class', 'point');
 
+    var gLabel = document.getElementById('gLabel' + i);
+    gLabel.classList.add('invisible');
+
+    var dataRow = document.getElementById('tr' + i);
+      dataRow.classList.remove('hidden');
+      dataRow.classList.remove('rowSelect');
+
+      dataRow.style.backgroundColor = "white";
 
     var selectRect = document.getElementById('selectRect');
     if (selectRect != undefined) {
@@ -708,8 +680,7 @@ function MouseUp(e) {
 for (i =1; i <= ncol-1; i++) {
     column = table.getElementsByClassName(i);
     for (j = 1; j <=column.length; j++) {
-    column.style.display = "table-cell";
+    column[j-1].style.display = "table-cell";
   }
 }
-selectedVar.selectedIndex = "0";
 };

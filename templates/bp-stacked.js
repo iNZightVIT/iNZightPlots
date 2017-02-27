@@ -1,8 +1,8 @@
 /*-------------------------------------------------------------------
 JS code for one way stacked bar plots:
- Code is split in 3 sections: table properties (from line 27),
-                              bar and label properties (from line 211),
-                              and interaction code (from line 368).
+ Code is split in 3 sections: table properties (from 27),
+                              bar and label properties (from 188),
+                              and interaction code (from 330).
  -------------------------------------------------------------------*/
 
 //Parsing JSON data:
@@ -25,8 +25,6 @@ to 100%.
 -------------------------------------------------------------------*/
 
 var table = document.getElementById('table');
-table.style.display = "none";
-
 
 //no. of columns in table
 var tr = document.getElementsByTagName('tr');
@@ -40,7 +38,7 @@ cellNo = td.length;
 nrow = document.getElementById('table').rows.length;
 for (i = 1; i < nrow; i ++) {
   if(i == nrow-2) { // last two rows are the rows containing totals and counts
-    tr[i].setAttribute('class', 'total');
+    tr[i].setAttribute('class', 'tc');
   } else if (i == nrow-1) {
     tr[i].setAttribute('class', 'countRow');
 } else {
@@ -48,27 +46,20 @@ for (i = 1; i < nrow; i ++) {
   }
 };
 
-// Labelling headers:
-for (i = 1; i < ncol; i++) {
-  tableHeader = document.getElementsByTagName('th');
-  tableHeader[i].setAttribute('id', tableHeader[i].innerHTML);
-  tableHeader[i].style.textAlign = "center";
-}
-
 //finding no. of rows, and labelling
 for (j = 1; j <ncol; j++) {
 for (i = 1; i <= cellNo; i ++) {
-  td[i-1].setAttribute('align', 'center');
+
   if (i % ncol == 1){
     td[i-1].setAttribute('id', 'yGroup' + ((i-1)/ncol + 1));
-    if(((i-1)/ncol + 1) > nrow-3) {
-      td[i-1].style.fontWeight = "bold";
-    }
+    td[i-1].setAttribute('class', 'yGroup');
   } else if (document.getElementsByClassName('countRow')[0].contains(td[i-1])){
     td[i-1].setAttribute('id', 'counts' + ((i-1)%ncol));
     td[i-1].innerHTML = Number(td[i-1].innerHTML);
-  } else if (document.getElementsByClassName('total')[0].contains(td[i-1])) {
-    td[i-1].setAttribute('id', 'total' +((i-1)%ncol));
+
+  } else if (document.getElementsByClassName('tc')[0].contains(td[i-1])) {
+    td[i-1].setAttribute('id', 'tc' +((i-1)%ncol));
+    td[i-1].setAttribute('class', 'tc');
   }
   else {
   td[i-1].setAttribute('id',  'td' + i);
@@ -77,15 +68,10 @@ for (i = 1; i <= cellNo; i ++) {
 }
 };
 
-for (j = 1; j < ncol; j ++) {
-  var total = document.getElementById('total' + j);
-  total.innerHTML = Number(total.innerHTML)*100 + "%";
-};
-
 //Finding the sum of countsTab:
 var countsTab = new Array();
 for (j = 1; j < ncol; j++) {
-    var totalCounts = document.getElementById('counts' + j);
+    var totalCounts = document.getElementById('counts' + j); //counts for each group
     countsTab[j-1] = Number(totalCounts.innerHTML);
 };
 
@@ -95,48 +81,40 @@ var sum = countsTab.reduce(function(a, b) { return a + b; }, 0);
 //Inserting table headers:
 var xrow = table.insertRow(0);
 var xhead = xrow.insertCell(0);
+xhead.setAttribute('class', 'headings');
 xhead.innerHTML = document.getElementsByTagName('tspan')[2].innerHTML;
-xhead.style.fontStyle = "italic";
-xhead.style.textDecoration = "underline";
 xhead.colSpan = ncol;
-xhead.style.textAlign = "center";
-
 
 //yHeader:
 var yHeading = document.getElementsByTagName('th')[0];
 yHeading.innerHTML = document.getElementsByTagName('tspan')[3].innerHTML;
-yHeading.setAttribute('style', 'font-style: italic');
-yHeading.style.fontWeight = "normal";
-yHeading.style.textDecoration = "underline";
+yHeading.setAttribute('class',' headings');
 
 
 //Creating buttons and setting attributes:
-button = function(name, color) {
+button = function(name) {
   var button = document.createElement('button');
   button.setAttribute("type", "button");
-  button.setAttribute("class","btn btn-info");
+  button.setAttribute("class","btn btn-info convert hidden");
   button.innerHTML = "Change to " + name;
   button.setAttribute("onclick", "change" + name + "()");
-  button.style.backgroundColor = color;
-  button.style.marginLeft = "10px";
-  button.style.display = "none";
   button.setAttribute("id", "Button" + name)
   document.getElementById('control').appendChild(button);
 };
 
-button("Percentage", "blue");
-button("Count", "purple");
+button("Percentage");
+button("Count");
 
   //Conversion to percentages:
 changePercentage = function() {
   for (i = 1; i <= cellNo; i++) {
       var td = document.getElementById('td' + i);
-      var total = document.getElementById('total' + ((i-1)%ncol)); //will need to be modified once the rev. issue is solved.
+      var total = document.getElementById('tc' + ((i-1)%ncol)); //will need to be modified once the rev. issue is solved.
       var countsCol = document.getElementById('counts' + ((i-1)%ncol));
       if (td != undefined) {
       if ((td.innerHTML.indexOf(".") >= 0) && (td.innerHTML.indexOf('%') == -1)) { // change proportion to percentages
       td.innerHTML = (td.innerHTML*100).toFixed(2) + "%";
-      total.innerHTML = "100%";
+      total.innerHTML = "100.00%"; // this is a bit iffy. Fixed at 100.
       countsCol.innerHTML = countsCol.innerHTML;
     } else if (td.innerHTML.indexOf('%') >= 0) { // remain as percentages
       td.innerHTML = td.innerHTML;
@@ -144,7 +122,7 @@ changePercentage = function() {
       countsCol.innerHTML = countsCol.innerHTML;
     } else { // change counts to percentages
       td.innerHTML = (Number(td.innerHTML)/countsTab[((i-1)%ncol)-1]*100).toFixed(2) + "%";
-      total.innerHTML = "100%";
+      total.innerHTML = "100.00%";
       countsCol.innerHTML = countsTab[((i-1)%ncol)-1];
     }
   document.getElementById('yGroup' + (nrow - 1)).innerHTML = "Col N"; // change from 'Total %' to 'Col N'
@@ -156,7 +134,7 @@ changePercentage = function() {
 changeCount = function() {
   for(i = 1; i <= cellNo; i++) {
       var td = document.getElementById('td' + i);
-      var total = document.getElementById('total' + ((i-1)%ncol)); // by columns
+      var total = document.getElementById('tc' + ((i-1)%ncol)); // by columns
       var countsCol = document.getElementById('counts' + ((i-1)%ncol));
       if (td != undefined && total != undefined) {
       if (td.innerHTML.indexOf('%') >= 0){ // convert percentage to counts
@@ -183,24 +161,22 @@ var viewTable = document.getElementById('viewTable');
 showTable = function() {
   if(t) {
     viewTable.innerHTML = "Hide Table";
-    table.style.display =  "table";
+    table.classList.remove('hidden');
     if (document.getElementById('ButtonPercentage') != (undefined || null)) {
-      ButtonPercentage.style.display = "inline";
-      ButtonCount.style.display = "inline";
+      ButtonPercentage.classList.remove('hidden');
+      ButtonCount.classList.remove('hidden');
     }
     t = false;
   } else {
     viewTable.innerHTML = "View Table";
-    table.style.display = "none";
+    table.classList.add('hidden');
     if (document.getElementById('ButtonPercentage') != (undefined || null)) {
-      ButtonPercentage.style.display = "none";
-      ButtonCount.style.display = "none";
+      ButtonPercentage.classList.add('hidden');
+      ButtonCount.classList.add('hidden');
     }
     t = true
   }
 };
-
-
 
 /*------------------------------------------------------------------
                   Bar plot properties:
@@ -208,15 +184,12 @@ Code to identify bars, show and hide lines and appropriate bars.
 Addition of appropriate labels to each bar.
 -------------------------------------------------------------------*/
 
-document.body.style.padding = "20px";
+//document.body.style.padding = "20px";
 var svg = document.getElementsByTagName('svg')[0];
 
 //test rectangle out to show labels:
 var rect = document.getElementsByTagName('rect')[1];
-rect.setAttribute('width', rect.getAttribute('width')*1.5);
-rect.setAttribute('height', rect.getAttribute('height')*1.5);
-rect.setAttribute('x', rect.getAttribute('x')-20);
-rect.setAttribute('y', rect.getAttribute('y')-20);
+rect.setAttribute('class', 'rect');
 
 var count = counts.length*colorCounts.length + 1; //total no. of different combinations + 1
 var groups = counts.length; // no. of groups (corresponds to one of the variables)
@@ -225,18 +198,18 @@ var groups = counts.length; // no. of groups (corresponds to one of the variable
 var  p = document.getElementsByTagName('polygon');
 var id = p[0].getAttribute('id');
 var Grob = id.substring(0, id.lastIndexOf('.'));
-var panel = document.getElementById(Grob);
+var panel = document.getElementsByTagName('g')[0];
 
 for (i = 1; i < p.length; i++) {
   if (p[i].id.indexOf(Grob) >= 0) {
-    p[i].setAttribute('visibility', 'visible');
+    p[i].classList.add('visible');
   } else {
-    p[i].setAttribute('visibility', 'hidden');
+    p[i].classList.add('hidden');
   }
 };
 
 
-//getting rid of polylines:
+//getting rid of polylines: [ you can delete this if you wish to keep the lines in]
 var polyLines = document.getElementsByTagName('polyline');
 
 for (i =1; i < polyLines.length; i ++) {
@@ -251,9 +224,7 @@ for (i =1; i < polyLines.length; i ++) {
 
   for (j = 1; j < lines.length; j ++) {
   if (lines[j].id.indexOf(lastLine) >= 0) {
-    lines[j].setAttribute("visibility", "hidden");
-  } else {
-
+    lines[j].classList.add('hidden');
   }
 };
 
@@ -262,7 +233,7 @@ gLabel = function(Grob, i) {
 var panel = document.getElementById(Grob);
 var gEl = document.createElementNS("http://www.w3.org/2000/svg", "g");
     gEl.setAttributeNS(null, 'id', 'gLabel' + i);
-    gEl.setAttributeNS(null, 'visibility', 'hidden');
+    gEl.setAttributeNS(null, 'class', 'gLabel invisible');
     panel.appendChild(gEl);
   }
 
@@ -275,12 +246,8 @@ for (i = 1; i < count; i++) {
     var gRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
         gRect.setAttributeNS(null, 'visibility', 'inherit');
         gRect.setAttributeNS(null, 'id', 'gRect' + i);
-        gRect.setAttributeNS(null,'fill', 'white');
-        gRect.setAttributeNS(null,'fill-opacity', '0.8');
-        gRect.setAttributeNS(null,'rx', '5');
-        gRect.setAttributeNS(null, 'ry', '5');
-        gRect.setAttributeNS(null, 'stroke', 'lightgray');
-    gLabel = document.getElementById('gLabel' + i);
+        gRect.setAttributeNS(null, 'class', 'gRect');
+    var gLabel = document.getElementById('gLabel' + i);
     gLabel.appendChild(gRect);
   };
 
@@ -292,23 +259,15 @@ for (i = 1; i < count; i++) {
 label = function(id, textinput, i, tf) {
 //attributes for the text SVG element
   var label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    label.setAttributeNS(null, 'x', '0');
-    label.setAttributeNS(null, 'y', '0');
-    label.setAttributeNS(null, 'font-size', "12");
-    label.setAttributeNS(null, 'fill', 'black');
-    label.setAttributeNS(null, 'stroke', 'none');
-    label.setAttributeNS(null, 'fill-opacity', '1');
+    label.setAttributeNS(null, 'class', 'label' + ' ' + id);
     label.setAttributeNS(null, 'transform', 'translate('+ ((x+sx)/2) + ', ' + (y - tf) +') scale(1, -1)');
-    label.setAttributeNS(null, 'text-anchor', 'middle');
-    label.setAttributeNS(null, 'visibility', 'inherit');
     label.setAttributeNS(null, 'id', id + i);
 
 // Creating the text label element:
-  var text = textinput;
-  var textNode = document.createTextNode(text);
+  var textNode = document.createTextNode(textinput);
 
     label.appendChild(textNode);
-    gLabel = document.getElementById('gLabel' + i);
+    var gLabel = document.getElementById('gLabel' + i);
     gLabel.appendChild(label);
 };
 
@@ -316,26 +275,31 @@ label = function(id, textinput, i, tf) {
 for (j = 1; j <= groups; j++) {
 for (i  = 1; i < count; i++) {
   var bar = document.getElementById(Grob + '.' + i);
-      bar.setAttribute("class", counts[j-1].Var1 +i);
+
   var coords = bar.getAttribute('points');
   var small = coords.split(" ")[1];
   var sx = Number(small.split(",")[0]);
   var coordsxy = coords.split(" ")[2];
   var x = Number(coordsxy.split(",")[0]); //co-ordinates based upon SVG elements.
   var y = Number(coordsxy.split(",")[1]);
+
   if (i%groups == j) {
-    var text = counts[j-1].Var1 + "\n" + colorCounts[Math.floor((i+groups-1)/groups-1)]._row;
-  label('label', text, i, 30);
-    var text = 'N = ' +  Math.round(eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[j-1].Var1 + "']")*counts[j-1].Freq) + ", " + ((eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[j-1].Var1 + "']")*100).toFixed(2)) + "%";
-  label( 'countLabel', text, i, 45);
-}
-  if (i%groups == 0 && j == groups) {
-    var text = counts[groups-1].Var1 + "\n" + colorCounts[Math.floor((i+groups-1)/groups-1)]._row;
-  label('label', text, i, 30);
-    var text = 'N = ' +  Math.round(eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[groups-1].Var1 + "']")*counts[groups-1].Freq) + ", " + ((eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[counts.length-1].Var1 + "']")*100).toFixed(2)) + "%"
-  label('countLabel',text, i, 45);
-    bar.setAttribute("class", counts[counts.length-1].Var1 +i);
-}
+      var text = counts[j-1].Var1 + "\n" + colorCounts[Math.floor((i+groups-1)/groups-1)]._row;
+      label('groupLabel', text, i, 30);
+
+      var text = 'N = ' +  Math.round(eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[j-1].Var1 + "']")*counts[j-1].Freq) + ", " + ((eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[j-1].Var1 + "']")*100).toFixed(2)) + "%";
+      label('countLabel', text, i, 45);
+    }
+
+    if (i%groups == 0 && j == groups) { // for the last bar (closest to the left!)
+
+      var text = counts[groups-1].Var1 + "\n" + colorCounts[Math.floor((i+groups-1)/groups-1)]._row;
+      label('groupLabel', text, i, 30);
+
+      var text = 'N = ' +  Math.round(eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[groups-1].Var1 + "']")*counts[groups-1].Freq) + ", " + ((eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[counts.length-1].Var1 + "']")*100).toFixed(2)) + "%"
+      label('countLabel',text, i, 45);
+    }
+
   }
 };
 
@@ -349,10 +313,6 @@ for (i  = 1; i < count; i++) {
   gRect.setAttribute('y', rectParam.y-10);
   gRect.setAttribute('width', rectParam.width+20);
   gRect.setAttribute('height', rectParam.height + 20);
-
-// making labels bold:
-  var label = document.getElementById('label' + i);
-  label.style.fontWeight = "bold";
 };
 
 
@@ -374,40 +334,39 @@ for (i = 1; i < count; i++) {
  }
 
  light = function(i) {
-   bar = document.getElementById(Grob + '.' + i);
-   bar.setAttribute('style', 'fill-opacity: 0.5');
+   var bar = document.getElementById(Grob + '.' + i);
+   bar.classList.add('light');
+
  };
 
  normal = function(i) {
-   bar = document.getElementById(Grob + '.' + i);
-   bar.setAttribute('style', 'fill-opacity: 1');
-
+   var bar = document.getElementById(Grob + '.' + i);
+   bar.classList.remove('light');
  };
 
 //table interaction:
 fade = function(i) {
   for (j = 1; j < count; j ++) { //individuals
+    var bar = document.getElementById(Grob + '.' + j);
+    //colors:
+    var l = bar.getAttribute('fill');
+    var lp = l.substring(4, l.length-1);
 
-     var gLabel = document.getElementById('gLabel' + j);
-     var data = table.getElementsByClassName('td' + j)[0];
+    var gLabel = document.getElementById('gLabel' + j);
+    var data = table.getElementsByClassName('td' + j)[0];
 
     if (i == j) {
-
-      gLabel.setAttribute('visibility', 'visible');
+      gLabel.classList.remove('invisible');
 
       // Relation to table:
-        data.setAttribute('style', 'font-weight:bold');
-        var l = bar.getAttribute('fill');
-        lp = l.substring(4, l.length-1);
-        data.style.backgroundColor = "rgba(" + lp + ",0.5)";
-        data.style.opacity = "1";
+      data.classList.add('tabSelect');
+      data.style.backgroundColor = "rgba(" + lp + ",0.5)";
 
     }  else {
-
-      gLabel.setAttribute('visibility', 'hidden');
+        gLabel.classList.add('invisible');
 
       //Relation to table
-      data.setAttribute('style', 'font-weight:normal');
+      data.classList.remove('tabSelect');
       data.style.backgroundColor = "white";
 
     }
@@ -417,19 +376,17 @@ fade = function(i) {
 //Return  - reset button:
  reset = function() {
    for (i = 1; i < count; i++) {
-   var bar = document.getElementById(Grob + '.' + i);
-     bar.setAttribute('visibility', 'visible');
-     bar.setAttribute('opacity', '1');
-     var label = document.getElementById('label' + i);
-     label.setAttribute('visibility', 'hidden');
-     var countLabel = document.getElementById('countLabel' + i);
-     countLabel.setAttribute('visibility', 'hidden');
+
+    var gLabel = document.getElementById('gLabel' + i);
+    gLabel.classList.add('invisible');
+
      data = table.getElementsByClassName('td' + i)[0];
-     data.style.fontWeight = "normal";
+     data.classList.remove('tabSelect');
      data.style.backgroundColor = "white";
-     data.style.opacity = "1";
+
  }
- table.style.display = "none";
+ table.classList.add('hidden');
+
  viewTable.innerHTML = "View Table";
  t = true;
  };

@@ -9,8 +9,6 @@ with boxplot properties. JSON data objects differ (class intervals). */
 ---------------------------------------------*/
 
 var table = document.getElementById('table');
-table.style.padding = "20px";
-table.style.display = "none";
 
 //no. of rows in table
 nrow = document.getElementById('table').rows.length;
@@ -22,29 +20,18 @@ var td = document.getElementsByTagName('td');
 cellNo = td.length;
 
 for (i = 1; i <= cellNo; i ++) {
-  td[i-1].setAttribute('align', 'center');
   td[i-1].setAttribute('id', 'td' + i);
 };
 
-for (j = 1; j <= ncol; j++) {
-
-  th = document.getElementsByTagName('th');
-  th[j-1].style.textAlign = "center";
-  th[j-1].setAttribute('class', j);
-
-  };
-
 //no. of rows in table
-nrow = document.getElementById('table').rows.length;
-  tr = document.getElementsByTagName('tr');
+var nrow = document.getElementById('table').rows.length;
+var tr = document.getElementsByTagName('tr');
 for (i = 1; i < nrow; i ++) {
   tr[i].setAttribute('id', 'tr' + i);
-  tr[i].setAttribute('align', 'center');
 };
 
-totalRow = document.getElementsByTagName('tr')[nrow-1];
-totalRow.setAttribute('id', 'totalRow');
-totalRow.style.fontWeight = "bold";
+var totalRow = document.getElementsByTagName('tr')[nrow-1];
+totalRow.setAttribute('class', 'tc');
 
 //drive the viewTable button:
   viewTable = document.getElementById('viewTable');
@@ -52,11 +39,11 @@ totalRow.style.fontWeight = "bold";
 showTable = function() {
   if(t) {
     viewTable.innerHTML = "Hide Table";
-    table.style.display =  "table";
+    table.classList.remove('hidden');
     t = false;
   } else {
     viewTable.innerHTML = "View Table";
-    table.style.display = "none";
+    table.classList.add('hidden');
     t = true
   }
 };
@@ -70,14 +57,9 @@ and properties to bars and labels.
 
 var svg = document.getElementsByTagName('svg')[0];
 
-//hide rectangles:
-//rectangle = document.getElementsByTagName('rect');
-//rectangle[rectangle.length-1] - draws outer rect.
-
 //to expand plotRegion rectangle to show labels:
 var rect = document.getElementsByTagName('rect')[2];
-rect.setAttribute('width', rect.getAttribute('width')*1.5);
-rect.setAttribute('height', rect.getAttribute('height')*1.5);
+rect.setAttribute('class', 'rect');
 rect.setAttribute('x', rect.getAttribute('x') -20);
 rect.setAttribute('y', rect.getAttribute('y')-20);
 
@@ -91,7 +73,8 @@ boxData = JSON.parse(boxData);
 count = counts.length;
 
 //identify polygon bars:
-p = document.getElementsByTagName('polygon')[2]; // to skip the first two polygons that correspond to the boxplot at the bottom.
+p = document.getElementsByTagName('polygon')[2];
+// to skip the first two polygons that correspond to the boxplot at the bottom
 var id = p.getAttribute('id');
 var Grob = id.substring(0, id.lastIndexOf('.'));
 var panel = document.getElementsByTagName('g')[0];
@@ -101,22 +84,17 @@ gLabel = function(Grob, i) {
 var panel = document.getElementById(Grob);
 var gEl = document.createElementNS("http://www.w3.org/2000/svg", "g");
     gEl.setAttributeNS(null, 'id', 'gLabel' + i);
-    gEl.setAttributeNS(null, 'visibility', 'hidden');
+    gEl.setAttributeNS(null, 'class', 'gLabel invisible');
     panel.appendChild(gEl);
   }
 
 //function to create rectangles for labels:
 gRect = function(i) {
     var gRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        gRect.setAttributeNS(null, 'visibility', 'inherit');
         gRect.setAttributeNS(null, 'id', 'gRect' + i);
-        gRect.setAttributeNS(null,'fill', 'white');
-        gRect.setAttributeNS(null,'fill-opacity', '0.8');
-        gRect.setAttributeNS(null,'rx', '5');
-        gRect.setAttributeNS(null, 'ry', '5');
-        gRect.setAttributeNS(null, 'stroke', 'lightgray');
-    gLabel = document.getElementById('gLabel' + i);
-    gLabel.appendChild(gRect);
+        gRect.setAttributeNS(null, 'class', 'gRect');
+    var gLabel = document.getElementById('gLabel' + i);
+        gLabel.appendChild(gRect);
   };
 
 
@@ -131,45 +109,33 @@ for (i = 1; i <= count; i++) {
 label = function(id, textinput, i, tf) {
 //attributes for the text SVG element
   var label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    label.setAttributeNS(null, 'x', '0');
-    label.setAttributeNS(null, 'y', '0');
-    label.setAttributeNS(null, 'font-size', "12");
-    label.setAttributeNS(null, 'fill', 'black');
-    label.setAttributeNS(null, 'stroke', 'none');
-    label.setAttributeNS(null, 'fill-opacity', '1');
-    label.setAttributeNS(null, 'transform', 'translate('+ ((x+sx)/2) + ', ' + (y + tf) +') scale(1, -1)');
-    label.setAttributeNS(null, 'text-anchor', 'middle');
-    label.setAttributeNS(null, 'visibility', 'inherit'); //hidden
     label.setAttributeNS(null, 'id', id + i);
+    label.setAttributeNS(null, 'class', 'label' + ' ' + id);
+    label.setAttributeNS(null, 'transform', 'translate('+ ((x+sx)/2) + ', ' + (y + tf) +') scale(1, -1)');
 
 // Creating the text label element:
-  var text = textinput;
-  var textNode = document.createTextNode(text);
-
+  var textNode = document.createTextNode(textinput);
     label.appendChild(textNode);
     gLabel = document.getElementById('gLabel' + i);
     gLabel.appendChild(label);
 };
 
 //creating tspan labels - for customizing text in bold:
-tLabel = function(id, textinput, i, tf) { // tf is how much to move the text higher than y in px
+tLabel = function(id, textinput, i) {
   var tLabel = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-  tLabel.setAttributeNS(null, 'visibility', 'inherit');
   tLabel.setAttributeNS(null, 'id', id + i);
-  tLabel.setAttributeNS(null, 'transform', 'translate('+ ((x+sx)/2) + ', ' + (y + tf) +') scale(1, -1)');
-  tLabel.setAttributeNS(null, 'font-weight', 'bold');
-
-  tLabel.innerHTML = textinput;
+  tLabel.setAttributeNS(null, 'class', 'tLabel');
+  var textNode = document.createTextNode(textinput);
+  tLabel.appendChild(textNode);
   lab.appendChild(tLabel);
 
 }
 
 // Creating all the labels:
 for (i  = 1; i <= count; i++) {
+
   var bar = document.getElementById(Grob + '.' + i);
-  bar.setAttribute('stroke', 'white');
-  bar.setAttribute('stroke-width', '0.25');
-  bar.setAttribute("class", i);
+  bar.setAttribute('class', 'histBar');
 
   var coords = bar.getAttribute('points');
   var small = coords.split(" ")[1];
@@ -177,17 +143,11 @@ for (i  = 1; i <= count; i++) {
   var coordsxy = coords.split(" ")[2];
   var x = Number(coordsxy.split(",")[0]); //co-ordinates based upon SVG elements.
   var y = Number(coordsxy.split(",")[1]);
-  label('label', 'Class range: ', i, 45); // deal with t-span later.
-  lab = document.getElementById('label' + i);
-  tLabel('tLabel', intervals[i-1].toFixed(2) + '-' + intervals[i].toFixed(2), i, 45);
-
+  label('label', 'Class range: ', i, 60);
+  label('classLabel', intervals[i-1].toFixed(2) + ' - ' + intervals[i].toFixed(2), i, 45);
   label( 'countLabel','N = ' , i, 30);
-  lab = document.getElementById('countLabel' + i);
-  tLabel('tcountLabel',counts[i-1], i, 30);
-
-  label('propLabel', (prop[i-1]*100).toFixed(2) + "%", i, 15);
-  var propLabel = document.getElementById('propLabel' + i);
-    propLabel.setAttribute('font-weight', 'bold');
+  var lab = document.getElementById('countLabel' + i);
+  tLabel('countLabel',counts[i-1] + ', ' + (prop[i-1]*100).toFixed(2) + "%", i);
 
       // Attach and draw rectangles to labels according to the size of the gLabel (with all labels attached)
         var gLabel = document.getElementById('gLabel' + i);
@@ -206,7 +166,8 @@ for (i  = 1; i <= count; i++) {
 
 //Obtaining the 'polygon' boxes associated with the boxplot:
 polygonBox = document.getElementsByTagName('polygon');
-polygonId = polygonBox[0].id; // this differs from dotplots - the boxplot appears to be drawn first...
+polygonId = polygonBox[0].id;
+// this differs from dotplots - the boxplot appears to be drawn first...
 idLine = polygonId.substring(0, polygonId.lastIndexOf('.'));
 
 for (i = 1; i <= polygonBox.length; i ++) {
@@ -227,36 +188,29 @@ var lines = document.getElementsByClassName("line");
 var lastId = lines[lines.length-1].id;
 var lastLine = lastId.substring(0, lastId.lastIndexOf('.'));
 
-
 //functions to create boxLabels:
 
 boxLabel = function(textinput) {
 
 var boxLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  boxLabel.setAttributeNS(null, 'x', '0');
-  boxLabel.setAttributeNS(null, 'y', '0');
-  boxLabel.setAttributeNS(null, 'font-size', "10");
-  boxLabel.setAttributeNS(null, 'fill', 'black');
-  boxLabel.setAttributeNS(null, 'fill-opacity', '1');
-  boxLabel.setAttributeNS(null, 'text-anchor', 'middle');
-  boxLabel.setAttributeNS(null, 'visibility', 'hidden');
-  boxLabel.setAttributeNS(null, 'transform', 'translate(' + Number(x) + ',' + (Number(y) + 10) + ') scale(1, -1)'); //hardcoded!
   boxLabel.setAttributeNS(null, 'id', textinput);
-  boxLabel.setAttributeNS(null, 'class', 'boxData');
+  boxLabel.setAttributeNS(null, 'class', 'label boxData hidden');
+  boxLabel.setAttributeNS(null, 'transform', 'translate(' + Number(x) + ',' + (Number(y) + 10) + ') scale(1, -1)');
 
   var textNode = document.createTextNode(textinput);
-
-    boxLabel.appendChild(textNode);
-    panel.appendChild(boxLabel);
+  boxLabel.appendChild(textNode);
+  panel.appendChild(boxLabel);
 };
 
 boxLabelSet = function(p, r, q, textinput) {
   if (textinput == "Min" ||  textinput == "Max") {
-    line = document.getElementById(lastLine + '.' +  p); // p will either be 1 or 2 -> 1 = minLine, 2 = maxLine
+    line = document.getElementById(lastLine + '.' +  p);
+    // p will either be 1 or 2 -> 1 = minLine, 2 = maxLine
     line.setAttribute('class', 'box');
     boxPoints = line.getAttribute('points').split(" ")[r].split(",");
   } else {
-    box = document.getElementsByClassName('box')[p]; // boxplot split into two boxes - lowerbox (p = 0) and upperbox (p = 1)
+    box = document.getElementsByClassName('box')[p];
+    // boxplot split into two boxes - lowerbox (p = 0) and upperbox (p = 1)
     boxPoints = box.getAttribute('points').split(" ")[r].split(",");
   }
   x = boxPoints[0];
@@ -266,7 +220,8 @@ boxLabelSet = function(p, r, q, textinput) {
    y = boxPoints[1] - 25;
   }
 
-  text = textinput + ": " + boxData[q].quantiles; // this is associated with the boxData imported from R.
+  text = textinput + ": " + boxData[q].quantiles;
+  // this is associated with the boxData imported from R.
   boxLabel(text);
 };
 
@@ -285,8 +240,6 @@ var totalRow = document.getElementById('totalRow');
 
 //setting interactions and colors for box plot:
 for (i = 0; i < box.length; i++) {
-box[i].setAttribute('fill', 'gray');
-box[i].setAttribute('fill-opacity', '0.5');
 box[i].setAttribute('onmouseover', 'fillBox()');
 box[i].setAttribute('onmouseout', 'normalBox()');
 box[i].setAttribute('onclick', 'showBox()');
@@ -295,21 +248,21 @@ box[i].setAttribute('onclick', 'showBox()');
 //on hover:
 fillBox = function() {
   for (i = 0; i < box.length; i++) {
-  box[i].setAttribute('fill-opacity', '0.3');
+  box[i].classList.add('fillBox');
 }
 };
 
 //hover out:
 normalBox = function() {
   for (i = 0; i < box.length; i++) {
-    box[i].setAttribute('fill-opacity', '0.5');
+    box[i].classList.remove('fillBox');
 }
 };
 
 //on click:
 showBox = function() {
   for (i =0; i < boxData.length; i++) {
-    boxData[i].setAttribute('visibility', 'visible');
+    boxData[i].classList.remove('hidden');
 }
 };
 
@@ -329,17 +282,17 @@ for (i = 1; i <= count; i++) {
 //on hover:
  light = function(i) {
    var bar = document.getElementById(Grob + '.' + i);
-   bar.setAttribute('fill-opacity', '0.5');
+      bar.classList.add('light');
    var gLabel = document.getElementById('gLabel' + i);
-   gLabel.setAttribute('visibility', 'visible');
+   gLabel.classList.remove('invisible');
  };
 
 //on hover out:
  normal = function(i) {
    var bar = document.getElementById(Grob + '.' + i);
-   bar.setAttribute('fill-opacity', '1');
+   bar.classList.remove('light');
    var gLabel = document.getElementById('gLabel' + i);
-   gLabel.setAttribute('visibility', 'hidden');
+   gLabel.classList.add('invisible');
  };
 
 // on click:
@@ -351,27 +304,29 @@ for (i = 1; i <= count; i++) {
       var lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
 
      var gLabel = document.getElementById('gLabel' + j);
-     //tablerow:
      var dataRow = document.getElementById('tr' + j);
 
-     totalRow.style.display = "none";
+     var totalRow = document.getElementsByClassName('tc')[0];
+     totalRow.classList.add('hidden');
 
      if (i == j) {
-       bar.setAttribute('opacity', '1');
-       gLabel.setAttribute('visibility', 'visible');
-       //table:
-       dataRow.style.display = "table-row";
+       bar.setAttribute('class', 'histBar selected');
+      gLabel.classList.remove('invisible');
+
+       dataRow.setAttribute('class', 'rowSelect');
        dataRow.style.backgroundColor = "rgba" + lp + ", 0.3)";
-       dataRow.style.fontWeight = "bold";
 
      } else {
-       bar.setAttribute('opacity', '0.3');
-       gLabel.setAttribute('visibility', 'hidden');
-       dataRow.style.display = "none";
+       bar.setAttribute('class', 'histBar none');
+       gLabel.classList.add('invisible');
+
+      dataRow.classList.remove('rowSelect');
+      dataRow.classList.add('hidden');
+      dataRow.style.backgroundColor = "white";
      }
  }
   for (k = 0; k < boxData.length; k++) {
-    boxData[k].setAttribute('visibility', 'hidden');
+    boxData[k].classList.add('hidden');
   }
  };
 
@@ -380,22 +335,23 @@ for (i = 1; i <= count; i++) {
    reset = function() {
      for (i = 1; i <= count; i++) {
        var bar = document.getElementById(Grob + "." + i);
-       bar.setAttribute('opacity', '1');
-       bar.setAttribute('visibility', 'visible');
+       bar.setAttribute('class', 'histBar');
+
        var gLabel = document.getElementById('gLabel' + i);
-       gLabel.setAttribute('visibility', 'hidden');
+       gLabel.classList.add('invisible');
+
        var dataRow = document.getElementById('tr' + i);
-       dataRow.style.display = "table-row";
+       dataRow.classList.remove('hidden');
+       dataRow.classList.remove('rowSelect');
        dataRow.style.backgroundColor = "white";
-       dataRow.style.opacity = "1";
-       dataRow.style.fontWeight = "normal";
-       var totalRow = document.getElementById('totalRow');
-       totalRow.style.display = "table-row";
+
+       var totalRow = document.getElementsByClassName('tc')[0];
+       totalRow.classList.remove('hidden');
    }
     for (k = 0; k < boxData.length; k++) {
-      boxData[k].setAttribute('visibility', 'hidden');
+      boxData[k].classList.add('hidden');
     }
-    table.style.display = "none";
     viewTable.innerHTML = "View Table";
+    table.classList.add('hidden');
     t = true;
  };
