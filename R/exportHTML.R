@@ -10,7 +10,7 @@
 #' \code{getTable} aims to construct the appropriate table for the plot using information stored in the iNZight plot object, or data provided.
 #' \code{convertToJS} converts appropriate data into JSON and writes the appropriate JS file to give interactivity to the HTML page.
 #'
-#' @param x iNZight plot object or function (such as updatePlot) that captures iNZight environment
+#' @param x An iNZight plot object or function (such as updatePlot) that captures iNZight environment
 #' @param file Name of temporary HTML file generated
 #' @return Opens up an HTML file of \code{x} with filename \code{file} in the browser (best to use Chrome/Firefox)
 #' @author Yu Han Soh (S3 template provided by Tom Elliott)
@@ -65,18 +65,25 @@ exportHTML.inzplotoutput <- function(x, file = 'inzightplot.html') {
     warning('iNZight cannot handle multi-factor dot plots... yet!')
     return()
   }
+  
+  #for hex plots:
+  if (attributes(x)$plottype == 'hex') {
+    warning('iNZight cannot handle hexbin plots... yet!')
+    return()
+  }
 
   # if it passes the above: work in temp. directory
   setwd(tempdir())
 
-
+  #Write CSS file:
+  write(styles, 'style.css')
 
   #Create the table (refer to getTable function):
   tbl <- getTable(plot, x)
 
   #write table in HTML using xtable:
   HTMLtable <- print(xtable::xtable(tbl$tab, caption = tbl$cap, auto = TRUE),
-                     type = "html", html.table.attributes= 'class="table table-striped table-bordered" id="table"',
+                     type = "html", html.table.attributes= 'class="table table-hover table-striped table-bordered hidden" id="table"',
                      caption.placement = "top", align = "center",
                      include.rownames = tbl$includeRow, print.results = FALSE)
 
@@ -217,7 +224,6 @@ getTable.inzdot <- function(plot, x) {
   xVal <- plot$toplot$all$x
   tab <- as.data.frame(xVal)
   names(tab) <- attributes(x)$varnames$x
-  print(ncol(tab))
 
   if (!is.null(plot$toplot$all$colby)) {
     colby <- plot$toplot$all$colby
@@ -246,7 +252,7 @@ getTable.inzdot <- function(plot, x) {
 
 getTable.inzscatter <- function(plot, x) {
   #this depends on what the user chooses if they wish to display more variables other than those plotted.
-  #MUST SET ORDER (plot features) to -1 if they choose to add more variables to the table...
+  #MUST SET ORDER (plot features) to -1 if they choose to add more variables to the table (or according to plotting sequence...)
 
   #DEFAULT:  # to only show variables plotted.
     xVal <- plot$x
