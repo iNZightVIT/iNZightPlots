@@ -11,26 +11,26 @@ with boxplot properties. JSON data objects differ (class intervals). */
 var table = document.getElementById('table');
 
 //no. of rows in table
-nrow = document.getElementById('table').rows.length;
+var nrow = table.rows.length;
 
 //no. of columns in table
-ncol = document.getElementsByTagName('th').length;
+var ncol = document.getElementsByTagName('th').length;
 
 var td = document.getElementsByTagName('td');
-cellNo = td.length;
+var cellNo = td.length;
+var i;
 
-for (i = 1; i <= cellNo; i ++) {
+for (i = 1; i <= cellNo; i++) {
   td[i-1].setAttribute('id', 'td' + i);
 };
 
 //no. of rows in table
-var nrow = document.getElementById('table').rows.length;
 var tr = document.getElementsByTagName('tr');
-for (i = 1; i < nrow; i ++) {
+for (i = 1; i < nrow; i++) {
   tr[i].setAttribute('id', 'tr' + i);
 };
 
-var totalRow = document.getElementsByTagName('tr')[nrow-1];
+var totalRow = tr[nrow-1];
 totalRow.setAttribute('class', 'tc');
 
 //drive the viewTable button:
@@ -65,44 +65,45 @@ rect.setAttribute('y', rect.getAttribute('y')-20);
 
 
 //PARSING DATA:
-intervals  = JSON.parse(intervals)
-counts  = JSON.parse(counts)
-prop = JSON.parse(prop);
-boxData = JSON.parse(boxData);
+var intervals  = JSON.parse(intervals)
+var counts  = JSON.parse(counts)
+var prop = JSON.parse(prop);
+var boxData = JSON.parse(boxData);
 
-count = counts.length;
+var count = counts.length;
 
 //identify polygon bars:
-p = document.getElementsByTagName('polygon')[2];
+var p = document.getElementsByTagName('polygon')[2];
 // to skip the first two polygons that correspond to the boxplot at the bottom
 var id = p.getAttribute('id');
 var Grob = id.substring(0, id.lastIndexOf('.'));
 var panel = document.getElementsByTagName('g')[0];
 
+var i;
+
 //creating group labels:
-gLabel = function(Grob, i) {
-var panel = document.getElementById(Grob);
-var gEl = document.createElementNS("http://www.w3.org/2000/svg", "g");
+gLabel = function (Grob, i) {
+    'use strict';
+    var panel = document.getElementById(Grob), gEl = document.createElementNS("http://www.w3.org/2000/svg", "g");
     gEl.setAttributeNS(null, 'id', 'gLabel' + i);
     gEl.setAttributeNS(null, 'class', 'gLabel invisible');
     panel.appendChild(gEl);
-  }
+};
 
-//function to create rectangles for labels:
-gRect = function(i) {
+gRect = function (i) {
     var gRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        gRect.setAttributeNS(null, 'id', 'gRect' + i);
-        gRect.setAttributeNS(null, 'class', 'gRect');
+    gRect.setAttributeNS(null, 'id', 'gRect' + i);
+    gRect.setAttributeNS(null, 'class', 'gRect');
     var gLabel = document.getElementById('gLabel' + i);
-        gLabel.appendChild(gRect);
+    gLabel.appendChild(gRect);
   };
 
 
-for (i = 1; i <= count; i++) {
+for (i in count) {
   gLabel(Grob, i);
 }
 
-for (i = 1; i <= count; i++) {
+for (i in count) {
   gRect(i);
 }
 

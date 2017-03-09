@@ -12,14 +12,14 @@
 #'
 #' @param x An iNZight plot object or function (such as updatePlot) that captures iNZight environment
 #' @param file Name of temporary HTML file generated
-#' @return Opens up an HTML file of \code{x} with filename \code{file} in the browser (best to use Chrome/Firefox)
+#' @return Opens up an HTML file of \code{x} with filename \code{file} in the browser (best performance on Chrome/Firefox)
 #' @author Yu Han Soh (S3 template provided by Tom Elliott)
 #'
 #' @export
 
 exportHTML <- function(x, file) UseMethod("exportHTML")
 
-exportHTML.function <- function(x, file = 'inzightplot.html', width = dev.size()[1], height = dev.size()[2]) {
+exportHTML.function <- function(x, file = 'index.html', width = dev.size()[1], height = dev.size()[2]) {
 
   #get current directory
   curdir <- getwd()
@@ -48,7 +48,7 @@ exportHTML.function <- function(x, file = 'inzightplot.html', width = dev.size()
 }
 
 #this is generalized for every plot - involves the binding of everything together.
-exportHTML.inzplotoutput <- function(x, file = 'inzightplot.html') {
+exportHTML.inzplotoutput <- function(x, file = 'index.html') {
 
   curdir <- getwd()
   x <- x
@@ -120,7 +120,7 @@ exportHTML.inzplotoutput <- function(x, file = 'inzightplot.html') {
   write(HTMLtemplate, file)
 
   #Step 5: Open HTML file: - should be stored in temporary file
-  browseURL(paste('file://', file.path(getwd(), file)))
+  browseURL(file.path(file))
 
   #reset back to original directory:
   setwd(curdir)

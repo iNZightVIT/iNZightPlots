@@ -3,10 +3,10 @@ two way bar plots.
  Code is split in 3 sections: table properties,
                               bar and label properties,
                               and interaction code.     */
+ // Parsing data
 
- // Parsing data:
- var prop = JSON.parse(prop);
- var counts = JSON.parse(counts);
+var prop = JSON.parse(prop),
+    counts = JSON.parse(counts);
 
 /*-----------------------------------------------------
                   Table properties:
@@ -19,58 +19,52 @@ conversion, 'View Table' button).
 -----------------------------------------------------*/
 
 //defining table element
-var table = document.getElementById('table');
+var table = document.getElementById('table'),
+    tr = table.getElementsByTagName('tr'),
+    ncol = tr[0].childElementCount, //no of columns
+    td = table.getElementsByTagName('td'),
+    cellNo = td.length, //cell no.
+    nrow = table.rows.length, //no. of rows
+    dataNo = cellNo - 2 * (nrow - 1), //cells with data
+    i;
 
-//no. of columns in table
-var tr = table.getElementsByTagName('tr');
-ncol = tr[0].childElementCount;
-
-//no. of cells in table
-var td = table.getElementsByTagName('td');
-cellNo = td.length;
-
-//no. of rows in table
-nrow = document.getElementById('table').rows.length;
-for (i = 1; i < nrow; i ++) {
-  tr[i].setAttribute('id', 'tr' + i);
-};
-
-//actual cell with data:
-dataNo = cellNo - 2*(nrow-1)
+for (i = 1; i < nrow; i++) {
+    tr[i].setAttribute('id', 'tr' + i);
+}
 
 //finding no. of rows, and labelling
- for (i = 1; i <= cellNo; i ++) {
-  if (i % ncol == 0) {
-    td[i-1].setAttribute('id', 'tc' + i/ncol);
-    td[i-1].setAttribute('class', 'tc');
-  } else if (i % ncol == 1){
-    td[i-1].setAttribute('id', 'yGroup' + ((i-1)/ncol + 1));
-    td[i-1].setAttribute('class', 'yGroup');
-  } else if(prop[0].Var1 != undefined) {
-      td[i-1].setAttribute('id', 'td' + (((i- (i%ncol))/ncol + 1)+((nrow-1)*(i%ncol-2))));
-  } else if (i <(ncol)) {
-    td[i-1].setAttribute('class', 'td' + (i-1));
- }  else  {
-  td[i-1].setAttribute('class', 'td' + ((i-2)%ncol+1));
+for (i = 1; i <= cellNo; i++) {
+    if (i % ncol === 0) {
+        td[i - 1].setAttribute('id', 'tc' + i / ncol);
+        td[i - 1].setAttribute('class', 'tc');
+    } else if (i % ncol === 1) {
+        td[i - 1].setAttribute('id', 'yGroup' + ((i - 1) / ncol + 1));
+        td[i - 1].setAttribute('class', 'yGroup');
+    } else if (prop[0].Var1 !== undefined) {
+        td[i - 1].setAttribute('id', 'td' + (((i - (i % ncol)) / ncol + 1) + ((nrow - 1) * (i % ncol - 2))));
+    } else if (i < ncol) {
+        td[i - 1].setAttribute('class', 'td' + (i - 1));
+    } else {
+        td[i - 1].setAttribute('class', 'td' + ((i - 2) % ncol + 1));
+    }
 }
-};
 
 //x-header:
-var xrow = table.insertRow(0);
-var xhead = xrow.insertCell(0);
+var xrow = table.insertRow(0),
+    xhead = xrow.insertCell(0);
 xhead.setAttribute('class', 'headings');
 xhead.innerHTML = document.getElementsByTagName('tspan')[2].innerHTML;
 xhead.colSpan = ncol;
 
 
 // if two way bar plot: additional conversion to counts, percentages, summation and y-headers
-if (prop[0].Var1 != undefined) {
+if (prop[0].Var1 !== undefined) {
 
   //Finding the sum of countsTab:
-  var countsTab = new Array();
-  for (i = 1; i <= cellNo/ncol; i++) {
-    var tc = document.getElementById('tc' + i);
-    countsTab[i-1] = Number(tc.innerHTML);
+    var countsTab = [];
+    for (i = 1; i <= cellNo / ncol; i++) {
+        var tc = document.getElementById('tc' + i);
+        countsTab[i-1] = Number(tc.innerHTML);
   };
 
   var sum = countsTab.reduce(function(a, b) { return a + b; }, 0);
@@ -82,7 +76,7 @@ if (prop[0].Var1 != undefined) {
 
 
   //Summation row:
-  lastRow = table.insertRow(nrow+1);
+  var lastRow = table.insertRow(nrow+1);
   lastRow.setAttribute('class', 'totalRow');
   for (i = 1; i <= ncol; i ++) {
     var cell = lastRow.insertCell(i-1);
@@ -244,11 +238,11 @@ for (i = 0; i < lines.length; i++) {
 };
 
 // Construction of text labels:
-var panel = document.getElementsByTagName('g')[0];
+
 
 // g elements to group labels together:
-gLabel = function(Grob, i) {
-
+gLabel = function(i) {
+var panel = document.getElementsByTagName('g')[0];
 var gEl = document.createElementNS("http://www.w3.org/2000/svg", "g");
     gEl.setAttributeNS(null, 'id', 'gLabel' + i);
     gEl.setAttributeNS(null, 'class', 'gLabel invisible');
@@ -256,7 +250,7 @@ var gEl = document.createElementNS("http://www.w3.org/2000/svg", "g");
   };
 
 for (i = 1; i <= count; i++) {
-  gLabel(Grob, i);
+  gLabel(i);
 };
 
 //function to create rectangles for labels:
@@ -549,7 +543,7 @@ reset = function() {
 
         row.classList.remove('tabSelect');
         row.style.backgroundColor = "white";
-        
+
         td.classList.remove('tabSelect');
         td.setAttribute('style', 'inherit');
 

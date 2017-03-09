@@ -198,7 +198,6 @@ var groups = counts.length; // no. of groups (corresponds to one of the variable
 var  p = document.getElementsByTagName('polygon');
 var id = p[0].getAttribute('id');
 var Grob = id.substring(0, id.lastIndexOf('.'));
-var panel = document.getElementsByTagName('g')[0];
 
 for (i = 1; i < p.length; i++) {
   if (p[i].id.indexOf(Grob) >= 0) {
@@ -229,8 +228,8 @@ for (i =1; i < polyLines.length; i ++) {
 };
 
 //creating group labels:
-gLabel = function(Grob, i) {
-var panel = document.getElementById(Grob);
+gLabel = function(i) {
+var panel = document.getElementsByTagName('g')[0];
 var gEl = document.createElementNS("http://www.w3.org/2000/svg", "g");
     gEl.setAttributeNS(null, 'id', 'gLabel' + i);
     gEl.setAttributeNS(null, 'class', 'gLabel invisible');
@@ -238,7 +237,7 @@ var gEl = document.createElementNS("http://www.w3.org/2000/svg", "g");
   }
 
 for (i = 1; i < count; i++) {
-  gLabel(Grob, i);
+  gLabel(i);
 }
 
 //function to create rectangles for labels:

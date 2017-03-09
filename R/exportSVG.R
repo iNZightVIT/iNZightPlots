@@ -45,7 +45,7 @@ exportSVG.inzplotoutput <- function(x, file = 'inzightplot.svg') {
   gridSVG::grid.export(file)
   
   #open in browser?
-  browseURL(paste('file://', file.path(getwd(), file)))
+  browseURL(file.path(file))
   
   #return:
   setwd(curdir)

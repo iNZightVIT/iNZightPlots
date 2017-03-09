@@ -460,10 +460,8 @@ if (key.getAttribute('fill') == point.getAttribute('stroke')) {
 }
 };
 
-
 /* Link to interactive table + labels - "Variables to display" select/option box:
-- may rewrite this in jQuery for detachment. Requires revision due to browser
-incompatibility. */
+- Requires revision due to browser incompatibility. */
 
 selected = function() {
 sOpt = selectVar.selectedOptions;
@@ -506,147 +504,125 @@ for (i=0; i <= s.length; i++) {
 
 
 /* --------------------------------------------------------------
-                selectionCanvas.js
+                selectionSVG.js
 
 Code to select over a group of points via mouse drag.
-//issues: breaks when user zooms, or when document
-had padding to SVG.
-ISSUES: Does not support FF, IE. - may rewrite in jQuery.
-- Note: this may need to be revised as foreignObjects are not
-supported in IE...
+//No padding allowed.
+//Need to test on IE.
 
 ----------------------------------------------------------------- */
 
-width = svg.width.baseVal.value;
-height = svg.height.baseVal.value;
+//obtaining svg region:
+var svg = document.getElementsByTagName('svg')[0];
+svg.setAttribute('draggable', 'false');
 
-//Need to create canvas in order to draw rectangle on an svg element:
-//- it requires a foreignObject. - NOT supported on IE!
-var foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
-    foreignObject.setAttributeNS(null, 'id', 'foreignObject');
-    foreignObject.setAttributeNS(null,'width', width);
-    foreignObject.setAttributeNS(null, 'height', height);
-/* The foreignObject containing the canvas is set to hidden to prevent it from
- affecting other mouse events.
- Visibility is turned on when the user drags as written below (enables the
- user to draw a selection box over the plot.) */
-    foreignObject.setAttributeNS(null, 'visibility', 'hidden');
-    svg.appendChild(foreignObject);
+var rect = document.getElementsByTagName('rect');
+var width = svg.width.baseVal.value;
+var height = svg.height.baseVal.value;
+
+//putting selection rectangle in a group element:
+var g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  g.setAttributeNS(null, 'id', 'selectionBox');
+  var panel = document.getElementById(Grob);
+  panel.appendChild(g);
 
 
-// creation of canvas element:
-var canvas = document.createElementNS('http://www.w3.org/1999/xhtml', 'xhtml:canvas');
-  canvas.setAttributeNS(null, 'id', 'canvas');
-  canvas.setAttributeNS(null, 'width', width);
-  canvas.setAttributeNS(null, 'height', height);
-  foreignObject.appendChild(canvas);
+var evt = window.event;
 
-//Get canvas context to draw rectangles according to mouse events:
-var ctx = canvas.getContext("2d");
-ctx.strokeStyle = "none";
-ctx.fillStyle = "rgba(112,112,112, 0.25)";
+svg.setAttribute('onmouseup', 'MouseUp(evt)');
+svg.setAttribute('onmousemove', 'MouseDrag(evt)');
+svg.setAttribute('onmousedown', 'MouseDown(evt)');
 
-var isDrawing = false;
+  var selectRect = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  selectRect.setAttributeNS(null, 'id', 'selectRect');
+  selectRect.setAttributeNS(null, 'class', 'selectRect');
+  g.appendChild(selectRect);
 
-//mouse events attached to svg element
-svg.setAttribute('onmousedown', 'MouseDown(event)');
-svg.setAttribute('onmouseup', 'MouseUp(event)');
-svg.setAttribute('onmousemove', 'MouseMove(event)');
+var zoomBox = {};
 
-var selectBox = {};
-
-//When the user begins to draw the rectangle...
-function MouseDown(e) {
-  var e = window.event || e;
-  canvas.style.cursor = "crosshair";
-  selectBox["isDrawing"] = true;
-    selectBox["startX"] = e.pageX;
-    selectBox["startY"] = e.pageY;
-  };
-
-// What happens when the user moves the mouse...
-function MouseMove(e) {
-  var e = window.event || e;
-if(selectBox["isDrawing"]) {
-  //when drawing - foreignObject visibility is on, to allow user to draw canvas rectangle.
-  foreignObject.setAttribute('visibility', 'visible');
-  window.scrollTo(0, 0);
-    selectBox["endX"] = e.pageX;
-    selectBox["endY"] = e.pageY;
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		ctx.beginPath();
-		ctx.rect(selectBox["startX"], selectBox["startY"], selectBox["endX"]-selectBox["startX"], selectBox["endY"]-selectBox["startY"]);
-    ctx.fill();
-
-
-    //Because the y-axis is inverted in the plot - need to invert the scale
-     tVal = document.getElementsByTagName('g')[0].getAttribute('transform').substring(13, 16);
-
-     //Because canvas can draw rectangles in any position (positive and negative!) - to calculate positions:
-    if(selectBox["startX"] < selectBox["endX"]) {
-    var x1 = selectBox["startX"];
-    var x2 = selectBox["endX"];
-  } else {
-    var x1 = selectBox["endX"];
-    var x2 = selectBox["startX"];
-  }
-
-  if (selectBox["startY"] < selectBox["endY"]) {
-    var y1 = tVal - selectBox["startY"] - (selectBox["endY"]-selectBox["startY"]);
-    var y2 = y1 + (selectBox["endY"]-selectBox["startY"]);
-  } else {
-    var y1 = tVal - selectBox["endY"] - (selectBox["startY"]-selectBox["endY"]);
-    var y2 = y1 + (selectBox["startY"]-selectBox["endY"]);
-  }
-
-    for (i =1; i <= count; i++) {
-      point = document.getElementById(Grob + '.' + i);
-      gLabel = document.getElementById('gLabel' + i);
-      dataRow = document.getElementById('tr' + i);
-
-      x = point.x.baseVal.value;
-      y = point.y.baseVal.value;
-
-      if (point.getAttribute('visibility') != 'hidden') { // condition run on subsetted group
-
-      //Condition run - where if the point lies within the rectangle selection box drawn:
-      if((x1 <= x && x <= x2) && (y1 <= y && y <= y2))  {
-         point.setAttribute('class', ' point selected');
-         l = point.getAttribute('stroke');
-         lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
-
-         gLabel.classList.remove('invisible');
-         dataRow.classList.remove('hidden');
-         dataRow.classList.add('rowSelect');
-         dataRow.style.backgroundColor = "rgba" + lp + ", 0.25)";
-
-
-       } else { // hides points if it's not in the drawn region
-         point.setAttribute('class', 'point none');
-         gLabel.classList.add('invisible');
-
-         dataRow.classList.add('hidden');
-         dataRow.classList.remove('rowSelect');
-         dataRow.style.backgroundColor = "white";
-
-       }
-	} else {  // those that are hidden, remain hidden
-    point.classList.add('hidden');
-    gLabel.classList.add('invisible');
-  }
-}
-}
+MouseDown = function(evt) {
+  svg.style.cursor = "crosshair";
+    zoomBox["startX"] = evt.pageX;
+    zoomBox["startY"] = evt.pageY;
+    zoomBox["isDrawing"] = true;
+   selectRect.setAttribute('points',  zoomBox["startX"] + ',' + zoomBox["startY"]);
 };
 
-//MouseUp - what happens after the user finishes drawing the rectangle.
-function MouseUp(e) {
-  var e = window.event || e;
-	canvas.style.cursor = "default";
-  selectBox["endX"] = e.pageX;
-  selectBox["endY"] = e.pageY;
-  selectBox["isDrawing"] = false;
-  foreignObject.setAttribute('visibility', 'hidden'); // hides the foreignObject.
-}
+MouseUp = function(evt) {
+  svg.style.cursor = "default";
+      zoomBox["endX"] = evt.pageX;
+      zoomBox["endY"] = evt.pageY;
+      zoomBox["isDrawing"] = false;
+
+  };
+
+MouseDrag = function(evt) {
+    if(zoomBox["isDrawing"]) {
+        zoomBox["endX"] = evt.pageX;
+        zoomBox["endY"] = evt.pageY;
+
+        //Because the y-axis is inverted in the plot - need to invert the scale
+         tVal = document.getElementsByTagName('g')[0].getAttribute('transform').substring(13, 16);
+        var selectRect = document.getElementById('selectRect');
+
+         // for rectangles with positive height, positive width
+        if(zoomBox["startX"] < zoomBox["endX"]) {
+        var x1 = zoomBox["startX"];
+        var x2 = zoomBox["endX"];
+      } else {
+        var x1 = zoomBox["endX"];
+        var x2 = zoomBox["startX"];
+      }
+
+      // for rectangles with opposite directions ('negative' widths, heights)
+      if (zoomBox["startY"] < zoomBox["endY"]) {
+        var y1 = tVal - zoomBox["startY"] - (zoomBox["endY"]-zoomBox["startY"]);
+        var y2 = y1 + (zoomBox["endY"]-zoomBox["startY"]);
+      } else {
+        var y1 = tVal - zoomBox["endY"] - (zoomBox["startY"]-zoomBox["endY"]);
+        var y2 = y1 + (zoomBox["startY"]-zoomBox["endY"]);
+      }
+
+        selectRect.setAttribute('points', x1 + ',' + y1 + " " + x1 + ',' + y2 + ' '
+                                          + x2 + ',' + y2 + ' ' + x2 + ',' + y1);
+
+        for (i =1; i <= count; i++) {
+        var point = document.getElementById(Grob + '.' + i);
+        var gLabel = document.getElementById('gLabel' + i);
+        var dataRow = document.getElementById('tr' + i);
+
+          var x = point.x.baseVal.value;
+          var y = point.y.baseVal.value;
+
+          if (point.getAttribute('visibility') == 'hidden') {
+            // those that are hidden, remain hidden
+              point.classList.add('hidden');
+              gLabel.classList.add('invisible');
+            } else {
+              //points that lie within the  boundary box drawn:
+          if((x1 <= x && x <= x2) && (y1 <= y && y <= y2)) {
+            point.setAttribute('class', ' point selected');
+            l = point.getAttribute('stroke');
+            lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
+
+            gLabel.classList.remove('invisible');
+            dataRow.classList.remove('hidden');
+            dataRow.classList.add('rowSelect');
+            dataRow.style.backgroundColor = "rgba" + lp + ", 0.25)";
+
+           } else {
+             point.setAttribute('class', 'point none');
+             gLabel.classList.add('invisible');
+
+             dataRow.classList.add('hidden');
+             dataRow.classList.remove('rowSelect');
+             dataRow.style.backgroundColor = "white";
+           }
+         }
+        }
+    }
+};
+
 
 /* -------------------------------------------------
       Reset button - attempts to return to original state
@@ -665,18 +641,13 @@ function MouseUp(e) {
       dataRow.classList.remove('rowSelect');
 
       dataRow.style.backgroundColor = "white";
-
+    }
+    // reset selection rectangle
     var selectRect = document.getElementById('selectRect');
     if (selectRect != undefined) {
-      selectRect.setAttribute('x', 0);
-      selectRect.setAttribute('y', 0);
-      selectRect.setAttribute('width', 0);
-      selectRect.setAttribute('height', 0);
-    }
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    foreignObject.setAttribute('visibility', 'hidden');
+      selectRect.setAttribute('points', '0,0');
   }
+
 for (i =1; i <= ncol-1; i++) {
     column = table.getElementsByClassName(i);
     for (j = 1; j <=column.length; j++) {
