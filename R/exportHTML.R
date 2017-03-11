@@ -1,19 +1,22 @@
-#' @title Exporting iNZightPlots as dynamic HTML pages
+#' @title ExportHTML
 #'
-#' @description \code{exportHTML} is designed to export the iNZight plot into a dynamic HTML page.
-#' Generates an appropriate HTML table, converts data objects into JSON and retrieves a JavaScript file based upon the plot. Creates an SVG of the plot,
-#' and inserts the svg plot, table, and JavaScript into the HTML template that is stored in the package (see 'templates'/sysdata.rda). Opens the written HTML page in a web browser.
-#' Currently, it only handles single panel plots. Exporting additional variables, multi-panel plots and hex plots are currently not available yet.
+#' @description \code{exportHTML} is designed to export the iNZight plot as a dynamic, interactive HTML page.
+#'  It opens the written HTML page in a web browser.
+#' Currently, it only handles single panel plots. Exporting additional variables, multi-panel plots and coloured hex plots are currently not available yet.
 #'
-#' @details Use of S3 methods. Acts as generic function (either takes in function or iNZight plot object).
-#' Also uses two other generic functions that are defined by different classes of the iNZightPlot (inzbar, inzhist, e.t.c):
+#' @details 
+#' It generates an appropriate HTML table, converts data objects into JSON and retrieves a JavaScript file based upon the plot. It converts the plot to an svg,
+#' and inserts the svg plot, table, and JavaScript into the an HTML template to produce the page that is viewed in the browser.
+#' This function acts as generic function (either takes in function or iNZight plot object) and is comprised of two other functions.
 #' \code{getTable} aims to construct the appropriate table for the plot using information stored in the iNZight plot object, or data provided.
 #' \code{convertToJS} converts appropriate data into JSON and writes the appropriate JS file to give interactivity to the HTML page.
 #'
 #' @param x An iNZight plot object or function (such as updatePlot) that captures iNZight environment
 #' @param file Name of temporary HTML file generated
+#' 
 #' @return Opens up an HTML file of \code{x} with filename \code{file} in the browser (best performance on Chrome/Firefox)
-#' @author Yu Han Soh (S3 template provided by Tom Elliott)
+#' 
+#' @author Yu Han Soh
 #'
 #' @export
 
@@ -62,15 +65,16 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html') {
 
   #condition for 1 categorical + 1 continuous variable
   if(length(plot$toplot) > 1) {
-    warning('iNZight cannot handle multi-factor dot plots... yet!')
+    warning('iNZight cannot handle interactive multi-factor dot plots yet!')
     return()
   }
   
-  #for hex plots:
-  if (attributes(x)$plottype == 'hex') {
-    warning('iNZight cannot handle hexbin plots... yet!')
+  #condition for colored hexplots - currently unavailable:
+  if(attributes(x)$plottype == "hex" && !is.null(plot$colby)) {
+    warning('iNZight cannot handle interactive colored hex plots yet!')
     return()
   }
+  
 
   # if it passes the above: work in temp. directory
   setwd(tempdir())
@@ -82,10 +86,15 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html') {
   tbl <- getTable(plot, x)
 
   #write table in HTML using xtable:
-  HTMLtable <- print(xtable::xtable(tbl$tab, caption = tbl$cap, auto = TRUE),
+  if (is.null(tbl)) {
+    HTMLtable <- '<p> No table available. </p>'
+  } else {
+  
+    HTMLtable <- print(xtable::xtable(tbl$tab, caption = tbl$cap, auto = TRUE),
                      type = "html", html.table.attributes= 'class="table table-hover table-striped table-bordered hidden" id="table"',
                      caption.placement = "top", align = "center",
                      include.rownames = tbl$includeRow, print.results = FALSE)
+  }
 
   #Getting JS file  + creating JSObjects using jsonlite (refer to convertToJS function):
   jsData <- convertToJS(plot, tbl)
@@ -275,10 +284,13 @@ getTable.inzscatter <- function(plot, x) {
 
 }
 
-#Not set up yet! - for future purposes
+#No table for hexplots yet! 
 getTable.inzhex <- function(plot, x = NULL) {
-  warning("Hexbin plots currently do not have a table... yet!")
-  return()
+  warning("No table available for hexbin plots.")
+  tableInfo <- NULL;
+  return(tableInfo);
+  
+  
 }
 
 getTable.default <- function(plot, x = NULL) {
@@ -382,15 +394,16 @@ convertToJS.inzhist <- function(plot, tbl) {
   intervalJSON <- paste0("var intervals = '", jsonlite::toJSON(intervals), "';")
   countsJSON <- paste0("var counts = '", jsonlite::toJSON(counts), "';")
   propJSON <- paste0("var prop = '", jsonlite::toJSON(prop), "';")
-  boxJSON <- paste0("var boxData = '", jsonlite::toJSON(boxTable), "';");
+  boxJSON <- paste0("var boxData = '", jsonlite::toJSON(boxTable), "';")
+  n <- paste0("var n = ", tbl$n)
 
   ##JS file in temp directory:
    write(histJS, file = 'histogram.js')
     jsFile <- 'histogram.js'
 
   ##Output as a list:
-  JSData <- list(intervalJSON, countsJSON, propJSON, boxJSON, jsFile)
-  names(JSData) <- c('intervalJSON', 'countsJSON', 'propJSON', 'boxJSON', 'jsFile')
+  JSData <- list(intervalJSON, countsJSON, propJSON, boxJSON, n, jsFile)
+  names(JSData) <- c('intervalJSON', 'countsJSON', 'propJSON', 'boxJSON', 'n', 'jsFile')
 
   return(JSData)
 
@@ -446,11 +459,29 @@ convertToJS.inzscatter <- function(plot, tbl) {
   return(JSData)
 }
 
-#Not set up yet! - for future purposes
+#Trialling hex plots:
 convertToJS.inzhex <- function(plot, tbl = NULL) {
 
-  warning("No JS available for hexbin plots... yet!")
-  return()
+  #Hexplots use S4 notation:
+  counts <- plot$hex@count
+  xcm <- plot$hex@xcm
+  ycm <- plot$hex@ycm
+  n <- plot$hex@n
+  
+  countsJSON <- paste0("var counts = '", jsonlite::toJSON(counts), "';")
+  xcmJSON <- paste0("var xcm = '", jsonlite::toJSON(xcm), "';")
+  ycmJSON <- paste0("var ycm ='", jsonlite::toJSON(ycm), "';")
+  n <- paste0("var n =", n)
+  
+  #JS file:
+  write(hexbinJS, file = 'hexbin.js')
+  jsFile <- 'hexbin.js'
+  
+  #list:
+  JSData <- list(countsJSON, xcmJSON, ycmJSON, n, jsFile)
+  names(JSData) <- c("countsJSON", "xcmJSON", "ycmJSON", "n", "jsFile")
+  
+  return(JSData)
 
 }
 
