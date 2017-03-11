@@ -8,6 +8,7 @@ body {
 }
 
 /*svg container */
+
 .contained {
   margin-left: 0;
   padding: 0;
@@ -229,4 +230,14 @@ th {
 
 .classLabel {
   font-weight:bold;
+}
+
+/* hexbins */
+.hexbin {
+  /* fill: orange; */
+  stroke: none;
+}
+
+.hx_hy {
+  font-weight: bold;
 }

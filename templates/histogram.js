@@ -77,20 +77,18 @@ var p = document.getElementsByTagName('polygon')[2];
 // to skip the first two polygons that correspond to the boxplot at the bottom
 var id = p.getAttribute('id');
 var Grob = id.substring(0, id.lastIndexOf('.'));
-var panel = document.getElementsByTagName('g')[0];
 
-var i;
 
 //creating group labels:
-gLabel = function (Grob, i) {
-    'use strict';
-    var panel = document.getElementById(Grob), gEl = document.createElementNS("http://www.w3.org/2000/svg", "g");
+gLabel = function(i) {
+    var gEl = document.createElementNS("http://www.w3.org/2000/svg", "g");
     gEl.setAttributeNS(null, 'id', 'gLabel' + i);
     gEl.setAttributeNS(null, 'class', 'gLabel invisible');
+    var panel = document.getElementsByTagName('g')[0];
     panel.appendChild(gEl);
 };
 
-gRect = function (i) {
+gRect = function(i) {
     var gRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
     gRect.setAttributeNS(null, 'id', 'gRect' + i);
     gRect.setAttributeNS(null, 'class', 'gRect');
@@ -99,11 +97,11 @@ gRect = function (i) {
   };
 
 
-for (i in count) {
-  gLabel(Grob, i);
+for (i = 1; i<= count; i++) {
+  gLabel(i);
 }
 
-for (i in count) {
+for (i = 1; i <= count; i++) {
   gRect(i);
 }
 
@@ -122,7 +120,7 @@ label = function(id, textinput, i, tf) {
 };
 
 //creating tspan labels - for customizing text in bold:
-tLabel = function(id, textinput, i) {
+tLabel = function(id, textinput, i, lab) {
   var tLabel = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
   tLabel.setAttributeNS(null, 'id', id + i);
   tLabel.setAttributeNS(null, 'class', 'tLabel');
@@ -147,8 +145,7 @@ for (i  = 1; i <= count; i++) {
   label('label', 'Class range: ', i, 60);
   label('classLabel', intervals[i-1].toFixed(2) + ' - ' + intervals[i].toFixed(2), i, 45);
   label( 'countLabel','N = ' , i, 30);
-  var lab = document.getElementById('countLabel' + i);
-  tLabel('countLabel',counts[i-1] + ', ' + (prop[i-1]*100).toFixed(2) + "%", i);
+  tLabel('countLabel',counts[i-1] + ', ' + (prop[i-1]*100).toFixed(2) + "%", i, document.getElementById('countLabel' + i));
 
       // Attach and draw rectangles to labels according to the size of the gLabel (with all labels attached)
         var gLabel = document.getElementById('gLabel' + i);
@@ -200,6 +197,7 @@ var boxLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
 
   var textNode = document.createTextNode(textinput);
   boxLabel.appendChild(textNode);
+  var panel = document.getElementsByTagName('g')[0];
   panel.appendChild(boxLabel);
 };
 
@@ -331,6 +329,207 @@ for (i = 1; i <= count; i++) {
   }
  };
 
+// Adding selection drag box for user to isolate a certain group of bars:
+/* MULTISELECT ON MOUSE DRAG*/
+var svg = document.getElementsByTagName('svg')[0];
+
+//set container with no style padding:
+var svgContainer = document.getElementById('svg-container');
+svgContainer.classList.add('contained');
+
+svg.setAttribute('draggable', 'false');
+
+var rect = document.getElementsByTagName('rect');
+var width = svg.width.baseVal.value;
+var height = svg.height.baseVal.value;
+
+//putting selection rectangle in a group element:
+var g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  g.setAttributeNS(null, 'id', 'selectionBox');
+  var panel = document.getElementById(Grob);
+  panel.appendChild(g);
+
+
+var evt = window.event;
+
+svg.setAttribute('onmouseup', 'MouseUp(evt)');
+svg.setAttribute('onmousemove', 'MouseDrag(evt)');
+svg.setAttribute('onmousedown', 'MouseDown(evt)');
+
+  var selectRect = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  selectRect.setAttributeNS(null, 'id', 'selectRect');
+  selectRect.setAttributeNS(null, 'class', 'selectRect');
+  g.appendChild(selectRect);
+
+
+  //create a new label:
+  selectionLabel = function(id, x, y, textinput) {
+  var selectionLabel = document.createElementNS("http://www.w3.org/2000/svg", 'text');
+       selectionLabel.setAttributeNS(null, 'class', 'label');
+       selectionLabel.setAttributeNS(null, 'id', id);
+       selectionLabel.setAttributeNS(null, 'transform', 'translate(' + x +  ',' + y + ') scale(1, -1)');
+      var text = document.createTextNode(textinput);
+      selectionLabel.appendChild(text);
+
+      var selectionLabelGroup = document.getElementById('selectionLabelGroup');
+       selectionLabelGroup.appendChild(selectionLabel);
+     }
+
+var zoomBox = {};
+
+MouseDown = function(evt) {
+
+  var selectedGroup = document.getElementById('selectionLabelGroup');
+  if (selectedGroup !== null) {
+      selectedGroup.remove();
+     }
+
+    zoomBox["startX"] = evt.pageX - 20;
+    zoomBox["startY"] = evt.pageY -20;
+    zoomBox["isDrawing"] = true;
+   selectRect.setAttribute('points',  zoomBox["startX"] + ',' + zoomBox["startY"]);
+};
+
+MouseUp = function(evt) {
+  svg.style.cursor = "default";
+      zoomBox["endX"] = evt.pageX -20;
+      zoomBox["endY"] = evt.pageY -20;
+      zoomBox["isDrawing"] = false;
+
+  };
+
+MouseDrag = function(evt) {
+    if(zoomBox["isDrawing"]) {
+        svg.style.cursor = "crosshair";
+        zoomBox["endX"] = evt.pageX - 20;
+        zoomBox["endY"] = evt.pageY - 20;
+
+        //Because the y-axis is inverted in the plot - need to invert the scale
+         tVal = document.getElementsByTagName('g')[0].getAttribute('transform').substring(13, 16);
+        var selectRect = document.getElementById('selectRect');
+
+         // for rectangles with positive height, positive width
+        if(zoomBox["startX"] < zoomBox["endX"]) {
+        var x1 = zoomBox["startX"];
+        var x2 = zoomBox["endX"];
+      } else {
+        var x1 = zoomBox["endX"];
+        var x2 = zoomBox["startX"];
+      }
+
+      // for rectangles with opposite directions ('negative' widths, heights)
+      if (zoomBox["startY"] < zoomBox["endY"]) {
+        var y1 = tVal - zoomBox["startY"] - (zoomBox["endY"]-zoomBox["startY"]);
+        var y2 = y1 + (zoomBox["endY"]-zoomBox["startY"]);
+      } else {
+        var y1 = tVal - zoomBox["endY"] - (zoomBox["startY"]-zoomBox["endY"]);
+        var y2 = y1 + (zoomBox["startY"]-zoomBox["endY"]);
+      }
+
+        selectRect.setAttribute('points', x1 + ',' + y1 + " " + x1 + ',' + y2 + ' '
+                                          + x2 + ',' + y2 + ' ' + x2 + ',' + y1);
+
+        // information to extract:
+        var groupN = [];
+        var intRange = [];
+
+        for (i =1; i <= count; i++) {
+        var bar = document.getElementById(Grob + '.' + i);
+        var gLabel = document.getElementById('gLabel' + i);
+        var dataRow = document.getElementById('tr' + i);
+
+        //obtain end points of the bar:
+        var coords = bar.getAttribute('points').split(" ");
+        var bottomEdge = coords[0].split(',');
+        var topEdge =  coords[3].split(',');
+        var bx = bottomEdge[0];
+        var by = bottomEdge[1];
+        var tx = topEdge[0];
+        var ty = topEdge[1];
+
+          if (bar.getAttribute('visibility') == 'hidden') {
+            // those that are hidden, remain hidden
+              bar.classList.add('hidden');
+              gLabel.classList.add('invisible');
+            } else {
+              //points that lie within the  boundary box drawn:
+          if(((x1 <= bx && bx <= x2) && (x1 <= tx && tx <= x2)) || ((y1 <= by && by <= y2) && (y1 <= ty && ty <= y2))) {
+            bar.setAttribute('class', ' histBar selected');
+            l = bar.getAttribute('fill');
+            lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
+
+            dataRow.classList.remove('hidden');
+            dataRow.classList.add('rowSelect');
+            dataRow.style.backgroundColor = "rgba" + lp + ", 0.25)";
+
+            groupN.push(counts[i-1]); // store frequency from each hexbin that's selected
+
+            //need  a way to compare intervals:
+            intRange.push(intervals[i-1], intervals[i]);
+          //  console.log(intRange);
+
+           } else {
+             bar.setAttribute('class', 'histBar none');
+
+             dataRow.classList.add('hidden');
+             dataRow.classList.remove('rowSelect');
+             dataRow.style.backgroundColor = "white";
+           }
+         }
+
+         //summation of array:
+         var sum = groupN.reduce(function(a, b) { return a + b; }, 0);
+
+         var totalRow = document.getElementsByClassName('tc')[0];
+         totalRow.classList.remove('hidden');
+         var total = td[td.length-1];
+         total.innerHTML = sum;
+
+         // report a proportion:
+         var nProp = (sum/n*100).toFixed(2) + "%";
+
+         var selectedGroup = document.getElementById('selectionLabelGroup');
+         if (selectedGroup !== null) {
+             selectedGroup.remove();
+            }
+
+        //create group label by selection:
+        //grouping it together!:
+        var selectionLabelGroup = document.createElementNS("http://www.w3.org/2000/svg", 'g');
+            selectionLabelGroup.setAttributeNS(null, 'class', 'gLabel');
+            selectionLabelGroup.setAttributeNS(null, 'id', 'selectionLabelGroup');
+            var panel = document.getElementsByTagName('g')[0];
+            panel.appendChild(selectionLabelGroup);
+        //make a rectangle for this special label:
+        var selectionLabelRect = document.createElementNS("http://www.w3.org/2000/svg", 'rect');
+            selectionLabelRect.setAttributeNS(null, 'class', 'gRect');
+            selectionLabelRect.setAttributeNS(null, 'id', 'selectionLabelRect');
+            selectionLabelGroup.appendChild(selectionLabelRect);
+
+           //information to extract:
+           var intervalNo = document.getElementsByClassName('selected').length;
+
+        //create labels:
+        selectionLabel('range', (x1+x2)/2, y1 -15, 'Interval Range: ');
+        tLabel('intRangeVal', intRange[0] + " - " + intRange[intRange.length-1], 0, document.getElementById('range'));
+
+        selectionLabel('groupN', (x1+x2)/2, y1-30, 'Frequency: ');
+        tLabel('groupNval', sum + ', ' + nProp, 0, document.getElementById('groupN'));
+
+        selectionLabel('nIntervals', (x1+x2)/2, y1-45, 'No. of intervals: ');
+        tLabel('nIntVal', intervalNo, 0, document.getElementById('nIntervals'));
+
+        // Attach and draw rectangle to label:
+          var sRectParam = selectionLabelGroup.getBBox();
+          selectionLabelRect.setAttribute('x', sRectParam.x-5);
+          selectionLabelRect.setAttribute('y', sRectParam.y);
+          selectionLabelRect.setAttribute('width', sRectParam.width+10);
+          selectionLabelRect.setAttribute('height', sRectParam.height);
+
+       }
+    }
+};
+
 
  //Reset Button:
    reset = function() {
@@ -348,6 +547,18 @@ for (i = 1; i <= count; i++) {
 
        var totalRow = document.getElementsByClassName('tc')[0];
        totalRow.classList.remove('hidden');
+
+       //reset total to n
+       var total = td[td.length-1];
+       total.innerHTML = n;
+
+       //remove box:
+       var selectRect = document.getElementById('selectRect');
+       var selectionLabelGroup = document.getElementById('selectionLabelGroup');
+       if (selectRect.getAttribute('points') !== null) {
+         selectRect.removeAttribute('points');
+         selectionLabelGroup.remove();
+       }
    }
     for (k = 0; k < boxData.length; k++) {
       boxData[k].classList.add('hidden');

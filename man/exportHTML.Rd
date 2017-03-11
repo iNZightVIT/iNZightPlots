@@ -2,31 +2,31 @@
 % Please edit documentation in R/exportHTML.R
 \name{exportHTML}
 \alias{exportHTML}
-\title{Exporting iNZightPlots as dynamic HTML pages}
+\title{ExportHTML}
 \usage{
 exportHTML(x, file)
 }
 \arguments{
-\item{x}{iNZight plot object or function (such as updatePlot) that captures iNZight environment}
+\item{x}{An iNZight plot object or function (such as updatePlot) that captures iNZight environment}
 
 \item{file}{Name of temporary HTML file generated}
 }
 \value{
-Opens up an HTML file of \code{x} with filename \code{file} in the browser (best to use Chrome/Firefox)
+Opens up an HTML file of \code{x} with filename \code{file} in the browser (best performance on Chrome/Firefox)
 }
 \description{
-\code{exportHTML} is designed to export the iNZight plot into a dynamic HTML page.
-Generates an appropriate HTML table, converts data objects into JSON and retrieves a JavaScript file based upon the plot. Creates an SVG of the plot,
-and inserts the svg plot, table, and JavaScript into the HTML template that is stored in the package (see 'templates'/sysdata.rda). Opens the written HTML page in a web browser.
-Currently, it only handles single panel plots. Exporting additional variables, multi-panel plots and hex plots are currently not available yet.
+\code{exportHTML} is designed to export the iNZight plot as a dynamic, interactive HTML page.
+ It opens the written HTML page in a web browser.
+Currently, it only handles single panel plots. Exporting additional variables, multi-panel plots and coloured hex plots are currently not available yet.
 }
 \details{
-Use of S3 methods. Acts as generic function (either takes in function or iNZight plot object).
-Also uses two other generic functions that are defined by different classes of the iNZightPlot (inzbar, inzhist, e.t.c):
+It generates an appropriate HTML table, converts data objects into JSON and retrieves a JavaScript file based upon the plot. It converts the plot to an svg,
+and inserts the svg plot, table, and JavaScript into the an HTML template to produce the page that is viewed in the browser.
+This function acts as generic function (either takes in function or iNZight plot object) and is comprised of two other functions.
 \code{getTable} aims to construct the appropriate table for the plot using information stored in the iNZight plot object, or data provided.
 \code{convertToJS} converts appropriate data into JSON and writes the appropriate JS file to give interactivity to the HTML page.
 }
 \author{
-Yu Han Soh (S3 template provided by Tom Elliott)
+Yu Han Soh
 }
 

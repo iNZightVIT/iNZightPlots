@@ -38,7 +38,7 @@ for (j = 1; j <= ncol; j++) {
 };
 
 //no. of rows in table
-nrow = document.getElementById('table').rows.length;
+nrow = table.rows.length;
 for (i = 1; i < nrow; i ++) {
   var tr = document.getElementsByTagName('tr');
   tr[i].setAttribute('id', 'tr' + i);
@@ -96,11 +96,10 @@ showTable = function() {
       Select option interaction.
 ---------------------------------------------------------- */
 
-//Originally there was padding - but it affects the selectionBox transformations.
 var svg = document.getElementsByTagName('svg')[0];
 svg.setAttribute('preserveAspectRatio', 'xMinYMin meet');
+
 //set container with no style padding:
-document.body.style.padding = "0px";
 var svgContainer = document.getElementById('svg-container');
 svgContainer.classList.add('contained');
 
@@ -504,12 +503,8 @@ for (i=0; i <= s.length; i++) {
 
 
 /* --------------------------------------------------------------
-                selectionSVG.js
-
 Code to select over a group of points via mouse drag.
-//No padding allowed.
 //Need to test on IE.
-
 ----------------------------------------------------------------- */
 
 //obtaining svg region:
@@ -541,25 +536,25 @@ svg.setAttribute('onmousedown', 'MouseDown(evt)');
 var zoomBox = {};
 
 MouseDown = function(evt) {
-  svg.style.cursor = "crosshair";
-    zoomBox["startX"] = evt.pageX;
-    zoomBox["startY"] = evt.pageY;
+    zoomBox["startX"] = evt.pageX - 20;
+    zoomBox["startY"] = evt.pageY - 20;
     zoomBox["isDrawing"] = true;
    selectRect.setAttribute('points',  zoomBox["startX"] + ',' + zoomBox["startY"]);
 };
 
 MouseUp = function(evt) {
   svg.style.cursor = "default";
-      zoomBox["endX"] = evt.pageX;
-      zoomBox["endY"] = evt.pageY;
+      zoomBox["endX"] = evt.pageX - 20;
+      zoomBox["endY"] = evt.pageY - 20;
       zoomBox["isDrawing"] = false;
 
   };
 
 MouseDrag = function(evt) {
     if(zoomBox["isDrawing"]) {
-        zoomBox["endX"] = evt.pageX;
-        zoomBox["endY"] = evt.pageY;
+        svg.style.cursor = "crosshair";
+        zoomBox["endX"] = evt.pageX - 20;
+        zoomBox["endY"] = evt.pageY - 20;
 
         //Because the y-axis is inverted in the plot - need to invert the scale
          tVal = document.getElementsByTagName('g')[0].getAttribute('transform').substring(13, 16);

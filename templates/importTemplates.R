@@ -14,10 +14,9 @@ bpJS <- readLines(file.path(dirname, 'bp.js'))
 bpstackedJS <- readLines(file.path(dirname, 'bp-stacked.js'))
 dpspJS <- readLines(file.path(dirname, 'dpsp.js'))
 histJS <- readLines(file.path(dirname, 'histogram.js'))
-devtools::use_data(HTMLtemplate, styles, bpJS, bpstackedJS, dpspJS, histJS, internal = TRUE, overwrite = TRUE)
+hexbinJS <- readLines(file.path(dirname, 'hexbin.js'))
 
-#For later: hex plots
-#hexJS <- readLines(file.path('~/Desktop/', 'hexbin.js'))
+devtools::use_data(HTMLtemplate, styles, bpJS, bpstackedJS, dpspJS, histJS, hexbinJS, internal = TRUE, overwrite = TRUE)
 
 #add/delete files where necessary: - what is written here would be the same in the exportHTML function.
 
