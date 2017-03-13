@@ -187,7 +187,6 @@ th {
 .out {
   font-size: 100%;
   fill-opacity: 1;
-/*  fill: black; */
 }
 
 .keyText {
@@ -234,10 +233,16 @@ th {
 
 /* hexbins */
 .hexbin {
-  /* fill: orange; */
   stroke: none;
 }
 
 .hx_hy {
   font-weight: bold;
+}
+
+/* user selection drag box */
+.selectRect {
+  fill: transparent;
+  stroke: black;
+  stroke-width: 1px;
 }
