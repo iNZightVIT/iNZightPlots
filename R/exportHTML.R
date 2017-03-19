@@ -4,7 +4,7 @@
 #'  It opens the written HTML page in a web browser.
 #' Currently, it only handles single panel plots. Exporting additional variables, multi-panel plots and coloured hex plots are currently not available yet.
 #'
-#' @details 
+#' @details
 #' It generates an appropriate HTML table, converts data objects into JSON and retrieves a JavaScript file based upon the plot. It converts the plot to an svg,
 #' and inserts the svg plot, table, and JavaScript into the an HTML template to produce the page that is viewed in the browser.
 #' This function acts as generic function (either takes in function or iNZight plot object) and is comprised of two other functions.
@@ -13,19 +13,19 @@
 #'
 #' @param x An iNZight plot object or function (such as updatePlot) that captures iNZight environment
 #' @param file Name of temporary HTML file generated
-#' 
+#'
 #' @return Opens up an HTML file of \code{x} with filename \code{file} in the browser (best performance on Chrome/Firefox)
-#' 
+#'
 #' @author Yu Han Soh
 #'
 #' @export
-
 exportHTML <- function(x, file) UseMethod("exportHTML")
 
 exportHTML.function <- function(x, file = 'index.html', width = dev.size()[1], height = dev.size()[2]) {
 
   #get current directory
   curdir <- getwd()
+  on.exit(setwd(curdir))
 
   #set to temp directory
   tdir <- tempdir()
@@ -68,13 +68,13 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html') {
     warning('iNZight cannot handle interactive multi-factor dot plots yet!')
     return()
   }
-  
+
   #condition for colored hexplots - currently unavailable:
   if(attributes(x)$plottype == "hex" && !is.null(plot$colby)) {
     warning('iNZight cannot handle interactive colored hex plots yet!')
     return()
   }
-  
+
 
   # if it passes the above: work in temp. directory
   setwd(tempdir())
@@ -89,7 +89,7 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html') {
   if (is.null(tbl)) {
     HTMLtable <- '<p> No table available. </p>'
   } else {
-  
+
     HTMLtable <- print(xtable::xtable(tbl$tab, caption = tbl$cap, auto = TRUE),
                      type = "html", html.table.attributes= 'class="table table-hover table-striped table-bordered hidden" id="table"',
                      caption.placement = "top", align = "center",
@@ -284,13 +284,13 @@ getTable.inzscatter <- function(plot, x) {
 
 }
 
-#No table for hexplots yet! 
+#No table for hexplots yet!
 getTable.inzhex <- function(plot, x = NULL) {
   warning("No table available for hexbin plots.")
   tableInfo <- NULL;
   return(tableInfo);
-  
-  
+
+
 }
 
 getTable.default <- function(plot, x = NULL) {
@@ -467,20 +467,20 @@ convertToJS.inzhex <- function(plot, tbl = NULL) {
   xcm <- plot$hex@xcm
   ycm <- plot$hex@ycm
   n <- plot$hex@n
-  
+
   countsJSON <- paste0("var counts = '", jsonlite::toJSON(counts), "';")
   xcmJSON <- paste0("var xcm = '", jsonlite::toJSON(xcm), "';")
   ycmJSON <- paste0("var ycm ='", jsonlite::toJSON(ycm), "';")
   n <- paste0("var n =", n)
-  
+
   #JS file:
   write(hexbinJS, file = 'hexbin.js')
   jsFile <- 'hexbin.js'
-  
+
   #list:
   JSData <- list(countsJSON, xcmJSON, ycmJSON, n, jsFile)
   names(JSData) <- c("countsJSON", "xcmJSON", "ycmJSON", "n", "jsFile")
-  
+
   return(JSData)
 
 }
