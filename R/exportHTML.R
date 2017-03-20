@@ -251,7 +251,7 @@ getTable.inzdot <- function(plot, x) {
 
   ##Attributes for HTML table
   cap <- "Data"
-  includeRow <- TRUE
+  includeRow <- FALSE
   tableInfo <- list(cap, includeRow, tab, missing)
   names(tableInfo) <- c('caption', 'includeRow', 'tab')
 
@@ -277,7 +277,7 @@ getTable.inzscatter <- function(plot, x) {
 
     ## Attributes for HTML table
   cap <- "Data"
-  includeRow <- TRUE
+  includeRow <- FALSE
   tableInfo <- list(cap, includeRow, tab)
   names(tableInfo) <- c('caption', 'includeRow', 'tab')
   return(tableInfo)

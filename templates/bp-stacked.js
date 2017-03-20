@@ -69,7 +69,7 @@ for (i = 1; i <= cellNo; i ++) {
 };
 
 //Finding the sum of countsTab:
-var countsTab = new Array();
+var countsTab = [];
 for (j = 1; j < ncol; j++) {
     var totalCounts = document.getElementById('counts' + j); //counts for each group
     countsTab[j-1] = Number(totalCounts.innerHTML);
@@ -95,10 +95,10 @@ yHeading.setAttribute('class',' headings');
 button = function(name) {
   var button = document.createElement('button');
   button.setAttribute("type", "button");
-  button.setAttribute("class","btn btn-info convert hidden");
-  button.innerHTML = "Change to " + name;
+  button.setAttribute("class","btn btn-primary hidden Button" + name);
+  button.innerHTML = "Show " + name;
   button.setAttribute("onclick", "change" + name + "()");
-  button.setAttribute("id", "Button" + name)
+  button.setAttribute('id', 'Button' + name);
   document.getElementById('control').appendChild(button);
 };
 
@@ -107,6 +107,11 @@ button("Count");
 
   //Conversion to percentages:
 changePercentage = function() {
+  var buttonPercentage = document.getElementById('ButtonPercentage');
+  var buttonCount = document.getElementById('ButtonCount');
+  buttonPercentage.classList.add('dark');
+  buttonCount.classList.remove('dark');
+
   for (i = 1; i <= cellNo; i++) {
       var td = document.getElementById('td' + i);
       var total = document.getElementById('tc' + ((i-1)%ncol)); //will need to be modified once the rev. issue is solved.
@@ -132,6 +137,11 @@ changePercentage = function() {
 
 //Conversion to counts:
 changeCount = function() {
+  var buttonPercentage = document.getElementById('ButtonPercentage');
+  var buttonCount = document.getElementById('ButtonCount');
+  buttonPercentage.classList.remove('dark');
+  buttonCount.classList.add('dark');
+
   for(i = 1; i <= cellNo; i++) {
       var td = document.getElementById('td' + i);
       var total = document.getElementById('tc' + ((i-1)%ncol)); // by columns
@@ -270,6 +280,18 @@ label = function(id, textinput, i, tf) {
     gLabel.appendChild(label);
 };
 
+//creating tspan labels - for customizing text in bold:
+tLabel = function(id, textinput, i, lab) {
+  var tLabel = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+  tLabel.setAttributeNS(null, 'class', 'tLabel');
+  tLabel.setAttributeNS(null, 'id', id + i);
+
+  var textNode = document.createTextNode(textinput);
+  tLabel.appendChild(textNode);
+  lab.appendChild(tLabel);
+
+};
+
 //labels generated using function label() + additional information for co-ordinates
 for (j = 1; j <= groups; j++) {
 for (i  = 1; i < count; i++) {
@@ -286,8 +308,12 @@ for (i  = 1; i < count; i++) {
       var text = counts[j-1].Var1 + "\n" + colorCounts[Math.floor((i+groups-1)/groups-1)]._row;
       label('groupLabel', text, i, 30);
 
-      var text = 'N = ' +  Math.round(eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[j-1].Var1 + "']")*counts[j-1].Freq) + ", " + ((eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[j-1].Var1 + "']")*100).toFixed(2)) + "%";
+      var text = 'n = ' +  Math.round(eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[j-1].Var1 + "']")*counts[j-1].Freq) + ", " ;
       label('countLabel', text, i, 45);
+
+      var text = ((eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[j-1].Var1 + "']")*100).toFixed(2)) + "%";
+      tLabel('propLabel', text, i , document.getElementById('countLabel' + i));
+
     }
 
     if (i%groups == 0 && j == groups) { // for the last bar (closest to the left!)
@@ -295,8 +321,12 @@ for (i  = 1; i < count; i++) {
       var text = counts[groups-1].Var1 + "\n" + colorCounts[Math.floor((i+groups-1)/groups-1)]._row;
       label('groupLabel', text, i, 30);
 
-      var text = 'N = ' +  Math.round(eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[groups-1].Var1 + "']")*counts[groups-1].Freq) + ", " + ((eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[counts.length-1].Var1 + "']")*100).toFixed(2)) + "%"
+      var text = 'n = ' +  Math.round(eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['" + counts[groups-1].Var1 + "']")*counts[groups-1].Freq) + ", ";
       label('countLabel',text, i, 45);
+
+      var text = ((eval("colorCounts[Math.floor((i+groups-1)/groups-1)]['"  + counts[counts.length-1].Var1 + "']")*100).toFixed(2)) + "%";
+      tLabel('propLabel', text, i, document.getElementById('countLabel' + i));
+
     }
 
   }
@@ -326,7 +356,7 @@ its original state.
 //Hovers on bars and labels:
 for (i = 1; i < count; i++) {
  bar = document.getElementById(Grob + '.' + i);
- bar.setAttribute('stroke', 'none');
+ //bar.setAttribute('stroke', 'none');
  bar.setAttribute('onmouseover', 'light('+ i + ')');
  bar.setAttribute('onmouseout', 'normal(' + i +')');
  bar.setAttribute('onclick', 'fade(' + i + ')');
@@ -335,12 +365,13 @@ for (i = 1; i < count; i++) {
  light = function(i) {
    var bar = document.getElementById(Grob + '.' + i);
    bar.classList.add('light');
-
+   var gLabel = document.getElementById('gLabel' + i);
+   gLabel.classList.remove('invisible');
  };
 
  normal = function(i) {
-   var bar = document.getElementById(Grob + '.' + i);
-   bar.classList.remove('light');
+  var gLabel = document.getElementById('gLabel' + i);
+  gLabel.classList.add('invisible');
  };
 
 //table interaction:
@@ -385,6 +416,11 @@ fade = function(i) {
 
  }
  table.classList.add('hidden');
+
+var ButtonPercentage = document.getElementById('ButtonPercentage');
+var ButtonCount = document.getElementById('ButtonCount');
+ButtonPercentage.classList.add('hidden');
+ButtonCount.classList.add('hidden'); 
 
  viewTable.innerHTML = "View Table";
  t = true;

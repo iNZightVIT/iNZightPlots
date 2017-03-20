@@ -26,7 +26,8 @@ var table = document.getElementById('table'),
     cellNo = td.length, //cell no.
     nrow = table.rows.length, //no. of rows
     dataNo = cellNo - 2 * (nrow - 1), //cells with data
-    i;
+    i,
+    svg = document.getElementsByTagName('svg')[0];
 
 for (i = 1; i < nrow; i++) {
     tr[i].setAttribute('id', 'tr' + i);
@@ -84,7 +85,7 @@ if (prop[0].Var1 !== undefined) {
   };
 
   var sumCell = document.getElementById('totalCell' + (ncol));
-  sumCell.innerHTML = "n = " + sum;
+  sumCell.innerHTML = "N = " + sum;
 
   var totalCell = document.getElementById('totalCell' + (ncol-1));
 
@@ -92,8 +93,8 @@ if (prop[0].Var1 !== undefined) {
 button = function(name) {
   var button = document.createElement('button');
   button.setAttribute("type", "button");
-  button.setAttribute("class","btn btn-info convert hidden");
-  button.innerHTML = "Change to " + name;
+  button.setAttribute("class","btn btn-info convert hidden Button" + name);
+  button.innerHTML = "Show " + name;
   button.setAttribute("onclick", "change" + name + "()");
   button.setAttribute("id", "Button" + name)
   document.getElementById('control').appendChild(button);
@@ -104,6 +105,12 @@ button = function(name) {
 
     //Conversion to percentages:
   changePercentage = function() {
+
+    var buttonPercentage = document.getElementById('ButtonPercentage');
+    var buttonCount = document.getElementById('ButtonCount');
+    buttonPercentage.classList.add('dark');
+    buttonCount.classList.remove('dark');
+
     for (j = 1; j <= cellNo/ncol; j++) {
       var tr = document.getElementById('tr' + j);
     for (i = 1; i <= cellNo - 2*(nrow-1); i ++) {
@@ -123,12 +130,18 @@ button = function(name) {
     }
     document.getElementsByTagName('th')[(ncol-1)].innerHTML = "Row N";
     totalCell.innerHTML = "";
-    sumCell.innerHTML = "n = " + sum;
+    sumCell.innerHTML = "N = " + sum;
 
   };
 
   //Conversion to counts:
   changeCount = function() {
+
+    var buttonPercentage = document.getElementById('ButtonPercentage');
+    var buttonCount = document.getElementById('ButtonCount');
+    buttonPercentage.classList.remove('dark');
+    buttonCount.classList.add('dark');
+
   for (j = 1; j <= cellNo/ncol; j ++) {
     var tr = document.getElementById('tr' + j);
     for(i = 1; i <= cellNo - 2*(nrow-1); i++) {
@@ -149,7 +162,7 @@ button = function(name) {
   }
   }
     document.getElementsByTagName('th')[(ncol-1)].innerHTML = "Row N %";
-    totalCell.innerHTML = "n = " + sum;
+    totalCell.innerHTML = "N = " + sum;
     sumCell.innerHTML = "100.00%";
   };
 
@@ -269,11 +282,11 @@ for (i = 1; i <= count; i++) {
 }
 
 //Function to create individual labels
-label = function(cl, id, textinput, i, tf) {
+label = function(id, textinput, i, tf) {
 
 //attributes for the text SVG element
   var label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    label.setAttributeNS(null, 'class', 'label' + ' ' + cl);
+    label.setAttributeNS(null, 'class', 'label' + ' ' + id);
     label.setAttributeNS(null, 'transform', 'translate('+ ((x+sx)/2) + ', ' + (y + tf) +') scale(1, -1)');
     label.setAttributeNS(null, 'id', id + i);
 
@@ -313,7 +326,7 @@ for (i  = 1; i < count; i++) {
   };
 
 //position of text labels:
-    if (y-sy < 60) {
+    if (y-sy < 100) {
     var p = 30;
     var q = 45;
     var r = 60;
@@ -324,13 +337,13 @@ for (i  = 1; i < count; i++) {
   };
 
   //making group labels:
-  label('groupLabel', 'group' + gOne + gTwo, gOne + ' ' +  gTwo, i, r);
+  label('groupLabel', gOne + ' ' +  gTwo, i, r);
 
   // proportion labels:
-  label('proplabel', 'prop', (Number(pp)*100).toFixed(2) + "%", i, p);
+  label('propLabel',(Number(pp)*100).toFixed(2) + "%", i, p);
 
   // count labels:
-    label('countLabel','count' + gOne + gTwo, "N = " + freq, i, q);
+    label('countLabel', "n = " + freq, i, q);
 
   // Attach and draw rectangles to labels according to the size of the gLabel (with all labels attached)
         var gLabel = document.getElementById('gLabel' + i);
@@ -354,13 +367,17 @@ for (i = 1; i < count; i++) {
  }
 
  light = function(i) {
-   var bar = document.getElementById(Grob + '.' + i);
-   bar.classList.add('light');
+  // var bar = document.getElementById(Grob + '.' + i);
+   var gLabel = document.getElementById('gLabel' + i);
+  // bar.classList.add('light');
+   gLabel.classList.remove('invisible');
  };
 
  normal = function(i) {
-   var bar = document.getElementById(Grob + '.' + i);
-   bar.classList.remove('light');
+  // var bar = document.getElementById(Grob + '.' + i);
+   var gLabel = document.getElementById('gLabel' + i);
+  // bar.classList.remove('light');
+   gLabel.classList.add('invisible');
  };
 
 //table interaction:
@@ -408,8 +425,10 @@ fade = function(i) {
       gLabel.classList.remove('invisible');
 
        for (k = 0; k <= 1; k++) {
-         data[k].classList.add('tabSelect');
          data[k].style.backgroundColor = "rgba(" + lp + ",0.5)";
+         if (k == 1) {
+           data[k].classList.add('tabSelect');
+         }
      }
 
     } else {
@@ -557,6 +576,10 @@ reset = function() {
  }
  }
  table.classList.add('hidden');
+ var ButtonPercentage = document.getElementById('ButtonPercentage');
+ var ButtonCount = document.getElementById('ButtonCount');
+ ButtonPercentage.classList.add('hidden');
+ ButtonCount.classList.add('hidden');
  viewTable.innerHTML = "View Table";
  t = true;
  };

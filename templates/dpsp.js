@@ -23,18 +23,17 @@ cellNo = td.length;
 
 for (i = 1; i <= cellNo; i ++) {
   td[i-1].setAttribute('id', i);
+  td[i-1].setAttribute('class', i%ncol);
+  if (i%ncol == 0) {
+    td[i-1].setAttribute('class', ncol);
+  }
 };
+
+
 
 for (j = 1; j <= ncol; j++) {
   th = document.getElementsByTagName('th');
-  th[j-1].setAttribute('class', j-1);
-
-  for (i=1; i <= cellNo; i++) {
-  var td = document.getElementsByTagName('td');
-    if (i%ncol == j) {
-      td[i].setAttribute('class', j);
-    }
-  }
+  th[j-1].setAttribute('class', j);
 };
 
 //no. of rows in table
@@ -50,6 +49,11 @@ form.setAttribute('class', 'form-inline');
 form.setAttribute('id', 'form');
 document.getElementById('control').appendChild(form);
 
+var formLabel = document.createElement('label');
+formLabel.setAttribute('for', 'selectVar');
+formLabel.innerHTML = "Variables to display";
+form.appendChild(formLabel);
+
 var selectVar = document.createElement('select');
 selectVar.setAttribute('class', 'form-control');
 selectVar.setAttribute('id', 'selectVar');
@@ -57,20 +61,22 @@ selectVar.setAttribute('onchange', 'selected()');
 selectVar.setAttribute('multiple', 'multiple');
 form.appendChild(selectVar);
 
-
 //Creating options relative to table generated:
-for (i = 0; i<=ncol-1; i++){
+
+for (i = 0; i<=ncol; i++){
     var opt = document.createElement('option');
-    opt.value = i;
-    opt.innerHTML = th[i].innerHTML;
-    selectVar.appendChild(opt);
-    if (opt.value == 0 || opt.value == undefined) {
+    if (i == 0) {
       opt.value = 0;
       opt.classList.add('select');
-      opt.innerHTML = "Variables to display";
+      opt.innerHTML = "Display all";
       opt.selected = "selected";
-    }
+    } else {
+    opt.value = i;
+    opt.innerHTML = th[i-1].innerHTML;
+  }
+  selectVar.appendChild(opt);
 };
+
 
 //drive the viewTable button:
   var viewTable = document.getElementById('viewTable');
@@ -266,7 +272,7 @@ label = function(id, textinput, i, j) {
 
 var label = document.createElementNS("http://www.w3.org/2000/svg", "text");
   label.setAttributeNS(null, 'class', 'label');
-  label.setAttributeNS(null, 'transform', 'translate(' + Number(x) + ',' + (Number(y) + (varNo-j)*15) + ') scale(1, -1)'); //hardcoded!
+  label.setAttributeNS(null, 'transform', 'translate(' + Number(x) + ',' + (Number(y) + (varNo-j)*12) + ') scale(1, -1)'); //hardcoded!
   label.setAttributeNS(null, 'id', id + i);
 
   var textNode = document.createTextNode(textinput);
@@ -297,11 +303,11 @@ for (i  = 1; i <= count; i++) {
   var point = document.getElementById(Grob + '.' + i);
   var x = point.getAttribute('x');
   var y = point.getAttribute('y');
-  var textNo = 'No: ' + i;
-  label('labelNo', textNo, i, 0);
+  //var textNo = 'No: ' + i;
+  //label('labelNo', textNo, i, 0);
   text = [];
   text[j] = names[j] + ": ";
-  label('label' + '.' + (j+1) + '.' , text[j], i, j+1);
+  label('label' + '.' + (j+1) + '.' , text[j], i, j);
 
   var lab = document.getElementById('label' + '.' + (j+1) + '.' + i);
   tLabel('tLabel', tableData[i-1][names[j]], i);
@@ -311,10 +317,10 @@ for (i  = 1; i <= count; i++) {
   var gLabel = document.getElementById('gLabel' + i);
   var rectParam = gLabel.getBBox();
   var gRect = document.getElementById('gRect' + i);
-  gRect.setAttribute('x', rectParam.x-1);
+  gRect.setAttribute('x', rectParam.x-2);
   gRect.setAttribute('y', rectParam.y-2);
-  gRect.setAttribute('width', rectParam.width+2);
-  gRect.setAttribute('height', rectParam.height+2);
+  gRect.setAttribute('width', rectParam.width+4);
+  gRect.setAttribute('height', rectParam.height+4);
 
   }
 };
@@ -470,7 +476,7 @@ for (i =0; i < sOpt.length; i++) {
   s.push(sOpt[i].value);
 };
 
-for (i =1; i <= ncol-1; i++) {
+for (i =1; i <= ncol; i++) {
   var column = document.getElementsByClassName(i);
   var labels = svg.getElementsByClassName(i);
 
@@ -584,16 +590,12 @@ MouseDrag = function(evt) {
         for (i =1; i <= count; i++) {
         var point = document.getElementById(Grob + '.' + i);
         var gLabel = document.getElementById('gLabel' + i);
+        var gRect = document.getElementById('gRect' + i);
         var dataRow = document.getElementById('tr' + i);
 
           var x = point.x.baseVal.value;
           var y = point.y.baseVal.value;
 
-          if (point.getAttribute('visibility') == 'hidden') {
-            // those that are hidden, remain hidden
-              point.classList.add('hidden');
-              gLabel.classList.add('invisible');
-            } else {
               //points that lie within the  boundary box drawn:
           if((x1 <= x && x <= x2) && (y1 <= y && y <= y2)) {
             point.setAttribute('class', ' point selected');
@@ -601,12 +603,14 @@ MouseDrag = function(evt) {
             lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
 
             gLabel.classList.remove('invisible');
+            gRect.classList.add('hidden');
             dataRow.classList.remove('hidden');
             dataRow.classList.add('rowSelect');
             dataRow.style.backgroundColor = "rgba" + lp + ", 0.25)";
 
            } else {
              point.setAttribute('class', 'point none');
+             gRect.classList.remove('hidden');
              gLabel.classList.add('invisible');
 
              dataRow.classList.add('hidden');
@@ -615,7 +619,6 @@ MouseDrag = function(evt) {
            }
          }
         }
-    }
 };
 
 
@@ -631,6 +634,9 @@ MouseDrag = function(evt) {
     var gLabel = document.getElementById('gLabel' + i);
     gLabel.classList.add('invisible');
 
+    var gRect = document.getElementById('gRect' + i);
+    gRect.classList.remove('hidden');
+
     var dataRow = document.getElementById('tr' + i);
       dataRow.classList.remove('hidden');
       dataRow.classList.remove('rowSelect');
@@ -643,7 +649,7 @@ MouseDrag = function(evt) {
       selectRect.setAttribute('points', '0,0');
   }
 
-for (i =1; i <= ncol-1; i++) {
+for (i =1; i <= ncol; i++) {
     column = table.getElementsByClassName(i);
     for (j = 1; j <=column.length; j++) {
     column[j-1].style.display = "table-cell";

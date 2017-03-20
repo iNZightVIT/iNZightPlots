@@ -3,8 +3,12 @@
 Note: there are some stylings still done with JS (such as control of background colors,
 but hopefully that can be somehow transferred some other day...)*/
 
-body {
+ body {
   padding: 20px;
+}
+
+.table {
+  overflow-x: auto;
 }
 
 /*svg container */
@@ -27,7 +31,7 @@ tr {
 }
 
 td {
-  text-align:right;
+  text-align: center;
 }
 
 th {
@@ -52,30 +56,36 @@ th {
 
 
 /*** BUTTONS ***/
-.convert {
-  margin-left: 10px;
-}
 
 #viewTable {
-  background-color: #31B0D5;
+  background-color: DeepSkyBlue;
   margin-right: 10px;
 }
 
 #reset {
-  background-color: green;
+  background-color: rgb(0, 128, 0);
   margin-right: 10px;
 }
 
-#ButtonPercentage {
-  background-color:blue;
+.ButtonPercentage {
+  background-color:rgb(0, 0, 255);
+  opacity: 0.5;
+  margin-left: 10px;
 }
 
-#ButtonCount {
-  background-color: purple;
+.ButtonCount {
+ background-color: purple;
+ opacity: 0.5;
+ margin-left: 10px;
+}
+
+
+.dark {
+  opacity: 1;
 }
 
 #form {
-  display: inline;
+  display: inline-table;
   padding: 20px;
 }
 
@@ -105,6 +115,10 @@ th {
   font-weight: bold;
 }
 
+.propLabel {
+  font-weight: bold;
+}
+
 /* tlabels */
 .tLabel {
   font-weight: bold;
@@ -120,9 +134,6 @@ th {
 }
 
 /* bars on hover on and off */
-.light {
-  fill-opacity: 0.60;
-}
 
 .normal {
   fill-opacity: 1;
