@@ -121,7 +121,7 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html') {
   HTMLtemplate[jsLine] <- paste(jsCode, collapse = "\n")
   HTMLtemplate[tableLineOne] <- HTMLtable
   HTMLtemplate[svgLine] <- svgCode
-  
+
   #if the dev.size width is greater than 9, switch to large columns:
   if (dev.size()[1] > 9) {
     HTMLtemplate <- gsub("col-lg-6", "col-lg-12", HTMLtemplate)
