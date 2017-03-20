@@ -79,9 +79,6 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html') {
   # if it passes the above: work in temp. directory
   setwd(tempdir())
 
-  #Write CSS file:
-  write(styles, 'style.css')
-
   #Create the table (refer to getTable function):
   tbl <- getTable(plot, x)
 
@@ -104,10 +101,8 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html') {
 
   gridSVG::grid.export("inzightplot.svg")
 
-  #write JS script code for HTML:
-  jsFile <-  jsData$jsFile
-  jsCode <- paste("<script defer type = 'text/javascript' src='", jsFile, "' > </script>")
-
+  #get JS code associated with plot:
+  jsCode <-  jsData$jsFile
 
   svgCode <- paste(readLines("inzightplot.svg", warn =FALSE), collapse="\n")
 
@@ -117,13 +112,21 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html') {
 
   #finding places where to substitute code:
   svgLine <- grep("SVG", HTMLtemplate)
+  cssLine <- grep("styles.css", HTMLtemplate)
   jsLine <- grep("JSfile", HTMLtemplate)
   tableLineOne <- grep("table", HTMLtemplate)
 
-  # substitution of JS code:
-  HTMLtemplate[jsLine] = jsCode
-  HTMLtemplate[tableLineOne] = HTMLtable
-  HTMLtemplate[svgLine] = svgCode
+  # insert inline JS, CSS, table, SVG:
+  HTMLtemplate[cssLine] <- paste(styles, collapse = "\n")
+  HTMLtemplate[jsLine] <- paste(jsCode, collapse = "\n")
+  HTMLtemplate[tableLineOne] <- HTMLtable
+  HTMLtemplate[svgLine] <- svgCode
+  
+  #if the dev.size width is greater than 9, switch to large columns:
+  if (dev.size()[1] > 9) {
+    HTMLtemplate <- gsub("col-lg-6", "col-lg-12", HTMLtemplate)
+    HTMLtemplate <- gsub("col-md-6", "col-md-12", HTMLtemplate)
+  }
 
   #Step 4: Writing it out to an HTML file:
   write(HTMLtemplate, file)
@@ -219,7 +222,7 @@ getTable.inzhist <- function(plot, x) {
 
 }
 
-#for scatterplots and dot plots it currently only shows 1 / double variable (+ colby) that's being plotted.
+#for scatterplots and dot plots it currently only shows variables (+ colby) being plotted.
 #exporting additional variables has not been set up yet...
 
 getTable.inzdot <- function(plot, x) {
@@ -329,9 +332,8 @@ convertToJS.inzbar <- function(plot, tbl = NULL) {
     countsJ <- jsonlite::toJSON(counts.df)
     orderJSON = 'var order = null;'
 
-    #writing and getting the javascript file:
-    write(bpJS, file = 'bp.js')
-    jsFile <- 'bp.js'
+    #selecting appropriate JS code:
+    jsFile <- bpJS
 
     #Differentiating between one way bar plots - stacked bars, colored, and non-colored:
     if (is.null(colorMatch)) { ## test if bar plots have color
@@ -354,8 +356,7 @@ convertToJS.inzbar <- function(plot, tbl = NULL) {
       countsJ = jsonlite::toJSON(counts.df[rev(rownames(counts.df)),])
 
       ## setting JS: stacked bar plots currently run on a different JS file
-      write(bpstackedJS, file = 'bpstacked.js')
-      jsFile <- 'bpstacked.js'
+      jsFile <- bpstackedJS
 
     }
 
@@ -397,9 +398,8 @@ convertToJS.inzhist <- function(plot, tbl) {
   boxJSON <- paste0("var boxData = '", jsonlite::toJSON(boxTable), "';")
   n <- paste0("var n = ", tbl$n)
 
-  ##JS file in temp directory:
-   write(histJS, file = 'histogram.js')
-    jsFile <- 'histogram.js'
+  ## JS code:
+    jsFile <- histJS
 
   ##Output as a list:
   JSData <- list(intervalJSON, countsJSON, propJSON, boxJSON, n, jsFile)
@@ -430,8 +430,7 @@ convertToJS.inzdot <- function(plot, tbl) {
   boxJSON <- paste0("var boxData = '", jsonlite::toJSON(boxTable), "';");
 
   #JS:
-    write(dpspJS, file = 'dpsp.js')
-    jsFile <- 'dpsp.js'
+    jsFile <- dpspJS
 
    #list:
    JSData <- list(namesJSON, tabJSON, colGroupNo, boxJSON, jsFile)
@@ -448,13 +447,12 @@ convertToJS.inzscatter <- function(plot, tbl) {
   tabJSON <- paste0("var tableData = '", jsonlite::toJSON(tbl$tab), "';")
   colGroupNo <- paste0("colGroupNo = ", colGroupNo, ";")
 
-#JS file:
- write(dpspJS, file = 'dpsp.js')
-    jsFile <- 'dpsp.js'
+  #JS file:
+    jsFile <- dpspJS
 
- #list:
- JSData <- list(namesJSON, tabJSON, colGroupNo, jsFile)
- names(JSData) <- c("namesJSON", "tabJSON", "colGroupNo", "jsFile")
+  #list:
+  JSData <- list(namesJSON, tabJSON, colGroupNo, jsFile)
+  names(JSData) <- c("namesJSON", "tabJSON", "colGroupNo", "jsFile")
 
   return(JSData)
 }
@@ -474,8 +472,7 @@ convertToJS.inzhex <- function(plot, tbl = NULL) {
   n <- paste0("var n =", n)
 
   #JS file:
-  write(hexbinJS, file = 'hexbin.js')
-  jsFile <- 'hexbin.js'
+  jsFile <- hexbinJS
 
   #list:
   JSData <- list(countsJSON, xcmJSON, ycmJSON, n, jsFile)

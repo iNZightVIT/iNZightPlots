@@ -65,8 +65,8 @@ rect.setAttribute('y', rect.getAttribute('y')-20);
 
 
 //PARSING DATA:
-var intervals  = JSON.parse(intervals)
-var counts  = JSON.parse(counts)
+var intervals  = JSON.parse(intervals);
+var counts  = JSON.parse(counts);
 var prop = JSON.parse(prop);
 var boxData = JSON.parse(boxData);
 
@@ -453,7 +453,7 @@ MouseDrag = function(evt) {
               gLabel.classList.add('invisible');
             } else {
               //points that lie within the  boundary box drawn:
-          if(((x1 <= bx && bx <= x2) && (x1 <= tx && tx <= x2)) || ((y1 <= by && by <= y2) && (y1 <= ty && ty <= y2))) {
+          if(((x1 <= bx && bx <= x2) && (x1 <= tx && tx <= x2)) && ((y1 <= by && by <= y2) && (y1 <= ty && ty <= y2))) {
             bar.setAttribute('class', ' histBar selected');
             l = bar.getAttribute('fill');
             lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));

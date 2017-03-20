@@ -367,16 +367,12 @@ for (i = 1; i < count; i++) {
  }
 
  light = function(i) {
-  // var bar = document.getElementById(Grob + '.' + i);
    var gLabel = document.getElementById('gLabel' + i);
-  // bar.classList.add('light');
    gLabel.classList.remove('invisible');
  };
 
  normal = function(i) {
-  // var bar = document.getElementById(Grob + '.' + i);
    var gLabel = document.getElementById('gLabel' + i);
-  // bar.classList.remove('light');
    gLabel.classList.add('invisible');
  };
 
@@ -497,6 +493,7 @@ info = function(i) {
       var l = bar.getAttribute('fill');
       lp = l.substring(4, l.length-1);
       var gLabel = document.getElementById('gLabel' + j);
+      var gRect = document.getElementById('gRect' + j);
 
 if (prop[0].Var1 != undefined) {
   var row = document.getElementById('tr' + ((j-1)%(nrow-1)+1));
@@ -509,6 +506,7 @@ if (prop[0].Var1 != undefined) {
     //for two-way bar plots
     bar.setAttribute('class', 'bar selected');
     gLabel.classList.remove('invisible');
+    gRect.classList.add('hidden');
 
    row.classList.add('tabSelect');
    row.style.backgroundColor = "rgba(" + lp + ",0.5)";
@@ -516,6 +514,7 @@ if (prop[0].Var1 != undefined) {
       } else {
       bar.setAttribute('class', 'bar none');
       gLabel.classList.add('invisible');
+      gRect.classList.remove('hidden');
 
       row.classList.remove('tabSelect');
       row.style.backgroundColor = "white";
@@ -556,6 +555,9 @@ reset = function() {
      var gLabel = document.getElementById('gLabel' + i);
      gLabel.classList.add('invisible');
 
+     var gRect = document.getElementById('gRect' + i);
+     gRect.classList.remove('hidden');
+
      if(prop[0].Var1 != undefined) { // for two way bar plots
        var row = document.getElementById('tr' + ((i-1)%(nrow-1)+1));
         var td = document.getElementById('td' + i);
@@ -578,8 +580,10 @@ reset = function() {
  table.classList.add('hidden');
  var ButtonPercentage = document.getElementById('ButtonPercentage');
  var ButtonCount = document.getElementById('ButtonCount');
+ if (ButtonCount !== null) {
  ButtonPercentage.classList.add('hidden');
  ButtonCount.classList.add('hidden');
+ }
  viewTable.innerHTML = "View Table";
  t = true;
  };
