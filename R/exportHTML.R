@@ -18,6 +18,8 @@
 #'
 #' @author Yu Han Soh
 #'
+#' @import jsonlite
+#' @import xtable
 #' @export
 exportHTML <- function(x, file) UseMethod("exportHTML")
 

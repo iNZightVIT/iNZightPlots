@@ -7,6 +7,7 @@
 #' @param file Name of temporary svg file generated (by default: 'inzightplot.svg')
 #' @return Opens up an SVG file of \code{x} with filename \code{file} in a web browser
 #' @author Yu Han Soh
+#' @import gridSVG
 #' @export
 exportSVG <- function(x, file) UseMethod('exportSVG')
 

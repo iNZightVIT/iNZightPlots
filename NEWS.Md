@@ -1,5 +1,18 @@
+# Version 2.7
+__Release date__: 23 March 2017
+
+## Major Changes
+
+- introduction of the exportation of SVG and interactive HTML documents
+
+## Bug Fixes
+
+- various
+
+
+***
 # Version 2.6
-__Releast date__: 12 December 2016
+__Release date__: 12 December 2016
 
 ## Major Changes
 
