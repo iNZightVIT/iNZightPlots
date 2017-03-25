@@ -25,17 +25,13 @@ to 100%.
 -------------------------------------------------------------------*/
 
 var table = document.getElementById('table');
+    tr = document.getElementsByTagName('tr'), //no. of columns in table
+    ncol = tr[0].childElementCount,
+    td = document.getElementsByTagName('td'),
+    nrow = document.getElementById('table').rows.length, //no. of rows in table
+    cellNo = td.length; // no. of cells in table
 
-//no. of columns in table
-var tr = document.getElementsByTagName('tr');
-ncol = tr[0].childElementCount;
-
-//no. of cells in table
-var td = document.getElementsByTagName('td');
-cellNo = td.length;
-
-//no. of rows in table
-nrow = document.getElementById('table').rows.length;
+  // labelling rows:
 for (i = 1; i < nrow; i ++) {
   if(i == nrow-2) { // last two rows are the rows containing totals and counts
     tr[i].setAttribute('class', 'tc');
@@ -79,8 +75,8 @@ var sum = countsTab.reduce(function(a, b) { return a + b; }, 0);
 
 
 //Inserting table headers:
-var xrow = table.insertRow(0);
-var xhead = xrow.insertCell(0);
+var xrow = table.insertRow(0),
+    xhead = xrow.insertCell(0);
 xhead.setAttribute('class', 'headings');
 xhead.innerHTML = document.getElementsByTagName('tspan')[2].innerHTML;
 xhead.colSpan = ncol;
@@ -114,7 +110,7 @@ changePercentage = function() {
 
   for (i = 1; i <= cellNo; i++) {
       var td = document.getElementById('td' + i);
-      var total = document.getElementById('tc' + ((i-1)%ncol)); //will need to be modified once the rev. issue is solved.
+      var total = document.getElementById('tc' + ((i-1)%ncol));
       var countsCol = document.getElementById('counts' + ((i-1)%ncol));
       if (td != undefined) {
       if ((td.innerHTML.indexOf(".") >= 0) && (td.innerHTML.indexOf('%') == -1)) { // change proportion to percentages
@@ -194,20 +190,17 @@ Code to identify bars, show and hide lines and appropriate bars.
 Addition of appropriate labels to each bar.
 -------------------------------------------------------------------*/
 
-//document.body.style.padding = "20px";
-var svg = document.getElementsByTagName('svg')[0];
-
-//test rectangle out to show labels:
-var rect = document.getElementsByTagName('rect')[1];
+var svg = document.getElementsByTagName('svg')[0],
+    rect = document.getElementsByTagName('rect')[1];
 rect.setAttribute('class', 'rect');
 
-var count = counts.length*colorCounts.length + 1; //total no. of different combinations + 1
-var groups = counts.length; // no. of groups (corresponds to one of the variables)
+var count = counts.length*colorCounts.length + 1, //total no. of different combinations
+    groups = counts.length; // no. of groups (corresponds to one of the variables)
 
 //Identifying bars
-var  p = document.getElementsByTagName('polygon');
-var id = p[0].getAttribute('id');
-var Grob = id.substring(0, id.lastIndexOf('.'));
+var  p = document.getElementsByTagName('polygon')
+    id = p[0].getAttribute('id'),
+    Grob = id.substring(0, id.lastIndexOf('.'));
 
 for (i = 1; i < p.length; i++) {
   if (p[i].id.indexOf(Grob) >= 0) {
@@ -227,9 +220,9 @@ for (i =1; i < polyLines.length; i ++) {
   }
 };
 
-  var lines = document.getElementsByClassName("line");
-  var lastId = lines[lines.length-1].id;
-  var lastLine = lastId.substring(0, lastId.lastIndexOf('.'));
+  var lines = document.getElementsByClassName("line"),
+      lastId = lines[lines.length-1].id,
+      lastLine = lastId.substring(0, lastId.lastIndexOf('.'));
 
   for (j = 1; j < lines.length; j ++) {
   if (lines[j].id.indexOf(lastLine) >= 0) {
@@ -335,9 +328,9 @@ for (i  = 1; i < count; i++) {
 //Attach rectangles to lables + setting styles:
 for (i  = 1; i < count; i++) {
 // Attach and draw rectangles to labels according to the size of the gLabel (with all labels attached)
-  var gLabel = document.getElementById('gLabel' + i);
-  rectParam = gLabel.getBBox();
-  var gRect = document.getElementById('gRect' + i);
+  var gLabel = document.getElementById('gLabel' + i),
+      rectParam = gLabel.getBBox(),
+      gRect = document.getElementById('gRect' + i);
   gRect.setAttribute('x', rectParam.x-10);
   gRect.setAttribute('y', rectParam.y-10);
   gRect.setAttribute('width', rectParam.width+20);
@@ -354,13 +347,15 @@ its original state.
 -------------------------------------------------------------------*/
 // INTERACTION CODE: Hovers, Clicks
 //Hovers on bars and labels:
+
 for (i = 1; i < count; i++) {
- bar = document.getElementById(Grob + '.' + i);
- //bar.setAttribute('stroke', 'none');
- bar.setAttribute('onmouseover', 'light('+ i + ')');
- bar.setAttribute('onmouseout', 'normal(' + i +')');
- bar.setAttribute('onclick', 'fade(' + i + ')');
- }
+  (function(i){
+    var bar = document.getElementById(Grob + '.' + i);
+    bar.addEventListener("mouseover",function(){light(i)},false);
+    bar.addEventListener("mouseout", function(){normal(i)}, false);
+    bar.addEventListener("click", function(){fade(i)}, false);
+    }) (i)
+  };
 
  light = function(i) {
    var bar = document.getElementById(Grob + '.' + i);
@@ -420,8 +415,12 @@ fade = function(i) {
 var ButtonPercentage = document.getElementById('ButtonPercentage');
 var ButtonCount = document.getElementById('ButtonCount');
 ButtonPercentage.classList.add('hidden');
-ButtonCount.classList.add('hidden'); 
+ButtonCount.classList.add('hidden');
 
  viewTable.innerHTML = "View Table";
  t = true;
  };
+
+//another way to reset:
+var plotRegion = document.getElementsByTagName('rect')[2];
+plotRegion.addEventListener('click', reset, false);

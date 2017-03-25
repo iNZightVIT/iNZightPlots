@@ -1,7 +1,7 @@
 /* JavaScript code for dot plots and scatterplots (inclusive of iNZightMaps):
 Code is split into 3 sections: table properties,
-                                interactions,
-                                selectionCanvas (for multi-selection of points)
+                              interactions,
+                              selectionCanvas (for multi-selection of points)
 
 /* -----------------------------------------------------
                 Table properties:
@@ -10,16 +10,12 @@ link up to interactions on the plot.
 Creation of HTML form/select to allow user to select
 the variables to display in labels and in the table.
 -------------------------------------------------------- */
-var table = document.getElementById('table');
 
-//no. of rows in table
-var nrow = document.getElementById('table').rows.length;
-
-//no. of columns in table
-var ncol = document.getElementsByTagName('th').length;
-
-var td = document.getElementsByTagName('td');
-cellNo = td.length;
+var table = document.getElementById('table')
+    nrow = document.getElementById('table').rows.length, //no. of rows in table
+    ncol = document.getElementsByTagName('th').length, //no. of columns in table
+    td = document.getElementsByTagName('td'),
+    cellNo = td.length;
 
 for (i = 1; i <= cellNo; i ++) {
   td[i-1].setAttribute('id', i);
@@ -30,14 +26,12 @@ for (i = 1; i <= cellNo; i ++) {
 };
 
 
-
 for (j = 1; j <= ncol; j++) {
   th = document.getElementsByTagName('th');
   th[j-1].setAttribute('class', j);
 };
 
 //no. of rows in table
-nrow = table.rows.length;
 for (i = 1; i < nrow; i ++) {
   var tr = document.getElementsByTagName('tr');
   tr[i].setAttribute('id', 'tr' + i);
@@ -208,24 +202,24 @@ if (boxData != undefined) {
 
   //setting interactions and colors for box plot:
   for (i = 0; i < box.length; i++) {
-  box[i].setAttribute('onmouseover', 'fillBox()');
-  box[i].setAttribute('onmouseout', 'normalBox()');
-  box[i].setAttribute('onclick', 'showBox()');
+    box[i].addEventListener('mouseover', fillBox, false);
+    box[i].addEventListener('mouseout', normalBox, false);
+    box[i].addEventListener('click', showBox, false);
   }
 
-  fillBox = function() {
+  function fillBox() {
     for (i = 0; i < box.length; i++) {
     box[i].classList.add('fillBox');
   }
   };
 
-  normalBox = function() {
+  function normalBox() {
     for (i = 0; i < box.length; i++) {
       box[i].classList.remove('fillBox');
   }
   };
 
-  showBox = function() {
+function showBox() {
     var boxData = document.getElementsByClassName('boxData');
     for (i =0; i < boxData.length; i++) {
       boxData[i].classList.remove('hidden');
@@ -303,8 +297,7 @@ for (i  = 1; i <= count; i++) {
   var point = document.getElementById(Grob + '.' + i);
   var x = point.getAttribute('x');
   var y = point.getAttribute('y');
-  //var textNo = 'No: ' + i;
-  //label('labelNo', textNo, i, 0);
+
   text = [];
   text[j] = names[j] + ": ";
   label('label' + '.' + (j+1) + '.' , text[j], i, j);
@@ -328,16 +321,19 @@ for (i  = 1; i <= count; i++) {
 
 /// INTERACTION CODE: Hovers, Clicks, Legends
 //Hovers, clicks on points to show labels and data from table:
-for (i =1; i <= count; i++) {
-  point = document.getElementById(Grob + "." + i);
-  point.style.stroke = point.getAttribute('stroke');
-  point.setAttribute('onmouseover', 'light(' + i + ')');
-  point.setAttribute('onmouseout', 'normal(' + i + ')');
-  point.setAttribute('onclick', 'info(' + i + ')');
-};
+
+for (i = 1; i <= count; i++) {
+  (function(i){
+    var point = document.getElementById(Grob + '.' + i);
+    point.addEventListener("mouseover",function(){light(i)},false);
+    point.addEventListener("mouseout", function(){normal(i)}, false);
+    point.addEventListener("click", function(){info(i)}, false);
+    point.addEventListener("dblclick", function(){deselect(i)}, false);
+    }) (i)
+  };
 
 //Hover on:
-light = function(i) {
+function light(i) {
   var point = document.getElementById(Grob + "." + i);
   point.classList.add('showPoint');
   var gLabel = document.getElementById('gLabel' + i);
@@ -346,7 +342,7 @@ light = function(i) {
 };
 
 //Hover out:
-normal = function(i) {
+function normal(i) {
   var point = document.getElementById(Grob + "." + i);
   point.classList.remove('showPoint');
 
@@ -356,7 +352,7 @@ normal = function(i) {
 };
 
 //On click:
-info = function(i) {
+function info(i) {
   for (j = 1; j <= count; j++) {
     var point = document.getElementById(Grob + "." + j);
     var gLabel = document.getElementById('gLabel' + j);
@@ -366,6 +362,7 @@ info = function(i) {
 
     var dataRow = document.getElementById('tr' + j);
 
+if (point.getAttribute('class') != "point selected") {
     if (i == j) {
       gLabel.classList.remove('invisible');
 
@@ -385,6 +382,7 @@ info = function(i) {
 
     }
   }
+}
   if (boxData != undefined) {
  boxData = document.getElementsByClassName('boxData');
   for (i =0; i < boxData.length; i++) {
@@ -392,6 +390,31 @@ info = function(i) {
   }
 }
 };
+
+//on doubleclick to deselect points: - doesn't work very well?
+deselect = function(i) {
+  for (j = 1; j <= count; j++) {
+    var point = document.getElementById(Grob + "." + j);
+    var gLabel = document.getElementById('gLabel' + j);
+
+    var l = point.getAttribute('stroke');
+    var lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
+
+    var dataRow = document.getElementById('tr' + j);
+
+    if (i == j) {
+      gLabel.classList.add('invisible');
+
+      point.setAttribute('class', 'point none');
+
+      dataRow.style.backgroundColor = "white";
+      dataRow.classList.add('hidden');
+      dataRow.classList.remove('rowSelect');
+
+    }
+}
+};
+
 
 //LEGEND INTERACTION:
 
@@ -402,17 +425,20 @@ var text = document.getElementsByTagName('text');
 
 //assigning mouse events:
 for (i = 1; i <= colGroupNo; i ++) { //colGroupNo -> colby levels from R (nlevels)
-  var key = document.getElementById(keys[i-1].id);
-  key.setAttribute('onmouseover', 'show(' + i +')');
-  key.setAttribute('onmouseout', 'out(' + i + ')');
-  key.setAttribute('onclick', 'subset(' + i + ')');
-  var keyText = document.getElementById(text[i+3].id);
-  if (Grob == "DOTPOINTS.1") { // for dot plots - legend text differs
-    var keyText = document.getElementById(text[i+2].id);
-  }
-  keyText.setAttribute('onmouseover', 'show(' + i +')');
-  keyText.setAttribute('onmouseout', 'out(' + i +')');
-  keyText.setAttribute('onclick', 'subset(' + i + ')');
+  var key = document.getElementById(keys[i-1].id),
+      keyText = document.getElementById(text[i+3].id);
+    if (Grob == "DOTPOINTS.1") { // for dot plots - legend text differs
+            var keyText = document.getElementById(text[i+2].id);
+      }
+  (function(i){
+  key.addEventListener("mouseover", function(){show(i)}, false);
+  key.addEventListener("mouseout", function(){out(i)}, false);
+  key.addEventListener("click", function(){subset(i)}, false);
+
+  keyText.addEventListener("mouseover", function(){show(i)}, false);
+  keyText.addEventListener("mouseout", function(){out(i)}, false);
+  keyText.addEventListener("click", function(){subset(i)}, false);
+}) (i)
 };
 
 // hover on a legend group:
@@ -517,9 +543,9 @@ Code to select over a group of points via mouse drag.
 var svg = document.getElementsByTagName('svg')[0];
 svg.setAttribute('draggable', 'false');
 
-var rect = document.getElementsByTagName('rect');
-var width = svg.width.baseVal.value;
-var height = svg.height.baseVal.value;
+var rect = document.getElementsByTagName('rect'),
+    width = svg.width.baseVal.value,
+    height = svg.height.baseVal.value;
 
 //putting selection rectangle in a group element:
 var g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -527,9 +553,9 @@ var g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
   var panel = document.getElementById(Grob);
   panel.appendChild(g);
 
-
 var evt = window.event;
 
+//Mouse events:
 svg.setAttribute('onmouseup', 'MouseUp(evt)');
 svg.setAttribute('onmousemove', 'MouseDrag(evt)');
 svg.setAttribute('onmousedown', 'MouseDown(evt)');
@@ -656,3 +682,7 @@ for (i =1; i <= ncol; i++) {
   }
 }
 };
+
+// deselection/reset using plotregion double-click:
+var plotRegion = document.getElementsByTagName('rect')[1];
+plotRegion.addEventListener("dblclick", reset, false);

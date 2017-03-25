@@ -9,32 +9,25 @@ with boxplot properties. JSON data objects differ (class intervals). */
 ---------------------------------------------*/
 
 var table = document.getElementById('table');
-
-//no. of rows in table
-var nrow = table.rows.length;
-
-//no. of columns in table
-var ncol = document.getElementsByTagName('th').length;
-
-var td = document.getElementsByTagName('td');
-var cellNo = td.length;
-var i;
+    nrow = table.rows.length, //no. of rows in table
+    ncol = document.getElementsByTagName('th').length, //no. of columns in table
+    td = document.getElementsByTagName('td'),
+    tr = document.getElementsByTagName('tr'),
+    totalRow = tr[nrow-1],
+    cellNo = td.length;
 
 for (i = 1; i <= cellNo; i++) {
   td[i-1].setAttribute('id', 'td' + i);
 };
 
-//no. of rows in table
-var tr = document.getElementsByTagName('tr');
 for (i = 1; i < nrow; i++) {
   tr[i].setAttribute('id', 'tr' + i);
 };
 
-var totalRow = tr[nrow-1];
 totalRow.setAttribute('class', 'tc');
 
 //drive the viewTable button:
-  viewTable = document.getElementById('viewTable');
+  var viewTable = document.getElementById('viewTable');
   t = true;
 showTable = function() {
   if(t) {
@@ -239,27 +232,27 @@ var totalRow = document.getElementById('totalRow');
 
 //setting interactions and colors for box plot:
 for (i = 0; i < box.length; i++) {
-box[i].setAttribute('onmouseover', 'fillBox()');
-box[i].setAttribute('onmouseout', 'normalBox()');
-box[i].setAttribute('onclick', 'showBox()');
+  box[i].addEventListener('mouseover', fillBox, false);
+  box[i].addEventListener('mouseout', normalBox, false);
+  box[i].addEventListener('click', showBox, false);
 }
 
 //on hover:
-fillBox = function() {
+function fillBox() {
   for (i = 0; i < box.length; i++) {
   box[i].classList.add('fillBox');
 }
 };
 
 //hover out:
-normalBox = function() {
+function normalBox() {
   for (i = 0; i < box.length; i++) {
     box[i].classList.remove('fillBox');
 }
 };
 
 //on click:
-showBox = function() {
+function showBox() {
   for (i =0; i < boxData.length; i++) {
     boxData[i].classList.remove('hidden');
 }
@@ -272,11 +265,13 @@ showBox = function() {
 ---------------------------------------------------------------*/
 //setting mouse events:
 for (i = 1; i <= count; i++) {
- var bar = document.getElementById(Grob + '.' + i);
- bar.setAttribute('onmouseover', 'light('+ i + ')');
- bar.setAttribute('onmouseout', 'normal(' + i +')');
- bar.setAttribute('onclick', 'fade(' + i +')');
- }
+  (function(i){
+    var bar = document.getElementById(Grob + '.' + i);
+    bar.addEventListener("mouseover",function(){light(i)},false);
+    bar.addEventListener("mouseout", function(){normal(i)}, false);
+    bar.addEventListener("click", function(){fade(i)}, false);
+    }) (i)
+  };
 
 //on hover:
  light = function(i) {

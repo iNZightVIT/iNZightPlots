@@ -203,18 +203,21 @@ Anything with prop[0].Var1 != undefined -> signifies two way bar plots.
 var svg = document.getElementsByTagName('svg')[0];
 
 //Increasing plotRegion out to show labels:
-var rect = document.getElementsByTagName('rect')[0];
+var rect = document.getElementsByTagName('rect')[0],
+    plotRegion = document.getElementsByTagName('rect')[1];
+
 if (rect.x.baseVal.value < 48) { //there's some rectangle that appears on two-way bar plots.
-  var rect = document.getElementsByTagName('rect')[1];
+  var rect = document.getElementsByTagName('rect')[1],
+  plotRegion = document.getElementsByTagName('rect')[2];
 };
 rect.setAttribute('class', 'rect');
 
 // obtaining values from SVG file:
-var  p = document.getElementsByTagName("polygon");
-var id = p[p.length-1].getAttribute('id');
-var Grob = id.substring(0, id.lastIndexOf('.'));
-  number = counts.length;
-  var count = number + 1;
+var  p = document.getElementsByTagName("polygon"),
+    id = p[p.length-1].getAttribute('id'),
+    Grob = id.substring(0, id.lastIndexOf('.')),
+    number = counts.length,
+    count = number + 1;
 
 //if the bar plot is colored - has additional bars and polylines to hide!
 if (colorMatch != undefined) {
@@ -360,11 +363,13 @@ for (i  = 1; i < count; i++) {
 /// INTERACTION CODE: Hovers, Clicks, Legends
 //Hovers on bars and labels:
 for (i = 1; i < count; i++) {
- var bar = document.getElementById(Grob + '.' + i);
- bar.setAttribute('onmouseover', 'light('+ i + ')');
- bar.setAttribute('onmouseout', 'normal(' + i +')');
- bar.setAttribute('onclick', 'fade(' + i +')');
- }
+  (function(i){
+    var bar = document.getElementById(Grob + '.' + i);
+    bar.addEventListener("mouseover",function(){light(i)},false);
+    bar.addEventListener("mouseout", function(){normal(i)}, false);
+    bar.addEventListener("click", function(){fade(i)}, false);
+    }) (i)
+  };
 
  light = function(i) {
    var gLabel = document.getElementById('gLabel' + i);
@@ -461,12 +466,15 @@ var text = document.getElementsByTagName('text');
 for (i = 1; i < group; i ++) {
   key = document.getElementById(keys[i-1].id);
   keyText = document.getElementById(text[i+3].id);
-  keyText.setAttribute('onmouseover', 'show(' + i +')');
-  key.setAttribute('onmouseover', 'show(' + i + ')');
-  keyText.setAttribute('onmouseout', 'out(' + i +')');
-  key.setAttribute('onmouseout', 'out('+ i +')');
-  keyText.setAttribute('onclick', 'info(' + i + ')');
-  key.setAttribute('onclick', 'info(' + i + ')');
+  (function(i){
+  keyText.addEventListener("mouseover", function(){show(i)}, false);
+  keyText.addEventListener("mouseout", function(){out(i)}, false);
+  keyText.addEventListener("click", function(){info(i)}, false);
+
+  key.addEventListener("mouseover", function(){show(i)}, false);
+  key.addEventListener("mouseout", function(){out(i)}, false);
+  key.addEventListener("click", function(){info(i)}, false);
+  }) (i)
 };
 
 show = function(i) {
@@ -587,3 +595,6 @@ reset = function() {
  viewTable.innerHTML = "View Table";
  t = true;
  };
+
+// other ways to deselect;
+  plotRegion.addEventListener("click", reset, false);
