@@ -13,15 +13,26 @@
 #'
 #' @param x An iNZight plot object or function (such as updatePlot) that captures iNZight environment
 #' @param file Name of temporary HTML file generated
-#'
+#' @param data dataset/dataframe that you wish to investigate and export more variables from (for scatterplots)
+#' @param extra.vars extra variables specified by the user to be exported 
+#' 
 #' @return Opens up an HTML file of \code{x} with filename \code{file} in the browser (best performance on Chrome/Firefox)
+#'
+#' @examples 
+#' \dontrun{
+#' x <- iNZightPlot(Petal.Width, Petal.Length, data = iris, colby = Species)
+#' exportHTML(x, "test.html")
+#' 
+#' #to export more variables for scatterplots:
+#'  exportHTML(x, "test.html", data = iris, extra.vars = c("Sepal.Length", "Sepal.Width"))
+#' }
 #'
 #' @author Yu Han Soh
 #'
 #' @import jsonlite
 #' @import xtable
 #' @export
-exportHTML <- function(x, file) UseMethod("exportHTML")
+exportHTML <- function(x, file, data, extra.vars) UseMethod("exportHTML")
 
 exportHTML.function <- function(x, file = 'index.html', width = dev.size()[1], height = dev.size()[2]) {
 
@@ -52,8 +63,8 @@ exportHTML.function <- function(x, file = 'index.html', width = dev.size()[1], h
 
 }
 
-#this is generalized for every plot - involves the binding of everything together.
-exportHTML.inzplotoutput <- function(x, file = 'index.html') {
+#this is generalized for every plot - involves binding everything together.
+exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.vars = NULL) {
 
   curdir <- getwd()
   x <- x
@@ -82,9 +93,13 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html') {
   setwd(tempdir())
 
   #Create the table (refer to getTable function):
-  tbl <- getTable(plot, x)
+  if (is.null(extra.vars) && is.null(data)) {
+    tbl <- getTable(plot, x)
+  } else {
+    tbl <- getTable(plot, x, data, extra.vars)
+  }
 
-  #write table in HTML using xtable:
+  #write HTML table using xtable:
   if (is.null(tbl)) {
     HTMLtable <- '<p> No table available. </p>'
   } else {
@@ -144,11 +159,11 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html') {
 
 ## Generating tables for each plot:
 
-getTable <- function(plot, x= NULL)  {
+getTable <- function(plot, x = NULL, data = NULL, extra.vars = NULL)  {
   UseMethod("getTable")
 }
 
-getTable.inzbar <- function(plot, x = NULL) {
+getTable.inzbar <- function(plot, x) {
 
   #generation of table of counts:
   #plot <- x$all$all
@@ -156,6 +171,7 @@ getTable.inzbar <- function(plot, x = NULL) {
   prop <- plot$phat
   counts <- plot$tab
   percent <- plot$widths
+  n <- attributes(x)$total.obs
 
   ##for color matching for colby:
   colorMatch <- plot$p.colby
@@ -188,8 +204,8 @@ getTable.inzbar <- function(plot, x = NULL) {
   #attributes for HTML table
   cap <- 'Table of Counts and Proportions'
   includeRow <- TRUE
-  tableInfo <- list(cap, includeRow, tab)
-  names(tableInfo) <- c('caption', 'includeRow', 'tab')
+  tableInfo <- list(cap, includeRow, tab, n)
+  names(tableInfo) <- c('caption', 'includeRow', 'tab', 'n')
 
   return(tableInfo)
 
@@ -224,9 +240,6 @@ getTable.inzhist <- function(plot, x) {
 
 }
 
-#for scatterplots and dot plots it currently only shows variables (+ colby) being plotted.
-#exporting additional variables has not been set up yet...
-
 getTable.inzdot <- function(plot, x) {
 
   #Need to order.
@@ -245,8 +258,6 @@ getTable.inzdot <- function(plot, x) {
     names(tab)[ncol(tab)] <- attributes(x)$varnames$colby
   }
 
-  tab <- tab
-
   if (!is.null(plot$toplot$all$sizeby)) {
     sizeby <- plot$toplot$all$sizeby
     tab <- cbind(tab, sizeby)
@@ -264,21 +275,57 @@ getTable.inzdot <- function(plot, x) {
 
 }
 
-getTable.inzscatter <- function(plot, x) {
-  #this depends on what the user chooses if they wish to display more variables other than those plotted.
-  #MUST SET ORDER (plot features) to -1 if they choose to add more variables to the table (or according to plotting sequence...)
-
-  #DEFAULT:  # to only show variables plotted.
-    xVal <- plot$x
-    yVal <- plot$y
+getTable.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
+  
+  #For scatterplots, the user can choose to either export the whole dataset they've specified, or certain variables.
+  #By default: only exports the two variables that are plotted (if no dataset is specified, or extra.vars = NULL).
+  #currently still in testing stages...
+  
+  xVal <- plot$x
+  yVal <- plot$y
+  order <- plot$point.order
+  
+  if (is.null(data) && is.null(extra.vars)) {
+  
+    #DEFAULT: only export variables plotted.
     tab <- cbind(as.data.frame(xVal), as.data.frame(yVal))
-   names(tab) <- c(attributes(x)$varnames$x, attributes(x)$varnames$y)
-
+    names(tab) <- c(attributes(x)$varnames$x, attributes(x)$varnames$y)
+    
+    #if there's a colby variable
     if (!is.null(plot$colby)) {
       colby <- plot$colby
       tab <- cbind(tab, as.data.frame(colby))
-      names(tab)[3] <- attributes(x)$varnames$colby
+      names(tab)[ncol(tab)] <- attributes(x)$varnames$colby
     }
+    
+    #if there's a sizeby variable
+    if (!is.null(plot$sizeby)) {
+      sizeby <- plot$sizeby
+      tab <- cbind(tab, as.data.frame(sizeby))
+      names(tab)[ncol(tab)] <- attributes(x)$varnames$sizeby
+    }
+   
+  } else if (extra.vars == "all" && !is.null(data) || is.null(extra.vars) && ncol(data) < 10) {
+    #exports all variables in the dataset
+    tab <- data[order, ] #does not show missing values (only returns plotted values)
+    
+  } else if (!is.null(extra.vars) && !is.null(data)) {
+    
+    #if they've selected certain variables to export - must specify the dataset + variables
+    #obtain column index 
+    colNum <- sapply(extra.vars, function(x) grep(x, colnames(data)))
+    #obtain extra data columns
+    extra.cols <- data[order, colNum]
+    #bind altogether
+    tab <- cbind(as.data.frame(xVal), as.data.frame(yVal), extra.cols)
+    names(tab) <- c(attributes(x)$varnames$x, attributes(x)$varnames$y, extra.vars)
+  
+    } else {
+    
+    warning("Please specify a dataset before using extra.vars. Producing default scatter plot.")
+      tab <- cbind(as.data.frame(xVal), as.data.frame(yVal))
+      names(tab) <- c(attributes(x)$varnames$x, attributes(x)$varnames$y)
+  }
 
     ## Attributes for HTML table
   cap <- "Data"
@@ -298,7 +345,7 @@ getTable.inzhex <- function(plot, x = NULL) {
 
 }
 
-getTable.default <- function(plot, x = NULL) {
+getTable.default <- function(plot, x) {
   warning("Cannot generate table! There may not be an interactive version of this plot yet...")
   return()
 }
@@ -308,7 +355,7 @@ getTable.default <- function(plot, x = NULL) {
 
 convertToJS <- function(plot, tbl= NULL) UseMethod("convertToJS")
 
-convertToJS.inzbar <- function(plot, tbl = NULL) {
+convertToJS.inzbar <- function(plot, tbl) {
 
    #plot <- x$all$all
 
@@ -322,13 +369,15 @@ convertToJS.inzbar <- function(plot, tbl = NULL) {
     counts.df <- as.data.frame(counts)
 
     if (all(percent != 1)) { ##this is for stacked bar plots and two way bar plots
-      prop.df <-  as.data.frame(prop)
+      prop.df =  as.data.frame(prop)
       percent.df = as.data.frame(percent)
       percent.df$percent = round(percent.df$percent, 4)
-      percentJSON = paste("var percent = '", jsonlite::toJSON(percent.df), "';", sep = "");
-
-    } else {
-      percentJSON = "null";
+      percentJSON = paste0("var percent = '", jsonlite::toJSON(percent.df), "';")
+      colCounts = paste0("var colCounts ='", jsonlite::toJSON(c("Col N", round(colSums(counts/tbl$n),4), 1)), "';")
+      
+      } else {
+      percentJSON = "null"
+      colCounts = "null"
     }
 
     countsJ <- jsonlite::toJSON(counts.df)
@@ -368,8 +417,8 @@ convertToJS.inzbar <- function(plot, tbl = NULL) {
     countsJSON = paste("var counts = '", countsJ, "';", sep = "");
 
     #returning all data in a list:
-    JSData <- list(propJSON, countsJSON, percentJSON, colorMatchJSON, orderJSON, jsFile)
-    names(JSData) <- c('propJSON', 'countsJSON', 'percentJSON', 'colorMatchJSON', 'orderJSON', 'jsFile')
+    JSData <- list(propJSON, countsJSON, percentJSON, colCounts, colorMatchJSON, orderJSON, jsFile)
+    names(JSData) <- c('propJSON', 'countsJSON', 'percentJSON', 'colCounts', 'colorMatchJSON', 'orderJSON', 'jsFile')
 
    return(JSData)
 

@@ -4,7 +4,6 @@ two way bar plots.
                               bar and label properties,
                               and interaction code.     */
  // Parsing data
-
 var prop = JSON.parse(prop),
     counts = JSON.parse(counts);
 
@@ -41,7 +40,7 @@ for (i = 1; i <= cellNo; i++) {
     } else if (i % ncol === 1) {
         td[i - 1].setAttribute('id', 'yGroup' + ((i - 1) / ncol + 1));
         td[i - 1].setAttribute('class', 'yGroup');
-    } else if (prop[0].Var1 !== undefined) {
+      }else if (prop[0].Var1 !== undefined) {
         td[i - 1].setAttribute('id', 'td' + (((i - (i % ncol)) / ncol + 1) + ((nrow - 1) * (i % ncol - 2))));
     } else if (i < ncol) {
         td[i - 1].setAttribute('class', 'td' + (i - 1));
@@ -60,6 +59,8 @@ xhead.colSpan = ncol;
 
 // if two way bar plot: additional conversion to counts, percentages, summation and y-headers
 if (prop[0].Var1 !== undefined) {
+
+  colCounts = JSON.parse(colCounts);
 
   //Finding the sum of countsTab:
     var countsTab = [];
@@ -81,13 +82,15 @@ if (prop[0].Var1 !== undefined) {
   lastRow.setAttribute('class', 'totalRow');
   for (i = 1; i <= ncol; i ++) {
     var cell = lastRow.insertCell(i-1);
-    cell.id = "totalCell" + i;
+    cell.id = "totalCell" + (i-1);
+    //fill in column totals:
+      cell.innerHTML = colCounts[i-1];
   };
 
-  var sumCell = document.getElementById('totalCell' + (ncol));
+  var sumCell = document.getElementById('totalCell' + (ncol-1));
   sumCell.innerHTML = "N = " + sum;
 
-  var totalCell = document.getElementById('totalCell' + (ncol-1));
+  var totalCell = document.getElementById('totalCell' + (ncol-2));
 
 //Creating buttons:
 button = function(name) {
@@ -111,6 +114,19 @@ button = function(name) {
     buttonPercentage.classList.add('dark');
     buttonCount.classList.remove('dark');
 
+    //for the column sums:
+    for (i = 1; i < ncol-2; i++) {
+      var tCol = document.getElementById('totalCell' + i);
+      if ((tCol.innerHTML.indexOf('%') == -1) && (tCol.innerHTML.indexOf(".") >=0)) {
+        tCol.innerHTML = (Number(tCol.innerHTML)*100).toFixed(2) + '%';
+      } else if (tCol.innerHTML.indexOf('%') >= 0) {
+        tCol.innerHTML = tCol.innerHTML;
+      } else {
+        tCol.innerHTML =(Number(tCol.innerHTML)/sum * 100).toFixed(2) + '%';
+      }
+    }
+
+    //for all other data:
     for (j = 1; j <= cellNo/ncol; j++) {
       var tr = document.getElementById('tr' + j);
     for (i = 1; i <= cellNo - 2*(nrow-1); i ++) {
@@ -129,7 +145,7 @@ button = function(name) {
       }
     }
     document.getElementsByTagName('th')[(ncol-1)].innerHTML = "Row N";
-    totalCell.innerHTML = "";
+    totalCell.innerHTML = "100.00%";
     sumCell.innerHTML = "N = " + sum;
 
   };
@@ -142,6 +158,20 @@ button = function(name) {
     buttonPercentage.classList.remove('dark');
     buttonCount.classList.add('dark');
 
+
+    //for the column sums:
+    for (i = 1; i < ncol-2; i++) {
+      var tCol = document.getElementById('totalCell' + i);
+      if ((tCol.innerHTML.indexOf('%') == -1) && (tCol.innerHTML.indexOf(".") >=0)) {
+        tCol.innerHTML = Math.round(Number(tCol.innerHTML)*sum);
+      } else if (tCol.innerHTML.indexOf('%') >= 0) {
+        tCol.innerHTML = Math.round(Number(tCol.innerHTML.substring(0,tCol.innerHTML.lastIndexOf('%')))/100 * sum);
+      } else {
+        tCol.innerHTML = tCol.innerHTML;
+      }
+    }
+
+    //for all other data:
   for (j = 1; j <= cellNo/ncol; j ++) {
     var tr = document.getElementById('tr' + j);
     for(i = 1; i <= cellNo - 2*(nrow-1); i++) {
@@ -585,15 +615,6 @@ reset = function() {
      }
  }
  }
- table.classList.add('hidden');
- var ButtonPercentage = document.getElementById('ButtonPercentage');
- var ButtonCount = document.getElementById('ButtonCount');
- if (ButtonCount !== null) {
- ButtonPercentage.classList.add('hidden');
- ButtonCount.classList.add('hidden');
- }
- viewTable.innerHTML = "View Table";
- t = true;
  };
 
 // other ways to deselect;

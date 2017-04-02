@@ -4,12 +4,16 @@
 \alias{exportHTML}
 \title{ExportHTML}
 \usage{
-exportHTML(x, file)
+exportHTML(x, file, data, extra.vars)
 }
 \arguments{
 \item{x}{An iNZight plot object or function (such as updatePlot) that captures iNZight environment}
 
 \item{file}{Name of temporary HTML file generated}
+
+\item{data}{dataset/dataframe that you wish to investigate and export more variables from (for scatterplots)}
+
+\item{extra.vars}{extra variables specified by the user to be exported}
 }
 \value{
 Opens up an HTML file of \code{x} with filename \code{file} in the browser (best performance on Chrome/Firefox)
@@ -25,6 +29,16 @@ and inserts the svg plot, table, and JavaScript into the an HTML template to pro
 This function acts as generic function (either takes in function or iNZight plot object) and is comprised of two other functions.
 \code{getTable} aims to construct the appropriate table for the plot using information stored in the iNZight plot object, or data provided.
 \code{convertToJS} converts appropriate data into JSON and writes the appropriate JS file to give interactivity to the HTML page.
+}
+\examples{
+\dontrun{
+x <- iNZightPlot(Petal.Width, Petal.Length, data = iris, colby = Species)
+exportHTML(x, "test.html")
+
+#to export more variables for scatterplots:
+ exportHTML(x, "test.html", data = iris, extra.vars = c("Sepal.Length", "Sepal.Width"))
+}
+
 }
 \author{
 Yu Han Soh
