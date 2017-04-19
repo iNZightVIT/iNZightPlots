@@ -76,7 +76,7 @@ plot.inzhex <- function(obj, gen) {
             style <- "colorscale"
             colRGB <- col2rgb(opts$col.pt[1]) / 255
             colramp <- function(n)
-                rgb(colRGB[1], colRGB[2], colRGB[3], seq(0, 1, length = n))
+                rgb(colRGB[1], colRGB[2], colRGB[3], seq(0, 1, length = n+1)[-1])
         } else {
             style <- "centroids"
             colramp <- NULL
