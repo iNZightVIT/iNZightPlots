@@ -47,80 +47,25 @@ Creating labels, identifying histogram bars, and assigning attributes
 and properties to bars and labels.
 ---------------------------------------------------------------*/
 
-
 var svg = document.getElementsByTagName('svg')[0];
 
 //to expand plotRegion rectangle to show labels:
 var rect = document.getElementsByTagName('rect')[2];
-rect.setAttribute('class', 'rect');
-rect.setAttribute('x', rect.getAttribute('x') -20);
-rect.setAttribute('y', rect.getAttribute('y')-20);
-
-
-//PARSING DATA:
-var intervals  = JSON.parse(intervals);
-var counts  = JSON.parse(counts);
-var prop = JSON.parse(prop);
-var boxData = JSON.parse(boxData);
+extendPlotRegion(rect);
 
 var count = counts.length;
 
-//identify polygon bars:
-var p = document.getElementsByTagName('polygon')[2];
-// to skip the first two polygons that correspond to the boxplot at the bottom
-var id = p.getAttribute('id');
-var Grob = id.substring(0, id.lastIndexOf('.'));
+//get Grob object where hist bars lie:
+var Grob = getGrob('hist');
 
 
-//creating group labels:
-gLabel = function(i) {
-    var gEl = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    gEl.setAttributeNS(null, 'id', 'gLabel' + i);
-    gEl.setAttributeNS(null, 'class', 'gLabel invisible');
-    var panel = document.getElementsByTagName('g')[0];
-    panel.appendChild(gEl);
-};
-
-gRect = function(i) {
-    var gRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    gRect.setAttributeNS(null, 'id', 'gRect' + i);
-    gRect.setAttributeNS(null, 'class', 'gRect');
-    var gLabel = document.getElementById('gLabel' + i);
-    gLabel.appendChild(gRect);
-  };
-
-
+// create labels for each hist bar:
 for (i = 1; i<= count; i++) {
   gLabel(i);
 }
 
 for (i = 1; i <= count; i++) {
   gRect(i);
-}
-
-label = function(id, textinput, i, tf) {
-//attributes for the text SVG element
-  var label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    label.setAttributeNS(null, 'id', id + i);
-    label.setAttributeNS(null, 'class', 'label' + ' ' + id);
-    label.setAttributeNS(null, 'transform', 'translate('+ ((x+sx)/2) + ', ' + (y + tf) +') scale(1, -1)');
-
-// Creating the text label element:
-  var textNode = document.createTextNode(textinput);
-    label.appendChild(textNode);
-    gLabel = document.getElementById('gLabel' + i);
-    gLabel.appendChild(label);
-};
-
-//creating tspan labels - for customizing text in bold:
-tLabel = function(id, textinput, i, lab) {
-  var tLabel = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-  tLabel.setAttributeNS(null, 'id', id + i);
-  tLabel.setAttributeNS(null, 'class', 'tLabel');
-  var textNode = document.createTextNode(textinput);
-  tLabel.appendChild(textNode);
-  lab.appendChild(tLabel);
-
 }
 
 // Creating all the labels:
@@ -141,91 +86,26 @@ for (i  = 1; i <= count; i++) {
   tLabel('countLabel',counts[i-1] + ', ' + (prop[i-1]*100).toFixed(2) + "%", i, document.getElementById('countLabel' + i));
 
       // Attach and draw rectangles to labels according to the size of the gLabel (with all labels attached)
-        var gLabel = document.getElementById('gLabel' + i);
-        rectParam = gLabel.getBBox();
-        var gRect = document.getElementById('gRect' + i);
-        gRect.setAttribute('x', rectParam.x-5);
-        gRect.setAttribute('y', rectParam.y);
-        gRect.setAttribute('width', rectParam.width+10);
-        gRect.setAttribute('height', rectParam.height);
+         drawRectLabel(i);
 
 };
 
 /* -------------------------------------------------------------
-                  Box plot properties:
+                  Box plot properties and interactions:
 ---------------------------------------------------------------- */
 
-//Obtaining the 'polygon' boxes associated with the boxplot:
-polygonBox = document.getElementsByTagName('polygon');
-polygonId = polygonBox[0].id;
-// this differs from dotplots - the boxplot appears to be drawn first...
-idLine = polygonId.substring(0, polygonId.lastIndexOf('.'));
+//identify lines and box plot:
+var lastLine = getMinMaxLinesId();
+getBoxes("hist");
 
-for (i = 1; i <= polygonBox.length; i ++) {
-  if (polygonBox[i-1].id.indexOf(idLine) >= 0){
-    polygonBox[i-1].setAttribute('class', 'box');
-  }
-}
-
-//Min and Max - obtaining the ends of of the boxplot (lines):
-polyLines = document.getElementsByTagName('polyline');
-for (i = 1; i <= polyLines.length; i++) {
-if (polyLines[i-1].id.indexOf('GRID') >= 0) {
-  polyLines[i-1].setAttribute("class", "line");
-}
-};
-
-var lines = document.getElementsByClassName("line");
-var lastId = lines[lines.length-1].id;
-var lastLine = lastId.substring(0, lastId.lastIndexOf('.'));
-
-//functions to create boxLabels:
-
-boxLabel = function(textinput) {
-
-var boxLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  boxLabel.setAttributeNS(null, 'id', textinput);
-  boxLabel.setAttributeNS(null, 'class', 'label boxData hidden');
-  boxLabel.setAttributeNS(null, 'transform', 'translate(' + Number(x) + ',' + (Number(y) + 10) + ') scale(1, -1)');
-
-  var textNode = document.createTextNode(textinput);
-  boxLabel.appendChild(textNode);
-  var panel = document.getElementsByTagName('g')[0];
-  panel.appendChild(boxLabel);
-};
-
-boxLabelSet = function(p, r, q, textinput) {
-  if (textinput == "Min" ||  textinput == "Max") {
-    line = document.getElementById(lastLine + '.' +  p);
-    // p will either be 1 or 2 -> 1 = minLine, 2 = maxLine
-    line.setAttribute('class', 'box');
-    boxPoints = line.getAttribute('points').split(" ")[r].split(",");
-  } else {
-    box = document.getElementsByClassName('box')[p];
-    // boxplot split into two boxes - lowerbox (p = 0) and upperbox (p = 1)
-    boxPoints = box.getAttribute('points').split(" ")[r].split(",");
-  }
-  x = boxPoints[0];
-  y = boxPoints[1];
-
-  if (textinput == "Median") { // move median label below the box plot
-   y = boxPoints[1] - 25;
-  }
-
-  text = textinput + ": " + boxData[q].quantiles;
-  // this is associated with the boxData imported from R.
-  boxLabel(text);
-};
-
+//set labels
 boxLabelSet(0, 1, 0,'LQ');
 boxLabelSet(1, 2, 2, 'UQ');
 boxLabelSet(1, 0, 1, 'Median');
 boxLabelSet(1, 0, 3, 'Min');
 boxLabelSet(2, 1, 4, 'Max');
 
-/* -------------------------------------------------------
-                  Box Plot interactions:
----------------------------------------------------------*/
+//group boxplot together as a single object
 var box = document.getElementsByClassName('box');
 var boxData = document.getElementsByClassName('boxData');
 var totalRow = document.getElementById('totalRow');
@@ -237,28 +117,6 @@ for (i = 0; i < box.length; i++) {
   box[i].addEventListener('click', showBox, false);
 }
 
-//on hover:
-function fillBox() {
-  for (i = 0; i < box.length; i++) {
-  box[i].classList.add('fillBox');
-}
-};
-
-//hover out:
-function normalBox() {
-  for (i = 0; i < box.length; i++) {
-    box[i].classList.remove('fillBox');
-}
-};
-
-//on click:
-function showBox() {
-  for (i =0; i < boxData.length; i++) {
-    boxData[i].classList.remove('hidden');
-}
-};
-
-
 /* ------------------------------------------------------------
       Histogram Interactivity - hovers, clicks on bars and in
       relation to table
@@ -267,35 +125,17 @@ function showBox() {
 for (i = 1; i <= count; i++) {
   (function(i){
     var bar = document.getElementById(Grob + '.' + i);
-    bar.addEventListener("mouseover",function(){light(i)},false);
-    bar.addEventListener("mouseout", function(){normal(i)}, false);
+    bar.addEventListener("mouseover",function(){light(i, 'light')},false);
+    bar.addEventListener("mouseout", function(){normal(i, 'light')}, false);
     bar.addEventListener("click", function(){fade(i)}, false);
     }) (i)
   };
-
-//on hover:
- light = function(i) {
-   var bar = document.getElementById(Grob + '.' + i);
-      bar.classList.add('light');
-   var gLabel = document.getElementById('gLabel' + i);
-   gLabel.classList.remove('invisible');
- };
-
-//on hover out:
- normal = function(i) {
-   var bar = document.getElementById(Grob + '.' + i);
-   bar.classList.remove('light');
-   var gLabel = document.getElementById('gLabel' + i);
-   gLabel.classList.add('invisible');
- };
 
 // on click:
  fade = function(i) {
    for (j = 1; j <= count; j ++) {
 
      var bar = document.getElementById(Grob + '.' + j);
-      var l = bar.getAttribute('fill');
-      var lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
 
      var gLabel = document.getElementById('gLabel' + j);
      var dataRow = document.getElementById('tr' + j);
@@ -307,25 +147,25 @@ for (i = 1; i <= count; i++) {
        bar.setAttribute('class', 'histBar selected');
       gLabel.classList.remove('invisible');
 
-       dataRow.setAttribute('class', 'rowSelect');
-       dataRow.style.backgroundColor = "rgba" + lp + ", 0.3)";
+      var l = bar.getAttribute('fill');
+      var lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
+
+      returnRowSelection(lp, dataRow);
 
      } else {
        bar.setAttribute('class', 'histBar none');
        gLabel.classList.add('invisible');
 
-      dataRow.classList.remove('rowSelect');
-      dataRow.classList.add('hidden');
-      dataRow.style.backgroundColor = "white";
+       omitRowSelection(dataRow);
+
      }
  }
-  for (k = 0; k < boxData.length; k++) {
-    boxData[k].classList.add('hidden');
-  }
+  hideBox();
  };
 
-// Adding selection drag box for user to isolate a certain group of bars:
-/* MULTISELECT ON MOUSE DRAG*/
+ /* ------------------------------------------------------------
+      Facilitate selection box draggable by users:
+ ---------------------------------------------------------------*/
 var svg = document.getElementsByTagName('svg')[0];
 
 //set container with no style padding:
@@ -334,64 +174,16 @@ svgContainer.classList.add('contained');
 
 svg.setAttribute('draggable', 'false');
 
-var rect = document.getElementsByTagName('rect');
-var width = svg.width.baseVal.value;
-var height = svg.height.baseVal.value;
+//create 'invisible' selection box that user will see when they begin to drag:
+createSelectionBox(Grob);
 
-//putting selection rectangle in a group element:
-var g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  g.setAttributeNS(null, 'id', 'selectionBox');
-  var panel = document.getElementById(Grob);
-  panel.appendChild(g);
-
-
-var evt = window.event;
-
-svg.setAttribute('onmouseup', 'MouseUp(evt)');
-svg.setAttribute('onmousemove', 'MouseDrag(evt)');
-svg.setAttribute('onmousedown', 'MouseDown(evt)');
-
-  var selectRect = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-  selectRect.setAttributeNS(null, 'id', 'selectRect');
-  selectRect.setAttributeNS(null, 'class', 'selectRect');
-  g.appendChild(selectRect);
-
-
-  //create a new label:
-  selectionLabel = function(id, x, y, textinput) {
-  var selectionLabel = document.createElementNS("http://www.w3.org/2000/svg", 'text');
-       selectionLabel.setAttributeNS(null, 'class', 'label');
-       selectionLabel.setAttributeNS(null, 'id', id);
-       selectionLabel.setAttributeNS(null, 'transform', 'translate(' + x +  ',' + y + ') scale(1, -1)');
-      var text = document.createTextNode(textinput);
-      selectionLabel.appendChild(text);
-
-      var selectionLabelGroup = document.getElementById('selectionLabelGroup');
-       selectionLabelGroup.appendChild(selectionLabel);
-     }
-
+var evt = window.event; // required for FF to work.
 var zoomBox = {};
 
-MouseDown = function(evt) {
-
-  var selectedGroup = document.getElementById('selectionLabelGroup');
-  if (selectedGroup !== null) {
-      selectedGroup.remove();
-     }
-
-    zoomBox["startX"] = evt.pageX - 20;
-    zoomBox["startY"] = evt.pageY -20;
-    zoomBox["isDrawing"] = true;
-   selectRect.setAttribute('points',  zoomBox["startX"] + ',' + zoomBox["startY"]);
-};
-
-MouseUp = function(evt) {
-  svg.style.cursor = "default";
-      zoomBox["endX"] = evt.pageX -20;
-      zoomBox["endY"] = evt.pageY -20;
-      zoomBox["isDrawing"] = false;
-
-  };
+// assign mouse events:
+svg.setAttribute('onmouseup', 'MouseUp(evt)');
+svg.setAttribute('onmousemove', 'MouseDrag(evt)');
+svg.setAttribute('onmousedown', 'MouseDown(evt)'); // defined below.
 
 MouseDrag = function(evt) {
     if(zoomBox["isDrawing"]) {
@@ -453,22 +245,17 @@ MouseDrag = function(evt) {
             l = bar.getAttribute('fill');
             lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
 
-            dataRow.classList.remove('hidden');
-            dataRow.classList.add('rowSelect');
-            dataRow.style.backgroundColor = "rgba" + lp + ", 0.25)";
+            returnRowSelection(lp, dataRow);
 
             groupN.push(counts[i-1]); // store frequency from each hexbin that's selected
 
             //need  a way to compare intervals:
             intRange.push(intervals[i-1], intervals[i]);
-          //  console.log(intRange);
 
            } else {
              bar.setAttribute('class', 'histBar none');
+             omitRowSelection(dataRow);
 
-             dataRow.classList.add('hidden');
-             dataRow.classList.remove('rowSelect');
-             dataRow.style.backgroundColor = "white";
            }
          }
 
@@ -489,17 +276,7 @@ MouseDrag = function(evt) {
             }
 
         //create group label by selection:
-        //grouping it together!:
-        var selectionLabelGroup = document.createElementNS("http://www.w3.org/2000/svg", 'g');
-            selectionLabelGroup.setAttributeNS(null, 'class', 'gLabel');
-            selectionLabelGroup.setAttributeNS(null, 'id', 'selectionLabelGroup');
-            var panel = document.getElementsByTagName('g')[0];
-            panel.appendChild(selectionLabelGroup);
-        //make a rectangle for this special label:
-        var selectionLabelRect = document.createElementNS("http://www.w3.org/2000/svg", 'rect');
-            selectionLabelRect.setAttributeNS(null, 'class', 'gRect');
-            selectionLabelRect.setAttributeNS(null, 'id', 'selectionLabelRect');
-            selectionLabelGroup.appendChild(selectionLabelRect);
+        var selectionLabelGroup = createSelectionLabelGroup();
 
            //information to extract:
            var intervalNo = document.getElementsByClassName('selected').length;
@@ -515,11 +292,7 @@ MouseDrag = function(evt) {
         tLabel('nIntVal', intervalNo, 0, document.getElementById('nIntervals'));
 
         // Attach and draw rectangle to label:
-          var sRectParam = selectionLabelGroup.getBBox();
-          selectionLabelRect.setAttribute('x', sRectParam.x-5);
-          selectionLabelRect.setAttribute('y', sRectParam.y);
-          selectionLabelRect.setAttribute('width', sRectParam.width+10);
-          selectionLabelRect.setAttribute('height', sRectParam.height);
+        drawSelectRectLabel(selectionLabelGroup);
 
        }
     }
@@ -536,9 +309,7 @@ MouseDrag = function(evt) {
        gLabel.classList.add('invisible');
 
        var dataRow = document.getElementById('tr' + i);
-       dataRow.classList.remove('hidden');
-       dataRow.classList.remove('rowSelect');
-       dataRow.style.backgroundColor = "white";
+       resetRowSelection(dataRow);
 
        var totalRow = document.getElementsByClassName('tc')[0];
        totalRow.classList.remove('hidden');
@@ -549,15 +320,16 @@ MouseDrag = function(evt) {
 
        //remove box:
        var selectRect = document.getElementById('selectRect');
-       var selectionLabelGroup = document.getElementById('selectionLabelGroup');
        if (selectRect.getAttribute('points') !== null) {
          selectRect.removeAttribute('points');
-         selectionLabelGroup.remove();
-       }
-   }
-    for (k = 0; k < boxData.length; k++) {
-      boxData[k].classList.add('hidden');
     }
+      var selectionLabelGroup = document.getElementById('selectionLabelGroup');
+         if (selectionLabelGroup !== null || undefined) {
+           selectionLabelGroup.remove();
+         }
+   }
+    hideBox();
+
     viewTable.innerHTML = "View Table";
     table.classList.add('hidden');
     t = true;
