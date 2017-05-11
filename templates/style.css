@@ -11,6 +11,15 @@ but hopefully that can be somehow transferred some other day...)*/
   overflow-x: auto;
 }
 
+.table-fit {
+  white-space: nowrap;
+  width: 1%;
+}
+
+.table-responsive {
+  display: table;
+}
+
 /*svg container */
 
 .contained {
@@ -220,7 +229,7 @@ th {
 
 /* for dot plots and scatter plots */
 
-.showPoint {
+.showPoint { /* showPoint */
   fill: currentColor;
   stroke-width: 50%;
   fill-opacity: 1;

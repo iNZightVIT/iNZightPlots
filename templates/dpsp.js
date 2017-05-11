@@ -69,9 +69,9 @@ svgContainer.classList.add('contained');
 
 if (boxData != undefined) {
   // for dotplots only...
-  var Grob = "DOTPOINTS.1";
-  count = document.getElementById(Grob).childElementCount;
-  var panel = document.getElementsByTagName('g')[0];
+  var Grob = "DOTPOINTS.1",
+      count = document.getElementById(Grob).childElementCount,
+      panel = document.getElementsByTagName('g')[0];
 
   var lastLine = getMinMaxLinesId();
   getBoxes("dotplot");
@@ -96,9 +96,8 @@ if (boxData != undefined) {
 } else {
   var Grob = "SCATTERPOINTS.1";
   var count = document.getElementById(Grob).childElementCount;
+  var panel = document.getElementsByTagName('g')[0];
 }
-
-var panel = document.getElementsByTagName('g')[0];
 
 //POINT LABELS:
 
@@ -123,7 +122,7 @@ for (i  = 1; i <= count; i++) {
 
   text = [];
   text[j] = names[j] + ": ";
-  label('label' + '.' + (j+1) + '.' , text[j], i, (varNo-j+1)*12);
+  label('label' + '.' + (j+1) + '.' , text[j], i, (varNo-j-1)*11);
 
   var lab = document.getElementById('label' + '.' + (j+1) + '.' + i);
   tLabel('tLabel', tableData[i-1][names[j]], i, lab);
@@ -131,10 +130,8 @@ for (i  = 1; i <= count; i++) {
 
 // Attach and draw rectangles to labels according to the size of the gLabel (with all labels attached)
   drawRectLabel(i);
-
   }
 };
-
 
 /// INTERACTION CODE: Hovers, Clicks, Legends
 //Hovers, clicks on points to show labels and data from table:
@@ -261,42 +258,47 @@ for (i =0; i < sOpt.length; i++) {
   s.push(sOpt[i].value);
 };
 
+//var table = document.getElementById('table');
+var svg = document.getElementsByTagName('svg')[0];
+
 for (i =1; i <= ncol; i++) {
-  var column = document.getElementsByClassName(i);
+  //var column = table.getElementsByClassName(i);
   var labels = svg.getElementsByClassName(i);
 
-  for(j = 1; j <= column.length; j++) {
+  for(j = 1; j <= labels.length; j++) {
     if (s.indexOf('0') >= 0) {
-      column[j-1].style.display = "table-cell";
-      if (j <= labels.length) {
+      //column[j-1].style.display = "table-cell";
+      //if (j <= labels.length) {
         labels[j-1].style.display = "inherit";
         detachRectLabel(j);
         gRect(j);
         drawRectLabel(j);
-      }
+    //  }
     } else {
-    column[j-1].style.display = "none";
-    if (j <= labels.length) {
+      labels[j-1].style.display = "none";
+    //column[j-1].style.display = "none";
+    /*if (j <= labels.length) {
     addClass(labels[j-1], 'hidden');
-      }
+  }*/
     }
   }
 };
 
 for (i=0; i <= s.length; i++) {
   if (s[i] != undefined) {
-    column = table.getElementsByClassName(s[i]);
+  //  column = table.getElementsByClassName(s[i]);
     labels = svg.getElementsByClassName(s[i]);
-    for (j = 1; j <= column.length; j++) {
-      column[j-1].style.display = "table-cell";
-      if (j <= labels.length) {
+    for (j = 1; j <= labels.length; j++) {
+    //  column[j-1].style.display = "table-cell";
+    //  if (j <= labels.length) {
      labels[j-1].style.display = "inherit";
      labels[j-1].visibility = "inherit";
      //redraw rectangles according to new label size:
      detachRectLabel(j);
      gRect(j);
      drawRectLabel(j);
-        }
+     //console.log(j);
+    //    }
       }
     }
   }
@@ -352,11 +354,16 @@ MouseDrag = function(evt) {
 
         selectRect.setAttribute('points', x1 + ',' + y1 + " " + x1 + ',' + y2 + ' '
                                           + x2 + ',' + y2 + ' ' + x2 + ',' + y1);
+        //show table;
+        var viewTable = document.getElementById('viewTable');
+          viewTable.innerHTML = "Hide Table";
+          table.classList.remove('hidden');
+          t = false;
 
         for (i =1; i <= count; i++) {
         var point = document.getElementById(Grob + '.' + i);
-        var gLabel = document.getElementById('gLabel' + i);
-        var gRect = document.getElementById('gRect' + i);
+        //var gLabel = document.getElementById('gLabel' + i);
+        //var gRect = document.getElementById('gRect' + i);
         var dataRow = document.getElementById('tr' + i);
 
           var x = point.x.baseVal.value;
@@ -368,15 +375,15 @@ MouseDrag = function(evt) {
             l = point.getAttribute('stroke');
             lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
 
-            gLabel.classList.remove('invisible');
-            gRect.classList.add('hidden');
+            //gLabel.classList.remove('invisible');
+            //gRect.classList.add('hidden');
 
             returnRowSelection(lp, dataRow);
 
            } else {
              point.setAttribute('class', 'point none');
-             gRect.classList.remove('hidden');
-             gLabel.classList.add('invisible');
+             //gRect.classList.remove('hidden');
+             //gLabel.classList.add('invisible');
 
             omitRowSelection(dataRow);
           }
@@ -410,12 +417,12 @@ MouseDrag = function(evt) {
       selectRect.setAttribute('points', '0,0');
   }
 
-for (i =1; i <= ncol; i++) {
+/* for (i =1; i <= ncol; i++) {
     column = table.getElementsByClassName(i);
     for (j = 1; j <=column.length; j++) {
     column[j-1].style.display = "table-cell";
   }
-}
+} */
 };
 
 // deselection/reset using plotregion double-click:

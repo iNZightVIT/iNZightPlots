@@ -2,6 +2,9 @@
 COMMON FUNCTIONS FOR SINGLE PANEL PLOTS:
 - A list of common functions that are used to
 generate interactivity for single panel plots.
+- Created to prevent repetition of code,
+and for a better structure + more
+human readable (hopefully).
 --------------------------------------------*/
 
 /* ------------------------------------------
@@ -23,7 +26,6 @@ function insertYHeader() {
   yHeading.innerHTML = document.getElementsByTagName('tspan')[3].innerHTML;
   yHeading.setAttribute('class',' headings');
 }
-
 
 // extend plotRegion:
 function extendPlotRegion(rect) {
@@ -158,7 +160,7 @@ function label(id, textinput, i, tf) {
 function tLabel(id, textinput, i, lab) {
     var tLabel = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
     tLabel.setAttributeNS(null, 'class', 'tLabel' + ' ' + id);
-    tLabel.setAttributeNS(null, 'id', id + i);
+    tLabel.setAttributeNS(null, 'id', id + '.' + i);
 
     var textNode = document.createTextNode(textinput);
     tLabel.appendChild(textNode);

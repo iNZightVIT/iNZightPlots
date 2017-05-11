@@ -33,6 +33,7 @@
 #' @import jsonlite
 #' @import xtable
 #' @export
+
 exportHTML <- function(x, file, data, extra.vars) UseMethod("exportHTML")
 
 exportHTML.function <- function(x, file = 'index.html', width = dev.size()[1], height = dev.size()[2]) {
@@ -46,7 +47,7 @@ exportHTML.function <- function(x, file = 'index.html', width = dev.size()[1], h
   setwd(tdir)
 
   #create pdf graphics device into here:
-  pdf('tempfile.pdf', width = width, height = height, onefile = TRUE)
+  pdf(NULL, width = width, height = height, onefile = TRUE)
 
   #do exporting:
   obj <- x()
@@ -54,9 +55,6 @@ exportHTML.function <- function(x, file = 'index.html', width = dev.size()[1], h
 
   #turn off device:
   dev.off()
-
-  #remove pdf:
-  file.remove('tempfile.pdf')
 
   #reset back to original directory:
   setwd(curdir)
@@ -71,15 +69,8 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
   x <- x
   plot <- x$all$all
 
-
   if (is.null(plot)) {
     warning("iNZight doesn't handle interactive panel plots ... yet!")
-    return()
-  }
-
-  #condition for 1 categorical + 1 continuous variable
-  if(length(plot$toplot) > 1) {
-    warning('iNZight cannot handle interactive multi-factor dot plots yet!')
     return()
   }
 
@@ -106,7 +97,7 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
   } else {
 
     HTMLtable <- print(xtable::xtable(tbl$tab, caption = tbl$cap, auto = TRUE),
-                     type = "html", html.table.attributes= 'class="table table-hover table-striped table-bordered hidden" id="table"',
+                     type = "html", html.table.attributes= 'class="table table-fit table-striped table-bordered table-responsive hidden" id="table"',
                      caption.placement = "top", align = "center",
                      include.rownames = tbl$includeRow, print.results = FALSE)
   }
@@ -117,15 +108,14 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
   #bind JSON to grid plot:
   gridSVG::grid.script(do.call("paste", c(jsData[-length(jsData)], sep="\n ")), inline = TRUE, name = "linkedJSONdata")
 
-  svgOutput <- gridSVG::grid.export("inzightplot.svg")
+  svgOutput <- gridSVG::grid.export(NULL)$svg
 
   #get JS code associated with plot:
   jsCode <-  jsData$jsFile
 
-  svgCode <- paste(capture.output(svgOutput$svg), collapse = "\n")
+  svgCode <- paste(capture.output(svgOutput), collapse = "\n")
 
   #remove svg file and other scripts:
-  file.remove('inzightplot.svg')
   grid.remove("linkedJSONdata")
 
   #finding places where to substitute code:
@@ -138,16 +128,30 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
   # insert inline JS, CSS, table, SVG:
   HTMLtemplate[cssLine] <- paste(styles, collapse = "\n")
   HTMLtemplate[jsLine] <- paste(jsCode, collapse = "\n")
+  
   # for now: the singleFunctions file is read through (for multi-panel plots, this will change.)
-  HTMLtemplate[functionLine] <- paste(singleFunctions, collapse = "\n")
+  if(length(plot$toplot) > 1) {
+    HTMLtemplate[functionLine] <- "null"
+  } else {
+    HTMLtemplate[functionLine] <- paste(singleFunctions, collapse = "\n")
+  }
+  
   HTMLtemplate[tableLineOne] <- HTMLtable
   HTMLtemplate[svgLine] <- svgCode
 
-  #if the dev.size width is greater than 9, switch to large columns:
-  if (dev.size()[1] > 9) {
-    HTMLtemplate <- gsub("col-lg-6", "col-lg-12", HTMLtemplate)
-    HTMLtemplate <- gsub("col-md-6", "col-md-12", HTMLtemplate)
+  #scale columns according to devsize width:
+  if (dev.size()[1] <= 8) {
+    HTMLtemplate <- gsub("(bsc)|(txsc)", 6, HTMLtemplate)
+  } else if (dev.size()[1] <= 12 && dev.size()[1] > 8) {
+    #for svg:
+    HTMLtemplate <- gsub("bsc", round(dev.size()[1]-2), HTMLtemplate)
+    #for table:
+    HTMLtemplate <- gsub("txsc", 12-round(dev.size()[1]-2) , HTMLtemplate)
+  } else {
+    HTMLtemplate <- gsub("(bsc)|(txsc)", 12, HTMLtemplate)
   }
+    
+
 
   #Step 4: Writing it out to an HTML file:
   write(HTMLtemplate, file)
@@ -249,34 +253,57 @@ getTable.inzhist <- function(plot, x) {
 }
 
 getTable.inzdot <- function(plot, x) {
+  
+  plots <- plot$toplot
+  levels <- names(plots)
+  varNames <-attributes(x)$varnames
+  
+  if (length(levels) > 1)  { # for multi-level dot plots
+    
+    levList = list();
+    data = list();
+    
+    for (i in 1:length(levels)) {
+      #currently only takes variable plotted
+      levList[[i]] = plots[[i]]$x
+      data[[i]] = cbind(levList[[i]], levels[i])
+    }
+    
+    #bind all groups together:
+    tab <- do.call("rbind", data)
+    colnames(tab) <- c(attributes(x)$varnames$x, attributes(x)$varnames$y)
+    
+    
+  } else { #for single dot plots
+    
 
   #Need to order.
   #data <- data[order(varX), ] # if plot.features order = -1 works, then remove this and the next line of code.
   #rownames(data) <- 1:nrow(data)
 
-  #DEFAULT: only shows variables plotted.
-  xVal <- plot$toplot$all$x
-  tab <- as.data.frame(xVal)
-  names(tab) <- attributes(x)$varnames$x
-
-  if (!is.null(plot$toplot$all$colby)) {
-    colby <- plot$toplot$all$colby
-    tab <- cbind(tab, colby)
-    names(tab)[ncol(tab)] <- attributes(x)$varnames$colby
+    #DEFAULT: only shows variables plotted.
+    xVal <- plot$toplot$all$x
+    tab <- as.data.frame(xVal)
+    names(tab) <- attributes(x)$varnames$x
+    
+    if (!is.null(plot$toplot$all$colby)) {
+      colby <- plot$toplot$all$colby
+      tab <- cbind(tab, colby)
+      names(tab)[ncol(tab)] <- attributes(x)$varnames$colby
+    }
+    
+    if (!is.null(plot$toplot$all$sizeby)) {
+      sizeby <- plot$toplot$all$sizeby
+      tab <- cbind(tab, sizeby)
+      names(tab)[ncol(tab)] <- attributes(x)$varnames$sizeby
+    }
+    
   }
-
-  if (!is.null(plot$toplot$all$sizeby)) {
-    sizeby <- plot$toplot$all$sizeby
-    tab <- cbind(tab, sizeby)
-    names(tab)[ncol(tab)] <- attributes(x)$varnames$sizeby
-  }
-
-
+    
   ##Attributes for HTML table
   cap <- "Data"
   includeRow <- FALSE
-  tableInfo <- list(caption = cap, includeRow = includeRow, tab = tab)
-
+  tableInfo <- list(caption = cap, includeRow = includeRow, tab = tab, varNames = varNames)
   return(tableInfo)
 
 }
@@ -475,30 +502,79 @@ convertToJS.inzhist <- function(plot, tbl) {
 }
 
 convertToJS.inzdot <- function(plot, tbl) {
-
-   #Extracting information:
-  colGroupNo <- nlevels(plot$toplot$all$colby)
-
-  namesJSON <- paste0("var names = ", jsonlite::toJSON(names(tbl$tab)), ";")
-  tabJSON <- paste0("var tableData = ", jsonlite::toJSON(tbl$tab), ";")
-  colGroupNo <- paste0("colGroupNo = ", colGroupNo, ";")
-
-  #To obtain box whisker plot information:
-  boxInfo <- plot$boxinfo$all
-  quantiles <-boxInfo$quantiles
-  min <- boxInfo$min
-  max <- boxInfo$max
-  boxTable <- rbind(as.data.frame(quantiles), min, max)
-  rownames(boxTable)[4:5] <- c("min", "max")
-
-  ## Conversion to JSON data:
-  boxJSON <- paste0("var boxData = ", jsonlite::toJSON(boxTable), ";");
-
-  #JS:
+  
+  levels = names(plot$toplot)
+  
+  if (length(levels) > 1) {
+    
+    plots <- plot$toplot
+    
+    #create lists:
+    levList = list();
+    boxList = list();
+    countsTab = as.numeric();
+    countsTab[1] = 0;
+    
+    for (i in 1:length(levels)) {
+      
+      #currently only takes variable plotted
+      levList[[i]] = plots[[i]]$x
+      
+      #obtain boxplot information
+      box = plot$boxinfo
+      quantiles = box[[i]]$quantiles
+      min = box[[i]]$min
+      max = box[[i]]$max
+      
+      #get cumulative frequency of counts for each group:
+      countsTab[i+1] = sum(plots[[i]]$counts, countsTab[i])
+      
+      #get boxplot summaries for each group
+      boxTable <- rbind(as.data.frame(quantiles), min, max)
+      rownames(boxTable)[4:5] <- c("min", "max")
+      boxList[[i]] = boxTable
+      
+    } 
+    
+    #convert to JSON:
+    boxListJSON <- paste0("var boxData = ", jsonlite::toJSON(boxList), ";")
+    levListJSON <- paste0("var levels = ", jsonlite::toJSON(levList), ";")
+    countsTab <- paste0("var countsTab = ", jsonlite::toJSON(countsTab), ";")
+    names <- paste0("var names = ", jsonlite::toJSON(tbl$varNames), ";")
+    levNames <- paste0("var levNames = ", jsonlite::toJSON(names(plots)), ";")
+    
+    #JS:
+    jsFile <- multidotJS
+    
+    JSData <- list(boxList = boxListJSON, levList = levListJSON, countsTab = countsTab, names = names, levNames = levNames, jsFile = jsFile)
+    
+    
+  } else {
+    
+    #Extracting information:
+    colGroupNo <- nlevels(plot$toplot$all$colby)
+    
+    namesJSON <- paste0("var names = ", jsonlite::toJSON(names(tbl$tab)), ";")
+    tabJSON <- paste0("var tableData = ", jsonlite::toJSON(tbl$tab), ";")
+    colGroupNo <- paste0("colGroupNo = ", colGroupNo, ";")
+    
+    #To obtain box whisker plot information:
+    boxInfo <- plot$boxinfo$all
+    quantiles <-boxInfo$quantiles
+    min <- boxInfo$min
+    max <- boxInfo$max
+    boxTable <- rbind(as.data.frame(quantiles), min, max)
+    rownames(boxTable)[4:5] <- c("min", "max")
+    
+    ## Conversion to JSON data:
+    boxJSON <- paste0("var boxData = ", jsonlite::toJSON(boxTable), ";");
+    
+    #JS:
     jsFile <- dpspJS
-
-   #list:
-   JSData <- list(names = namesJSON, table = tabJSON, colGroupNo = colGroupNo, box = boxJSON, jsFile = jsFile)
+    
+    #list:
+    JSData <- list(names = namesJSON, table = tabJSON, colGroupNo = colGroupNo, box = boxJSON, jsFile = jsFile)
+  }
    
    return(JSData)
 }

@@ -201,7 +201,7 @@ for (i  = 1; i < count; i++) {
       var text = counts[j-1].Var1 + "\n" + colorMatch[Math.floor((i+groups-1)/groups-1)]._row;
       label('groupLabel', text, i, -30);
 
-      var text = 'n = ' +  Math.round(eval("colorMatch[Math.floor((i+groups-1)/groups-1)]['" + counts[j-1].Var1 + "']")*counts[j-1].Freq) + ", " ;
+      var text = Math.round(eval("colorMatch[Math.floor((i+groups-1)/groups-1)]['" + counts[j-1].Var1 + "']")*counts[j-1].Freq) + ", " ;
       label('countLabel', text, i, -45);
 
       var text = ((eval("colorMatch[Math.floor((i+groups-1)/groups-1)]['" + counts[j-1].Var1 + "']")*100).toFixed(2)) + "%";
@@ -214,7 +214,7 @@ for (i  = 1; i < count; i++) {
       var text = counts[groups-1].Var1 + "\n" + colorMatch[Math.floor((i+groups-1)/groups-1)]._row;
       label('groupLabel', text, i, -30);
 
-      var text = 'n = ' +  Math.round(eval("colorMatch[Math.floor((i+groups-1)/groups-1)]['" + counts[groups-1].Var1 + "']")*counts[groups-1].Freq) + ", ";
+      var text = Math.round(eval("colorMatch[Math.floor((i+groups-1)/groups-1)]['" + counts[groups-1].Var1 + "']")*counts[groups-1].Freq) + ", ";
       label('countLabel',text, i, -45);
 
       var text = ((eval("colorMatch[Math.floor((i+groups-1)/groups-1)]['"  + counts[counts.length-1].Var1 + "']")*100).toFixed(2)) + "%";

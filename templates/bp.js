@@ -222,11 +222,13 @@ for (i = 0; i < p.length; i++) {
    p[i].classList.add('visible');
 } else {
   p[i].classList.add('hidden');
-  }
+
+ }
 }
 //Hiding polylines:
 hideBarLines();
 };
+
 
 // Construction of text labels:
 for (i = 1; i <= count; i++) {
@@ -235,7 +237,7 @@ for (i = 1; i <= count; i++) {
 
 for (i = 1; i <= count; i++) {
   gRect(i);
-};
+}
 
 //labels generated using function label() + additional information for co-ordinates
 for (i  = 1; i < count; i++) {
@@ -277,10 +279,10 @@ for (i  = 1; i < count; i++) {
   label('groupLabel', gOne + ' ' +  gTwo, i, r);
 
   // proportion labels:
-  label('propLabel',(Number(pp)*100).toFixed(2) + "%", i, p);
+  label('propLabel',(Number(pp)*100).toFixed(2) + "%", i, q);
 
   // count labels:
-    label('countLabel', "n = " + freq, i, q);
+    label('countLabel', freq, i, p);
 
   // Attach and draw rectangles to labels according to the size of the gLabel (with all labels attached)
     drawRectLabel(i);
