@@ -7,11 +7,11 @@
 #' @param file Name of temporary svg file generated (by default: 'inzightplot.svg')
 #' @return Opens up an SVG file of \code{x} with filename \code{file} in a web browser
 #' @author Yu Han Soh
-#' @import gridSVG
 #' @export
 exportSVG <- function(x, file) UseMethod('exportSVG')
 
 exportSVG.function <- function(x, file = 'inzightplot.svg', width = dev.size()[1], height = dev.size()[2]) {
+  
   #get current directory
   curdir <- getwd()
 
@@ -39,6 +39,13 @@ exportSVG.function <- function(x, file = 'inzightplot.svg', width = dev.size()[1
 
 exportSVG.inzplotoutput <- function(x, file = 'inzightplot.svg') {
 
+  #suggest gridSVG:
+  if(!requireNamespace("gridSVG", quietly = TRUE)) {
+    stop(paste("Required packages aren't installed",
+               "Use 'install.packages('iNZightPlots', depends = TRUE)' to install them.",
+               sep = "\n"))
+  }
+  
   curdir <- getwd()
   #work in a temp directory
   setwd(tempdir())

@@ -29,9 +29,6 @@
 #' }
 #'
 #' @author Yu Han Soh
-#'
-#' @import jsonlite
-#' @import xtable
 #' @export
 
 exportHTML <- function(x, file, data, extra.vars) UseMethod("exportHTML")
@@ -65,6 +62,13 @@ exportHTML.function <- function(x, file = 'index.html', width = dev.size()[1], h
 #this is generalized for every plot - involves binding everything together.
 exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.vars = NULL) {
 
+  #suggest gridSVG, jsonlite, xtable:
+  if(!requireNamespace("gridSVG", "xtable", "jsonlite", quietly = TRUE)) {
+    stop(paste("Required packages aren't installed",
+               "Use 'install.packages('iNZightPlots', depends = TRUE)' to install them.",
+               sep = "\n"))
+  }
+  
   curdir <- getwd()
   x <- x
   plot <- x$all$all
