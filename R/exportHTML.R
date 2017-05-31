@@ -62,7 +62,9 @@ exportHTML.function <- function(x, file = 'index.html', width = dev.size()[1], h
 exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.vars = NULL) {
   
   #suggest gridSVG, jsonlite, xtable:
-  if(!requireNamespace("gridSVG", "xtable", "jsonlite", quietly = TRUE)) {
+  if(!requireNamespace("gridSVG",  quietly = TRUE) ||
+     !requireNamespace("xtable",   quietly = TRUE) ||
+     !requireNamespace("jsonlite", quietly = TRUE) ) {
     stop(paste("Required packages aren't installed",
                "Use 'install.packages('iNZightPlots', depends = TRUE)' to install them.",
                sep = "\n"))
