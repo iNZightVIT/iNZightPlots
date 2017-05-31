@@ -10,6 +10,14 @@ __Release date__: 23 March 2017
 - various
 
 
+## Patches
+
+### Patch 2.7.1 - 01/06/2017
+- Mosly adjustments and improvements to the SVG and HTML export functionality
+- Changes to dependency structure - made SVG/HTML functions suggested instead of imports
+- Bumped R version up to 3.0
+
+
 ***
 # Version 2.6
 __Release date__: 12 December 2016
