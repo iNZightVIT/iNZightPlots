@@ -31,9 +31,10 @@
 #' @author Yu Han Soh
 #' @export
 
-exportHTML <- function(x, file, data, extra.vars) UseMethod("exportHTML")
+exportHTML <- function(x, file, data, extra.vars, ...) UseMethod("exportHTML")
 
-exportHTML.function <- function(x, file = 'index.html', width = dev.size()[1], height = dev.size()[2]) {
+exportHTML.function <- function(x, file = 'index.html', data = NULL, extra.vars = NULL,
+                                width = dev.size()[1], height = dev.size()[2], ...) {
 
   #get current directory
   curdir <- getwd()
@@ -48,7 +49,7 @@ exportHTML.function <- function(x, file = 'index.html', width = dev.size()[1], h
 
   #do exporting:
   obj <- x()
-  url <- exportHTML(obj, file)
+  url <- exportHTML(obj, file, data, extra.vars)
 
   #turn off device:
   dev.off()
@@ -61,7 +62,7 @@ exportHTML.function <- function(x, file = 'index.html', width = dev.size()[1], h
 }
 
 #this is generalized for every plot - involves binding everything together.
-exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.vars = NULL) {
+exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.vars = NULL, ...) {
 
   #suggest gridSVG, jsonlite, xtable:
   if(!requireNamespace("gridSVG",  quietly = TRUE) ||
