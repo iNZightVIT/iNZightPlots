@@ -158,8 +158,8 @@ inzpar <- function(..., .viridis = requireNamespace("viridis", quietly = TRUE)) 
                         cubic ="green4"),
                lty.trend =
                    list(linear = 1,
-                        quadratic = 2,
-                        cubic = 3),
+                        quadratic = 1,
+                        cubic = 1),
                trend.by       = FALSE,
                trend.parallel = TRUE,
                col.smooth     = c("magenta"),
