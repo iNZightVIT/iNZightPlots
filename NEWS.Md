@@ -16,6 +16,7 @@ __Release date__: 23 March 2017
 - Mosly adjustments and improvements to the SVG and HTML export functionality
 - Changes to dependency structure - made SVG/HTML functions suggested instead of imports
 - Bumped R version up to 3.0
+- Default line type for all trends is now 1; user can choose alternatives
 
 
 ***
