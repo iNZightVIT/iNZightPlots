@@ -1,8 +1,4 @@
-/* JavaScript code for dot plots and scatterplots (inclusive of iNZightMaps):
-Code is split into 3 sections: table properties,
-                                interactions,
-                                selectionCanvas (for multi-selection of points)
-
+/* JavaScript code for dot plots and scatterplots.
 /* -----------------------------------------------------
                 Table properties:
 Code to assign classes, ids to table cells and rows to
@@ -10,16 +6,12 @@ link up to interactions on the plot.
 Creation of HTML form/select to allow user to select
 the variables to display in labels and in the table.
 -------------------------------------------------------- */
-var table = document.getElementById('table');
 
-//no. of rows in table
-var nrow = document.getElementById('table').rows.length;
-
-//no. of columns in table
-var ncol = document.getElementsByTagName('th').length;
-
-var td = document.getElementsByTagName('td');
-cellNo = td.length;
+var table = document.getElementById('table')
+    nrow = document.getElementById('table').rows.length, //no. of rows in table
+    ncol = document.getElementsByTagName('th').length, //no. of columns in table
+    td = document.getElementsByTagName('td'),
+    cellNo = td.length;
 
 for (i = 1; i <= cellNo; i ++) {
   td[i-1].setAttribute('id', i);
@@ -30,53 +22,19 @@ for (i = 1; i <= cellNo; i ++) {
 };
 
 
-
 for (j = 1; j <= ncol; j++) {
   th = document.getElementsByTagName('th');
   th[j-1].setAttribute('class', j);
 };
 
 //no. of rows in table
-nrow = table.rows.length;
 for (i = 1; i < nrow; i ++) {
   var tr = document.getElementsByTagName('tr');
   tr[i].setAttribute('id', 'tr' + i);
 };
 
-//  Select option for interactivity: to select variables accordingly
-var form = document.createElement('form');
-form.setAttribute('class', 'form-inline');
-form.setAttribute('id', 'form');
-document.getElementById('control').appendChild(form);
-
-var formLabel = document.createElement('label');
-formLabel.setAttribute('for', 'selectVar');
-formLabel.innerHTML = "Variables to display";
-form.appendChild(formLabel);
-
-var selectVar = document.createElement('select');
-selectVar.setAttribute('class', 'form-control');
-selectVar.setAttribute('id', 'selectVar');
-selectVar.setAttribute('onchange', 'selected()');
-selectVar.setAttribute('multiple', 'multiple');
-form.appendChild(selectVar);
-
-//Creating options relative to table generated:
-
-for (i = 0; i<=ncol; i++){
-    var opt = document.createElement('option');
-    if (i == 0) {
-      opt.value = 0;
-      opt.classList.add('select');
-      opt.innerHTML = "Display all";
-      opt.selected = "selected";
-    } else {
-    opt.value = i;
-    opt.innerHTML = th[i-1].innerHTML;
-  }
-  selectVar.appendChild(opt);
-};
-
+//create form and select options for variable selection/display.
+createVariableSelectionForm();
 
 //drive the viewTable button:
   var viewTable = document.getElementById('viewTable');
@@ -109,93 +67,14 @@ svg.setAttribute('preserveAspectRatio', 'xMinYMin meet');
 var svgContainer = document.getElementById('svg-container');
 svgContainer.classList.add('contained');
 
-//to expand plotRegion rectangle to show labels:
-var rect = document.getElementsByTagName('rect')[0];
-rect.setAttribute('class', 'rect');
-
-//PARSING Data:
-var names = JSON.parse(names);
-var tableData = JSON.parse(tableData);
-varNo = names.length + 1;
-
-
 if (boxData != undefined) {
-  /* --------------------------------------------------
-  Box plot labels and interactions - for dotplots only!
-  --------------------------------------------------- */
-  var boxData = JSON.parse(boxData);
-  var Grob = "DOTPOINTS.1";
-  count = document.getElementById(Grob).childElementCount;
-  var panel = document.getElementsByTagName('g')[0];
+  // for dotplots only...
+  var Grob = "DOTPOINTS.1",
+      count = document.getElementById(Grob).childElementCount,
+      panel = document.getElementsByTagName('g')[0];
 
-  //BOX PLOT LABELS:
-  /* The box plot is made up of 2 lines (line that extends to the minimum, and
-  the other extending to the maximum)
-  and two 'polygon' rectangles that make up the box (a lower box that draws up
-  to the median, while the upper draws from the median to the upper quartile
-  value).
-  */
-
-  //Obtaining the 'polygon' boxes associated with the boxplot:
-  var polygonBox = document.getElementsByTagName('polygon');
-  var polygonId = polygonBox[polygonBox.length -1].id;
-  var idLine = polygonId.substring(0, polygonId.lastIndexOf('.'));
-
-  for (i = 1; i <= polygonBox.length; i ++) {
-    if (polygonBox[i-1].id.indexOf(idLine) >= 0){
-      polygonBox[i-1].setAttribute('class', 'box');
-    }
-  }
-
-  //Min and Max - obtaining the ends of of the boxplot (lines): these are
-  //identified as the last two lines in the 'polyline' group.
-  var polyLines = document.getElementsByTagName('polyline');
-  for (i = 1; i <= polyLines.length; i++) {
-  if (polyLines[i-1].id.indexOf('GRID') >= 0) {
-    polyLines[i-1].setAttribute("class", "line");
-  }
-  };
-
-  var lines = document.getElementsByClassName("line");
-  var lastId = lines[lines.length-1].id;
-  var lastLine = lastId.substring(0, lastId.lastIndexOf('.'));
-
-
-  //functions to create boxLabels:
-  boxLabel = function(textinput) {
-  var boxLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    boxLabel.setAttribute('class', 'label boxData hidden');
-    boxLabel.setAttributeNS(null, 'transform', 'translate(' + Number(x) + ',' + (Number(y) + 10) + ') scale(1, -1)');
-    boxLabel.setAttributeNS(null, 'id', textinput);
-
-    var textNode = document.createTextNode(textinput);
-    boxLabel.appendChild(textNode);
-    panel.appendChild(boxLabel);
-  };
-
-  boxLabelSet = function(p, r, q, textinput) {
-    if (textinput == "Min" ||  textinput == "Max") {
-      var line = document.getElementById(lastLine + '.' +  p);
-      // p will either be 1 or 2 -> 1 = minLine, 2 = maxLine
-      line.setAttribute('class', 'box');
-      var boxPoints = line.getAttribute('points').split(" ")[r].split(",");
-    } else {
-      var box = document.getElementsByClassName('box')[p];
-      // boxplot split into two boxes - lowerbox (p = 0) and upperbox (p = 1)
-      var boxPoints = box.getAttribute('points').split(" ")[r].split(",");
-    }
-    x = boxPoints[0];
-    y = boxPoints[1];
-
-    if (textinput == "Median") {
-      // move median label below the box plot
-     y = boxPoints[1] - 25;
-    }
-
-    text = textinput + ": " + boxData[q].quantiles;
-    // this is associated with the boxData imported from R. q = 0 (LQ), 1 (UQ), 2 (Median), 3 (Min), 4 (Max)
-    boxLabel(text);
-  };
+  var lastLine = getMinMaxLinesId();
+  getBoxes("dotplot");
 
   boxLabelSet(0, 1, 0,'LQ');
   boxLabelSet(1, 2, 2, 'UQ');
@@ -204,59 +83,23 @@ if (boxData != undefined) {
   boxLabelSet(2, 1, 4, 'Max');
 
   //Box Plot interactions:
-  box = document.getElementsByClassName('box');
+  var box = document.getElementsByClassName('box');
+  var boxData = document.getElementsByClassName('boxData');
 
   //setting interactions and colors for box plot:
   for (i = 0; i < box.length; i++) {
-  box[i].setAttribute('onmouseover', 'fillBox()');
-  box[i].setAttribute('onmouseout', 'normalBox()');
-  box[i].setAttribute('onclick', 'showBox()');
-  }
-
-  fillBox = function() {
-    for (i = 0; i < box.length; i++) {
-    box[i].classList.add('fillBox');
-  }
-  };
-
-  normalBox = function() {
-    for (i = 0; i < box.length; i++) {
-      box[i].classList.remove('fillBox');
-  }
-  };
-
-  showBox = function() {
-    var boxData = document.getElementsByClassName('boxData');
-    for (i =0; i < boxData.length; i++) {
-      boxData[i].classList.remove('hidden');
-  }
+    box[i].addEventListener('mouseover', fillBox, false);
+    box[i].addEventListener('mouseout', normalBox, false);
+    box[i].addEventListener('click', showBox, false);
   }
 
 } else {
   var Grob = "SCATTERPOINTS.1";
   var count = document.getElementById(Grob).childElementCount;
+  var panel = document.getElementsByTagName('g')[0];
 }
 
-var panel = document.getElementsByTagName('g')[0];
-
 //POINT LABELS:
-//function to create g elements to group labels together:
-gLabel = function(i) {
-
-var gEl = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    gEl.setAttributeNS(null, 'id', 'gLabel' + i);
-    gEl.setAttributeNS(null, 'class', 'gLabel invisible');
-    panel.appendChild(gEl);
-  };
-
-//function to create rectangles for labels:
-  gRect = function(i) {
-    var gRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        gRect.setAttributeNS(null, 'id', 'gRect' + i);
-        gRect.setAttributeNS(null, 'class', 'gRect');
-    gLabel = document.getElementById('gLabel' + i);
-    gLabel.appendChild(gRect);
-  };
 
 //making rectangles and g elements for each point:
 for (i = 1; i <= count; i++) {
@@ -267,96 +110,44 @@ for (i = 1; i <= count; i++) {
   gRect(i);
 }
 
-//function to create text labels for scatterpoints:
-label = function(id, textinput, i, j) {
-
-var label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  label.setAttributeNS(null, 'class', 'label');
-  label.setAttributeNS(null, 'transform', 'translate(' + Number(x) + ',' + (Number(y) + (varNo-j)*12) + ') scale(1, -1)'); //hardcoded!
-  label.setAttributeNS(null, 'id', id + i);
-
-  var textNode = document.createTextNode(textinput);
-
-    label.appendChild(textNode);
-    var gLabel = document.getElementById('gLabel' + i);
-    gLabel.appendChild(label);
-
-};
-
-//creating tspan labels - for customizing text in bold:
-tLabel = function(id, textinput, i) {
-  var tLabel = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-  tLabel.setAttributeNS(null, 'class', 'tLabel');
-  tLabel.setAttributeNS(null, 'id', id + i);
-
-  var textNode = document.createTextNode(textinput);
-  tLabel.appendChild(textNode);
-  lab.appendChild(tLabel);
-
-};
-
 //Create number and value labels:
 for (j = 0; j < names.length; j++) {
 
 for (i  = 1; i <= count; i++) {
 
+  var varNo = names.length + 1;
   var point = document.getElementById(Grob + '.' + i);
-  var x = point.getAttribute('x');
-  var y = point.getAttribute('y');
-  //var textNo = 'No: ' + i;
-  //label('labelNo', textNo, i, 0);
+  var x = Number(point.getAttribute('x'));
+  var y = Number(point.getAttribute('y'));
+
   text = [];
   text[j] = names[j] + ": ";
-  label('label' + '.' + (j+1) + '.' , text[j], i, j);
+  label('label' + '.' + (j+1) + '.' , text[j], i, (varNo-j-1)*11);
 
   var lab = document.getElementById('label' + '.' + (j+1) + '.' + i);
-  tLabel('tLabel', tableData[i-1][names[j]], i);
+  tLabel('tLabel', tableData[i-1][names[j]], i, lab);
   lab.classList.add((j+1));
 
 // Attach and draw rectangles to labels according to the size of the gLabel (with all labels attached)
-  var gLabel = document.getElementById('gLabel' + i);
-  var rectParam = gLabel.getBBox();
-  var gRect = document.getElementById('gRect' + i);
-  gRect.setAttribute('x', rectParam.x-2);
-  gRect.setAttribute('y', rectParam.y-2);
-  gRect.setAttribute('width', rectParam.width+4);
-  gRect.setAttribute('height', rectParam.height+4);
-
+  drawRectLabel(i);
   }
 };
 
-
 /// INTERACTION CODE: Hovers, Clicks, Legends
 //Hovers, clicks on points to show labels and data from table:
-for (i =1; i <= count; i++) {
-  point = document.getElementById(Grob + "." + i);
-  point.style.stroke = point.getAttribute('stroke');
-  point.setAttribute('onmouseover', 'light(' + i + ')');
-  point.setAttribute('onmouseout', 'normal(' + i + ')');
-  point.setAttribute('onclick', 'info(' + i + ')');
-};
 
-//Hover on:
-light = function(i) {
-  var point = document.getElementById(Grob + "." + i);
-  point.classList.add('showPoint');
-  var gLabel = document.getElementById('gLabel' + i);
-  gLabel.classList.remove('invisible');
-
-};
-
-//Hover out:
-normal = function(i) {
-  var point = document.getElementById(Grob + "." + i);
-  point.classList.remove('showPoint');
-
-  var gLabel =document.getElementById('gLabel' + i);
-  gLabel.classList.add('invisible');
-
-};
+for (i = 1; i <= count; i++) {
+  (function(i){
+    var point = document.getElementById(Grob + '.' + i);
+    point.addEventListener("mouseover",function(){light(i, 'showPoint')},false);
+    point.addEventListener("mouseout", function(){normal(i, 'showPoint')}, false);
+    point.addEventListener("click", function(){info(i)}, false);
+    point.addEventListener("dblclick", function(){deselect(i)}, false);
+    }) (i)
+  };
 
 //On click:
-info = function(i) {
+function info(i) {
   for (j = 1; j <= count; j++) {
     var point = document.getElementById(Grob + "." + j);
     var gLabel = document.getElementById('gLabel' + j);
@@ -366,32 +157,48 @@ info = function(i) {
 
     var dataRow = document.getElementById('tr' + j);
 
+if (point.getAttribute('class') != "point selected") {
     if (i == j) {
       gLabel.classList.remove('invisible');
 
       point.setAttribute('class', 'point selected');
 
-      dataRow.style.backgroundColor = "rgba" + lp + ", 0.25)";
-      dataRow.classList.remove('hidden');
-      dataRow.classList.add('rowSelect');
+      returnRowSelection(lp, dataRow);
 
     } else {
       gLabel.classList.add('invisible');
       point.setAttribute('class', 'point none');
 
-      dataRow.classList.remove('rowSelect');
-      dataRow.classList.add('hidden');
-      dataRow.style.backgroundColor = "white";
+      omitRowSelection(dataRow);
 
     }
   }
+}
   if (boxData != undefined) {
  boxData = document.getElementsByClassName('boxData');
-  for (i =0; i < boxData.length; i++) {
-    boxData[i].classList.add('hidden');
-  }
+    hideBox();
 }
 };
+
+//on doubleclick to deselect points
+deselect = function(i) {
+  for (j = 1; j <= count; j++) {
+    var point = document.getElementById(Grob + "." + j);
+    var gLabel = document.getElementById('gLabel' + j);
+
+    var dataRow = document.getElementById('tr' + j);
+
+    if (i == j) {
+      gLabel.classList.add('invisible');
+
+      point.setAttribute('class', 'point none');
+
+      omitRowSelection(dataRow);
+
+    }
+}
+};
+
 
 //LEGEND INTERACTION:
 
@@ -402,42 +209,20 @@ var text = document.getElementsByTagName('text');
 
 //assigning mouse events:
 for (i = 1; i <= colGroupNo; i ++) { //colGroupNo -> colby levels from R (nlevels)
-  var key = document.getElementById(keys[i-1].id);
-  key.setAttribute('onmouseover', 'show(' + i +')');
-  key.setAttribute('onmouseout', 'out(' + i + ')');
-  key.setAttribute('onclick', 'subset(' + i + ')');
-  var keyText = document.getElementById(text[i+3].id);
-  if (Grob == "DOTPOINTS.1") { // for dot plots - legend text differs
-    var keyText = document.getElementById(text[i+2].id);
-  }
-  keyText.setAttribute('onmouseover', 'show(' + i +')');
-  keyText.setAttribute('onmouseout', 'out(' + i +')');
-  keyText.setAttribute('onclick', 'subset(' + i + ')');
-};
+  var key = document.getElementById(keys[i-1].id),
+      keyText = document.getElementById(text[i+3].id);
+    if (Grob == "DOTPOINTS.1") { // for dot plots - legend text differs
+            var keyText = document.getElementById(text[i+2].id);
+      }
+  (function(i){
+  key.addEventListener("mouseover", function(){show(i)}, false);
+  key.addEventListener("mouseout", function(){out(i)}, false);
+  key.addEventListener("click", function(){subset(i)}, false);
 
-// hover on a legend group:
-show = function(i) {
-  var keyText = document.getElementById(text[i+3].id);
-  if (Grob == "DOTPOINTS.1") {
-    var keyText = document.getElementById(text[i+2].id);
-  }
-  var key = document.getElementById(keys[i-1].id);
-  keyText.setAttribute('fill', key.getAttribute('fill'));
-  keyText.setAttribute('class', 'show');
-  key.setAttribute('class', 'show');
-
-};
-
-//hover out:
-out = function(i) {
-  var keyText = document.getElementById(text[i+3].id);
-  if (Grob == "DOTPOINTS.1") {
-    var keyText = document.getElementById(text[i+2].id);
-  }
-  var key = document.getElementById(keys[i-1].id);
-  keyText.setAttribute('class', 'out keyText');
-  key.setAttribute('class', 'out');
-
+  keyText.addEventListener("mouseover", function(){show(i)}, false);
+  keyText.addEventListener("mouseout", function(){out(i)}, false);
+  keyText.addEventListener("click", function(){subset(i)}, false);
+}) (i)
 };
 
 //on click, subsetting occurs:
@@ -451,18 +236,15 @@ subset = function(i) {
 if (key.getAttribute('fill') == point.getAttribute('stroke')) {
   point.setAttribute('class', 'point selected');
 
-  dataRow.classList.remove('hidden');
-  dataRow.classList.add('rowSelect');
+  returnRowSelection('0,0,0', dataRow);
 
-  dataRow.style.backgroundColor = "white";
 } else {
   point.setAttribute('class', 'point none');
-  dataRow.classList.add('hidden');
-  dataRow.style.backgroundColor = "white";
+  omitRowSelection(dataRow);
 
-}
-}
-}
+      }
+    }
+  }
 };
 
 /* Link to interactive table + labels - "Variables to display" select/option box:
@@ -476,37 +258,51 @@ for (i =0; i < sOpt.length; i++) {
   s.push(sOpt[i].value);
 };
 
+//var table = document.getElementById('table');
+var svg = document.getElementsByTagName('svg')[0];
+
 for (i =1; i <= ncol; i++) {
-  var column = document.getElementsByClassName(i);
+  //var column = table.getElementsByClassName(i);
   var labels = svg.getElementsByClassName(i);
 
-  for(j = 1; j <= column.length; j++) {
+  for(j = 1; j <= labels.length; j++) {
     if (s.indexOf('0') >= 0) {
-      column[j-1].style.display = "table-cell";
+      //column[j-1].style.display = "table-cell";
+      //if (j <= labels.length) {
+        labels[j-1].style.display = "inherit";
+        detachRectLabel(j);
+        gRect(j);
+        drawRectLabel(j);
+    //  }
     } else {
-    column[j-1].style.display = "none";
-    if (j <= labels.length) {
-    labels[j-1].visibility = "hidden";
+      labels[j-1].style.display = "none";
+    //column[j-1].style.display = "none";
+    /*if (j <= labels.length) {
+    addClass(labels[j-1], 'hidden');
+  }*/
+    }
   }
-}
-}
 };
 
 for (i=0; i <= s.length; i++) {
   if (s[i] != undefined) {
-    column = table.getElementsByClassName(s[i]);
+  //  column = table.getElementsByClassName(s[i]);
     labels = svg.getElementsByClassName(s[i]);
-    for (j = 1; j <= column.length; j++) {
-      column[j-1].style.display = "table-cell";
-      if (j <= labels.length) {
+    for (j = 1; j <= labels.length; j++) {
+    //  column[j-1].style.display = "table-cell";
+    //  if (j <= labels.length) {
      labels[j-1].style.display = "inherit";
      labels[j-1].visibility = "inherit";
+     //redraw rectangles according to new label size:
+     detachRectLabel(j);
+     gRect(j);
+     drawRectLabel(j);
+     //console.log(j);
+    //    }
+      }
+    }
   }
-}
-}
-}
 };
-
 
 /* --------------------------------------------------------------
 Code to select over a group of points via mouse drag.
@@ -517,44 +313,16 @@ Code to select over a group of points via mouse drag.
 var svg = document.getElementsByTagName('svg')[0];
 svg.setAttribute('draggable', 'false');
 
-var rect = document.getElementsByTagName('rect');
-var width = svg.width.baseVal.value;
-var height = svg.height.baseVal.value;
-
-//putting selection rectangle in a group element:
-var g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  g.setAttributeNS(null, 'id', 'selectionBox');
-  var panel = document.getElementById(Grob);
-  panel.appendChild(g);
-
+//create 'invisible' selection box for users:
+  createSelectionBox(Grob);
 
 var evt = window.event;
+var zoomBox = {};
 
+//Attach mouse events:
 svg.setAttribute('onmouseup', 'MouseUp(evt)');
 svg.setAttribute('onmousemove', 'MouseDrag(evt)');
 svg.setAttribute('onmousedown', 'MouseDown(evt)');
-
-  var selectRect = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-  selectRect.setAttributeNS(null, 'id', 'selectRect');
-  selectRect.setAttributeNS(null, 'class', 'selectRect');
-  g.appendChild(selectRect);
-
-var zoomBox = {};
-
-MouseDown = function(evt) {
-    zoomBox["startX"] = evt.pageX - 20;
-    zoomBox["startY"] = evt.pageY - 20;
-    zoomBox["isDrawing"] = true;
-   selectRect.setAttribute('points',  zoomBox["startX"] + ',' + zoomBox["startY"]);
-};
-
-MouseUp = function(evt) {
-  svg.style.cursor = "default";
-      zoomBox["endX"] = evt.pageX - 20;
-      zoomBox["endY"] = evt.pageY - 20;
-      zoomBox["isDrawing"] = false;
-
-  };
 
 MouseDrag = function(evt) {
     if(zoomBox["isDrawing"]) {
@@ -586,11 +354,16 @@ MouseDrag = function(evt) {
 
         selectRect.setAttribute('points', x1 + ',' + y1 + " " + x1 + ',' + y2 + ' '
                                           + x2 + ',' + y2 + ' ' + x2 + ',' + y1);
+        //show table;
+        var viewTable = document.getElementById('viewTable');
+          viewTable.innerHTML = "Hide Table";
+          table.classList.remove('hidden');
+          t = false;
 
         for (i =1; i <= count; i++) {
         var point = document.getElementById(Grob + '.' + i);
-        var gLabel = document.getElementById('gLabel' + i);
-        var gRect = document.getElementById('gRect' + i);
+        //var gLabel = document.getElementById('gLabel' + i);
+        //var gRect = document.getElementById('gRect' + i);
         var dataRow = document.getElementById('tr' + i);
 
           var x = point.x.baseVal.value;
@@ -602,23 +375,20 @@ MouseDrag = function(evt) {
             l = point.getAttribute('stroke');
             lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
 
-            gLabel.classList.remove('invisible');
-            gRect.classList.add('hidden');
-            dataRow.classList.remove('hidden');
-            dataRow.classList.add('rowSelect');
-            dataRow.style.backgroundColor = "rgba" + lp + ", 0.25)";
+            //gLabel.classList.remove('invisible');
+            //gRect.classList.add('hidden');
+
+            returnRowSelection(lp, dataRow);
 
            } else {
              point.setAttribute('class', 'point none');
-             gRect.classList.remove('hidden');
-             gLabel.classList.add('invisible');
+             //gRect.classList.remove('hidden');
+             //gLabel.classList.add('invisible');
 
-             dataRow.classList.add('hidden');
-             dataRow.classList.remove('rowSelect');
-             dataRow.style.backgroundColor = "white";
-           }
-         }
-        }
+            omitRowSelection(dataRow);
+          }
+       }
+    }
 };
 
 
@@ -638,10 +408,8 @@ MouseDrag = function(evt) {
     gRect.classList.remove('hidden');
 
     var dataRow = document.getElementById('tr' + i);
-      dataRow.classList.remove('hidden');
-      dataRow.classList.remove('rowSelect');
+      resetRowSelection(dataRow);
 
-      dataRow.style.backgroundColor = "white";
     }
     // reset selection rectangle
     var selectRect = document.getElementById('selectRect');
@@ -649,10 +417,14 @@ MouseDrag = function(evt) {
       selectRect.setAttribute('points', '0,0');
   }
 
-for (i =1; i <= ncol; i++) {
+/* for (i =1; i <= ncol; i++) {
     column = table.getElementsByClassName(i);
     for (j = 1; j <=column.length; j++) {
     column[j-1].style.display = "table-cell";
   }
-}
+} */
 };
+
+// deselection/reset using plotregion double-click:
+var plotRegion = document.getElementsByTagName('rect')[1];
+plotRegion.addEventListener("dblclick", reset, false);

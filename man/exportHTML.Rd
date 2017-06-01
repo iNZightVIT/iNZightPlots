@@ -4,12 +4,17 @@
 \alias{exportHTML}
 \title{ExportHTML}
 \usage{
-exportHTML(x, file)
+exportHTML(x, file, data, extra.vars)
 }
 \arguments{
 \item{x}{An iNZight plot object or function (such as updatePlot) that captures iNZight environment}
 
-\item{file}{Name of temporary HTML file generated}
+\item{file}{Name of temporary HTML file generated
+Additional parameters for scatterplots only:}
+
+\item{data}{dataset/dataframe that you wish to investigate and export more variables from}
+
+\item{extra.vars}{extra variables specified by the user to be exported}
 }
 \value{
 Opens up an HTML file of \code{x} with filename \code{file} in the browser (best performance on Chrome/Firefox)
@@ -17,14 +22,24 @@ Opens up an HTML file of \code{x} with filename \code{file} in the browser (best
 \description{
 \code{exportHTML} is designed to export the iNZight plot as a dynamic, interactive HTML page.
  It opens the written HTML page in a web browser.
-Currently, it only handles single panel plots. Exporting additional variables, multi-panel plots and coloured hex plots are currently not available yet.
+Currently only handles single panel plots. Coloured hex plots are currently not available yet.
 }
 \details{
-It generates an appropriate HTML table, converts data objects into JSON and retrieves a JavaScript file based upon the plot. It converts the plot to an svg,
+Generates an appropriate HTML table, converts data objects into JSON and retrieves a JavaScript file based upon the plot. Converts the plot to an svg,
 and inserts the svg plot, table, and JavaScript into the an HTML template to produce the page that is viewed in the browser.
 This function acts as generic function (either takes in function or iNZight plot object) and is comprised of two other functions.
 \code{getTable} aims to construct the appropriate table for the plot using information stored in the iNZight plot object, or data provided.
 \code{convertToJS} converts appropriate data into JSON and writes the appropriate JS file to give interactivity to the HTML page.
+}
+\examples{
+\dontrun{
+x <- iNZightPlot(Petal.Width, Petal.Length, data = iris, colby = Species)
+exportHTML(x, "test.html")
+
+#to export more variables for scatterplots:
+ exportHTML(x, "test.html", data = iris, extra.vars = c("Sepal.Length", "Sepal.Width"))
+}
+
 }
 \author{
 Yu Han Soh

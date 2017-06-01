@@ -1,13 +1,5 @@
 /* JS code for one way (excludes stacked - refer to other file) and
 two way bar plots.
- Code is split in 3 sections: table properties,
-                              bar and label properties,
-                              and interaction code.     */
- // Parsing data
-
-var prop = JSON.parse(prop),
-    counts = JSON.parse(counts);
-
 /*-----------------------------------------------------
                   Table properties:
 Code to label table cells (with classes or ids), rows,
@@ -41,7 +33,7 @@ for (i = 1; i <= cellNo; i++) {
     } else if (i % ncol === 1) {
         td[i - 1].setAttribute('id', 'yGroup' + ((i - 1) / ncol + 1));
         td[i - 1].setAttribute('class', 'yGroup');
-    } else if (prop[0].Var1 !== undefined) {
+      }else if (prop[0].Var1 !== undefined) {
         td[i - 1].setAttribute('id', 'td' + (((i - (i % ncol)) / ncol + 1) + ((nrow - 1) * (i % ncol - 2))));
     } else if (i < ncol) {
         td[i - 1].setAttribute('class', 'td' + (i - 1));
@@ -51,12 +43,7 @@ for (i = 1; i <= cellNo; i++) {
 }
 
 //x-header:
-var xrow = table.insertRow(0),
-    xhead = xrow.insertCell(0);
-xhead.setAttribute('class', 'headings');
-xhead.innerHTML = document.getElementsByTagName('tspan')[2].innerHTML;
-xhead.colSpan = ncol;
-
+insertXHeader();
 
 // if two way bar plot: additional conversion to counts, percentages, summation and y-headers
 if (prop[0].Var1 !== undefined) {
@@ -71,46 +58,46 @@ if (prop[0].Var1 !== undefined) {
   var sum = countsTab.reduce(function(a, b) { return a + b; }, 0);
 
   //y heading:
-  var yHead = table.getElementsByTagName('th')[0];
-  yHead.innerHTML = document.getElementsByTagName('tspan')[3].innerHTML;
-  yHead.setAttribute('class', 'headings');
-
+  insertYHeader();
 
   //Summation row:
   var lastRow = table.insertRow(nrow+1);
   lastRow.setAttribute('class', 'totalRow');
   for (i = 1; i <= ncol; i ++) {
     var cell = lastRow.insertCell(i-1);
-    cell.id = "totalCell" + i;
+    cell.id = "totalCell" + (i-1);
+    //fill in column totals:
+      cell.innerHTML = colCounts[i-1];
   };
 
-  var sumCell = document.getElementById('totalCell' + (ncol));
+  var sumCell = document.getElementById('totalCell' + (ncol-1));
   sumCell.innerHTML = "N = " + sum;
 
-  var totalCell = document.getElementById('totalCell' + (ncol-1));
+  var totalCell = document.getElementById('totalCell' + (ncol-2));
 
-//Creating buttons:
-button = function(name) {
-  var button = document.createElement('button');
-  button.setAttribute("type", "button");
-  button.setAttribute("class","btn btn-info convert hidden Button" + name);
-  button.innerHTML = "Show " + name;
-  button.setAttribute("onclick", "change" + name + "()");
-  button.setAttribute("id", "Button" + name)
-  document.getElementById('control').appendChild(button);
-};
-
+//insert buttons and conversion functions:
   button("Percentage");
   button("Count");
 
     //Conversion to percentages:
   changePercentage = function() {
 
-    var buttonPercentage = document.getElementById('ButtonPercentage');
-    var buttonCount = document.getElementById('ButtonCount');
-    buttonPercentage.classList.add('dark');
-    buttonCount.classList.remove('dark');
+    addClass('ButtonPercentage', 'dark');
+    removeClass('ButtonCount', 'dark');
 
+    //for the column sums:
+    for (i = 1; i < ncol-2; i++) {
+      var tCol = document.getElementById('totalCell' + i);
+      if ((tCol.innerHTML.indexOf('%') == -1) && (tCol.innerHTML.indexOf(".") >=0)) {
+        tCol.innerHTML = (Number(tCol.innerHTML)*100).toFixed(2) + '%';
+      } else if (tCol.innerHTML.indexOf('%') >= 0) {
+        tCol.innerHTML = tCol.innerHTML;
+      } else {
+        tCol.innerHTML =(Number(tCol.innerHTML)/sum * 100).toFixed(2) + '%';
+      }
+    }
+
+    //for all other data:
     for (j = 1; j <= cellNo/ncol; j++) {
       var tr = document.getElementById('tr' + j);
     for (i = 1; i <= cellNo - 2*(nrow-1); i ++) {
@@ -129,7 +116,7 @@ button = function(name) {
       }
     }
     document.getElementsByTagName('th')[(ncol-1)].innerHTML = "Row N";
-    totalCell.innerHTML = "";
+    totalCell.innerHTML = "100.00%";
     sumCell.innerHTML = "N = " + sum;
 
   };
@@ -137,11 +124,22 @@ button = function(name) {
   //Conversion to counts:
   changeCount = function() {
 
-    var buttonPercentage = document.getElementById('ButtonPercentage');
-    var buttonCount = document.getElementById('ButtonCount');
-    buttonPercentage.classList.remove('dark');
-    buttonCount.classList.add('dark');
+    addClass('ButtonCount', 'dark');
+    removeClass('ButtonPercentage', 'dark');
 
+    //for the column sums:
+    for (i = 1; i < ncol-2; i++) {
+      var tCol = document.getElementById('totalCell' + i);
+      if ((tCol.innerHTML.indexOf('%') == -1) && (tCol.innerHTML.indexOf(".") >=0)) {
+        tCol.innerHTML = Math.round(Number(tCol.innerHTML)*sum);
+      } else if (tCol.innerHTML.indexOf('%') >= 0) {
+        tCol.innerHTML = Math.round(Number(tCol.innerHTML.substring(0,tCol.innerHTML.lastIndexOf('%')))/100 * sum);
+      } else {
+        tCol.innerHTML = tCol.innerHTML;
+      }
+    }
+
+    //for all other data:
   for (j = 1; j <= cellNo/ncol; j ++) {
     var tr = document.getElementById('tr' + j);
     for(i = 1; i <= cellNo - 2*(nrow-1); i++) {
@@ -176,23 +174,21 @@ button = function(name) {
 showTable = function() {
   if(t) {
     viewTable.innerHTML = "Hide Table";
-    table.classList.remove('hidden');
-    if(document.getElementById('ButtonPercentage') != undefined) {
-    ButtonPercentage.classList.remove('hidden');
-    ButtonCount.classList.remove('hidden');
-  }
+    //table.classList.remove('hidden');
+    removeClass('table','hidden');
+    removeClass('ButtonPercentage','hidden');
+    removeClass('ButtonCount', 'hidden');
+
     t = false;
   } else {
     viewTable.innerHTML = "View Table";
-    table.classList.add('hidden');
-    if(document.getElementById('ButtonPercentage') != undefined) {
-    ButtonPercentage.classList.add('hidden');
-    ButtonCount.classList.add('hidden');
-      }
+    addClass('table', 'hidden');
+    addClass('ButtonPercentage', 'hidden');
+    addClass('ButtonCount', 'hidden');
+
     t = true;
   }
 };
-
 
 /* ---------------------------------------------------------------------------
 BarPlot - code below here assigns and create labels for each bar, and defines
@@ -203,102 +199,45 @@ Anything with prop[0].Var1 != undefined -> signifies two way bar plots.
 var svg = document.getElementsByTagName('svg')[0];
 
 //Increasing plotRegion out to show labels:
-var rect = document.getElementsByTagName('rect')[0];
+var rect = document.getElementsByTagName('rect')[0],
+    plotRegion = document.getElementsByTagName('rect')[1];
+
 if (rect.x.baseVal.value < 48) { //there's some rectangle that appears on two-way bar plots.
-  var rect = document.getElementsByTagName('rect')[1];
+  var rect = document.getElementsByTagName('rect')[1],
+  plotRegion = document.getElementsByTagName('rect')[2];
 };
 rect.setAttribute('class', 'rect');
 
 // obtaining values from SVG file:
-var  p = document.getElementsByTagName("polygon");
-var id = p[p.length-1].getAttribute('id');
-var Grob = id.substring(0, id.lastIndexOf('.'));
-  number = counts.length;
-  var count = number + 1;
+  var Grob = getGrob('bar'),
+    number = counts.length,
+    count = number + 1;
 
 //if the bar plot is colored - has additional bars and polylines to hide!
-if (colorMatch != undefined) {
+if (colorMatch !== null) {
+var p = document.getElementsByTagName('polygon');
 for (i = 0; i < p.length; i++) {
   if (colorMatch[i+1] == 1) {
    p[i].id = Grob + "." + (i/(number-1));
-   p[i].classList.add('visible'); // for bars:
+   p[i].classList.add('visible');
 } else {
   p[i].classList.add('hidden');
 
  }
 }
-
 //Hiding polylines:
-var polyline = document.getElementsByTagName('polyline');
-//finding lines that are labeled with "GRID".
-for (i = 0; i < polyline.length; i ++) {
- if (polyline[i].id.indexOf("GRID") >= 0) {
-   polyline[i].setAttribute("class", "line");
- }
-}
-var lines = document.getElementsByClassName('line');
-var lastId = lines[lines.length-1].getAttribute('id');
-var lastLine = lastId.substring(0, lastId.lastIndexOf('.'));
-
-//separating bar lines from axes lines
-for (i = 0; i < lines.length; i++) {
- if(lines[i].id.indexOf(lastLine) >= 0) {
-   lines[i].classList.add('hidden');
- } else {
-   lines[i].classList.add('visible');
- }
-}
+hideBarLines();
 };
 
+
 // Construction of text labels:
-
-
-// g elements to group labels together:
-gLabel = function(i) {
-var panel = document.getElementsByTagName('g')[0];
-var gEl = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    gEl.setAttributeNS(null, 'id', 'gLabel' + i);
-    gEl.setAttributeNS(null, 'class', 'gLabel invisible');
-    panel.appendChild(gEl);
-  };
-
 for (i = 1; i <= count; i++) {
   gLabel(i);
 };
 
-//function to create rectangles for labels:
-  gRect = function(i) {
-    var gRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-      gRect.setAttributeNS(null, 'id', 'gRect' + i);
-      gRect.setAttributeNS(null, 'class', 'gRect');
-
-//appending to group element:
-    gLabel = document.getElementById('gLabel' + i);
-    gLabel.appendChild(gRect);
-  };
-
 for (i = 1; i <= count; i++) {
   gRect(i);
 }
-
-//Function to create individual labels
-label = function(id, textinput, i, tf) {
-
-//attributes for the text SVG element
-  var label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    label.setAttributeNS(null, 'class', 'label' + ' ' + id);
-    label.setAttributeNS(null, 'transform', 'translate('+ ((x+sx)/2) + ', ' + (y + tf) +') scale(1, -1)');
-    label.setAttributeNS(null, 'id', id + i);
-
-// Creating the text label element:
-  var text = textinput;
-  var textNode = document.createTextNode(text);
-
-//Appending to group element
-    label.appendChild(textNode);
-    var gLabel = document.getElementById('gLabel' + i);
-    gLabel.appendChild(label);
-};
 
 //labels generated using function label() + additional information for co-ordinates
 for (i  = 1; i < count; i++) {
@@ -309,7 +248,7 @@ for (i  = 1; i < count; i++) {
   var sx = Number(small.split(",")[0]);
   var sy = Number(small.split(",")[1]);
   var coordsxy = coords.split(" ")[2];
-  var x = Number(coordsxy.split(",")[0]); //co-ordinates based upon SVG elements.
+  var x = (Number(coordsxy.split(",")[0]) + sx)/2; //co-ordinates based upon SVG elements.
   var y = Number(coordsxy.split(",")[1]);
 
   if (prop[0].Var1 != undefined) { //for two way bar plots
@@ -340,41 +279,26 @@ for (i  = 1; i < count; i++) {
   label('groupLabel', gOne + ' ' +  gTwo, i, r);
 
   // proportion labels:
-  label('propLabel',(Number(pp)*100).toFixed(2) + "%", i, p);
+  label('propLabel',(Number(pp)*100).toFixed(2) + "%", i, q);
 
   // count labels:
-    label('countLabel', "n = " + freq, i, q);
+    label('countLabel', freq, i, p);
 
   // Attach and draw rectangles to labels according to the size of the gLabel (with all labels attached)
-        var gLabel = document.getElementById('gLabel' + i);
-        rectParam = gLabel.getBBox();
-        var gRect = document.getElementById('gRect' + i);
-        gRect.setAttribute('x', rectParam.x-10);
-        gRect.setAttribute('y', rectParam.y-10);
-        gRect.setAttribute('width', rectParam.width+20);
-        gRect.setAttribute('height', rectParam.height + 20);
-
+    drawRectLabel(i);
 };
 
 
 /// INTERACTION CODE: Hovers, Clicks, Legends
 //Hovers on bars and labels:
 for (i = 1; i < count; i++) {
- var bar = document.getElementById(Grob + '.' + i);
- bar.setAttribute('onmouseover', 'light('+ i + ')');
- bar.setAttribute('onmouseout', 'normal(' + i +')');
- bar.setAttribute('onclick', 'fade(' + i +')');
- }
-
- light = function(i) {
-   var gLabel = document.getElementById('gLabel' + i);
-   gLabel.classList.remove('invisible');
- };
-
- normal = function(i) {
-   var gLabel = document.getElementById('gLabel' + i);
-   gLabel.classList.add('invisible');
- };
+  (function(i){
+    var bar = document.getElementById(Grob + '.' + i);
+    bar.addEventListener("mouseover",function(){light(i, 'light')},false);
+    bar.addEventListener("mouseout", function(){normal(i, 'light')}, false);
+    bar.addEventListener("click", function(){fade(i)}, false);
+    }) (i)
+  };
 
 //table interaction:
 fade = function(i) {
@@ -389,8 +313,7 @@ fade = function(i) {
 
   if(prop[0].Var1 != undefined) {
     var row = document.getElementById('tr' + ((j-1)%(nrow-1)+1));
-    row.classList.remove('tabSelect');
-    row.style.backgroundColor = "white";
+    resetTabSelection(row);
 
     data = document.getElementById('td' + j);
     //it differs due to different formation of tables
@@ -399,16 +322,13 @@ fade = function(i) {
       bar.setAttribute('class', 'bar selected');
       gLabel.classList.remove('invisible');
 
-      data.classList.add('tabSelect');
-      data.style.backgroundColor = "rgba(" + lp + ",0.5)";
-
+      returnTabSelection(lp, data);
 
     } else {
       bar.setAttribute('class', 'bar none');
       gLabel.classList.add('invisible');
 
-      data.classList.remove('tabSelect');
-      data.style.backgroundColor = "white";
+      resetTabSelection(data);
 
     }
 
@@ -432,8 +352,7 @@ fade = function(i) {
       gLabel.classList.add('invisible');
 
       for (k = 0; k <= 1; k++) {
-        data[k].classList.remove('tabSelect');
-        data[k].style.backgroundColor = "white";
+        resetTabSelection(data[k]);
     }
 
       }
@@ -444,7 +363,7 @@ fade = function(i) {
 
 // For one way colored plots and two-way bar plots (where a legend is made on the right)
 if (prop[0].Var1 != undefined) {
-  var percent = JSON.parse(percent); // this is to find the no. of groups for the second variable.
+  //var percent = JSON.parse(percent); // this is to find the no. of groups for the second variable.
   var group = percent.length +1;
 } else {
   var group = count;
@@ -461,29 +380,15 @@ var text = document.getElementsByTagName('text');
 for (i = 1; i < group; i ++) {
   key = document.getElementById(keys[i-1].id);
   keyText = document.getElementById(text[i+3].id);
-  keyText.setAttribute('onmouseover', 'show(' + i +')');
-  key.setAttribute('onmouseover', 'show(' + i + ')');
-  keyText.setAttribute('onmouseout', 'out(' + i +')');
-  key.setAttribute('onmouseout', 'out('+ i +')');
-  keyText.setAttribute('onclick', 'info(' + i + ')');
-  key.setAttribute('onclick', 'info(' + i + ')');
-};
+  (function(i){
+  keyText.addEventListener("mouseover", function(){show(i)}, false);
+  keyText.addEventListener("mouseout", function(){out(i)}, false);
+  keyText.addEventListener("click", function(){info(i)}, false);
 
-show = function(i) {
-  var keyText = document.getElementById(text[i+3].id);
-  var key = document.getElementById(keys[i-1].id);
-  keyText.setAttribute('fill', key.getAttribute('fill'));
-  keyText.setAttribute('class', 'show');
-  key.setAttribute('class', 'show');
-
-};
-
-out = function(i) {
-  var keyText = document.getElementById(text[i+3].id);
-  var key = document.getElementById(keys[i-1].id);
-  keyText.setAttribute('class', 'out keyText');
-  key.setAttribute('class', 'out');
-
+  key.addEventListener("mouseover", function(){show(i)}, false);
+  key.addEventListener("mouseout", function(){out(i)}, false);
+  key.addEventListener("click", function(){info(i)}, false);
+  }) (i)
 };
 
 
@@ -508,16 +413,14 @@ if (prop[0].Var1 != undefined) {
     gLabel.classList.remove('invisible');
     gRect.classList.add('hidden');
 
-   row.classList.add('tabSelect');
-   row.style.backgroundColor = "rgba(" + lp + ",0.5)";
+    returnTabSelection(lp, row);
 
       } else {
       bar.setAttribute('class', 'bar none');
       gLabel.classList.add('invisible');
       gRect.classList.remove('hidden');
 
-      row.classList.remove('tabSelect');
-      row.style.backgroundColor = "white";
+      resetTabSelection(row);
 
      }
   } else { //for one way colored bar plots:
@@ -529,16 +432,14 @@ if (i == j) {
   gLabel.classList.remove('invisible');
 
   for (k = 0; k <= 1; k++) {
-    data[k].classList.add('tabSelect');
-    data[k].style.backgroundColor = "rgba(" + lp + ",0.5)";
+    returnTabSelection(lp, data[k]);
 }
     } else {
     bar.setAttribute('class', 'bar none');
     gLabel.classList.add('invisible');
 
     for (k = 0; k <= 1; k++) {
-      data[k].classList.remove('tabSelect');
-      data[k].style.backgroundColor = "white";
+      resetTabSelection(data[k]);
     }
     }
   }
@@ -562,8 +463,7 @@ reset = function() {
        var row = document.getElementById('tr' + ((i-1)%(nrow-1)+1));
         var td = document.getElementById('td' + i);
 
-        row.classList.remove('tabSelect');
-        row.style.backgroundColor = "white";
+        resetTabSelection(row);
 
         td.classList.remove('tabSelect');
         td.setAttribute('style', 'inherit');
@@ -572,18 +472,11 @@ reset = function() {
      } else { // for one way bar plots
      var data = document.getElementsByClassName('td' + i);
      for (k = 0; k <= 1; k++) {
-       data[k].classList.remove('tabSelect');
-       data[k].style.backgroundColor = "white";
+       resetTabSelection(data[k]);
      }
  }
  }
- table.classList.add('hidden');
- var ButtonPercentage = document.getElementById('ButtonPercentage');
- var ButtonCount = document.getElementById('ButtonCount');
- if (ButtonCount !== null) {
- ButtonPercentage.classList.add('hidden');
- ButtonCount.classList.add('hidden');
- }
- viewTable.innerHTML = "View Table";
- t = true;
  };
+
+// other ways to deselect;
+  plotRegion.addEventListener("click", reset, false);

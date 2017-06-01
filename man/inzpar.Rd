@@ -7,7 +7,9 @@
 inzpar(..., .viridis = requireNamespace("viridis", quietly = TRUE))
 }
 \arguments{
-\item{...}{If arguments are supplied, then these values are set. If left empty, then
+\item{...}{If arguments are supplied, then these values are set. If left empty, then}
+
+\item{.viridis}{checks if the viridis package is installed; or can be turend off
 the default list is returned.}
 }
 \value{

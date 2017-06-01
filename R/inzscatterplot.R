@@ -18,7 +18,7 @@ create.inz.scatterplot <- function(obj) {
     } else {
         df <- df[sample(nrow(df)), ]
     }
-    ORDER <- as.numeric(rownames(df))
+   
 
     if (xattr$class == "inz.survey") {
         df <- as.data.frame(cbind(df$variables,
@@ -32,6 +32,8 @@ create.inz.scatterplot <- function(obj) {
     missing <- apply(df[ , v %in% c("x", "y")], 1, function(x) any(is.na(x)))
     n.missing <- sum(missing)
     df <- df[!missing, ]
+    ## order should match the length of non-missing:
+    ORDER <- as.numeric(rownames(df))
 
     # --- look through inzpar for settings
 

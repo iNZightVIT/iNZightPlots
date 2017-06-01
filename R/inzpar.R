@@ -94,6 +94,7 @@
 ##'
 ##' @title iNZight Plotting Parameters
 ##' @param ... If arguments are supplied, then these values are set. If left empty, then
+##' @param .viridis checks if the viridis package is installed; or can be turend off
 ##' the default list is returned.
 ##' @return an object of class \code{inzpar.list}
 ##' @author tell029
