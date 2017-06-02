@@ -4,7 +4,7 @@
 \alias{exportHTML}
 \title{ExportHTML}
 \usage{
-exportHTML(x, file, data, extra.vars)
+exportHTML(x, file, data, extra.vars, ...)
 }
 \arguments{
 \item{x}{An iNZight plot object or function (such as updatePlot) that captures iNZight environment}
