@@ -33,7 +33,7 @@ create.inz.hexplot <- function(obj) {
     hb@xcm <- as.vector(tapply(1:length(df$x), cellid,
                                function(i) weighted.mean(df$x[i], W[i])))
     hb@ycm <- as.vector(tapply(1:length(df$y), cellid,
-                               function(i) weighted.mean(df$x[i], W[i])))
+                               function(i) weighted.mean(df$y[i], W[i])))
 
     out <- list(hex = hb, n.missing = n.missing, svy = obj$df,
                 colby = if("colby" %in% v) convert.to.factor(df$colby) else NULL,
@@ -76,13 +76,13 @@ plot.inzhex <- function(obj, gen) {
             style <- "colorscale"
             colRGB <- col2rgb(opts$col.pt[1]) / 255
             colramp <- function(n)
-                rgb(colRGB[1], colRGB[2], colRGB[3], seq(0, 1, length = n))
+                rgb(colRGB[1], colRGB[2], colRGB[3], seq(0, 1, length = n+1)[-1])
         } else {
             style <- "centroids"
             colramp <- NULL
         }
         grid.hexagons(obj$hex, style = style, maxcnt = gen$maxcount,
-                      border = FALSE, #if (style == "size") opts$col.pt else FALSE,
+                      border = 0, #if (style == "size") opts$col.pt else FALSE,
                       pen = opts$col.pt[1], colramp = colramp)
     }
 

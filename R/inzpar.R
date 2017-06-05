@@ -94,6 +94,7 @@
 ##'
 ##' @title iNZight Plotting Parameters
 ##' @param ... If arguments are supplied, then these values are set. If left empty, then
+##' @param .viridis checks if the viridis package is installed; or can be turend off
 ##' the default list is returned.
 ##' @return an object of class \code{inzpar.list}
 ##' @author tell029
@@ -157,8 +158,8 @@ inzpar <- function(..., .viridis = requireNamespace("viridis", quietly = TRUE)) 
                         cubic ="green4"),
                lty.trend =
                    list(linear = 1,
-                        quadratic = 2,
-                        cubic = 3),
+                        quadratic = 1,
+                        cubic = 1),
                trend.by       = FALSE,
                trend.parallel = TRUE,
                col.smooth     = c("magenta"),

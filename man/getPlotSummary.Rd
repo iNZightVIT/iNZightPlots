@@ -7,7 +7,12 @@
 getPlotSummary(x, y = NULL, g1 = NULL, g1.level = NULL, g2 = NULL,
   g2.level = NULL, varnames = list(), colby = NULL, sizeby = NULL,
   data = NULL, design = NULL, freq = NULL, missing.info = TRUE,
-  inzpars = inzpar(), summary.type = "summary", ...)
+  inzpars = inzpar(), summary.type = "summary", hypothesis.value = 0,
+  hypothesis.alt = c("two.sided", "less", "greater"),
+  hypothesis.var.equal = FALSE, hypothesis.test = c("default", "t.test",
+  "anova"), hypothesis = list(value = hypothesis.value, alternative =
+  match.arg(hypothesis.alt), var.equal = hypothesis.var.equal, test =
+  match.arg(hypothesis.test)), ...)
 }
 \arguments{
 \item{x}{a vector (numeric or factor), or the name of a column in the supplied
@@ -50,6 +55,16 @@ displayed in the plot}
 \item{inzpars}{allows specification of iNZight plotting parameters over multiple plots}
 
 \item{summary.type}{one of \code{"summary"} or \code{"inference"}}
+
+\item{hypothesis.value}{H0 value for hypothesis test}
+
+\item{hypothesis.alt}{alternative hypothesis (!=, <, >)}
+
+\item{hypothesis.var.equal}{use equal variance assumption for t-test?}
+
+\item{hypothesis.test}{in some cases (currently just two-samples) can perform multiple tests (t-test or ANOVA)}
+
+\item{hypothesis}{either NULL for no test, or missing (in which case above arguments are used)}
 
 \item{...}{additional arguments, see \code{inzpar}}
 }

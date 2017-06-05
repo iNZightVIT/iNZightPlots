@@ -6,13 +6,13 @@
 \usage{
 iNZightPlot(x, y = NULL, g1 = NULL, g1.level = NULL, g2 = NULL,
   g2.level = NULL, varnames = list(), colby = NULL, sizeby = NULL,
-  extra.vars, locate = NULL, locate.id = NULL, locate.col = NULL,
-  locate.extreme = NULL, highlight = NULL, data = NULL, design = NULL,
-  freq = NULL, missing.info = TRUE, xlab = varnames$x,
-  ylab = varnames$y, new = TRUE, inzpars = inzpar(),
+  symbolby = NULL, extra.vars, locate = NULL, locate.id = NULL,
+  locate.col = NULL, locate.extreme = NULL, highlight = NULL,
+  data = NULL, design = NULL, freq = NULL, missing.info = TRUE,
+  xlab = varnames$x, ylab = varnames$y, new = TRUE, inzpars = inzpar(),
   layout.only = FALSE, plot = TRUE, xaxis = TRUE, yaxis = TRUE,
-  xlim = NULL, ylim = NULL, zoombars = NULL, df, env = parent.frame(),
-  ...)
+  xlim = NULL, ylim = NULL, zoombars = NULL, hide.legend = FALSE, df,
+  env = parent.frame(), ...)
 }
 \arguments{
 \item{x}{a vector (numeric or factor), or the name of a column in the supplied
@@ -42,6 +42,8 @@ case of a numeric variable, a continuous colour scale is used, otherwise each le
 the factor is assigned a colour}
 
 \item{sizeby}{the name of a (numeric) variable, which controls the size of points}
+
+\item{symbolby}{the name of a factor variable to code point symbols}
 
 \item{extra.vars}{the names of any additional variables to be passed through the internal functions
 to the create and plot methods.}
@@ -89,6 +91,8 @@ custom plot is to be drawn)}
 \item{zoombars}{numeric, length 2; when drawing a bar plot, if the number of bars is too large,
 the user can specify a subset. The first value is the starting point (1 is the first bar, etc),
 while the second number is the number of bars to show.}
+
+\item{hide.legend}{logical, if TRUE, the \code{legend} will not be drawn}
 
 \item{df}{compatibility argument}
 

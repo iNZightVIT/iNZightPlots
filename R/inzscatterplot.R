@@ -4,8 +4,8 @@ create.inz.scatterplot <- function(obj) {
     opts <- obj$opts
     xattr <- obj$xattr
     features <- opts$plot.features
-    
-    
+
+
     if (opts$join) {
         df <- df
     } else if (!is.null(features$order.first)) {
@@ -20,12 +20,13 @@ create.inz.scatterplot <- function(obj) {
         df <- df[sample(nrow(df)), ]
     }
 
+
     if (xattr$class == "inz.survey") {
         design <- df
         df <- as.data.frame(cbind(df$variables,
                                   weights = weights(df)))
     }
-    
+
     v <- colnames(df)
     vn <- xattr$varnames
 
@@ -33,6 +34,8 @@ create.inz.scatterplot <- function(obj) {
     missing <- apply(df[ , v %in% c("x", "y")], 1, function(x) any(is.na(x)))
     n.missing <- sum(missing)
     df <- df[!missing, ]
+    ## order should match the length of non-missing:
+    ORDER <- as.numeric(rownames(df))
 
     # --- look through inzpar for settings
 
@@ -96,7 +99,8 @@ create.inz.scatterplot <- function(obj) {
                 xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
                 ylim = if (nrow(df) > 0) range(df$y, na.rm = TRUE) else c(-Inf, Inf),
                 trend = opts$trend, trend.by = opts$trend.by, smooth = opts$trend,
-                n.boot = opts$n.boot, text.labels = text.labels, extreme.ids = ext.ids)
+                n.boot = opts$n.boot, text.labels = text.labels, extreme.ids = ext.ids,
+                point.order = ORDER)
 
     if (xattr$class == "inz.survey")
         out$svy <- obj$df
@@ -152,7 +156,7 @@ plot.inzscatter <- function(obj, gen) {
 
     NotInView <- obj$x < min(xlim) | obj$x > max(xlim) | obj$y < min(ylim) | obj$y > max(ylim)
     obj$pch[NotInView] <- NA
-    ptOrdering <- sample(length(obj$x))
+    ptOrdering <-
     grid.points(obj$x, obj$y, pch = obj$pch,
                 gp =
                 gpar(col = ptCols,

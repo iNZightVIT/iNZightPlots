@@ -1,5 +1,27 @@
+# Version 2.7
+__Release date__: 23 March 2017
+
+## Major Changes
+
+- introduction of the exportation of SVG and interactive HTML documents
+
+## Bug Fixes
+
+- various
+
+
+## Patches
+
+### Patch 2.7.1 - 02/06/2017
+- Mosly adjustments and improvements to the SVG and HTML export functionality
+- Changes to dependency structure - made SVG/HTML functions suggested instead of imports
+- Bumped R version up to 3.0
+- Default line type for all trends is now 1; user can choose alternatives
+
+
+***
 # Version 2.6
-__Releast date__: 12 December 2016
+__Release date__: 12 December 2016
 
 ## Major Changes
 

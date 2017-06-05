@@ -96,7 +96,7 @@ drawContLegend <- function(var, title = "", height = NULL, cex.mult = 1,
     n.cols <- if (!is.null(opts$col.fun)) opts$col.fun(200) else opts$col.default$cont(200)
     ## if (opts$reverse.palette)
     ##     n.cols <- rev(n.cols)
-    poly <- polygonGrob(xx, yy, id = id, gp = gpar(lty = 0, fill = n.cols))
+    poly <- polygonGrob(xx, yy, id = id, gp = gpar(lty = 0, fill = n.cols, stroke = NA))
     
     fg <- frameGrob(layout = legend.layout)
     fg <- placeGrob(fg, poly, row = 3, col = 1)

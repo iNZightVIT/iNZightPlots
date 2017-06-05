@@ -1,0 +1,268 @@
+/* STYLING:
+- Originally written in JS, styling has been moved to CSS.
+Note: there are some stylings still done with JS (such as control of background colors,
+but hopefully that can be somehow transferred some other day...)*/
+
+ body {
+  padding: 20px;
+}
+
+.table {
+  overflow-x: auto;
+}
+
+.table-fit {
+  white-space: nowrap;
+  width: 1%;
+}
+
+.table-responsive {
+  display: table;
+}
+
+/*svg container */
+
+.contained {
+  margin-left: 0;
+  padding: 0;
+  margin-right: 0;
+}
+
+/*** TABLE PROPERTIES ***/
+/*totals column  or totals row */
+
+.tc {
+  font-weight:bold;
+}
+
+tr {
+  align: center;
+}
+
+td {
+  text-align: center;
+}
+
+th {
+  text-align: center;
+}
+
+/* xheading and yheading */
+.headings {
+  font-style: italic;
+  font-weight:normal;
+  text-decoration: underline;
+  text-align: center;
+  align: center;
+  visibility:visible;
+}
+
+/* groups for two way bar plots */
+.yGroup {
+  text-align: center;
+  font-weight: bold;
+}
+
+
+/*** BUTTONS ***/
+
+#viewTable {
+  background-color: DeepSkyBlue;
+  margin-right: 10px;
+}
+
+#reset {
+  background-color: rgb(0, 128, 0);
+  margin-right: 10px;
+}
+
+.ButtonPercentage {
+  background-color:rgb(0, 0, 255);
+  opacity: 0.5;
+  margin-left: 10px;
+}
+
+.ButtonCount {
+ background-color: purple;
+ opacity: 0.5;
+ margin-left: 10px;
+}
+
+
+.dark {
+  opacity: 1;
+}
+
+#form {
+  display: inline-table;
+  padding: 20px;
+}
+
+/*** LABEL PROPERTIES ***/
+/* style for rectangular labels */
+.gRect {
+  visibility: inherit;
+  fill: white;
+  fill-opacity: 0.8;
+  rx: 5;
+  ry: 5;
+  stroke: lightgray;
+}
+
+/* textlabels in general */
+.label {
+  font-size: 12;
+  fill: black;
+  stroke: none;
+  fill-opacity: 1;
+  text-anchor: middle;
+  visibility: inherit;
+  font-weight: normal;
+}
+
+.groupLabel { /* make group label bold */
+  font-weight: bold;
+}
+
+.propLabel {
+  font-weight: bold;
+}
+
+/* tlabels */
+.tLabel {
+  font-weight: bold;
+  visibility: inherit;
+}
+
+
+/* BAR PROPERTIES (for bar charts) */
+.bar {
+  stroke: none;
+  visibility: visible;
+  opacity: 1;
+}
+
+/* bars on hover on and off */
+
+.normal {
+  fill-opacity: 1;
+}
+
+/* upon selection */
+.selected {
+  opacity: 1;
+  visibility: visible;
+
+}
+
+.none {
+  opacity: 0.3;
+}
+
+/* svg rectangle */
+.rect {
+  width: 200%;
+  height: 200%;
+}
+
+
+/* hiding elements - extra bars and lines... */
+
+.hidden {
+  display: none;
+  visibility: hidden;
+}
+
+.visible {
+  display: inline;
+  visibility: visible;
+}
+
+.invisible {
+  visibility: hidden;
+}
+
+/*highlighting data */
+.totalRow {
+  align: center;
+  font-weight: bold;
+}
+
+.tabSelect {
+  font-weight: bold;
+}
+
+.rowSelect {
+  display: table-row;
+  opacity: 1;
+}
+
+
+/* legend interactions and styling */
+.show {
+  font-size: 115%;
+  fill-opacity: 0.5;
+}
+
+.out {
+  font-size: 100%;
+  fill-opacity: 1;
+}
+
+.keyText {
+  fill: black;
+}
+
+.select {
+  font-weight: bold;
+}
+
+/* for box plots - dot plots, histograms */
+.box {
+  fill: gray;
+  fill-opacity: 0.5;
+}
+
+.fillBox {
+  fill-opacity: 0.3;
+}
+
+/* for dot plots and scatter plots */
+
+.showPoint { /* showPoint */
+  fill: currentColor;
+  stroke-width: 50%;
+  fill-opacity: 1;
+}
+
+/* control of columns */
+.showColumn {
+  display: table-cell;
+  visibility: visible;
+}
+
+/* for histograms */
+.histBar {
+  stroke: white;
+  stroke-width: 0.25;
+}
+
+.classLabel {
+  font-weight:bold;
+}
+
+/* hexbins */
+.hexbin {
+  stroke: none;
+}
+
+.hx_hy {
+  font-weight: bold;
+}
+
+/* user selection drag box */
+.selectRect {
+  fill: transparent;
+  stroke: black;
+  stroke-width: 1px;
+}
