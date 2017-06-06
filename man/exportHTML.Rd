@@ -15,6 +15,8 @@ Additional parameters for scatterplots only:}
 \item{data}{dataset/dataframe that you wish to investigate and export more variables from}
 
 \item{extra.vars}{extra variables specified by the user to be exported}
+
+\item{...}{extra arguments}
 }
 \value{
 Opens up an HTML file of \code{x} with filename \code{file} in the browser (best performance on Chrome/Firefox)

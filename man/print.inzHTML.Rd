@@ -11,6 +11,8 @@
 \item{x}{a URL that will be printed}
 
 \item{viewer}{the viewing function to use to display the URL}
+
+\item{...}{additional arguments}
 }
 \value{
 NULL (it's a print function, after all)

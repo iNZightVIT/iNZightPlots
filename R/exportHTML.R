@@ -16,6 +16,7 @@
 #' Additional parameters for scatterplots only:
 #' @param data dataset/dataframe that you wish to investigate and export more variables from
 #' @param extra.vars extra variables specified by the user to be exported
+#' @param ... extra arguments
 #'
 #' @return Opens up an HTML file of \code{x} with filename \code{file} in the browser (best performance on Chrome/Firefox)
 #'
@@ -187,6 +188,7 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
 ##' If `viewer = NULL`, then the URL is printed as a character string.
 ##' @param x      a URL that will be printed
 ##' @param viewer the viewing function to use to display the URL
+##' @param ... additional arguments
 ##' @return NULL (it's a print function, after all)
 ##' @export
 print.inzHTML <- function(x, viewer = getOption("viewer", utils::browseURL), ...) {
