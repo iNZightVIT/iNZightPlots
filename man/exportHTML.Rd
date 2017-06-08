@@ -46,4 +46,3 @@ exportHTML(x, "test.html")
 \author{
 Yu Han Soh
 }
-

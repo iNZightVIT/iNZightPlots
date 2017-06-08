@@ -18,4 +18,3 @@ Create a Plot Object
 \author{
 Tom Elliott
 }
-
