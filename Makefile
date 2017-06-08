@@ -1,24 +1,31 @@
-R := R --vanilla --slave
+RDEVEL := $(shell command -v R-devel 2> /dev/null)
+R := R
+RCMD := $(R) --vanilla --slave
+ifndef RDEVEL
+	Rdev := $(R)
+else
+	Rdev := R-devel
+endif
 
 default:
-	@$(R) -f templates/importTemplates.R
+	@$(RCMD) -f templates/importTemplates.R
 
 document:
-	@$(R) -e "devtools::document()"
+	@$(RCMD) -e "devtools::document()"
 
 check:
-	@$(R) -e "devtools::check()"
+	@$(RCMD) -e "devtools::check()"
 
 revcheck:
-	@$(R) -e "devtools::use_revdep()"
-	@$(R) -f "revdep/check.R"
+	@$(RCMD) -e "devtools::use_revdep()"
+	@$(RCMD) -f "revdep/check.R"
 
 crancheck:
-	@R CMD build .
-	@R CMD check *.tar.gz
+	@$(Rdev) CMD build .
+	@$(Rdev) CMD check *.tar.gz
 
 install:
-	R CMD INSTALL ./
+	$(R) CMD INSTALL ./
 
 clean:
 	@rm -rf *.tar.gz *.Rcheck revdep
