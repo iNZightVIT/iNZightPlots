@@ -11,3 +11,13 @@ r:
 
 repos:
   docker: http://r.docker.stat.auckland.ac.nz/R
+
+addons:
+  apt:
+    packages:
+      - r-cran-colorspace
+      - r-cran-dichromat
+      - r-cran-quantreg
+      - r-cran-sparsem
+      - r-cran-xtable
+      - r-cran-jsonlite
