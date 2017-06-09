@@ -150,16 +150,20 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
   HTMLtemplate[tableLineOne] <- HTMLtable
   HTMLtemplate[svgLine] <- svgCode
 
-  #scale columns according to devsize width:
-  if (dev.size()[1] <= 8) {
-    HTMLtemplate <- gsub("(bsc)|(txsc)", 6, HTMLtemplate)
-  } else if (dev.size()[1] <= 12 && dev.size()[1] > 8) {
-    #for svg:
-    HTMLtemplate <- gsub("bsc", round(dev.size()[1]-2), HTMLtemplate)
+  #scale columns according to devsize width - need to revise this - conflicts with png
+  ##if (dev.size()[1] <= 8) {
+  ##  HTMLtemplate <- gsub("(bsc)|(txsc)", 6, HTMLtemplate)
+  ##} else if (dev.size()[1] <= 12 && dev.size()[1] > 8) {
+  ##  #for svg:
+  ##    HTMLtemplate <- gsub("bsc", round(dev.size()[1]-2), HTMLtemplate)
     #for table:
-    HTMLtemplate <- gsub("txsc", 12-round(dev.size()[1]-2) , HTMLtemplate)
-  } else {
-    HTMLtemplate <- gsub("(bsc)|(txsc)", 12, HTMLtemplate)
+  ##    HTMLtemplate <- gsub("txsc", 12-round(dev.size()[1]-2) , HTMLtemplate)
+  ##} else {
+  ##  HTMLtemplate <- gsub("(bsc)|(txsc)", 12, HTMLtemplate)
+  #}
+  
+  if (dev.size()[1] <= 8) {
+    HTMLtemplate <- gsub("col-md-12 col-lg-12", "col-md-6 col-lg-6", HTMLtemplate)
   }
 
   # Writing it out to an HTML file:
