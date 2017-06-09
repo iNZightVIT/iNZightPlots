@@ -20,7 +20,6 @@ Imports:
     colorspace,
     dichromat
 Suggests:
-    iNZight,
     viridis,
     gridSVG,
     xtable,
