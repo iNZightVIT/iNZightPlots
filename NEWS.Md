@@ -20,6 +20,7 @@ __Release date__: 23 March 2017
 
 ### Patch 2.7.2 - TBA
 - Changes to ensure CRAN checks pass
+- More bug fixes in `exportX()` functions
 
 ***
 # Version 2.6
