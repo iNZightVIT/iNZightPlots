@@ -2,9 +2,17 @@
 % Please edit documentation in R/exportHTML.R
 \name{exportHTML}
 \alias{exportHTML}
+\alias{exportHTML.function}
+\alias{exportHTML.inzplotoutput}
 \title{ExportHTML}
 \usage{
 exportHTML(x, file, data, extra.vars, ...)
+
+\method{exportHTML}{function}(x, file = "index.html", data = NULL,
+  extra.vars = NULL, width = dev.size()[1], height = dev.size()[2], ...)
+
+\method{exportHTML}{inzplotoutput}(x, file = "index.html", data = NULL,
+  extra.vars = NULL, ...)
 }
 \arguments{
 \item{x}{An iNZight plot object or function (such as updatePlot) that captures iNZight environment}
@@ -17,6 +25,10 @@ Additional parameters for scatterplots only:}
 \item{extra.vars}{extra variables specified by the user to be exported}
 
 \item{...}{extra arguments}
+
+\item{width}{the desired width of the SVG plot}
+
+\item{height}{the desired height of the SVG plot}
 }
 \value{
 Opens up an HTML file of \code{x} with filename \code{file} in the browser (best performance on Chrome/Firefox)
@@ -33,6 +45,13 @@ This function acts as generic function (either takes in function or iNZight plot
 \code{getTable} aims to construct the appropriate table for the plot using information stored in the iNZight plot object, or data provided.
 \code{convertToJS} converts appropriate data into JSON and writes the appropriate JS file to give interactivity to the HTML page.
 }
+\section{Methods (by class)}{
+\itemize{
+\item \code{function}: method for an iNZightPlot-generating function
+
+\item \code{inzplotoutput}: method for output from iNZightPlot
+}}
+
 \examples{
 \dontrun{
 x <- iNZightPlot(Petal.Width, Petal.Length, data = iris, colby = Species)
@@ -46,4 +65,3 @@ exportHTML(x, "test.html")
 \author{
 Yu Han Soh
 }
-

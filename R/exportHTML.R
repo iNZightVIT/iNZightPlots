@@ -16,6 +16,8 @@
 #' Additional parameters for scatterplots only:
 #' @param data dataset/dataframe that you wish to investigate and export more variables from
 #' @param extra.vars extra variables specified by the user to be exported
+#' @param width the desired width of the SVG plot
+#' @param height the desired height of the SVG plot
 #' @param ... extra arguments
 #'
 #' @return Opens up an HTML file of \code{x} with filename \code{file} in the browser (best performance on Chrome/Firefox)
@@ -31,9 +33,10 @@
 #'
 #' @author Yu Han Soh
 #' @export
-
 exportHTML <- function(x, file, data, extra.vars, ...) UseMethod("exportHTML")
 
+#' @describeIn exportHTML method for an iNZightPlot-generating function
+#' @export
 exportHTML.function <- function(x, file = 'index.html', data = NULL, extra.vars = NULL,
                                 width = dev.size()[1], height = dev.size()[2], ...) {
 
@@ -63,6 +66,8 @@ exportHTML.function <- function(x, file = 'index.html', data = NULL, extra.vars 
 }
 
 #this is generalized for every plot - involves binding everything together.
+#' @describeIn exportHTML method for output from iNZightPlot
+#' @export
 exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.vars = NULL, ...) {
 
   #suggest gridSVG, jsonlite, xtable:
@@ -161,7 +166,7 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
   ##} else {
   ##  HTMLtemplate <- gsub("(bsc)|(txsc)", 12, HTMLtemplate)
   #}
-  
+
   if (dev.size()[1] <= 8) {
     HTMLtemplate <- gsub("col-md-12 col-lg-12", "col-md-6 col-lg-6", HTMLtemplate)
   }
