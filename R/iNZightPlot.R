@@ -59,7 +59,7 @@
 ##' @return An \code{inzightplotoutput} object, which contains the information displayed
 ##' in the plot
 ##'
-##' @import stats grid grDevices boot s20x survey quantreg survey hexbin iNZightMR colorspace dichromat
+##' @import stats grid grDevices boot survey quantreg survey hexbin iNZightMR colorspace dichromat
 ##' @importFrom utils capture.output browseURL capture.output
 ##' @author Tom Elliott
 ##' @export

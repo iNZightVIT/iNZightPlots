@@ -10,7 +10,6 @@ Depends:
     R(>= 3.0)
 Imports:
     grDevices,
-    methods,
     stats,
     utils,
     grid,
@@ -18,7 +17,6 @@ Imports:
     s20x,
     survey,
     quantreg,
-    SparseM,
     hexbin,
     hextri,
     colorspace,
