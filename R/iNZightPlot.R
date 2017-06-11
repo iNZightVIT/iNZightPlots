@@ -59,7 +59,8 @@
 ##' @return An \code{inzightplotoutput} object, which contains the information displayed
 ##' in the plot
 ##'
-##' @import grid boot s20x survey quantreg survey SparseM hexbin iNZightMR colorspace dichromat
+##' @import stats grid grDevices boot s20x survey quantreg survey hexbin iNZightMR colorspace dichromat
+##' @importFrom utils capture.output browseURL capture.output
 ##' @author Tom Elliott
 ##' @export
 iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
@@ -191,7 +192,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     dots <- list(...)  # capture the additional arguments
     opts <- inzpars
     wopt <- names(dots) %in% names(opts)  # which additional settings have been specified
-    opts <- modifyList(opts, dots[wopt])
+    opts <- utils::modifyList(opts, dots[wopt])
 
     ## --- colour by
     if (!is.null(df$data$colby)) {

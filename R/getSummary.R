@@ -76,16 +76,16 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 varnames$g1 <- varnames$g2
                 varnames$g2 <- NULL
             }
-            
+
             getPlotSummary(x = x, y = y, g1 = g2, g1.level = g2.level, g2 = NULL, g2.level = NULL,
                            varnames = varnames, colby = colby, sizeby = sizeby, data = data,
                            design = design, freq = freq, missing.info = missing.info,
-                           new = new, inzpars = inzpars,
+                           inzpars = inzpars,
                            env = env,
                            summary.type = summary.type, hypothesis = hypothesis, ...)
         }
     }
-    
+
     ## we now want to create a data object which contains *ALL* of the necessary
     ## information, including survey design, or frequency information:
 
@@ -93,7 +93,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     rmv <- which(names(m) %in% c("colby", "sizeby"))
     if (length(rmv) > 0)
         m <- m[-rmv]
-    
+
     if (!"df" %in% ls())
         df <- inzDataframe(m, data = md, names = varnames, g1.level, g2.level, env = env)
 
@@ -109,7 +109,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ##         inference.type <- inzpars$inference.type
     ##     else
     ##         inference.type <- dots$inference.type
-        
+
     ##     if (is.null(inference.type))
     ##         inference.type <- "conf"
 
@@ -131,7 +131,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ##         bs.inference <- dots$bs.inference
     ## }
 
-    
+
     obj <- iNZightPlot(x = x, y = y, g1 = g1, g1.level = g1.level,
                        g2 = g2, g2.level = g2.level, varnames = varnames,
                        colby = NULL, sizeby = NULL,
@@ -152,11 +152,11 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
     }
     if (!summary.type %in% c("summary", "inference"))
         stop("`summary.type` must be either `summary` or `inference`")
-    
+
     obj <- object  ## same typing ... but match default `summary` method arguments
 
     ## set up some variables/functions to make text processing easier ...
-    
+
     out <- character()
     rule <- function(char, width)
         paste0(rep(char, width), collapse = "")
@@ -166,7 +166,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
     center <- centerText
     ind <- function(x, indent = 3)
         paste0(paste0(rep(" ", indent), collapse = ""), x)
-    
+
     add <- function(..., underline = FALSE) {
         x <- paste0(..., collapse = "")
         out <<- c(out, x)
@@ -182,12 +182,12 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
     total.obs <- attr(obj, "total.obs")
     bs <- attr(obj, "bootstrap")
     inzclass <- attr(obj, "inzclass")
-    
+
     is.survey <- attr(obj, "inzclass") == "inz.survey"
 
     if (is.survey & summary.type == "inference")
         return("Inference for Survey Designs not yet implemented.")
-    
+
     add(Hrule)
     add(center(switch(summary.type,
                       "summary" =
@@ -211,7 +211,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
     mat <- cbind(ind(ifelse(scatter, "Response/outcome variable: ", "Primary variable of interest: ")),
                  paste0(ifelse(scatter, vnames$y, vnames$x),
                         " (", gsub("factor", "categorical", vartypes[[ifelse(scatter, vnames$y, vnames$x)]]), ")"))
-    
+
     if ("y" %in% names(vnames))
         mat <- rbind(mat, cbind(ind(paste0(ifelse(scatter,
                                                   "Predictor/explanatory", "Secondary"),
@@ -223,7 +223,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
 
     if (is.null(g.levels$g2[1]))
         wg[2] <- FALSE
-    
+
     if (any(wg)) {
         mat <- rbind(mat, "")
         mat <- rbind(mat, cbind(ind("Subset by: "),
@@ -275,14 +275,14 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
         vnames$y <- vnames$x
         vnames$x <- tmpx
     }
-    
+
     ## Cycle through G2 first
     lapply(names(obj), function(this) {
         if (this != "all") {
             add(Hrule)
             add(ind("For the subset where ", 5), vnames$g2, " = ", this)
         }
-        
+
         lapply(names(obj[[this]]), function(o) {
             pl <- obj[[this]][[o]]
 
@@ -324,19 +324,19 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
                 header <- paste0(header, paste0(", for ", vnames$g1, " = ", o))
             }
             header <- paste0(header, ":")
-            
+
             add(header, underline = TRUE)
             add("")
 
             pl.design <- if (is.survey) design.list[[this]][[o]] else NULL
-            
+
             sapply(switch(summary.type,
                           "summary" = summary(pl, vn = vnames, des = pl.design),
                           "inference" = inference(pl, bs, inzclass, width = width,
                                                   vn = vnames, nb = attr(obj, "nboot"),
                                                   hypothesis = hypothesis)),
                    add)
-            
+
             add("")
         })
 
@@ -349,8 +349,8 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
     add("")
     add("")
 
-    
-    
+
+
     class(out) <- "inzight.plotsummary"
     out
 }

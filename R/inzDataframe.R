@@ -41,7 +41,7 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
 
     # take the names and replace if specified
     names <- names[names != ""]
-    varnames <- modifyList(as.list(m[mw]), names)
+    varnames <- utils::modifyList(as.list(m[mw]), names)
 
     df <- list()  # initialise the object
 
@@ -145,7 +145,7 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
             if (length(unique(df$data$colby)) == 1)
                 df$data$colby <- varnames$data$colby <- NULL
         }
-        
+
     }
     if ("symbolby" %in% colnames(df$data)) {
         df$data$symbolby <- convert.to.factor(df$data$symbolby)
