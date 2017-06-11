@@ -4,3 +4,6 @@
 
 *old.R
 .Rproj.user
+revdep
+*Rcheck
+*.tar.gz
