@@ -1,7 +1,6 @@
 #' @title ExportHTML
 #'
 #' @description \code{exportHTML} is designed to export the iNZight plot as a dynamic, interactive HTML page.
-#'  It opens the written HTML page in a web browser.
 #' Currently only handles single panel plots. Coloured hex plots are currently not available yet.
 #'
 #' @details
@@ -25,10 +24,10 @@
 #' @examples
 #' \dontrun{
 #' x <- iNZightPlot(Petal.Width, Petal.Length, data = iris, colby = Species)
-#' exportHTML(x, "test.html")
+#' exportHTML(x, "index.html")
 #'
 #' #to export more variables for scatterplots:
-#'  exportHTML(x, "test.html", data = iris, extra.vars = c("Sepal.Length", "Sepal.Width"))
+#'  exportHTML(x, "index.html", data = iris, extra.vars = c("Sepal.Length", "Sepal.Width"))
 #' }
 #'
 #' @author Yu Han Soh
@@ -156,17 +155,6 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
   HTMLtemplate[svgLine] <- svgCode
 
   #scale columns according to devsize width - need to revise this - conflicts with png
-  ##if (dev.size()[1] <= 8) {
-  ##  HTMLtemplate <- gsub("(bsc)|(txsc)", 6, HTMLtemplate)
-  ##} else if (dev.size()[1] <= 12 && dev.size()[1] > 8) {
-  ##  #for svg:
-  ##    HTMLtemplate <- gsub("bsc", round(dev.size()[1]-2), HTMLtemplate)
-    #for table:
-  ##    HTMLtemplate <- gsub("txsc", 12-round(dev.size()[1]-2) , HTMLtemplate)
-  ##} else {
-  ##  HTMLtemplate <- gsub("(bsc)|(txsc)", 12, HTMLtemplate)
-  #}
-
   if (dev.size()[1] <= 8) {
     HTMLtemplate <- gsub("col-md-12 col-lg-12", "col-md-6 col-lg-6", HTMLtemplate)
   }
@@ -185,7 +173,7 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
   setwd(curdir)
 
   #return url:
-  return(invisible(url))
+  invisible(url)
 
 }
 
@@ -357,14 +345,24 @@ getTable.inzdot <- function(plot, x) {
 getTable.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
 
   #For scatterplots, the user can choose to either export the whole dataset they've specified, or certain variables.
-  #By default: only exports the two variables that are plotted (if no dataset is specified, or extra.vars = NULL).
+  #By default: only exports the two variables that are plotted (if no dataset is specified or extra.vars = NULL).
 
   xVal <- plot$x
   yVal <- plot$y
   order <- plot$point.order
 
   tab <- cbind(as.data.frame(xVal), as.data.frame(yVal))
-  names(tab) <- c(attributes(x)$varnames$x, attributes(x)$varnames$y)
+  
+  #if the plot type has a map via iNZightMaps, remove 'expression' values:
+  if (x$gen$opts$plottype == "map") {
+    ## only if the two values are longitude and latitude...
+    varnamex <- "Longitude"
+    varnamey <- "Latitude"
+    names(tab) <- c(varnamex, varnamey)
+  } else {
+    names(tab) <- c(attributes(x)$varnames$x, attributes(x)$varnames$y)
+  }
+  
 
   #if there's a colby variable
   if (!is.null(plot$colby)) {
@@ -388,8 +386,17 @@ getTable.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
     extra.cols <- data[order, colNum]
     #bind altogether
     tab <- cbind(extra.cols, as.data.frame(xVal), as.data.frame(yVal))
-    names(tab) <- c(extra.vars,attributes(x)$varnames$x, attributes(x)$varnames$y)
-
+    
+    #if the plot type has a map via iNZightMaps, remove 'expression' values:
+    if (x$gen$opts$plottype == "map") {
+      ## only if the two values are longitude and latitude...
+      varnamex <- "Longitude"
+      varnamey <- "Latitude"
+      names(tab) <- c(extra.vars, varnamex, varnamey)
+    } else {
+      names(tab) <- c(extra.vars,attributes(x)$varnames$x, attributes(x)$varnames$y)
+    }
+    
     #if there's a colby variable
     if (!is.null(plot$colby)) {
       colby <- plot$colby
