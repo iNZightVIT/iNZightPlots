@@ -81,10 +81,14 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
   curdir <- getwd()
   x <- x
   plot <- x$all$all
-
-  if (is.null(plot)) {
+  
+  if (is.null(plot)) { 
+    if (length(x$all) == 1) { ## for subsets = 1
+      plot <- x$all[[1]]
+      } else { ## subsets > 1
     warning("iNZight doesn't handle interactive panel plots ... yet!")
     return()
+      }
   }
 
   #condition for colored hexplots - currently unavailable:
@@ -110,13 +114,13 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
   } else {
 
     HTMLtable <- print(xtable::xtable(tbl$tab, caption = tbl$cap, auto = TRUE),
-                       type = "html", html.table.attributes= 'class="table table-fit table-striped table-bordered table-responsive hidden" id="table"',
+                       type = "html", html.table.attributes= 'class="table table-fit table-responsive table-striped table-bordered hidden" id="table"',
                        caption.placement = "top", align = "center",
                        include.rownames = tbl$includeRow, print.results = FALSE)
   }
 
 
-  #Getting JS file  + creating JSObjects using jsonlite (refer to convertToJS function):
+  #Getting JS file  + JSON (refer to convertToJS function):
   jsData <- convertToJS(plot, tbl)
 
 
@@ -258,8 +262,7 @@ getTable.inzbar <- function(plot, x) {
 getTable.inzhist <- function(plot, x) {
 
   #extracting information:
-  plot <- x$all$all
-  #data <- data
+  #plot <- x$all$all or plot <- x$all[[1]]
 
   toPlot <- plot$toplot$all
   intervals <- toPlot$breaks
@@ -460,24 +463,23 @@ convertToJS.inzbar <- function(plot, tbl) {
   percent <- plot$widths
   colorMatch <- plot$p.colby
 
-  prop.df <- as.data.frame(t(prop))
+  pct <- as.data.frame(t(round(prop*100, 2)))
   counts.df <- as.data.frame(counts)
+  group <- paste0('var group = ', length(percent), ';')
+  
+  tab <- cbind(counts, pct)
+  colnames(tab) <- c('varx', 'counts', 'pct')
+  colCounts = 'var colCounts = null;'
 
-  if (all(percent != 1)) { ##this is for stacked bar plots and two way bar plots
+  if (all(percent != 1)) { ## two way bar plots
     prop.df =  as.data.frame(prop)
-    percent.df = as.data.frame(percent)
-    percent.df$percent = round(percent.df$percent, 4)
-    percentJSON = paste0("var percent = ", jsonlite::toJSON(percent.df), ";")
+    tab <- cbind(prop.df, counts.df$Freq)
+    colnames(tab) <- c("var1", "var2", "pct", "counts")
+    tab$pct <- round(tab$pct*100, 2)
     colCounts = paste0("var colCounts = ", jsonlite::toJSON(c("Col N", round(colSums(counts)/tbl$n,4), 1)), ";")
+  } 
 
-  } else {
-    percentJSON = "null"
-    colCounts = "null"
-  }
-
-
-
-  countsJ <- jsonlite::toJSON(counts.df)
+  #set order:
   orderJSON = 'var order = null;'
 
   #selecting appropriate JS code:
@@ -488,33 +490,40 @@ convertToJS.inzbar <- function(plot, tbl) {
     colorMatchJSON = paste("var colorMatch = null;", sep = "");
 
   } else if ((all(c(0, 1) %in% colorMatch) == TRUE)){ ##test if the bar plot colby is the same
-
+    
     colorMatchJSON = paste("var colorMatch = '", gsub(",", "", jsonlite::toJSON(as.vector(colorMatch))), "';", sep ="")
 
   } else {
 
     ## required for stacked bar plots, due to make up of polygons being reversed when plotted
     order <- matrix(1:length(colorMatch), ncol=ncol(colorMatch), byrow = TRUE)
-    orderJ <- jsonlite::toJSON(as.vector(apply(order,1 ,rev)))
-    orderJSON <- paste0("var order = ", orderJ, ";" )
-
-    colorMatch.df = as.data.frame(colorMatch[nrow(colorMatch):1, ])
-    colorMatchJ = jsonlite::toJSON(colorMatch.df)
-    colorMatchJSON = paste("var colorMatch = ", colorMatchJ, ";", sep = "");
-    countsJ = jsonlite::toJSON(counts.df[rev(rownames(counts.df)),])
-
+    order <- as.vector(apply(order,1 ,rev))
+    orderJSON <- paste0("var order = ", jsonlite::toJSON(order), ";" )
+    colorMatch <- as.table(colorMatch)
+    colorMatchJSON = paste("var colorMatch = true;")
+    
+    tab <- as.data.frame(colorMatch, stringsAsFactors = FALSE)
+    tab$pct <- round(tab$Freq*100, 2)
+    
+    #counts are in the counts value - > need to merge on var2
+    colnames(counts.df) <- c("Var2", "c1")
+    tab <- merge(tab, counts.df)
+    tab <- tab[order(tab$Var1),]
+    
+    #now calcualte counts:
+    tab$counts <- with(tab, c1*Freq)
+    tab <- cbind(tab, order)
+    tab <- tab[order(tab$order), ]
+    
     ## setting JS: stacked bar plots currently run on a different JS file
     jsFile <- bpstackedJS
 
   }
-
-
-  #writing JS code - JSON data:
-  propJSON = paste("var prop = ", jsonlite::toJSON(prop.df), ";", sep = "");
-  countsJSON = paste("var counts = ", countsJ, ";", sep = "");
+  
+  tabJSON <- paste0("var tab = ", jsonlite::toJSON(tab), ";");
 
   #returning all data in a list:
-  JSData <- list(prop = propJSON, counts = countsJSON, percent = percentJSON, colCounts = colCounts, colorMatch = colorMatchJSON, order = orderJSON, jsFile = jsFile)
+  JSData <- list(tab = tabJSON, colorMatch = colorMatchJSON, colCounts = colCounts, group = group, order = orderJSON, jsFile = jsFile)
   return(JSData)
 
 }
@@ -522,12 +531,16 @@ convertToJS.inzbar <- function(plot, tbl) {
 convertToJS.inzhist <- function(plot, tbl) {
 
   #extracting information:
-  ## plot <- x$all$all
+  ## plot <- x$all$all or plot <- x$all[[1]]
   toPlot <- plot$toplot$all
 
   intervals <- toPlot$breaks
+  lower <- round(intervals[-length(intervals)], 2)
+  upper <- round(intervals[-1], 2)
   counts <- toPlot$counts
-  prop <- round(counts/tbl$n, 4) ##toPlot$density
+  pct <- round(counts/tbl$n*100, 2)
+  
+  tab <- as.data.frame(cbind(lower, upper, counts, pct))
 
   #To obtain box whisker plot information:
   boxInfo <- plot$boxinfo$all
@@ -538,9 +551,7 @@ convertToJS.inzhist <- function(plot, tbl) {
   rownames(boxTable)[4:5] <- c("min", "max")
 
   ## Conversion to JSON data:
-  intervalJSON <- paste0("var intervals = ", jsonlite::toJSON(intervals), ";")
-  countsJSON <- paste0("var counts = ", jsonlite::toJSON(counts), ";")
-  propJSON <- paste0("var prop = ", jsonlite::toJSON(prop), ";")
+  tabJSON <- paste0("var tab = ", jsonlite::toJSON(tab), ";")
   boxJSON <- paste0("var boxData = ", jsonlite::toJSON(boxTable), ";")
   n <- paste0("var n = ", tbl$n)
 
@@ -548,7 +559,7 @@ convertToJS.inzhist <- function(plot, tbl) {
   jsFile <- histJS
 
   ##Output as a list:
-  JSData <- list(intervals = intervalJSON, counts = countsJSON, prop = propJSON, box = boxJSON, n = n, jsFile = jsFile)
+  JSData <- list(data = tabJSON, box = boxJSON, n = n, jsFile = jsFile)
 
   return(JSData)
 
@@ -654,20 +665,20 @@ convertToJS.inzhex <- function(plot, tbl = NULL) {
 
   #Hexplots use S4 notation:
   counts <- plot$hex@count
-  xcm <- plot$hex@xcm
-  ycm <- plot$hex@ycm
+  xcm <- round(plot$hex@xcm, 2)
+  ycm <- round(plot$hex@ycm, 2)
   n <- plot$hex@n
-
-  countsJSON <- paste0("var counts = ", jsonlite::toJSON(counts), ";")
-  xcmJSON <- paste0("var xcm = ", jsonlite::toJSON(xcm), ";")
-  ycmJSON <- paste0("var ycm = ", jsonlite::toJSON(ycm), ";")
+  
+  tab <- as.data.frame(cbind(counts, xcm, ycm))
+  tab$pct <- round(tab$counts/n*100, 2)
   n <- paste0("var n =", n)
+  tabJSON <- paste0("var tab =", jsonlite::toJSON(tab), ';')
 
   #JS file:
   jsFile <- hexbinJS
 
   #list:
-  JSData <- list(counts = countsJSON, xcm = xcmJSON, ycm = ycmJSON, n = n, jsFile = jsFile)
+  JSData <- list(data = tabJSON, n = n, jsFile = jsFile)
 
   return(JSData)
 
