@@ -30,5 +30,5 @@ Suggests:
 Additional_repositories: http://r.docker.stat.auckland.ac.nz/R
 Description: Simple plotting function(s) for exploratory data analysis with
     flexible plotting options to allow users to customise plots.
-License: GPL-2
+License: GPL-3 | file LICENSE
 RoxygenNote: 6.0.1
