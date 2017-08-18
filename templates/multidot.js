@@ -3,8 +3,8 @@
 var svg = document.getElementsByTagName('svg')[0];
 
 //restrict svg-container for drag box to align
-var container = document.getElementById('svg-container');
-container.classList.add('contained');
+//var container = document.getElementById('svg-container');
+//container.classList.add('contained');
 
 var levelNo = levels.length;
 var Grob = "DOTPOINTS";
@@ -443,30 +443,39 @@ svg.setAttribute('onmouseup', 'MouseUp(evt)');
 svg.setAttribute('onmousemove', 'MouseDrag(evt)');
 svg.setAttribute('onmousedown', 'MouseDown(evt)');
 
-
+// co-ordinate conversion for svg:
+convertCoord = function(svg, evt) {
+  var pt = svg.createSVGPoint();
+  pt.x = evt.pageX;
+  pt.y = evt.pageY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
 
 var zoomBox = {};
 
- MouseDown = function(evt) {
-    zoomBox["startX"] = evt.pageX - 20;
-    zoomBox["startY"] = evt.pageY - 20;
+MouseDown = function(evt) {
+  var pt = convertCoord(svg, evt)
+    zoomBox["startX"] = pt.x;
+    zoomBox["startY"] = pt.y;
     zoomBox["isDrawing"] = true;
    selectRect.setAttribute('points',  zoomBox["startX"] + ',' + zoomBox["startY"]);
 };
 
+//MouseUp:
 MouseUp = function(evt) {
+  var pt = convertCoord(svg, evt)
   svg.style.cursor = "default";
-      zoomBox["endX"] = evt.pageX - 20;
-      zoomBox["endY"] = evt.pageY - 20;
+      zoomBox["endX"] = pt.x;
+      zoomBox["endY"] = pt.y;
       zoomBox["isDrawing"] = false;
-
   };
 
 MouseDrag = function(evt) {
     if(zoomBox["isDrawing"]) {
+        var pt = convertCoord(svg, evt)
         svg.style.cursor = "crosshair";
-        zoomBox["endX"] = evt.pageX - 20;
-        zoomBox["endY"] = evt.pageY - 20;
+        zoomBox["endX"] = pt.x;
+        zoomBox["endY"] = pt.y;
 
         //Because the y-axis is inverted in the plot - need to invert the scale
          tVal = document.getElementsByTagName('g')[0].getAttribute('transform').substring(13, 16);
@@ -492,7 +501,7 @@ MouseDrag = function(evt) {
 
         selectRect.setAttribute('points', x1 + ',' + y1 + " " + x1 + ',' + y2 + ' '
                                           + x2 + ',' + y2 + ' ' + x2 + ',' + y1);
-                                          
+
         var viewTable = document.getElementById('viewTable');
         viewTable.innerHTML = "Hide Table";
         table.classList.remove('hidden');

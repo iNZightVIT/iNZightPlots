@@ -7,30 +7,8 @@ but hopefully that can be somehow transferred some other day...)*/
   padding: 20px;
 }
 
-.table {
-  overflow-x: auto;
-}
-
-.table-fit {
-  white-space: nowrap;
-  width: 1%;
-}
-
-.table-responsive {
-  display: table;
-}
-
-/*svg container */
-
-.contained {
-  margin-left: 0;
-  padding: 0;
-  margin-right: 0;
-}
-
 /*** TABLE PROPERTIES ***/
 /*totals column  or totals row */
-
 .tc {
   font-weight:bold;
 }
@@ -88,11 +66,6 @@ th {
  margin-left: 10px;
 }
 
-
-.dark {
-  opacity: 1;
-}
-
 #form {
   display: inline-table;
   padding: 20px;
@@ -120,14 +93,6 @@ th {
   font-weight: normal;
 }
 
-.groupLabel { /* make group label bold */
-  font-weight: bold;
-}
-
-.propLabel {
-  font-weight: bold;
-}
-
 /* tlabels */
 .tLabel {
   font-weight: bold;
@@ -140,6 +105,11 @@ th {
   stroke: none;
   visibility: visible;
   opacity: 1;
+}
+
+.bar:hover{
+  stroke-width: 50%;
+  fill-opacity: 0.5;
 }
 
 /* bars on hover on and off */
@@ -158,13 +128,6 @@ th {
 .none {
   opacity: 0.3;
 }
-
-/* svg rectangle */
-.rect {
-  width: 200%;
-  height: 200%;
-}
-
 
 /* hiding elements - extra bars and lines... */
 
@@ -229,7 +192,7 @@ th {
 
 /* for dot plots and scatter plots */
 
-.showPoint { /* showPoint */
+.point:hover { /* showPoint */
   fill: currentColor;
   stroke-width: 50%;
   fill-opacity: 1;
@@ -247,8 +210,8 @@ th {
   stroke-width: 0.25;
 }
 
-.classLabel {
-  font-weight:bold;
+.histBar:hover {
+  fill-opacity: 0.5;
 }
 
 /* hexbins */
@@ -256,8 +219,8 @@ th {
   stroke: none;
 }
 
-.hx_hy {
-  font-weight: bold;
+.hexbin:hover {
+  fill-opacity: 0.5;
 }
 
 /* user selection drag box */
@@ -265,4 +228,22 @@ th {
   fill: transparent;
   stroke: black;
   stroke-width: 1px;
+}
+
+div.tooltip {
+    position: absolute;
+    text-align: center;
+    padding: 5px;
+    z-index: 10;
+    opacity: 1;
+    visibility: hidden;
+    font: 11px sans-serif;
+    background: white;
+    border: 1px solid lightgray;
+    border-radius: 5px;
+    pointer-events: none;
+}
+
+span {
+  font-weight: bold;
 }

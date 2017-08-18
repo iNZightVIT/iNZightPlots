@@ -6,12 +6,6 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!--[if IE]>
-    <p>
-    You're on Internet Explorer!
-    There's no support available yet, we're still working on it - please switch to Chrome or Firefox.
-    </p>
-    <![endif]-->
 
     <title> iNZight Plot </title>
 
@@ -25,33 +19,35 @@
       <!-- Bootstrap: JQuery + JS -->
       <!-- jQuery library -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
       <!-- Latest compiled JavaScript -->
     <script defer src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
   </head>
 
   <body>
-
-    <div class="row">
-      <div class = "col-xs-12 col-md-bsc col-lg-bsc">
-        <div id = "svg-container"> 
+    <div class = "container-fluid">
+      <div class = "row">
+      <div class = "col-xs-12 col-md-12 col-lg-12">
     <!-- insert SVG code from SVG file here -->
 
-        </div>
 
-
-          <div class ="row" id="control">
-            <button type="button" class="btn btn-info" onclick="reset()" id="reset"> Reset </button>
-            <button type="button" class="btn btn-info" onclick="showTable()" id="viewTable"> View Table </button>
-          </div>
+    <div class = "control" id="control">
+      <button type="button" class="btn btn-info" onclick="reset()" id="reset"> Reset </button>
+      <button type="button" class="btn btn-info" onclick="showTable()" id="viewTable"> View Table </button>
     </div>
 
+    </div>
 
-          <div class = "col-xs-12 col-md-txsc col-lg-txsc">
+      <div class = "col-xs-12 col-md-12 col-lg-12">
 
-        <!-- insert table --->
+        <!-- insert table -->
 
-          </div>
+      </div>
+
+
+
+    </div>
   </div>
 
     <script defer type = "text/javascript">

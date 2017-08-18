@@ -1,12 +1,4 @@
-//JavaScript code for histograms:
-/* A histogram has code that is very similar to a one way bar plot
-with boxplot properties. JSON data objects differ (class intervals). */
-
-/* --------------------------------------------
-  Table properties (Frequency distribution table):
-  Includes identifying cells, rows, properties of
-  the table, and the viewTable button.
----------------------------------------------*/
+//histograms!
 
 var table = document.getElementById('table');
     nrow = table.rows.length, //no. of rows in table
@@ -41,54 +33,53 @@ showTable = function() {
   }
 };
 
-/* -------------------------------------------------------------
-          Histogram bars and label properties:
-Creating labels, identifying histogram bars, and assigning attributes
-and properties to bars and labels.
----------------------------------------------------------------*/
-
 var svg = document.getElementsByTagName('svg')[0];
 
-//to expand plotRegion rectangle to show labels:
-var rect = document.getElementsByTagName('rect')[2];
-extendPlotRegion(rect);
-
-var count = counts.length;
+var count = tab.length;
 
 //get Grob object where hist bars lie:
 var Grob = getGrob('hist');
 
+var tooltip = d3.select('body').append('div')
+              .attr('class', 'tooltip')
+              .attr('id', 'tooltip')
+              .style('width', '200')
+              .style('height', '50');
 
-// create labels for each hist bar:
-for (i = 1; i<= count; i++) {
-  gLabel(i);
-}
+var panel = document.getElementById(Grob);
+d3.select(panel).selectAll('polygon')
+    .data(tab)
+    .attr('class', 'histBar')
+    .on('mouseover', function(d){tooltip.style('visibility', 'visible')
+                                              .style("left", d3.event.pageX - 40 + "px")
+                                              .style("top", d3.event.pageY - 55 + "px")
+                                              .html("Class range: <br> <span>" + d.lower + " - " + d.upper +
+                                              " </span>" + "<br> N = <span>" +
+                                              d.counts + ", " + d.pct + "% </span>");})
+    .on('mouseout', function(){tooltip.style("visibility", "hidden");})
+    .on('click', function(d, i) {
+        for (j = 1; j <= count; j ++) {
+          var bar = document.getElementById(Grob + '.' + j);
+          var dataRow = document.getElementById('tr' + j);
+          var totalRow = document.getElementsByClassName('tc')[0];
+          totalRow.classList.add('hidden');
 
-for (i = 1; i <= count; i++) {
-  gRect(i);
-}
+          if ((i+1) == j) {
+            bar.setAttribute('class', 'histBar selected');
+           var l = bar.getAttribute('fill');
+           var lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
 
-// Creating all the labels:
-for (i  = 1; i <= count; i++) {
+           returnRowSelection(lp, dataRow);
 
-  var bar = document.getElementById(Grob + '.' + i);
-  bar.setAttribute('class', 'histBar');
+          } else {
+            bar.setAttribute('class', 'histBar none');
+            omitRowSelection(dataRow);
 
-  var coords = bar.getAttribute('points');
-  var small = coords.split(" ")[1];
-  var sx = Number(small.split(",")[0]);
-  var coordsxy = coords.split(" ")[2];
-  var x = Number(coordsxy.split(",")[0]); //co-ordinates based upon SVG elements.
-  var y = Number(coordsxy.split(",")[1]);
-  label('label', 'Class range: ', i, 60);
-  label('classLabel', intervals[i-1].toFixed(2) + ' - ' + intervals[i].toFixed(2), i, 45);
-  label( 'countLabel','N = ' , i, 30);
-  tLabel('countLabel',counts[i-1] + ', ' + (prop[i-1]*100).toFixed(2) + "%", i, document.getElementById('countLabel' + i));
-
-      // Attach and draw rectangles to labels according to the size of the gLabel (with all labels attached)
-         drawRectLabel(i);
-
-};
+          }
+        hideBox();
+        tt2.style('visibility', 'hidden');
+      }
+    });
 
 /* -------------------------------------------------------------
                   Box plot properties and interactions:
@@ -117,65 +108,19 @@ for (i = 0; i < box.length; i++) {
   box[i].addEventListener('click', showBox, false);
 }
 
-/* ------------------------------------------------------------
-      Histogram Interactivity - hovers, clicks on bars and in
-      relation to table
----------------------------------------------------------------*/
-//setting mouse events:
-for (i = 1; i <= count; i++) {
-  (function(i){
-    var bar = document.getElementById(Grob + '.' + i);
-    bar.addEventListener("mouseover",function(){light(i, 'light')},false);
-    bar.addEventListener("mouseout", function(){normal(i, 'light')}, false);
-    bar.addEventListener("click", function(){fade(i)}, false);
-    }) (i)
-  };
+ // facilitate selection box for users:
 
-// on click:
- fade = function(i) {
-   for (j = 1; j <= count; j ++) {
+// create another  tooltip for selection box:
+  var tt2 = d3.select('body').append('div')
+            .attr('class', 'tooltip')
+            .attr('id', 'selection')
+            .style('width', '150')
+            .style('height', '35');
 
-     var bar = document.getElementById(Grob + '.' + j);
-
-     var gLabel = document.getElementById('gLabel' + j);
-     var dataRow = document.getElementById('tr' + j);
-
-     var totalRow = document.getElementsByClassName('tc')[0];
-     totalRow.classList.add('hidden');
-
-     if (i == j) {
-       bar.setAttribute('class', 'histBar selected');
-      gLabel.classList.remove('invisible');
-
-      var l = bar.getAttribute('fill');
-      var lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
-
-      returnRowSelection(lp, dataRow);
-
-     } else {
-       bar.setAttribute('class', 'histBar none');
-       gLabel.classList.add('invisible');
-
-       omitRowSelection(dataRow);
-
-     }
- }
-  hideBox();
- };
-
- /* ------------------------------------------------------------
-      Facilitate selection box draggable by users:
- ---------------------------------------------------------------*/
-var svg = document.getElementsByTagName('svg')[0];
-
-//set container with no style padding:
-var svgContainer = document.getElementById('svg-container');
-svgContainer.classList.add('contained');
-
-svg.setAttribute('draggable', 'false');
-
-//create 'invisible' selection box that user will see when they begin to drag:
-createSelectionBox(Grob);
+//create invisible selection box that is enabled when dragging occurs:
+d3.select(panel).append('polygon')
+   .attr('id', 'selectRect')
+   .attr('class', 'selectRect');
 
 var evt = window.event; // required for FF to work.
 var zoomBox = {};
@@ -187,9 +132,10 @@ svg.setAttribute('onmousedown', 'MouseDown(evt)'); // defined below.
 
 MouseDrag = function(evt) {
     if(zoomBox["isDrawing"]) {
+        var pt = convertCoord(svg, evt);
         svg.style.cursor = "crosshair";
-        zoomBox["endX"] = evt.pageX - 20;
-        zoomBox["endY"] = evt.pageY - 20;
+        zoomBox["endX"] = pt.x;
+        zoomBox["endY"] = pt.y;
 
         //Because the y-axis is inverted in the plot - need to invert the scale
          tVal = document.getElementsByTagName('g')[0].getAttribute('transform').substring(13, 16);
@@ -222,7 +168,7 @@ MouseDrag = function(evt) {
 
         for (i =1; i <= count; i++) {
         var bar = document.getElementById(Grob + '.' + i);
-        var gLabel = document.getElementById('gLabel' + i);
+        //var gLabel = document.getElementById('gLabel' + i);
         var dataRow = document.getElementById('tr' + i);
 
         //obtain end points of the bar:
@@ -237,7 +183,6 @@ MouseDrag = function(evt) {
           if (bar.getAttribute('visibility') == 'hidden') {
             // those that are hidden, remain hidden
               bar.classList.add('hidden');
-              gLabel.classList.add('invisible');
             } else {
               //points that lie within the  boundary box drawn:
           if(((x1 <= bx && bx <= x2) && (x1 <= tx && tx <= x2)) && ((y1 <= by && by <= y2) && (y1 <= ty && ty <= y2))) {
@@ -247,10 +192,10 @@ MouseDrag = function(evt) {
 
             returnRowSelection(lp, dataRow);
 
-            groupN.push(counts[i-1]); // store frequency from each hexbin that's selected
+           // store frequency from each hexbin that's selected
+            groupN.push(tab[i].counts);
 
-            //need  a way to compare intervals:
-            intRange.push(intervals[i-1], intervals[i]);
+            intRange.push(tab[i].lower, tab[i].upper);
 
            } else {
              bar.setAttribute('class', 'histBar none');
@@ -270,67 +215,54 @@ MouseDrag = function(evt) {
          // report a proportion:
          var nProp = (sum/n*100).toFixed(2) + "%";
 
-         var selectedGroup = document.getElementById('selectionLabelGroup');
-         if (selectedGroup !== null) {
-             selectedGroup.remove();
-            }
-
-        //create group label by selection:
-        var selectionLabelGroup = createSelectionLabelGroup();
-
            //information to extract:
            var intervalNo = document.getElementsByClassName('selected').length;
 
-        //create labels:
-        selectionLabel('range', (x1+x2)/2, y1 -15, 'Interval Range: ');
-        tLabel('intRangeVal', intRange[0] + " - " + intRange[intRange.length-1], 0, document.getElementById('range'));
-
-        selectionLabel('groupN', (x1+x2)/2, y1-30, 'Frequency: ');
-        tLabel('groupNval', sum + ', ' + nProp, 0, document.getElementById('groupN'));
-
-        selectionLabel('nIntervals', (x1+x2)/2, y1-45, 'No. of intervals: ');
-        tLabel('nIntVal', intervalNo, 0, document.getElementById('nIntervals'));
-
-        // Attach and draw rectangle to label:
-        drawSelectRectLabel(selectionLabelGroup);
+        // create another  tooltip for selection box:
+                tt2.style("left", ((x1+x2)/4) + "px"); //positioning!
+                tt2.style("top", tVal - (y1 - 30) + "px");
+                tt2.style('visibility', 'visible');
+                tt2.html("Interval Range: <span>" + intRange[0] + " - " + intRange[intRange.length-1] +
+                        "</span> <br> Frequency: <span>" + sum +  "," + nProp + "</span> <br> No. of intervals: <span>" +
+                       intervalNo + "</span>");
 
        }
     }
 };
 
-
  //Reset Button:
    reset = function() {
-     for (i = 1; i <= count; i++) {
-       var bar = document.getElementById(Grob + "." + i);
-       bar.setAttribute('class', 'histBar');
 
-       var gLabel = document.getElementById('gLabel' + i);
-       gLabel.classList.add('invisible');
+     d3.select(panel).selectAll('polygon')
+        .attr('class', 'histBar');
+
+      var totalRow = document.getElementsByClassName('tc')[0];
+      totalRow.classList.remove('hidden');
+
+     for (i = 1; i <= count; i++) {
 
        var dataRow = document.getElementById('tr' + i);
        resetRowSelection(dataRow);
-
-       var totalRow = document.getElementsByClassName('tc')[0];
-       totalRow.classList.remove('hidden');
+     };
 
        //reset total to n
        var total = td[td.length-1];
        total.innerHTML = n;
 
        //remove box:
-       var selectRect = document.getElementById('selectRect');
-       if (selectRect.getAttribute('points') !== null) {
-         selectRect.removeAttribute('points');
-    }
-      var selectionLabelGroup = document.getElementById('selectionLabelGroup');
-         if (selectionLabelGroup !== null || undefined) {
-           selectionLabelGroup.remove();
-         }
-   }
+    d3.select('#selectRect')
+      .attr('points', '0,0')
+      .attr("class", "selectRect");
+      d3.select('#selection')
+      .style('visibility', 'hidden');
+
     hideBox();
 
     viewTable.innerHTML = "View Table";
     table.classList.add('hidden');
     t = true;
  };
+
+ // plotregion reset:
+ var plotRegion = document.getElementsByTagName('rect')[1];
+   plotRegion.addEventListener("click", reset, false);

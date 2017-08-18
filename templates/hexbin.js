@@ -1,89 +1,69 @@
 // For hexagonal bin plots:
 
-//restrict svg-container for drag box to align
-var container = document.getElementById('svg-container');
-container.classList.add('contained');
+d3.select('#viewTable').attr('class', 'hidden');
 
-//hide viewtable button
-var viewTable = document.getElementById("viewTable");
-viewTable.classList.add('hidden');
+// hexbin tooltip using D3:
+var Grob = getGrob('hexbin');
+var panel = document.getElementById(Grob);
+var count = tab.length;
+var n = 11000;
+var tooltip = d3.select('body').append('div')
+              .attr('class', 'tooltip')
+              .attr('id', 'tooltip')
+              .style('width', '120')
+              .style('height', '45');
 
-var count = counts.length;
+d3.select(panel).selectAll('polygon')
+    .data(tab)
+    .attr('class', 'hexbin')
+    .on('mouseover', function(d){tooltip.style('visibility', 'visible')
+                                              .style("left", d3.event.pageX - 40 + "px")
+                                              .style("top", d3.event.pageY - 55 + "px")
+                                              .html("N = <span>" + d.counts + ", " + d.pct +
+                                              "% </span>" + "<br> Centered at: <br> <span>" +
+                                              d.xcm + ", " + d.ycm + "</span>");})
+    .on('mouseout', function(){tooltip.style("visibility", "hidden");})
+    .on('click', function(d, i) {
+      for(j = 1; j <= count; j ++) { //could refactor this?
+        var hexbin = document.getElementById(Grob + '.' + j);
+        if ( (j-1) == i) {
+          hexbin.setAttribute('class', 'hexbin selected');
+        } else {
+          hexbin.setAttribute('class', 'hexbin none');
+        }
+      }
+      tt2.style('visibility', 'hidden');
+    });
 
-var svg = document.getElementsByTagName('svg')[0];
+//reset button:
+d3.select('#reset')
+  .on('click', function() {
+    d3.select(panel).selectAll('polygon')
+    .attr("class", "hexbin");
+    d3.select('#selectRect')
+      .attr('points', '0,0')
+      .attr("class", "selectRect");
+      d3.select('#selection')
+      .style('visibility', 'hidden');
+  });
 
-// Extending rectangle:
-var rect = document.getElementsByTagName('rect')[0];
-extendPlotRegion(rect);
+//User selection drag box:
 
-// Identifying hexbins:
- var Grob = getGrob('hexbin');
+ // create another  tooltip for selection box:
+var tt2 = d3.select('body').append('div')
+             .attr('class', 'tooltip')
+             .attr('id', 'selection')
+             .style('width', '150')
+             .style('height', '35');
 
-// creating labels:
-  for (i = 1; i <= count; i++) {
-    gLabel(i);
-  }
+//create invisible selection box that is enabled when dragging occurs:
+d3.select(panel).append('polygon')
+    .attr('id', 'selectRect')
+    .attr('class', 'selectRect');
 
-  for (i = 1; i <= count; i++) {
-    gRect(i);
-  }
-
-  for (i  = 1; i <= count; i++) {
-  var hexbin = document.getElementById(Grob + '.' + i);
-    hexbin.setAttribute("class", 'hexbin');
-
-    var coords = hexbin.getAttribute('points'),
-        coordsxy = coords.split(" ")[5],
-        x = Number(coordsxy.split(",")[0]), //co-ordinates based upon SVG elements.
-        y = Number(coordsxy.split(",")[1]);
-    label('label', 'N = ', i, 45); // deal with t-span later.
-    tLabel('tLabel', counts[i-1] + ', ' + (counts[i-1]/n*100).toFixed(2) + "%", i, document.getElementById('label' + i));
-
-// labels for where hexbin is centered at:
-    label('hexCoord', 'Centered at: ', i, 30);
-    label('hx_hy', xcm[i-1] + ', ' + ycm[i-1], i, 15);
-
-      // Attach and draw rectangles to labels according to the size of the gLabel (with all labels attached)
-          drawRectLabel(i);
-  };
-
-
-  //interactivity: - similar to one way hexbin plots
-  for (i = 1; i <= count; i++) {
-   (function(i){
-     var hexbin = document.getElementById(Grob + '.' + i);
-     hexbin.addEventListener("mouseover",function(){light(i, 'light')},false);
-     hexbin.addEventListener("mouseout", function(){normal(i, 'light')}, false);
-     hexbin.addEventListener("click", function(){fade(i)}, false); // defined below.
-     }) (i)
-   }
-
-
-   fade = function(i) {
-     for (j = 1; j <= count; j ++) {
-
-       var hexbin = document.getElementById(Grob + '.' + j);
-       var gLabel = document.getElementById('gLabel' + j);
-
-       if (i == j) {
-         hexbin.setAttribute('class', 'hexbin selected');
-         gLabel.classList.remove('invisible');
-       } else {
-         hexbin.setAttribute('class', 'hexbin none');
-         gLabel.classList.add('invisible');
-       }
-   }
-   };
-
-   /* --------------------------------------------
-     User selection drag box:
-   ---------------------------------------------*/
-
-     //create invisible selection box that is enabled when dragging occurs:
-  createSelectionBox(Grob);
-
-   var evt = window.event;
-   var zoomBox = {};
+  var svg = document.getElementsByTagName('svg')[0];
+  var evt = window.event;
+  var zoomBox = {};
 
    svg.setAttribute('onmouseup', 'MouseUp(evt)');
    svg.setAttribute('onmousemove', 'MouseDrag(evt)');
@@ -91,9 +71,10 @@ extendPlotRegion(rect);
 
    MouseDrag = function(evt) {
        if(zoomBox["isDrawing"]) {
+         var pt = convertCoord(svg, evt)
          svg.style.cursor = "crosshair";
-           zoomBox["endX"] = evt.pageX - 20;
-           zoomBox["endY"] = evt.pageY - 20;
+           zoomBox["endX"] = pt.x;
+           zoomBox["endY"] = pt.y;
 
            //Because the y-axis is inverted in the plot - need to invert the scale
             tVal = document.getElementsByTagName('g')[0].getAttribute('transform').substring(13, 16);
@@ -125,7 +106,6 @@ extendPlotRegion(rect);
 
            for (i =1; i <= count; i++) {
            var hexbin = document.getElementById(Grob + '.' + i);
-           var gLabel = document.getElementById('gLabel' + i);
 
            //find the x value at the center of the hexagon (midpoint):
            var coords = hexbin.getAttribute('points');
@@ -142,7 +122,8 @@ extendPlotRegion(rect);
                  //points that lie within the  boundary box drawn:
              if((x1 <= x && x <= x2) && (y1 <= y && y <= y2)) {
                hexbin.setAttribute('class', ' hexbin selected');
-               groupN.push(counts[i-1]); // store no. of couns from each hexbin that's selected
+              // store no. of counts from each hexbin that's selected
+               groupN.push(tab[i-1].counts);
 
               } else {
                 hexbin.setAttribute('class', 'hexbin none');
@@ -152,51 +133,19 @@ extendPlotRegion(rect);
 
            //summation of array:
            var sum = groupN.reduce(function(a, b) { return a + b; }, 0);
-           //console.log(sum);
 
            // report a proportion:
            var nProp = (sum/n*100).toFixed(2) + "%";
 
-           var selectedGroup = document.getElementById('selectionLabelGroup');
-           if (selectedGroup !== null) {
-               selectedGroup.remove();
-              }
-              //create new label group:
-              var selectionLabelGroup = createSelectionLabelGroup();
-
              //information to extract:
            var nbins = document.getElementsByClassName('selected').length;
 
-          //create labels:
-          selectionLabel('groupN', (x1+x2)/2, y1-15, 'Frequency: ');
-          tLabel('groupNval', sum + ', ' + nProp, 0, document.getElementById('groupN'));
-
-          selectionLabel('nbins', (x1+x2)/2, y1-30, 'bins: ');
-          tLabel('nbinVal', nbins, 0, document.getElementById('nbins'));
-
-          // Attach and draw rectangle to label:
-            drawSelectRectLabel(selectionLabelGroup);
-
+           // create another  tooltip for selection box:
+                       tt2.style("left", ((x1+x2)/2) + "px"); //positioning!
+                       tt2.style("top", tVal - (y1 - 30) + "px");
+                       tt2.style('visibility', 'visible');
+                       tt2.html("Frequency: <span>" + sum + ", " + nProp +
+                       "</span>" + "<br> bins: <span>" +
+                       nbins + "</span>");
        }
    };
-
-
-   // Reset button:
-   reset = function() {
-     for (i =1; i <= count; i++) {
-      var hexbin = document.getElementById(Grob + '.' + i);
-      var gLabel = document.getElementById('gLabel' + i);
-
-      gLabel.classList.add('invisible');
-      hexbin.setAttribute('class', 'hexbin');
-   }
-
-   var selectRect = document.getElementById('selectRect');
-   if (selectRect.getAttribute('points') !== null) {
-     selectRect.removeAttribute('points');
- }
-  var selectionLabelGroup = document.getElementById('selectionLabelGroup');
-     if (selectionLabelGroup !== null || undefined) {
-       selectionLabelGroup.remove();
-     }
- };

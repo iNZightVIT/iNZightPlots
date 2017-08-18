@@ -21,7 +21,7 @@ create.inz.barplot <- function(obj) {
         y.levels <- levels(df$y) # need to save these before we remove missing ...
         missing <- missing | is.na(df$y)
     }
-    
+
     n.missing <- sum(missing)
     df <- df[!missing, , drop = FALSE]
 
@@ -43,7 +43,7 @@ create.inz.barplot <- function(obj) {
             tab <- svytable(~x, design = svy)
             phat <- matrix(svymean(~x, design = svy), nrow = 1)
         }
-        
+
         widths <- rep(1, length(tab))
         edges <- c(0, 1)
 
@@ -51,7 +51,7 @@ create.inz.barplot <- function(obj) {
         SEG <- "colby" %in% colnames(df)
         if (SEG & !is.factor(df$colby))
             SEG <- FALSE
-        
+
         if (SEG) {
             tab2 <-
                 if (is.null(svy))
@@ -69,7 +69,7 @@ create.inz.barplot <- function(obj) {
             phat <- svyby(~x, by = ~y, svy, FUN = svymean)[, 1 + 1:ncol(tab)]
             nn <- rowSums(tab)
         }
-        
+
         widths <- nn / sum(nn)
         edges <- c(0, cumsum(widths))
     }
@@ -81,10 +81,10 @@ create.inz.barplot <- function(obj) {
     if (!is.null(ZOOM)) {
         if (ZOOM[1] > ncol(phat))
             next
-        
+
         ww <- ZOOM[1]:(sum(ZOOM) - 1)
         ww <- ww - ncol(phat) * (ww > ncol(phat))
-        
+
         phat <- phat[, ww, drop = FALSE]
         if (ynull) {
             tab <- tab[ww]
@@ -100,7 +100,7 @@ create.inz.barplot <- function(obj) {
                 ylim = c(0, max(ymax, if (!is.null(inflist)) attr(inflist, "max"), na.rm = TRUE)))
     if (SEG) out$p.colby <- p2[nrow(p2):1, ]
     if (!is.null(ZOOM)) out$zoom.index <- ww
-    
+
     class(out) <- "inzbar"
 
     out
@@ -122,20 +122,20 @@ plot.inzbar <- function(obj, gen) {
     edges <- rep(obj$edges * 0.9 + 0.05, each = 4)
     edges <- edges[3:(length(edges) - 2)]
     xx <- rep(edges, nx) + rep(1:nx - 1, each = 4 * nrow(p))
-    
+
     if (SEG) {
         xx <- rep(xx, length(seg.cols))
         tops <- apply(p, 2, function(x) rbind(0, x, x, 0))
-        
+
         yy <- rep(tops, length(seg.cols))
         ps <- rep(c(t(obj$p.colby)), each = 4)
         pT <- rep(c(t(apply(obj$p.colby, 2, cumsum))), each = 4)
         yy <- yy * pT
-        
-        ## reverse the order, so the short ones are drawn last!       
+
+        ## reverse the order, so the short ones are drawn last!
         id <- rev(rep(1:prod(dim(obj$p.colby)), each = 4))
         colz <- rep(seg.cols, each = nx)
-        
+
         grid.polygon(unit(xx, "native"), unit(yy, "native"), id = id,
                      gp =
                      gpar(fill = colz, col = "transparent",
@@ -150,24 +150,24 @@ plot.inzbar <- function(obj, gen) {
         id <- rep(1:length(c(mat)), each = 2)
 
         grid.polyline(xl, yl, default.units = "native", id = id,
-                      gp = gpar(col = opts$bar.col, lwd = opts$bar.lwd))                          
+                      gp = gpar(col = opts$bar.col, lwd = opts$bar.lwd))
     }
-    
+
     xx <- rep(edges, nx) + rep(1:nx - 1, each = 4 * nrow(p))
     tops <- apply(p, 2, function(x) rbind(0, x, x, 0))
     yy <- c(tops)
-    
+
     id <- rep(1:prod(dim(p)), each = 4)
     colz <- if (is.null(gen$col.args$b.cols)) opts$bar.fill else rep(gen$col.args$b.cols, nx)
-   
+
     grid.polygon(unit(xx, "native"), unit(yy, "native"), id = id,
                      gp =
                      gpar(fill = if (SEG) "transparent" else colz, col = opts$bar.col,
-                          lwd = opts$bar.lwd))    
+                          lwd = opts$bar.lwd))
 
     center <- apply(matrix(xx, ncol = 4, byrow = TRUE), 1, function(x) x[2] + (x[3] - x[2]) / 2)
     bounds <- apply(matrix(xx, ncol = 4, byrow = TRUE), 1, function(x) x[2:3])
-    
+
     if (!is.null(inflist)) {
         addBarInference(inflist, center, opts, obj$zoom.index)
         if (!is.null(inflist$comp))
@@ -185,7 +185,7 @@ barinference <- function(obj, tab, phat) {
     inf.type <- opts$inference.type
     bs <- opts$bs.inference
     dat <- obj$df
-    
+
 
     if (is.null(inf.type)) {
         return(NULL)
@@ -207,7 +207,7 @@ barinference <- function(obj, tab, phat) {
                "conf" = {
                    if (bs) {
                        if (svy) {
-                           NULL                           
+                           NULL
                        } else {
                            if (twoway) {
                                ## For now, we will just all over and not return intervals
@@ -277,21 +277,21 @@ barinference <- function(obj, tab, phat) {
                                ## each, just try and iNZightMR will fail with an error
                                int <- try({
                                    n <- rowSums(tab)
-                                   
+
                                    ## ii - only use rows that have at least 1 count
                                    ## (due to subsetting, can be 0 counts for a row)
                                    ii <- n > 0
-                                   
+
                                    lapply(1:ncol(tab), function(i) {
                                        if(sum(tab[ii, ] > 0) < 2) return(list(compL = NA, compU = NA))
-                                       
+
                                        suppressWarnings(
                                            moecalc(
                                                seBinprops(n[ii], phat[ii, i]), est = phat[ii, i]
                                            )
                                        )
                                    }) -> out
-                                   
+
                                    low <- upp <- phat * 0
                                    low[ii, ] <- sapply(out, function(x) x$compL)
                                    upp[ii, ] <- sapply(out, function(x) x$compU)
@@ -325,5 +325,5 @@ barinference <- function(obj, tab, phat) {
                                       ),
                                na.rm = TRUE)
 
-    result    
+    result
 }

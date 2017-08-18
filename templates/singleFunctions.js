@@ -1,16 +1,6 @@
-/* ------------------------------------------
-COMMON FUNCTIONS FOR SINGLE PANEL PLOTS:
-- A list of common functions that are used to
-generate interactivity for single panel plots.
-- Created to prevent repetition of code,
-and for a better structure + more
-human readable (hopefully).
---------------------------------------------*/
+// COMMON FUNCTIONS FOR SINGLE PANEL PLOTS:
 
-/* ------------------------------------------
-FUNCTIONS FOR TABLES
---------------------------------------------*/
-
+//table functions:
 // insert an x-header:
 function insertXHeader() {
   var xrow = table.insertRow(0),
@@ -25,14 +15,6 @@ function insertYHeader() {
   var yHeading = document.getElementsByTagName('th')[0];
   yHeading.innerHTML = document.getElementsByTagName('tspan')[3].innerHTML;
   yHeading.setAttribute('class',' headings');
-}
-
-// extend plotRegion:
-function extendPlotRegion(rect) {
-  rect.setAttribute('width', rect.getAttribute('width')*2);
-  rect.setAttribute('height', rect.getAttribute('height')*2);
-  rect.setAttribute('x', rect.getAttribute('x')-20);
-  rect.setAttribute('y', rect.getAttribute('y')-20);
 }
 
 //create buttons:
@@ -83,7 +65,6 @@ function createVariableSelectionForm() {
   var selectVar = document.createElement('select');
   selectVar.setAttribute('class', 'form-control');
   selectVar.setAttribute('id', 'selectVar');
-  selectVar.setAttribute('onchange', 'selected()');
   selectVar.setAttribute('multiple', 'multiple');
   form.appendChild(selectVar);
 
@@ -103,9 +84,8 @@ function createVariableSelectionForm() {
 
 }
 
-/* ------------------------------------------
-FUNCTIONS FOR CREATING LABELS
---------------------------------------------*/
+//FUNCTIONS FOR CREATING LABELS
+
 function getGrob(chartType) {
   var polygon = document.getElementsByTagName('polygon');
   if (chartType == 'hist'){
@@ -118,72 +98,6 @@ function getGrob(chartType) {
   var id = p.getAttribute('id');
   var Grob = id.substring(0, id.lastIndexOf('.'));
   return(Grob);
-}
-
-//creating group labels:
-function gLabel(i) {
-var panel = document.getElementsByTagName('g')[0];
-var gEl = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    gEl.setAttributeNS(null, 'id', 'gLabel' + i);
-    gEl.setAttributeNS(null, 'class', 'gLabel invisible');
-    panel.appendChild(gEl);
-  }
-
-//function to create rectangles for labels:
-function gRect(i) {
-    var gRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        gRect.setAttributeNS(null, 'id', 'gRect' + i);
-        gRect.setAttributeNS(null, 'class', 'gRect');
-    gLabel = document.getElementById('gLabel' + i);
-    gLabel.appendChild(gRect);
-    //insert as the first!
-    gLabel.insertBefore(gRect, gLabel.childNodes[0])
-  };
-
-function label(id, textinput, i, tf) {
-  //attributes for the text SVG element
-    var label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      label.setAttributeNS(null, 'transform', 'translate('+ (x) + ', ' + (y + tf) +') scale(1, -1)');
-      label.setAttributeNS(null, 'id', id + i);
-      label.setAttributeNS(null, 'class', 'label' + ' ' + id);
-
-  // Creating the text label element:
-    var textNode = document.createTextNode(textinput);
-
-      label.appendChild(textNode);
-      var gLabel = document.getElementById('gLabel' + i);
-      gLabel.appendChild(label);
-  };
-
-//creating tspan labels - for customizing text in bold:
-
-function tLabel(id, textinput, i, lab) {
-    var tLabel = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-    tLabel.setAttributeNS(null, 'class', 'tLabel' + ' ' + id);
-    tLabel.setAttributeNS(null, 'id', id + '.' + i);
-
-    var textNode = document.createTextNode(textinput);
-    tLabel.appendChild(textNode);
-    lab.appendChild(tLabel);
-
-  }
-
-// draw rectangles to labels according to size of label:
-function drawRectLabel(i) {
-  var gLabel = document.getElementById('gLabel' + i);
-  rectParam = gLabel.getBBox();
-  var gRect = document.getElementById('gRect' + i);
-  gRect.setAttribute('x', rectParam.x-5);
-  gRect.setAttribute('y', rectParam.y-2);
-  gRect.setAttribute('width', rectParam.width+10);
-  gRect.setAttribute('height', rectParam.height+4);
-}
-
-//detach rectangle labels:
-function detachRectLabel(i) {
-  var gRect = document.getElementById('gRect' + i);
-  var parent = gRect.parentNode;
-  parent.removeChild(gRect);
 }
 
 //hide lines in bar plots:
@@ -209,9 +123,7 @@ function hideBarLines() {
   }
 }
 
-/* ------------------------------------------
-FUNCTIONS FOR BOXPLOTS
---------------------------------------------*/
+//FUNCTIONS FOR BOXPLOTS
 
 // returns the minimum and maximum line id of the box plot:
 function getMinMaxLinesId() {
@@ -289,7 +201,6 @@ function boxLabelSet(p, r, q, textinput) {
   boxLabel(text);
 };
 
-
 // Boxplot Interactions:
 //on hover:
 function fillBox() {
@@ -319,29 +230,7 @@ function hideBox() {
   }
 }
 
-/* ------------------------------------------
-FUNCTIONS FOR INTERACTING WITH PLOT OBJECTS
-plotObjects: bar, hexbin, histBar, point.
---------------------------------------------*/
-light = function(i, className) {
-  var plotObject = document.getElementById(Grob + '.' + i);
-  plotObject.classList.add(className);
-
-  var gLabel = document.getElementById('gLabel' + i);
-  gLabel.classList.remove('invisible');
-};
-
-normal = function(i, className) {
-  var plotObject = document.getElementById(Grob + '.' + i);
-  plotObject.classList.remove(className);
-
-  var gLabel = document.getElementById('gLabel' + i);
-  gLabel.classList.add('invisible');
-};
-
-/* ------------------------------------------
-FUNCTIONS FOR INTERACTING WITH LEGEND
---------------------------------------------*/
+//FUNCTIONS FOR INTERACTING WITH LEGEND
 // hover on a legend group:
 show = function(i) {
   var keyText = document.getElementById(text[i+3].id);
@@ -367,9 +256,7 @@ out = function(i) {
 
 };
 
-/* ------------------------------------------
-FUNCTIONS FOR HIGHLIGHTING TABLE ROWS
---------------------------------------------*/
+//FUNCTIONS FOR HIGHLIGHTING TABLE ROWS
 // highlight rows in table corresponding to selection (link to table):
 returnRowSelection = function(lp, dataRow) {
   dataRow.style.backgroundColor = "rgba" + lp + ", 0.25)";
@@ -400,84 +287,30 @@ resetTabSelection = function(data) {
   data.style.backgroundColor = "white";
 }
 
-/* ------------------------------------------
-FUNCTIONS FOR CREATING SELECTION DRAG BOX
---------------------------------------------*/
-
-//Creating a  (invisible) selection box for users to drag:
-createSelectionBox = function(Grob) {
-  //putting selection rectangle in a group element:
-  var g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    g.setAttributeNS(null, 'id', 'selectionBox');
-    var panel = document.getElementById(Grob);
-    panel.appendChild(g);
-
-    //create selectionBox:
-  var selectRect = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-    selectRect.setAttributeNS(null, 'id', 'selectRect');
-    selectRect.setAttributeNS(null, 'class', 'selectRect');
-    g.appendChild(selectRect);
-
-}
-
-//Create an additional customised selection labels:
-
-createSelectionLabelGroup = function() {
-  //grouping it together!:
-  var selectionLabelGroup = document.createElementNS("http://www.w3.org/2000/svg", 'g');
-      selectionLabelGroup.setAttributeNS(null, 'class', 'gLabel');
-      selectionLabelGroup.setAttributeNS(null, 'id', 'selectionLabelGroup');
-  var panel = document.getElementsByTagName('g')[0];
-      panel.appendChild(selectionLabelGroup);
-
-  //make a rectangle for this special label:
-  var selectionLabelRect = document.createElementNS("http://www.w3.org/2000/svg", 'rect');
-      selectionLabelRect.setAttributeNS(null, 'class', 'gRect');
-      selectionLabelRect.setAttributeNS(null, 'id', 'selectionLabelRect');
-      selectionLabelGroup.appendChild(selectionLabelRect);
-      return(selectionLabelGroup);
-}
-
-drawSelectRectLabel = function(selectionLabelGroup) {
-  var sRectParam = selectionLabelGroup.getBBox();
-  selectionLabelRect.setAttribute('x', sRectParam.x-5);
-  selectionLabelRect.setAttribute('y', sRectParam.y-2);
-  selectionLabelRect.setAttribute('width', sRectParam.width+10);
-  selectionLabelRect.setAttribute('height', sRectParam.height+4);
-}
-
-selectionLabel = function(id, x, y, textinput) {
-var selectionLabel = document.createElementNS("http://www.w3.org/2000/svg", 'text');
-     selectionLabel.setAttributeNS(null, 'class', 'label');
-     selectionLabel.setAttributeNS(null, 'id', id);
-     selectionLabel.setAttributeNS(null, 'transform', 'translate(' + x +  ',' + y + ') scale(1, -1)');
-    var text = document.createTextNode(textinput);
-    selectionLabel.appendChild(text);
-
-    var selectionLabelGroup = document.getElementById('selectionLabelGroup');
-     selectionLabelGroup.appendChild(selectionLabel);
-   }
-
-
 // Mouse events:
+
+// co-ordinate conversion for svg:
+convertCoord = function(svg, evt) {
+  var pt = svg.createSVGPoint();
+  pt.x = evt.pageX;
+  pt.y = evt.pageY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+
 //MouseDown:
 MouseDown = function(evt) {
-
-  var selectedGroup = document.getElementById('selectionLabelGroup');
-  if (selectedGroup !== null) {
-      selectedGroup.remove();
-     }
-
-    zoomBox["startX"] = evt.pageX - 20; // 20 comes from the padding added to the body.
-    zoomBox["startY"] = evt.pageY - 20;
+  var pt = convertCoord(svg, evt)
+    zoomBox["startX"] = pt.x;
+    zoomBox["startY"] = pt.y;
     zoomBox["isDrawing"] = true;
    selectRect.setAttribute('points',  zoomBox["startX"] + ',' + zoomBox["startY"]);
 };
 
 //MouseUp:
 MouseUp = function(evt) {
+  var pt = convertCoord(svg, evt)
   svg.style.cursor = "default";
-      zoomBox["endX"] = evt.pageX - 20;
-      zoomBox["endY"] = evt.pageY - 20;
+      zoomBox["endX"] = pt.x;
+      zoomBox["endY"] = pt.y;
       zoomBox["isDrawing"] = false;
   };

@@ -18,6 +18,10 @@ __Release date__: 23 March 2017
 - Bumped R version up to 3.0
 - Default line type for all trends is now 1; user can choose alternatives
 
+### Patch 2.7.2 - 18/08/2017
+- Changes to ensure CRAN checks pass
+- More bug fixes in `exportX()` functions
+- Single subset interactive plots and scatterplot maps now available
 
 ***
 # Version 2.6

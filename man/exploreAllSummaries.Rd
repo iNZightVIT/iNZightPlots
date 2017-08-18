@@ -18,4 +18,3 @@ Allows easy access to a summary for every variable in the data set.
 \author{
 tell029
 }
-

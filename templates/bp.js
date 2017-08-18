@@ -1,14 +1,4 @@
-/* JS code for one way (excludes stacked - refer to other file) and
-two way bar plots.
-/*-----------------------------------------------------
-                  Table properties:
-Code to label table cells (with classes or ids), rows,
-columns. Additional headings, conversion to counts and
-percentage buttons are all coded and dynamically inserted
-in HTML via JS.
-Includes buttons relating to table (counts and percentage
-conversion, 'View Table' button).
------------------------------------------------------*/
+/* single bar plots */
 
 //defining table element
 var table = document.getElementById('table'),
@@ -33,7 +23,7 @@ for (i = 1; i <= cellNo; i++) {
     } else if (i % ncol === 1) {
         td[i - 1].setAttribute('id', 'yGroup' + ((i - 1) / ncol + 1));
         td[i - 1].setAttribute('class', 'yGroup');
-      }else if (prop[0].Var1 !== undefined) {
+      }else if (tab[0].var1 !== undefined) {
         td[i - 1].setAttribute('id', 'td' + (((i - (i % ncol)) / ncol + 1) + ((nrow - 1) * (i % ncol - 2))));
     } else if (i < ncol) {
         td[i - 1].setAttribute('class', 'td' + (i - 1));
@@ -45,8 +35,7 @@ for (i = 1; i <= cellNo; i++) {
 //x-header:
 insertXHeader();
 
-// if two way bar plot: additional conversion to counts, percentages, summation and y-headers
-if (prop[0].Var1 !== undefined) {
+if (tab[0].var1 !== undefined) {
 
   //Finding the sum of countsTab:
     var countsTab = [];
@@ -167,6 +156,7 @@ if (prop[0].Var1 !== undefined) {
 };
 
 
+
 //viewTable button:
   viewTable = document.getElementById('viewTable');
   t = true;
@@ -190,27 +180,9 @@ showTable = function() {
   }
 };
 
-/* ---------------------------------------------------------------------------
-BarPlot - code below here assigns and create labels for each bar, and defines
-          some of their properties.
-Anything with prop[0].Var1 != undefined -> signifies two way bar plots.
------------------------------------------------------------------------------- */
-
-var svg = document.getElementsByTagName('svg')[0];
-
-//Increasing plotRegion out to show labels:
-var rect = document.getElementsByTagName('rect')[0],
-    plotRegion = document.getElementsByTagName('rect')[1];
-
-if (rect.x.baseVal.value < 48) { //there's some rectangle that appears on two-way bar plots.
-  var rect = document.getElementsByTagName('rect')[1],
-  plotRegion = document.getElementsByTagName('rect')[2];
-};
-rect.setAttribute('class', 'rect');
-
 // obtaining values from SVG file:
   var Grob = getGrob('bar'),
-    number = counts.length,
+    number = tab.length,
     count = number + 1;
 
 //if the bar plot is colored - has additional bars and polylines to hide!
@@ -219,7 +191,7 @@ var p = document.getElementsByTagName('polygon');
 for (i = 0; i < p.length; i++) {
   if (colorMatch[i+1] == 1) {
    p[i].id = Grob + "." + (i/(number-1));
-   p[i].classList.add('visible');
+   p[i].classList.add('bar');
 } else {
   p[i].classList.add('hidden');
 
@@ -229,147 +201,114 @@ for (i = 0; i < p.length; i++) {
 hideBarLines();
 };
 
+//tooltip:
+var tooltip = d3.select('body').append('div')
+              .attr('class', 'tooltip')
+              .attr('id', 'tooltip')
+              .style('width', '100px')
+              .style('min-height', '50px')
+              .style('visibility', 'hidden');
 
-// Construction of text labels:
-for (i = 1; i <= count; i++) {
-  gLabel(i);
-};
 
-for (i = 1; i <= count; i++) {
-  gRect(i);
+if (colorMatch !== null) {
+  var bars = d3.select('svg').selectAll('.bar');
+  var plotRegion = document.getElementsByTagName('rect')[2];
+} else {
+  var panel = document.getElementById(Grob);
+  var plotRegion = document.getElementsByTagName('rect')[1];
+  var bars = d3.select(panel).selectAll('polygon');
 }
 
-//labels generated using function label() + additional information for co-ordinates
-for (i  = 1; i < count; i++) {
-  var bar = document.getElementById(Grob + '.' + i);
-  bar.setAttribute('class', 'bar');
-  var coords = bar.getAttribute('points');
-  var small = coords.split(" ")[0];
-  var sx = Number(small.split(",")[0]);
-  var sy = Number(small.split(",")[1]);
-  var coordsxy = coords.split(" ")[2];
-  var x = (Number(coordsxy.split(",")[0]) + sx)/2; //co-ordinates based upon SVG elements.
-  var y = Number(coordsxy.split(",")[1]);
+if (tab[0].var1 !== undefined) {
+  var plotRegion = document.getElementsByTagName('rect')[2];
+}
 
-  if (prop[0].Var1 != undefined) { //for two way bar plots
-    var freq = counts[i-1].Freq;
-    var pp = prop[i-1].Freq;
-    var gOne = counts[i-1].Var1;
-    var gTwo = counts[i-1].Var2;
-    var p = 30;
-  } else { // for one way bar plots
-  var freq = counts[i-1].Freq;
-  var pp = prop[i-1].V1;
-  var gOne = counts[i-1].Var1;
-  var gTwo = ' ';
-  };
+// tooltips:
+    bars.data(tab)
+    .attr('class', 'bar')
+    .on('mouseover', function(d){ var el = d3.select(this);
+                                  var coords = el.attr('points');
+                                  var small = coords.split(" ")[0];
+                                  var sx = Number(small.split(",")[0]);
+                                  var coordsxy = coords.split(" ")[2];
+                                  var x = Number(coordsxy.split(",")[0]);
+                                  var xx = x + (sx-x)/2 - 50;
+                                  var y = Number(coordsxy.split(",")[1]) + 60;
+                                  //translate to html co-ordinates
+                                  var tm = this.getScreenCTM()
+                                                   .translate(+ xx, + y);
 
-//position of text labels:
-    if (y-sy < 100) {
-    var p = 30;
-    var q = 45;
-    var r = 60;
-  } else {
-    var p = -60;
-    var q = -45;
-    var r = -30;
-  };
+                                  tooltip.style('visibility', 'visible')
+                                              .style("left", (window.pageXOffset + tm.e)  + "px")
+                                              .style("top", (window.pageYOffset +tm.f)  + "px"); //position needs fixing
+                                  if (tab[0].var1 !== undefined) {
+                                    tooltip.html("<span>" + d.var1 + ' ' + d.var2+ "<br> " + d.pct +
+                                    "%</span>" + "<br>" + d.counts);
+                                  } else {
+                                    tooltip.html("<span>" + d.varx + "<br> " + d.pct +
+                                    "%</span>" + "<br>" + d.counts);
+                                  }})
+    .on('mouseout', function(){tooltip.style("visibility", "hidden");})
+    .on('click', function(d, i) {
+      for(j = 1; j < count; j ++) { //could refactor this?
+        var bar = document.getElementById(Grob + '.' + j);
+          //colors:
+          var l = bar.getAttribute('fill');
+          var lp = l.substring(4, l.length-1);
 
-  //making group labels:
-  label('groupLabel', gOne + ' ' +  gTwo, i, r);
+          if(tab[0].var1 !== undefined) {
+            var row = document.getElementById('tr' + ((j-1)%(nrow-1)+1));
+            resetTabSelection(row);
 
-  // proportion labels:
-  label('propLabel',(Number(pp)*100).toFixed(2) + "%", i, q);
+            data = document.getElementById('td' + j);
+            //it differs due to different formation of tables
 
-  // count labels:
-    label('countLabel', freq, i, p);
+            if ((i+1) == j) {
+              bar.setAttribute('class', 'bar selected');
 
-  // Attach and draw rectangles to labels according to the size of the gLabel (with all labels attached)
-    drawRectLabel(i);
-};
+              returnTabSelection(lp, data);
+
+            } else {
+              bar.setAttribute('class', 'bar none');
+              resetTabSelection(data);
+
+            }
+
+          } else {
+            data = table.getElementsByClassName('td' + j);
+
+              if ((i+1) == j) {
+                bar.setAttribute('class', 'bar selected');
+
+                 for (k = 0; k <= 1; k++) {
+                   data[k].style.backgroundColor = "rgba(" + lp + ",0.5)";
+                   if (k == 1) {
+                     data[k].classList.add('tabSelect');
+                   }
+               }
+
+              } else {
+                bar.setAttribute('class', 'bar none');
+                for (k = 0; k <= 1; k++) {
+                  resetTabSelection(data[k]);
+                  }
+                }
+              }
+          }
+    });
 
 
-/// INTERACTION CODE: Hovers, Clicks, Legends
-//Hovers on bars and labels:
-for (i = 1; i < count; i++) {
-  (function(i){
-    var bar = document.getElementById(Grob + '.' + i);
-    bar.addEventListener("mouseover",function(){light(i, 'light')},false);
-    bar.addEventListener("mouseout", function(){normal(i, 'light')}, false);
-    bar.addEventListener("click", function(){fade(i)}, false);
-    }) (i)
-  };
-
-//table interaction:
-fade = function(i) {
-  for (j = 1; j < count; j ++) { //rows differ for twowayBP.
-
-    var bar = document.getElementById(Grob + '.' + j);
-    //colors:
-    var l = bar.getAttribute('fill');
-    var lp = l.substring(4, l.length-1);
-
-    var gLabel = document.getElementById('gLabel' + j);
-
-  if(prop[0].Var1 != undefined) {
-    var row = document.getElementById('tr' + ((j-1)%(nrow-1)+1));
-    resetTabSelection(row);
-
-    data = document.getElementById('td' + j);
-    //it differs due to different formation of tables
-
-    if (i == j) {
-      bar.setAttribute('class', 'bar selected');
-      gLabel.classList.remove('invisible');
-
-      returnTabSelection(lp, data);
-
-    } else {
-      bar.setAttribute('class', 'bar none');
-      gLabel.classList.add('invisible');
-
-      resetTabSelection(data);
-
-    }
-
-  }  else { // for one way tables.
-
-  data = table.getElementsByClassName('td' + j);
-
-    if (i == j) {
-      bar.setAttribute('class', 'bar selected');
-      gLabel.classList.remove('invisible');
-
-       for (k = 0; k <= 1; k++) {
-         data[k].style.backgroundColor = "rgba(" + lp + ",0.5)";
-         if (k == 1) {
-           data[k].classList.add('tabSelect');
-         }
-     }
-
-    } else {
-      bar.setAttribute('class', 'bar none');
-      gLabel.classList.add('invisible');
-
-      for (k = 0; k <= 1; k++) {
-        resetTabSelection(data[k]);
-    }
-
-      }
-    }
-  }
-};
 
 
 // For one way colored plots and two-way bar plots (where a legend is made on the right)
-if (prop[0].Var1 != undefined) {
+if (tab[0].var1 != undefined) {
   //var percent = JSON.parse(percent); // this is to find the no. of groups for the second variable.
-  var group = percent.length +1;
+  var group = group +1;
 } else {
   var group = count;
 };
 
-if (colorMatch != undefined || prop[0].Var1 != undefined) {
+if (colorMatch != undefined || tab[0].var1 != undefined) {
 
 //LEGEND INTERACTION:
 //grabbing keys and text from the legend:
@@ -397,10 +336,8 @@ info = function(i) {
       var bar = document.getElementById(Grob + '.' + j);
       var l = bar.getAttribute('fill');
       lp = l.substring(4, l.length-1);
-      var gLabel = document.getElementById('gLabel' + j);
-      var gRect = document.getElementById('gRect' + j);
 
-if (prop[0].Var1 != undefined) {
+if (tab[0].var1 !== undefined) {
   var row = document.getElementById('tr' + ((j-1)%(nrow-1)+1));
   var td = document.getElementById('td' + j);
     row.classList.remove('tabSelect');
@@ -410,16 +347,10 @@ if (prop[0].Var1 != undefined) {
   if ((j == i || (j%(group-1)) == i || (j%(group-1)) == 0 && i == (group-1))) {
     //for two-way bar plots
     bar.setAttribute('class', 'bar selected');
-    gLabel.classList.remove('invisible');
-    gRect.classList.add('hidden');
-
     returnTabSelection(lp, row);
 
       } else {
       bar.setAttribute('class', 'bar none');
-      gLabel.classList.add('invisible');
-      gRect.classList.remove('hidden');
-
       resetTabSelection(row);
 
      }
@@ -429,14 +360,12 @@ if (prop[0].Var1 != undefined) {
 
 if (i == j) {
   bar.setAttribute('class', 'bar selected');
-  gLabel.classList.remove('invisible');
 
   for (k = 0; k <= 1; k++) {
     returnTabSelection(lp, data[k]);
 }
     } else {
     bar.setAttribute('class', 'bar none');
-    gLabel.classList.add('invisible');
 
     for (k = 0; k <= 1; k++) {
       resetTabSelection(data[k]);
@@ -453,13 +382,7 @@ reset = function() {
    var bar = document.getElementById(Grob + '.' + i);
     bar.setAttribute('class', 'bar');
 
-     var gLabel = document.getElementById('gLabel' + i);
-     gLabel.classList.add('invisible');
-
-     var gRect = document.getElementById('gRect' + i);
-     gRect.classList.remove('hidden');
-
-     if(prop[0].Var1 != undefined) { // for two way bar plots
+     if(tab[0].var1 != undefined) { // for two way bar plots
        var row = document.getElementById('tr' + ((i-1)%(nrow-1)+1));
         var td = document.getElementById('td' + i);
 
@@ -467,7 +390,6 @@ reset = function() {
 
         td.classList.remove('tabSelect');
         td.setAttribute('style', 'inherit');
-
 
      } else { // for one way bar plots
      var data = document.getElementsByClassName('td' + i);
@@ -478,5 +400,6 @@ reset = function() {
  }
  };
 
-// other ways to deselect;
+
+//plot region reset:
   plotRegion.addEventListener("click", reset, false);

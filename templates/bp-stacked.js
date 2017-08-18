@@ -1,5 +1,5 @@
 /*-------------------------------------------------------------------
-JS code for one way stacked bar plots:
+JS code for stacked bar plots:
 
 Note: this is slightly different to the 2 way table of count due
 to the stacking nature and different information being displayed.
@@ -15,7 +15,7 @@ var table = document.getElementById('table');
     cellNo = td.length; // no. of cells in table
 
   // labelling rows:
-for (i = 1; i < nrow; i ++) {
+for (var i = 1; i < nrow; i ++) {
   if(i == nrow-2) { // last two rows are the rows containing totals and counts
     tr[i].setAttribute('class', 'tc');
   } else if (i == nrow-1) {
@@ -26,8 +26,8 @@ for (i = 1; i < nrow; i ++) {
 };
 
 //finding no. of rows, and labelling
-for (j = 1; j <ncol; j++) {
-for (i = 1; i <= cellNo; i ++) {
+for (var j = 1; j <ncol; j++) {
+for (var i = 1; i <= cellNo; i ++) {
 
   if (i % ncol == 1){
     td[i-1].setAttribute('id', 'yGroup' + ((i-1)/ncol + 1));
@@ -61,7 +61,6 @@ var sum = countsTab.reduce(function(a, b) { return a + b; }, 0);
 insertXHeader();
 insertYHeader();
 
-
 //Creating buttons and conversion functions:
 button("Percentage");
 button("Count");
@@ -72,7 +71,7 @@ changePercentage = function() {
   addClass('ButtonPercentage', 'dark');
   removeClass('ButtonCount', 'dark');
 
-  for (i = 1; i <= cellNo; i++) {
+  for (var i = 1; i <= cellNo; i++) {
       var td = document.getElementById('td' + i);
       var total = document.getElementById('tc' + ((i-1)%ncol));
       var countsCol = document.getElementById('counts' + ((i-1)%ncol));
@@ -144,18 +143,10 @@ showTable = function() {
   }
 };
 
-/*------------------------------------------------------------------
-                  Bar plot properties:
-Code to identify bars, show and hide lines and appropriate bars.
-Addition of appropriate labels to each bar.
--------------------------------------------------------------------*/
+//bar plot - add tooltips:
 
 var svg = document.getElementsByTagName('svg')[0],
-    rect = document.getElementsByTagName('rect')[1];
-rect.setAttribute('class', 'rect');
-
-var count = counts.length*colorMatch.length + 1, //total no. of different combinations
-    groups = counts.length; // no. of groups (corresponds to one of the variables)
+     count = tab.length; //total no. of different combinations
 
 //Identifying bars
 
@@ -163,123 +154,85 @@ Grob = getGrob('bp-stacked');
 
 //hide underlying bars:
 var  p = document.getElementsByTagName('polygon');
-for (i = 1; i < p.length; i++) {
+for (i = 0; i < p.length; i++) {
   if (p[i].id.indexOf(Grob) >= 0) {
-    p[i].classList.add('visible');
+    p[i].classList.add('bar');
   } else {
     p[i].classList.add('hidden');
   }
 };
 
-
 //getting rid of polylines:
 hideBarLines();
 
+//tooltip:
+var tooltip = d3.select('body').append('div')
+              .attr('class', 'tooltip')
+              .attr('id', 'tooltip')
+              .style('width', '100px')
+              .style('min-height', '50px');
 
-//creating labels:
-for (i = 1; i < count; i++) {
-  gLabel(i);
+if (colorMatch !== null) {
+    var bars = d3.select('svg').selectAll('.bar');
+    var plotRegion = document.getElementsByTagName('rect')[2];
+} else {
+    var panel = document.getElementById(Grob);
+    var plotRegion = document.getElementsByTagName('rect')[1];
+    var bars = d3.select(panel).selectAll('polygon');
 }
 
-for (i = 1; i < count; i++) {
-  gRect(i);
-}
+// tooltips:
+bars.data(tab)
+.attr('class', 'bar')
+.on('mouseover', function (d) {
+    var el = d3.select(this);
+    var coords = el.attr('points');
+    var small = coords.split(" ")[0];
+    var sx = Number(small.split(",")[0]);
+    var coordsxy = coords.split(" ")[2];
+    var lx = Number(coordsxy.split(",")[0]);
+    var xx = lx + (sx-lx)/2 - 50;
+    var y = Number(coordsxy.split(",")[1]) + 60;
+    //translate to html co-ordinates
+    var tm = this.getScreenCTM()
+                     .translate(+ xx, + y);
 
-//labels generated using function label() + additional information for co-ordinates
-for (j = 1; j <= groups; j++) {
-for (i  = 1; i < count; i++) {
-  var bar = document.getElementById(Grob + '.' + i);
+    tooltip.style('visibility', 'visible')
+                .style("left", (window.pageXOffset + tm.e)  + "px")
+                .style("top", (window.pageYOffset +tm.f)  + "px")
+                .html("<span>" + d.Var1 + ' ' + d.Var2 + "<br> " + d.pct +
+                "%</span>" + "<br>" +
+                d.counts);
+})
+ .on('mouseout', function (d) {
+     tooltip.style('visibility', 'hidden');
+ })
+.on('click', function (d, i) {
+    for (var j = 1; j <= count; j++) { //individuals
+        var bar = document.getElementById(Grob + '.' + j);
+        //colors:
+        var l = bar.getAttribute('fill');
+        var lp = l.substring(4, l.length - 1);
 
-  var coords = bar.getAttribute('points');
-  var small = coords.split(" ")[1];
-  var sx = Number(small.split(",")[0]);
-  var coordsxy = coords.split(" ")[2];
-  var x = (Number(coordsxy.split(",")[0]) + sx)/2; //co-ordinates of where we want to place label.
-  var y = Number(coordsxy.split(",")[1]);
+        var data = table.getElementsByClassName('td' + j)[0];
 
-  if (i%groups == j) { //TODO: avoid using eval.
-      var text = counts[j-1].Var1 + "\n" + colorMatch[Math.floor((i+groups-1)/groups-1)]._row;
-      label('groupLabel', text, i, -30);
-
-      var text = Math.round(eval("colorMatch[Math.floor((i+groups-1)/groups-1)]['" + counts[j-1].Var1 + "']")*counts[j-1].Freq) + ", " ;
-      label('countLabel', text, i, -45);
-
-      var text = ((eval("colorMatch[Math.floor((i+groups-1)/groups-1)]['" + counts[j-1].Var1 + "']")*100).toFixed(2)) + "%";
-      tLabel('propLabel', text, i , document.getElementById('countLabel' + i));
-
+        //relate to table
+        if ((i+1) == j) {
+            returnTabSelection(lp, data);
+        } else {
+            resetTabSelection(data);
+        }
     }
+})
 
-    if (i%groups == 0 && j == groups) { // for the last bar (closest to the left!)
-
-      var text = counts[groups-1].Var1 + "\n" + colorMatch[Math.floor((i+groups-1)/groups-1)]._row;
-      label('groupLabel', text, i, -30);
-
-      var text = Math.round(eval("colorMatch[Math.floor((i+groups-1)/groups-1)]['" + counts[groups-1].Var1 + "']")*counts[groups-1].Freq) + ", ";
-      label('countLabel',text, i, -45);
-
-      var text = ((eval("colorMatch[Math.floor((i+groups-1)/groups-1)]['"  + counts[counts.length-1].Var1 + "']")*100).toFixed(2)) + "%";
-      tLabel('propLabel', text, i, document.getElementById('countLabel' + i));
-
-    }
-
-  }
-};
-
-//Attach rectangles to lables + setting styles:
-for (i  = 1; i < count; i++) {
-// Attach and draw rectangles to labels according to the size of the gLabel (with all labels attached)
-  drawRectLabel(i);
-};
-
-
-// INTERACTION CODE: Event handlers
-//Hovers on bars and labels:
-for (i = 1; i < count; i++) {
-  (function(i){
-    var bar = document.getElementById(Grob + '.' + i);
-    bar.addEventListener("mouseover",function(){light(i,'light')},false);
-    bar.addEventListener("mouseout", function(){normal(i, 'light')}, false);
-    bar.addEventListener("click", function(){fade(i)}, false); //defined below
-    }) (i)
-  };
-
-//table interaction:
-fade = function(i) {
-  for (j = 1; j < count; j ++) { //individuals
-    var bar = document.getElementById(Grob + '.' + j);
-    //colors:
-    var l = bar.getAttribute('fill');
-    var lp = l.substring(4, l.length-1);
-
-    var gLabel = document.getElementById('gLabel' + j);
-    var data = table.getElementsByClassName('td' + j)[0];
-
-    if (i == j) {
-      gLabel.classList.remove('invisible');
-
-      // Relation to table:
-      returnTabSelection(lp, data);
-
-    }  else {
-        gLabel.classList.add('invisible');
-
-      //Relation to table
-      resetTabSelection(data);
-
-    }
-  }
-};
 
 //Return  - reset button:
  reset = function() {
-   for (i = 1; i < count; i++) {
-
-    var gLabel = document.getElementById('gLabel' + i);
-    gLabel.classList.add('invisible');
+   for (var i = 1; i <= count; i++) {
 
      data = table.getElementsByClassName('td' + i)[0];
      resetTabSelection(data);
- }
+   }
 
  addClass('table', 'hidden');
  addClass('ButtonPercentage', 'hidden');
@@ -291,5 +244,4 @@ var viewTable = document.getElementById('viewTable');
  };
 
 //another way to reset:
-var plotRegion = document.getElementsByTagName('rect')[2];
 plotRegion.addEventListener('click', reset, false);
