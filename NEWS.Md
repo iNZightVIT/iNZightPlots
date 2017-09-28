@@ -23,6 +23,9 @@ __Release date__: 23 March 2017
 - More bug fixes in `exportX()` functions
 - Single subset interactive plots and scatterplot maps now available
 
+### Patch 2.7.3 - TBA
+- Just a few more improvements for interactive plots.
+
 ***
 # Version 2.6
 __Release date__: 12 December 2016
