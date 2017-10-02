@@ -4,10 +4,9 @@
 #' Currently only handles single panel plots. Coloured hex plots are currently not available yet.
 #'
 #' @details
-#' Generates an appropriate HTML table, converts data objects into JSON and retrieves a JavaScript file based upon the plot. Converts the plot to an svg,
-#' and inserts the svg plot, table, and JavaScript into the an HTML template to produce the page that is viewed in the browser.
-#' This function acts as generic function (either takes in function or iNZight plot object) and is comprised of two other functions.
-#' \code{getTable} aims to construct the appropriate table for the plot using information stored in the iNZight plot object, or data provided.
+#' Generates HTML table, SVG plot, converts data objects into JSON and retrieves a JavaScript file based upon plot type. 
+#' This function is comprised of two other functions.
+#' \code{getTable} constructs the HTML table for the plot using information stored in the iNZight plot object, or data provided.
 #' \code{convertToJS} converts appropriate data into JSON and writes the appropriate JS file to give interactivity to the HTML page.
 #'
 #' @param x An iNZight plot object or function (such as updatePlot) that captures iNZight environment
@@ -112,29 +111,25 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
   if (is.null(tbl)) {
     HTMLtable <- '<p> No table available. </p>'
   } else {
-
     HTMLtable <- print(xtable::xtable(tbl$tab, caption = tbl$cap, auto = TRUE),
-                       type = "html", html.table.attributes= 'class="table table-fit table-responsive table-striped table-bordered hidden" id="table"',
+                       type = "html", html.table.attributes = 'class="table table-striped table-bordered hidden" id="table"',
                        caption.placement = "top", align = "center",
                        include.rownames = tbl$includeRow, print.results = FALSE)
   }
 
-
-  #Getting JS file  + JSON (refer to convertToJS function):
+  #Get JS file  + JSON
   jsData <- convertToJS(plot, tbl)
 
-
-  #bind JSON to grid plot:
+  #bind JSON to grid plot, generate SVG
   gridSVG::grid.script(do.call("paste", c(jsData[-length(jsData)], sep="\n ")), inline = TRUE, name = "linkedJSONdata")
-
   svgOutput <- gridSVG::grid.export(NULL)$svg
 
-  #get JS code associated with plot:
+  #get JS code associated with plot type
   jsCode <-  jsData$jsFile
 
   svgCode <- paste(capture.output(svgOutput), collapse = "\n")
 
-  #remove svg file and other scripts:
+  #remove svg file and other scripts
   grid.remove("linkedJSONdata")
 
   #finding places where to substitute code:
@@ -157,11 +152,6 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
 
   HTMLtemplate[tableLineOne] <- HTMLtable
   HTMLtemplate[svgLine] <- svgCode
-
-  #scale columns according to devsize width - need to revise this - conflicts with png
-  if (dev.size()[1] <= 8) {
-    HTMLtemplate <- gsub("col-md-12 col-lg-12", "col-md-6 col-lg-6", HTMLtemplate)
-  }
 
   # Writing it out to an HTML file:
   write(HTMLtemplate, file)
@@ -232,15 +222,12 @@ getTable.inzbar <- function(plot, x) {
     ## different table for two way bar plots
     tab  = cbind(round(prop,4), format(round(rowSums(prop),4), nsmall = 4), rowSums(counts))
     colnames(tab)[(ncol(prop)+1):ncol(tab)] <- c("Total", "Row N")
-
   } else if (!is.null(colorMatch) && (all(c(0, 1) %in% colorMatch) == FALSE)) { ## for stacked bar plots
-
     ##creation of a special two-way table for stacked bars
     colorMatchRev <- colorMatch[nrow(colorMatch):1, ]
     proportions <- round(rbind(colorMatchRev, colSums(colorMatchRev)), 4)
     tab <- rbind(proportions,counts)
     rownames(tab)[nrow(proportions):nrow(tab)] <- c("Total", "Col N")
-
   } else {
     ##creating table for 1 way plots
     tab <- rbind(counts, round(prop*100,2))
@@ -263,11 +250,11 @@ getTable.inzhist <- function(plot, x) {
 
   #extracting information:
   #plot <- x$all$all or plot <- x$all[[1]]
-
   toPlot <- plot$toplot$all
   intervals <- toPlot$breaks
   counts <- toPlot$counts
   n <- attributes(x)$total.obs
+  
   if (attributes(x)$total.missing != 0) {
     n <- attributes(x)$total.obs - attributes(x)$total.missing
   }
@@ -289,8 +276,8 @@ getTable.inzhist <- function(plot, x) {
 
 }
 
-getTable.inzdot <- function(plot, x) {
-
+getTable.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
+  
   plots <- plot$toplot
   levels <- names(plots)
   varNames <-attributes(x)$varnames
@@ -310,37 +297,27 @@ getTable.inzdot <- function(plot, x) {
     tab <- do.call("rbind", data)
     colnames(tab) <- c(attributes(x)$varnames$x, attributes(x)$varnames$y)
 
-
   } else { #for single dot plots
-
-
-    #Need to order.
-    #data <- data[order(varX), ] # if plot.features order = -1 works, then remove this and the next line of code.
-    #rownames(data) <- 1:nrow(data)
-
+    
+    plot <- plot$toplot$all
+    order <- attr(plot, "order")
+    
     #DEFAULT: only shows variables plotted.
-    xVal <- plot$toplot$all$x
+    xVal <- plot$x
     tab <- as.data.frame(xVal)
-    names(tab) <- attributes(x)$varnames$x
-
-    if (!is.null(plot$toplot$all$colby)) {
-      colby <- plot$toplot$all$colby
-      tab <- cbind(tab, colby)
-      names(tab)[ncol(tab)] <- attributes(x)$varnames$colby
-    }
-
-    if (!is.null(plot$toplot$all$sizeby)) {
-      sizeby <- plot$toplot$all$sizeby
-      tab <- cbind(tab, sizeby)
-      names(tab)[ncol(tab)] <- attributes(x)$varnames$sizeby
-    }
+    names(tab) <- varNames$x
+    
+    #variable selection
+    tab <- varSelect(x, extra.vars, plot, data, tab, xVal, 
+                     NULL, order, varNames)
 
   }
 
   ##Attributes for HTML table
   cap <- "Data"
   includeRow <- FALSE
-  tableInfo <- list(caption = cap, includeRow = includeRow, tab = tab, varNames = varNames)
+  tableInfo <- list(caption = cap, includeRow = includeRow, 
+                    tab = tab, varNames = varNames)
   return(tableInfo)
 
 }
@@ -353,81 +330,14 @@ getTable.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
   xVal <- plot$x
   yVal <- plot$y
   order <- plot$point.order
-
+  varNames <- attributes(x)$varnames
+  
   tab <- cbind(as.data.frame(xVal), as.data.frame(yVal))
+  names(tab) <- c(varNames$x, varNames$y)
+  #test for variable selection:
+  tab <- varSelect(x, extra.vars, plot, data, tab, 
+                   xVal, yVal, order, varNames)
   
-  #if the plot type has a map via iNZightMaps, remove 'expression' values:
-  if (x$gen$opts$plottype == "map") {
-    ## only if the two values are longitude and latitude...
-    varnamex <- "Longitude"
-    varnamey <- "Latitude"
-    names(tab) <- c(varnamex, varnamey)
-  } else {
-    names(tab) <- c(attributes(x)$varnames$x, attributes(x)$varnames$y)
-  }
-  
-
-  #if there's a colby variable
-  if (!is.null(plot$colby)) {
-    colby <- plot$colby
-    tab <- cbind(tab, as.data.frame(colby))
-    names(tab)[ncol(tab)] <- attributes(x)$varnames$colby
-  }
-
-  #if there's a sizeby variable
-  if (!is.null(attributes(x)$varnames$sizeby)) {
-    sizeby <- plot$propsize # TODO: might change this to actual values rather than proportions.
-    tab <- cbind(tab, as.data.frame(sizeby))
-    names(tab)[ncol(tab)] <- attributes(x)$varnames$sizeby
-  }
-
-  if (!is.null(extra.vars) && !is.null(data) && (extra.vars != 'all')) {
-
-    #obtain column index
-    colNum <- as.numeric(sapply(extra.vars, function(extra.vars) grep(extra.vars, colnames(data))))
-    #obtain extra data columns
-    extra.cols <- data[order, colNum]
-    #bind altogether
-    tab <- cbind(extra.cols, as.data.frame(xVal), as.data.frame(yVal))
-    
-    #if the plot type has a map via iNZightMaps, remove 'expression' values:
-    if (x$gen$opts$plottype == "map") {
-      ## only if the two values are longitude and latitude...
-      varnamex <- "Longitude"
-      varnamey <- "Latitude"
-      names(tab) <- c(extra.vars, varnamex, varnamey)
-    } else {
-      names(tab) <- c(extra.vars,attributes(x)$varnames$x, attributes(x)$varnames$y)
-    }
-    
-    #if there's a colby variable
-    if (!is.null(plot$colby)) {
-      colby <- plot$colby
-      tab <- cbind(tab, as.data.frame(colby))
-      names(tab)[ncol(tab)] <- attributes(x)$varnames$colby
-    }
-
-    #if there's a sizeby variable
-    if (!is.null(attributes(x)$varnames$sizeby)) {
-      sizeby <- plot$propsize
-      tab <- cbind(tab, as.data.frame(sizeby))
-      names(tab)[ncol(tab)] <- attributes(x)$varnames$sizeby
-    }
-
-  } else if ((ncol(data) < 10) && !is.null(data)) {
-
-    tab <- data[order, ]
-
-  } else if (is.null(data) && !is.null(extra.vars)) {
-
-    warning("Error: no dataset specified to export extra variables! Please specify a dataset.
-            Returning a static HTML plot.")
-    return()
-
-  } else {
-    tab <- tab
-  }
-
   ## Attributes for HTML table
   cap <- "Data"
   includeRow <- FALSE
@@ -450,8 +360,62 @@ getTable.default <- function(plot, x) {
   return()
 }
 
+## Variable selection: for dot plots and scatter plots
+# Used when user wishes to export additional variables in the table/ in tooltips.
+# variable selection: for dot plots and scatter plots
+# allows user to select additional variables to export
+varSelect <- function(x, extra.vars, pl, data, tab, xVal, yVal, order, varNames) {
+  
+  if (!is.null(extra.vars) && !is.null(data) && (extra.vars != 'all')) {
+    
+    #obtain column index
+    colNum <- as.numeric(sapply(extra.vars, function(extra.vars) grep(extra.vars, colnames(data))))
+    #obtain extra data columns
+    extra.cols <- data[order, colNum]
+    #bind altogether
+    
+    if (is.null(yVal)) {
+      tab <- cbind(extra.cols, as.data.frame(xVal))
+      names(tab) <- c(extra.vars, varNames$x)
+    } else {
+      tab <- cbind(extra.cols, as.data.frame(xVal), as.data.frame(yVal))
+      names(tab) <- c(extra.vars, varNames$x, varNames$y)
+    }
+    
+  } else if ((ncol(data) < 10) && !is.null(data)) {
+    tab <- data[order, ]
+  } else if (is.null(data) && !is.null(extra.vars)) {
+    warning("Error: no dataset specified to export extra variables! Please specify a dataset.
+            Returning a static HTML plot.")
+    return()
+  } else {
+    tab <- tab
+    #if the plot type has a map via iNZightMaps, remove 'expression' values:
+    if (x$gen$opts$plottype == "map") {
+      ## only if the two values are longitude and latitude...
+      varnamex <- "Longitude"
+      varnamey <- "Latitude"
+      names(tab) <- c(varnamex, varnamey)
+    }
+    
+    #if there's a colby variable
+    if (!is.null(pl$colby)) {
+      colby <- pl$colby
+      tab <- cbind(tab, as.data.frame(colby))
+      names(tab)[ncol(tab)] <- varNames$colby
+    }
+    
+    #if there's a sizeby variable
+    if (!is.null(varNames$sizeby)) {
+      sizeby <- pl$propsize # TODO: might change this to actual values rather than proportions.
+      tab <- cbind(tab, as.data.frame(sizeby))
+      names(tab)[ncol(tab)] <- varNames$sizeby
+    }
+  }
+  return(tab)
+}
 
-## generating data into JSON + JS code:
+## convert data to JSON
 
 convertToJS <- function(plot, tbl= NULL) UseMethod("convertToJS")
 

@@ -160,8 +160,6 @@ function getBoxes(chartType) {
       polygonBox[i-1].setAttribute('class', 'box');
     }
   }
-  //var boxes = document.getElementsByClassName('box');
-  //return(box);
 }
 
 //functions to create boxLabels:
@@ -288,7 +286,6 @@ resetTabSelection = function(data) {
 }
 
 // Mouse events:
-
 // co-ordinate conversion for svg:
 convertCoord = function(svg, evt) {
   var pt = svg.createSVGPoint();
@@ -299,7 +296,7 @@ convertCoord = function(svg, evt) {
 
 //MouseDown:
 MouseDown = function(evt) {
-  var pt = convertCoord(svg, evt)
+  var pt = convertCoord(svg, evt);
     zoomBox["startX"] = pt.x;
     zoomBox["startY"] = pt.y;
     zoomBox["isDrawing"] = true;
@@ -308,9 +305,22 @@ MouseDown = function(evt) {
 
 //MouseUp:
 MouseUp = function(evt) {
-  var pt = convertCoord(svg, evt)
+  var pt = convertCoord(svg, evt);
   svg.style.cursor = "default";
       zoomBox["endX"] = pt.x;
       zoomBox["endY"] = pt.y;
       zoomBox["isDrawing"] = false;
   };
+
+  var main   = $("#main"),
+      scrw   = main.width (),
+      svg    = $("#svg"),    // assuming you give the SVG an ID of 'svg'
+      tbl    = $("table"),   // if you have >1 table, select via ID
+      svgw   = svg.width (),
+      tblw   = tbl.width (),
+      gutter = 50;         // leave space between SVG and table
+
+  if (svgw + tblw + gutter > scrw) {
+    // add the wide class if the screen is big enough
+    main.addClass ('wide');
+  }

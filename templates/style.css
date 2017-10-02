@@ -9,6 +9,27 @@ but hopefully that can be somehow transferred some other day...)*/
 
 /*** TABLE PROPERTIES ***/
 /*totals column  or totals row */
+
+.svg-div {
+  /* style it for small screens */
+  float: left;
+  margin-right: 50px;
+}
+.tbl-div {
+  /* same story as above, aka "mobile first" */
+  float: left;
+  width: 40%;
+}
+.wide .svg-div {
+  float: left;
+  margin-right: 50px; /* leave space between SVG and table */
+  /* and override anything that needs to change when displaying side-by-side */
+}
+.wide .tbl-div {
+  float: right;
+  min-width: 40%; /* optional */
+}
+
 .tc {
   font-weight:bold;
 }
