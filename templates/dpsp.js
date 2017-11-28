@@ -91,7 +91,7 @@ d3.select(panel).selectAll('use')
       var sOpt = selectVar.selectedOptions;
       var s = [];
       for (j = 0; j < sOpt.length; j++) {
-          s.push(sOpt[j].value);
+          s.push(Number(sOpt[j].value));
         }
 
       for (var j = 0; j < s.length; j++) {
@@ -102,7 +102,7 @@ d3.select(panel).selectAll('use')
        var g = w + t + g;
        var p = s.length;
 
-       if (s[j].indexOf('0') >= 0) {
+       if (s.includes(0)) {
          var g = ' ';
          for (var k = 0; k < names.length; k++) {
            var w = names[k] + ": <span>"

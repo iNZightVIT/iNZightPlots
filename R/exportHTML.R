@@ -4,7 +4,7 @@
 #' Currently only handles single panel plots. Coloured hex plots are currently not available yet.
 #'
 #' @details
-#' Generates HTML table, SVG plot, converts data objects into JSON and retrieves a JavaScript file based upon plot type. 
+#' Generates HTML table, SVG plot, converts data objects into JSON and retrieves a JavaScript file based upon plot type.
 #' This function is comprised of two other functions.
 #' \code{getTable} constructs the HTML table for the plot using information stored in the iNZight plot object, or data provided.
 #' \code{convertToJS} converts appropriate data into JSON and writes the appropriate JS file to give interactivity to the HTML page.
@@ -80,12 +80,12 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
   curdir <- getwd()
   x <- x
   plot <- x$all$all
-  
-  if (is.null(plot)) { 
+
+  if (is.null(plot)) {
     if (length(x$all) == 1) { ## for subsets = 1
       plot <- x$all[[1]]
       } else { ## subsets > 1
-    warning("iNZight doesn't handle interactive panel plots ... yet!")
+    warning("iNZight doesn't handle interactive panel plots yet!")
     return()
       }
   }
@@ -254,7 +254,7 @@ getTable.inzhist <- function(plot, x) {
   intervals <- toPlot$breaks
   counts <- toPlot$counts
   n <- attributes(x)$total.obs
-  
+
   if (attributes(x)$total.missing != 0) {
     n <- attributes(x)$total.obs - attributes(x)$total.missing
   }
@@ -277,7 +277,7 @@ getTable.inzhist <- function(plot, x) {
 }
 
 getTable.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
-  
+
   plots <- plot$toplot
   levels <- names(plots)
   varNames <-attributes(x)$varnames
@@ -298,17 +298,17 @@ getTable.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
     colnames(tab) <- c(attributes(x)$varnames$x, attributes(x)$varnames$y)
 
   } else { #for single dot plots
-    
+
     plot <- plot$toplot$all
     order <- attr(plot, "order")
-    
+
     #DEFAULT: only shows variables plotted.
     xVal <- plot$x
     tab <- as.data.frame(xVal)
     names(tab) <- varNames$x
-    
+
     #variable selection
-    tab <- varSelect(x, extra.vars, plot, data, tab, xVal, 
+    tab <- varSelect(x, extra.vars, plot, data, tab, xVal,
                      NULL, order, varNames)
 
   }
@@ -316,7 +316,7 @@ getTable.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
   ##Attributes for HTML table
   cap <- "Data"
   includeRow <- FALSE
-  tableInfo <- list(caption = cap, includeRow = includeRow, 
+  tableInfo <- list(caption = cap, includeRow = includeRow,
                     tab = tab, varNames = varNames)
   return(tableInfo)
 
@@ -331,13 +331,13 @@ getTable.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
   yVal <- plot$y
   order <- plot$point.order
   varNames <- attributes(x)$varnames
-  
+
   tab <- cbind(as.data.frame(xVal), as.data.frame(yVal))
   names(tab) <- c(varNames$x, varNames$y)
   #test for variable selection:
-  tab <- varSelect(x, extra.vars, plot, data, tab, 
+  tab <- varSelect(x, extra.vars, plot, data, tab,
                    xVal, yVal, order, varNames)
-  
+
   ## Attributes for HTML table
   cap <- "Data"
   includeRow <- FALSE
@@ -365,15 +365,14 @@ getTable.default <- function(plot, x) {
 # variable selection: for dot plots and scatter plots
 # allows user to select additional variables to export
 varSelect <- function(x, extra.vars, pl, data, tab, xVal, yVal, order, varNames) {
-  
-  if (!is.null(extra.vars) && !is.null(data) && (extra.vars != 'all')) {
-    
+
+  if (!is.null(extra.vars) && !is.null(data)) {
+
     #obtain column index
     colNum <- as.numeric(sapply(extra.vars, function(extra.vars) grep(extra.vars, colnames(data))))
     #obtain extra data columns
     extra.cols <- data[order, colNum]
-    #bind altogether
-    
+
     if (is.null(yVal)) {
       tab <- cbind(extra.cols, as.data.frame(xVal))
       names(tab) <- c(extra.vars, varNames$x)
@@ -381,42 +380,36 @@ varSelect <- function(x, extra.vars, pl, data, tab, xVal, yVal, order, varNames)
       tab <- cbind(extra.cols, as.data.frame(xVal), as.data.frame(yVal))
       names(tab) <- c(extra.vars, varNames$x, varNames$y)
     }
-    
-  } else if ((ncol(data) < 10) && !is.null(data)) {
+
+  } else if (ncol(data) < 10 && !is.null(data)) {
     tab <- data[order, ]
   } else if (is.null(data) && !is.null(extra.vars)) {
-    warning("Error: no dataset specified to export extra variables! Please specify a dataset.
-            Returning a static HTML plot.")
-    return()
+    stop("Error: no dataset specified to export extra variables! Please specify a dataset.")
   } else {
     tab <- tab
-    #if the plot type has a map via iNZightMaps, remove 'expression' values:
-    if (x$gen$opts$plottype == "map") {
-      ## only if the two values are longitude and latitude...
-      varnamex <- "Longitude"
-      varnamey <- "Latitude"
-      names(tab) <- c(varnamex, varnamey)
-    }
-    
     #if there's a colby variable
     if (!is.null(pl$colby)) {
       colby <- pl$colby
       tab <- cbind(tab, as.data.frame(colby))
       names(tab)[ncol(tab)] <- varNames$colby
     }
-    
+
     #if there's a sizeby variable
     if (!is.null(varNames$sizeby)) {
-      sizeby <- pl$propsize # TODO: might change this to actual values rather than proportions.
+      sizeby <- pl$propsize 
       tab <- cbind(tab, as.data.frame(sizeby))
       names(tab)[ncol(tab)] <- varNames$sizeby
     }
+  }
+
+  # for maps only:
+  if(x$gen$opts$plottype == "map") {
+    names(tab) <- gsub("expression[(]\\.([[:alpha:]]*)[)]", "\\1", names(tab))
   }
   return(tab)
 }
 
 ## convert data to JSON
-
 convertToJS <- function(plot, tbl= NULL) UseMethod("convertToJS")
 
 convertToJS.inzbar <- function(plot, tbl) {
@@ -430,7 +423,7 @@ convertToJS.inzbar <- function(plot, tbl) {
   pct <- as.data.frame(t(round(prop*100, 2)))
   counts.df <- as.data.frame(counts)
   group <- paste0('var group = ', length(percent), ';')
-  
+
   tab <- cbind(counts, pct)
   colnames(tab) <- c('varx', 'counts', 'pct')
   colCounts = 'var colCounts = null;'
@@ -441,7 +434,7 @@ convertToJS.inzbar <- function(plot, tbl) {
     colnames(tab) <- c("var1", "var2", "pct", "counts")
     tab$pct <- round(tab$pct*100, 2)
     colCounts = paste0("var colCounts = ", jsonlite::toJSON(c("Col N", round(colSums(counts)/tbl$n,4), 1)), ";")
-  } 
+  }
 
   #set order:
   orderJSON = 'var order = null;'
@@ -453,8 +446,8 @@ convertToJS.inzbar <- function(plot, tbl) {
   if (is.null(colorMatch)) { ## test if bar plots have color
     colorMatchJSON = paste("var colorMatch = null;", sep = "");
 
-  } else if ((all(c(0, 1) %in% colorMatch) == TRUE)){ ##test if the bar plot colby is the same
-    
+  } else if ((all(c(0, 1) %in% colorMatch) == TRUE)){ ## test if the bar plot colby is the same
+
     colorMatchJSON = paste("var colorMatch = '", gsub(",", "", jsonlite::toJSON(as.vector(colorMatch))), "';", sep ="")
 
   } else {
@@ -465,25 +458,25 @@ convertToJS.inzbar <- function(plot, tbl) {
     orderJSON <- paste0("var order = ", jsonlite::toJSON(order), ";" )
     colorMatch <- as.table(colorMatch)
     colorMatchJSON = paste("var colorMatch = true;")
-    
+
     tab <- as.data.frame(colorMatch, stringsAsFactors = FALSE)
     tab$pct <- round(tab$Freq*100, 2)
-    
-    #counts are in the counts value - > need to merge on var2
+
+    #counts are in the counts value -> need to merge on var2
     colnames(counts.df) <- c("Var2", "c1")
     tab <- merge(tab, counts.df)
     tab <- tab[order(tab$Var1),]
-    
-    #now calcualte counts:
+
+    #now calculate counts:
     tab$counts <- with(tab, c1*Freq)
     tab <- cbind(tab, order)
     tab <- tab[order(tab$order), ]
-    
+
     ## setting JS: stacked bar plots currently run on a different JS file
     jsFile <- bpstackedJS
 
   }
-  
+
   tabJSON <- paste0("var tab = ", jsonlite::toJSON(tab), ";");
 
   #returning all data in a list:
@@ -503,7 +496,7 @@ convertToJS.inzhist <- function(plot, tbl) {
   upper <- round(intervals[-1], 2)
   counts <- toPlot$counts
   pct <- round(counts/tbl$n*100, 2)
-  
+
   tab <- as.data.frame(cbind(lower, upper, counts, pct))
 
   #To obtain box whisker plot information:
@@ -632,7 +625,7 @@ convertToJS.inzhex <- function(plot, tbl = NULL) {
   xcm <- round(plot$hex@xcm, 2)
   ycm <- round(plot$hex@ycm, 2)
   n <- plot$hex@n
-  
+
   tab <- as.data.frame(cbind(counts, xcm, ycm))
   tab$pct <- round(tab$counts/n*100, 2)
   n <- paste0("var n =", n)
