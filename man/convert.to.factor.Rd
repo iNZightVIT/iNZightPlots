@@ -18,3 +18,4 @@ Convert a numeric variable in to a factor with four levels.
 \author{
 tell029
 }
+
