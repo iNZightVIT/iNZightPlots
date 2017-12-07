@@ -1,5 +1,10 @@
 // COMMON FUNCTIONS FOR SINGLE PANEL PLOTS:
 
+/* set svg with no width, height */
+var svg = document.getElementsByTagName('svg')[0];
+svg.removeAttribute('height');
+svg.removeAttribute('width');
+
 //table functions:
 // insert an x-header:
 function insertXHeader() {
@@ -311,16 +316,3 @@ MouseUp = function(evt) {
       zoomBox["endY"] = pt.y;
       zoomBox["isDrawing"] = false;
   };
-
-  var main   = $("#main"),
-      scrw   = main.width (),
-      svg    = $("#svg"),    // assuming you give the SVG an ID of 'svg'
-      tbl    = $("table"),   // if you have >1 table, select via ID
-      svgw   = svg.width (),
-      tblw   = tbl.width (),
-      gutter = 50;         // leave space between SVG and table
-
-  if (svgw + tblw + gutter > scrw) {
-    // add the wide class if the screen is big enough
-    main.addClass ('wide');
-  }

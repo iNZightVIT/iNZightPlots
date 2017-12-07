@@ -1,13 +1,7 @@
-#' @title ExportHTML
+#' ExportHTML
 #'
-#' @description \code{exportHTML} is designed to export the iNZight plot as a dynamic, interactive HTML page.
+#' \code{exportHTML} is designed to export the iNZight plot as a dynamic, interactive HTML page.
 #' Currently only handles single panel plots. Coloured hex plots are currently not available yet.
-#'
-#' @details
-#' Generates HTML table, SVG plot, converts data objects into JSON and retrieves a JavaScript file based upon plot type.
-#' This function is comprised of two other functions.
-#' \code{getTable} constructs the HTML table for the plot using information stored in the iNZight plot object, or data provided.
-#' \code{convertToJS} converts appropriate data into JSON and writes the appropriate JS file to give interactivity to the HTML page.
 #'
 #' @param x An iNZight plot object or function (such as updatePlot) that captures iNZight environment
 #' @param file Name of temporary HTML file generated
@@ -96,33 +90,36 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
     return()
   }
 
-
   # if it passes the above: work in temp. directory
   setwd(tempdir())
 
-  #Create the table (refer to getTable function):
+  # Get data (refer to getTable function):
   if (is.null(extra.vars) && is.null(data)) {
     tbl <- getTable(plot, x)
   } else {
     tbl <- getTable(plot, x, data, extra.vars)
   }
 
-  #write HTML table using xtable:
+  # write HTML table using xtable:
   if (is.null(tbl)) {
     HTMLtable <- '<p> No table available. </p>'
   } else {
     HTMLtable <- print(xtable::xtable(tbl$tab, caption = tbl$cap, auto = TRUE),
-                       type = "html", html.table.attributes = 'class="table table-striped table-bordered hidden" id="table"',
+                       type = "html", html.table.attributes = 'class="table table-striped table-bordered table-condensed hidden" id="table"',
                        caption.placement = "top", align = "center",
                        include.rownames = tbl$includeRow, print.results = FALSE)
   }
 
-  #Get JS file  + JSON
+  # Get JS file  + JSON
   jsData <- convertToJS(plot, tbl)
 
   #bind JSON to grid plot, generate SVG
   gridSVG::grid.script(do.call("paste", c(jsData[-length(jsData)], sep="\n ")), inline = TRUE, name = "linkedJSONdata")
   svgOutput <- gridSVG::grid.export(NULL)$svg
+
+  # A possibly more permanent solution using the XML package to remove width and height:
+  # only implement this if we end up using the XML package more often
+  # svgOutput <- XML::removeAttributes(doc, .attrs = c("width", "height"))
 
   #get JS code associated with plot type
   jsCode <-  jsData$jsFile
@@ -201,8 +198,8 @@ getTable <- function(plot, x = NULL, data = NULL, extra.vars = NULL)  {
 
 getTable.inzbar <- function(plot, x) {
 
-  #generation of table of counts:
-  #plot <- x$all$all
+  # generation of table of counts:
+  # plot <- x$all$all
 
   prop <- plot$phat
   counts <- plot$tab
@@ -212,24 +209,26 @@ getTable.inzbar <- function(plot, x) {
     n <- attributes(x)$total.obs - attributes(x)$total.missing
   }
 
-  ##for color matching for colby:
+  # color matching for colby:
   colorMatch <- plot$p.colby
 
   prop.df <- as.data.frame(t(prop))
   counts.df <- as.data.frame(counts)
 
-  if (all(percent != 1)) { ## This condition is used to identify if it's a two way plot...
-    ## different table for two way bar plots
+  if (all(percent != 1)) {
+    # This condition is used to identify if it's a two way plot...
+    # different table for two way bar plots
     tab  = cbind(round(prop,4), format(round(rowSums(prop),4), nsmall = 4), rowSums(counts))
     colnames(tab)[(ncol(prop)+1):ncol(tab)] <- c("Total", "Row N")
-  } else if (!is.null(colorMatch) && (all(c(0, 1) %in% colorMatch) == FALSE)) { ## for stacked bar plots
-    ##creation of a special two-way table for stacked bars
+  } else if (!is.null(colorMatch) && (all(c(0, 1) %in% colorMatch) == FALSE)) {
+    # for stacked bar plots
+    # creation of a special two-way table for stacked bars
     colorMatchRev <- colorMatch[nrow(colorMatch):1, ]
     proportions <- round(rbind(colorMatchRev, colSums(colorMatchRev)), 4)
     tab <- rbind(proportions,counts)
     rownames(tab)[nrow(proportions):nrow(tab)] <- c("Total", "Col N")
   } else {
-    ##creating table for 1 way plots
+    # creating table for 1 way plots
     tab <- rbind(counts, round(prop*100,2))
     tab <- cbind(tab, rowSums(tab))
     tab[2,] <- paste0(tab[2,], "%")
@@ -237,18 +236,16 @@ getTable.inzbar <- function(plot, x) {
     rownames(tab) <- c("Counts", "Percent")
   }
 
-  #attributes for HTML table
+  # attributes for HTML table
   cap <- 'Table of Counts and Proportions'
   includeRow <- TRUE
   tableInfo <- list(caption = cap, includeRow = includeRow, tab = tab, n = n)
 
   return(tableInfo)
-
 }
 
 getTable.inzhist <- function(plot, x) {
 
-  #extracting information:
   #plot <- x$all$all or plot <- x$all[[1]]
   toPlot <- plot$toplot$all
   intervals <- toPlot$breaks
@@ -259,7 +256,7 @@ getTable.inzhist <- function(plot, x) {
     n <- attributes(x)$total.obs - attributes(x)$total.missing
   }
 
-  #generation of HTML freq distribution table:
+  # generation of freq distribution table:
   lower <- round(intervals[-length(intervals)], 2)
   upper <- round(intervals[-1], 2)
   interval <- paste(lower, upper, sep ="-")
@@ -273,7 +270,6 @@ getTable.inzhist <- function(plot, x) {
   tableInfo <- list(caption = cap, includeRow = includeRow, tab = tab, n = n)
 
   return(tableInfo)
-
 }
 
 getTable.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
@@ -310,7 +306,6 @@ getTable.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
     #variable selection
     tab <- varSelect(x, extra.vars, plot, data, tab, xVal,
                      NULL, order, varNames)
-
   }
 
   ##Attributes for HTML table
@@ -319,7 +314,6 @@ getTable.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
   tableInfo <- list(caption = cap, includeRow = includeRow,
                     tab = tab, varNames = varNames)
   return(tableInfo)
-
 }
 
 getTable.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
@@ -343,7 +337,6 @@ getTable.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
   includeRow <- FALSE
   tableInfo <- list(caption = cap, includeRow = includeRow, tab = tab)
   return(tableInfo)
-
 }
 
 #No table for hexplots yet!
@@ -351,8 +344,6 @@ getTable.inzhex <- function(plot, x = NULL) {
   warning("No table available for hexbin plots.")
   tableInfo <- NULL;
   return(tableInfo);
-
-
 }
 
 getTable.default <- function(plot, x) {
@@ -360,14 +351,11 @@ getTable.default <- function(plot, x) {
   return()
 }
 
-## Variable selection: for dot plots and scatter plots
+# Variable selection: for dot plots and scatter plots
 # Used when user wishes to export additional variables in the table/ in tooltips.
-# variable selection: for dot plots and scatter plots
-# allows user to select additional variables to export
 varSelect <- function(x, extra.vars, pl, data, tab, xVal, yVal, order, varNames) {
 
   if (!is.null(extra.vars) && !is.null(data)) {
-
     #obtain column index
     colNum <- as.numeric(sapply(extra.vars, function(extra.vars) grep(extra.vars, colnames(data))))
     #obtain extra data columns
@@ -384,7 +372,7 @@ varSelect <- function(x, extra.vars, pl, data, tab, xVal, yVal, order, varNames)
   } else if (ncol(data) < 10 && !is.null(data)) {
     tab <- data[order, ]
   } else if (is.null(data) && !is.null(extra.vars)) {
-    stop("Error: no dataset specified to export extra variables! Please specify a dataset.")
+    stop("Error: no dataset specified to export extra variables! Please specify a dataset.", .call = FALSE)
   } else {
     tab <- tab
     #if there's a colby variable
@@ -396,7 +384,7 @@ varSelect <- function(x, extra.vars, pl, data, tab, xVal, yVal, order, varNames)
 
     #if there's a sizeby variable
     if (!is.null(varNames$sizeby)) {
-      sizeby <- pl$propsize 
+      sizeby <- pl$propsize
       tab <- cbind(tab, as.data.frame(sizeby))
       names(tab)[ncol(tab)] <- varNames$sizeby
     }
@@ -443,15 +431,13 @@ convertToJS.inzbar <- function(plot, tbl) {
   jsFile <- bpJS
 
   #Differentiating between one way bar plots - stacked bars, colored, and non-colored:
-  if (is.null(colorMatch)) { ## test if bar plots have color
+  if (is.null(colorMatch)) {
+    ## test if bar plots have color
     colorMatchJSON = paste("var colorMatch = null;", sep = "");
-
-  } else if ((all(c(0, 1) %in% colorMatch) == TRUE)){ ## test if the bar plot colby is the same
-
+  } else if ((all(c(0, 1) %in% colorMatch) == TRUE)){
+    ## test if the bar plot colby is the same
     colorMatchJSON = paste("var colorMatch = '", gsub(",", "", jsonlite::toJSON(as.vector(colorMatch))), "';", sep ="")
-
   } else {
-
     ## required for stacked bar plots, due to make up of polygons being reversed when plotted
     order <- matrix(1:length(colorMatch), ncol=ncol(colorMatch), byrow = TRUE)
     order <- as.vector(apply(order,1 ,rev))
@@ -474,20 +460,16 @@ convertToJS.inzbar <- function(plot, tbl) {
 
     ## setting JS: stacked bar plots currently run on a different JS file
     jsFile <- bpstackedJS
-
   }
 
   tabJSON <- paste0("var tab = ", jsonlite::toJSON(tab), ";");
-
   #returning all data in a list:
   JSData <- list(tab = tabJSON, colorMatch = colorMatchJSON, colCounts = colCounts, group = group, order = orderJSON, jsFile = jsFile)
   return(JSData)
-
 }
 
 convertToJS.inzhist <- function(plot, tbl) {
 
-  #extracting information:
   ## plot <- x$all$all or plot <- x$all[[1]]
   toPlot <- plot$toplot$all
 
@@ -517,9 +499,7 @@ convertToJS.inzhist <- function(plot, tbl) {
 
   ##Output as a list:
   JSData <- list(data = tabJSON, box = boxJSON, n = n, jsFile = jsFile)
-
   return(JSData)
-
 }
 
 convertToJS.inzdot <- function(plot, tbl) {
@@ -527,9 +507,7 @@ convertToJS.inzdot <- function(plot, tbl) {
   levels = names(plot$toplot)
 
   if (length(levels) > 1) {
-
     plots <- plot$toplot
-
     #create lists:
     levList = list();
     boxList = list();
@@ -537,24 +515,19 @@ convertToJS.inzdot <- function(plot, tbl) {
     countsTab[1] = 0;
 
     for (i in 1:length(levels)) {
-
-      #currently only takes variable plotted
+      # currently only takes variable plotted
       levList[[i]] = plots[[i]]$x
-
       #obtain boxplot information
       box = plot$boxinfo
       quantiles = box[[i]]$quantiles
       min = box[[i]]$min
       max = box[[i]]$max
-
       #get cumulative frequency of counts for each group:
       countsTab[i+1] = sum(plots[[i]]$counts, countsTab[i])
-
       #get boxplot summaries for each group
       boxTable <- rbind(as.data.frame(quantiles), min, max)
       rownames(boxTable)[4:5] <- c("min", "max")
       boxList[[i]] = boxTable
-
     }
 
     #convert to JSON:
@@ -566,12 +539,9 @@ convertToJS.inzdot <- function(plot, tbl) {
 
     #JS:
     jsFile <- multidotJS
-
     JSData <- list(boxList = boxListJSON, levList = levListJSON, countsTab = countsTab, names = names, levNames = levNames, jsFile = jsFile)
 
-
   } else {
-
     #Extracting information:
     colGroupNo <- nlevels(plot$toplot$all$colby)
 
@@ -587,33 +557,23 @@ convertToJS.inzdot <- function(plot, tbl) {
     boxTable <- rbind(as.data.frame(quantiles), min, max)
     rownames(boxTable)[4:5] <- c("min", "max")
 
-    ## Conversion to JSON data:
+    ## JS:
     boxJSON <- paste0("var boxData = ", jsonlite::toJSON(boxTable), ";");
-
-    #JS:
     jsFile <- dpspJS
-
-    #list:
     JSData <- list(names = namesJSON, table = tabJSON, colGroupNo = colGroupNo, box = boxJSON, jsFile = jsFile)
   }
-
   return(JSData)
 }
 
 convertToJS.inzscatter <- function(plot, tbl) {
 
   colGroupNo <- nlevels(plot$colby)
-
   namesJSON <- paste0("var names = ", jsonlite::toJSON(names(tbl$tab)), ";")
   tabJSON <- paste0("var tableData = ", jsonlite::toJSON(tbl$tab), ";")
   colGroupNo <- paste0("colGroupNo = ", colGroupNo, ";")
-
-  #JS file:
+  # JS
   jsFile <- dpspJS
-
-  #list:
   JSData <- list(names = namesJSON, tabs = tabJSON, colGroupNo = colGroupNo, jsFile = jsFile)
-
   return(JSData)
 }
 
@@ -631,12 +591,9 @@ convertToJS.inzhex <- function(plot, tbl = NULL) {
   n <- paste0("var n =", n)
   tabJSON <- paste0("var tab =", jsonlite::toJSON(tab), ';')
 
-  #JS file:
+  # JS
   jsFile <- hexbinJS
-
-  #list:
   JSData <- list(data = tabJSON, n = n, jsFile = jsFile)
-
   return(JSData)
 
 }
