@@ -22,4 +22,3 @@ The default action is for the URL to be 'printed' (opened) in the browser,
 unless `viewer` is specified as something else.
 If `viewer = NULL`, then the URL is printed as a character string.
 }
-

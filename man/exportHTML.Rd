@@ -43,6 +43,7 @@ Currently only handles single panel plots. Coloured hex plots are currently not 
 
 \item \code{inzplotoutput}: method for output from iNZightPlot
 }}
+
 \examples{
 \dontrun{
 x <- iNZightPlot(Petal.Width, Petal.Length, data = iris, colby = Species)
@@ -56,4 +57,3 @@ exportHTML(x, "index.html")
 \author{
 Yu Han Soh
 }
-
