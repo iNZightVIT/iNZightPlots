@@ -1,6 +1,8 @@
 /* NEW TRIAL FOR MULTI- DOTPLOTS: (1 cat, 1 cont variable) */
 
 var svg = document.getElementsByTagName('svg')[0];
+svg.removeAttribute('width');
+svg.removeAttribute('height');
 
 //restrict svg-container for drag box to align
 //var container = document.getElementById('svg-container');

@@ -206,7 +206,7 @@ var tooltip = d3.select('body').append('div')
               .attr('class', 'tooltip')
               .attr('id', 'tooltip')
               .style('width', '100px')
-              .style('min-height', '50px')
+              .style('min-height', '40px')
               .style('visibility', 'hidden');
 
 
@@ -242,11 +242,11 @@ if (tab[0].var1 !== undefined) {
                                               .style("left", (window.pageXOffset + tm.e)  + "px")
                                               .style("top", (window.pageYOffset +tm.f)  + "px"); //position needs fixing
                                   if (tab[0].var1 !== undefined) {
-                                    tooltip.html("<span>" + d.var1 + ' ' + d.var2+ "<br> " + d.pct +
-                                    "%</span>" + "<br>" + d.counts);
+                                    tooltip.html("<span>" + d.var1 + ' ' + d.var2+ "<br/> " + d.pct +
+                                    "%</span>" + "<br/>" + d.counts);
                                   } else {
-                                    tooltip.html("<span>" + d.varx + "<br> " + d.pct +
-                                    "%</span>" + "<br>" + d.counts);
+                                    tooltip.html("<span>" + d.varx + "<br/> " + d.pct +
+                                    "%</span>" + "<br/>" + d.counts);
                                   }})
     .on('mouseout', function(){tooltip.style("visibility", "hidden");})
     .on('click', function(d, i) {

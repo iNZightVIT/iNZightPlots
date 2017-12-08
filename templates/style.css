@@ -7,27 +7,51 @@ but hopefully that can be somehow transferred some other day...)*/
   padding: 20px;
 }
 
+/* layout settings */
+.svg-div {
+  float: left;
+  width: 50%;
+  position: relative;
+}
+
+.tbl-div {
+  float: right;
+   width: 50%; /* optional */
+   overflow-x: scroll;
+}
+
+/* attempt to use media queries */
+@media (max-width: 700px), (orientation: portrait) {
+  .svg-div {
+    float: left;
+    width: 100%;
+  }
+
+  .tbl-div {
+    float: left;
+    width: 100%;
+    overflow-x: scroll;
+  }
+}
+
+#control {
+  clear: left;
+  background-color: #F4F6F7;
+  border: 0.5px #B3B6B7 solid;
+  border-radius: 5px;
+  padding: 10px;
+  margin-right: 10px;
+}
+
+button {
+  margin: 5px;
+}
+
 /*** TABLE PROPERTIES ***/
 /*totals column  or totals row */
 
-.svg-div {
-  /* style it for small screens */
-  float: left;
-  margin-right: 50px;
-}
-.tbl-div {
-  /* same story as above, aka "mobile first" */
-  float: left;
-  width: 40%;
-}
-.wide .svg-div {
-  float: left;
-  margin-right: 50px; /* leave space between SVG and table */
-  /* and override anything that needs to change when displaying side-by-side */
-}
-.wide .tbl-div {
-  float: right;
-  min-width: 40%; /* optional */
+table {
+  width: 100%;
 }
 
 .tc {
@@ -38,12 +62,10 @@ tr {
   align: center;
 }
 
-td {
+td, th {
   text-align: center;
-}
-
-th {
-  text-align: center;
+  word-wrap: break-word;
+  font-size: 13px;
 }
 
 /* xheading and yheading */
@@ -62,9 +84,7 @@ th {
   font-weight: bold;
 }
 
-
 /*** BUTTONS ***/
-
 #viewTable {
   background-color: DeepSkyBlue;
   margin-right: 10px;
@@ -89,7 +109,7 @@ th {
 
 #form {
   display: inline-table;
-  padding: 20px;
+  padding: 5px;
 }
 
 /*** LABEL PROPERTIES ***/
@@ -212,7 +232,6 @@ th {
 }
 
 /* for dot plots and scatter plots */
-
 .point:hover { /* showPoint */
   fill: currentColor;
   stroke-width: 50%;
