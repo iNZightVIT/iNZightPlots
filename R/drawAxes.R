@@ -1,19 +1,22 @@
 drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts, sub = 0, heightOnly = FALSE,
-                     layout.only = FALSE) {
+                     layout.only = FALSE, pos = NULL) {
     if (is.numeric(x)) { 
         switch(which,
                "x" = {
                    if (main) {
-                       grid.xaxis(gp = gpar(cex = opts$cex.axis), main = main, label = label)
+                       grid.xaxis(gp = gpar(cex = opts$cex.axis), main = main, label = label, 
+                                  name = paste(paste0("inz-xaxis-", pos), opts$rowNum, opts$colNum, sep = "."))
                    } else {
                        xlim <- current.viewport()$xscale
                        pushViewport(viewport(x = 0.5, y = 1, height = unit(sub, "in"), just = "bottom",
                                              xscale = xlim))
-                       grid.xaxis(gp = gpar(cex = opts$cex.axis), label = label, main = FALSE)
+                       grid.xaxis(gp = gpar(cex = opts$cex.axis), label = label, main = FALSE, 
+                                  name = paste("inz-xaxis-top", opts$rowNum, opts$colNum, sep = "."))
                        upViewport()
                    }
                }, "y" = {
-                   yax <- yaxisGrob(gp = gpar(cex = opts$cex.axis), main = main, label = label)
+                   yax <- yaxisGrob(gp = gpar(cex = opts$cex.axis), main = main, label = label, 
+                                    name = paste(paste0("inz-yaxis-", pos), opts$rowNum, opts$colNum, sep = "."))
                    if (label)
                        yax <- editGrob(yax, edits =
                                        gEdit("labels", rot = ifelse(main, 90, 270),
@@ -40,7 +43,7 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts, sub = 0, h
                                        just = if (rot) c("right", "top") else "center",
                                        rot = ifelse(rot, 30, 0),
                                        gp = gpar(cex = opts$cex.axis * ifelse(rot, 0.8, 1)),
-                                       name = "labelText")  # label is important!
+                                       name = "inz-labelText")  # label is important!
                    wm <- which.max(nchar(as.character(x.lev)))
                    tt <- textGrob(levels(x)[wm])
                    # save label widths
@@ -85,7 +88,7 @@ addGrid <- function(x = FALSE, y = FALSE, gen, opts) {
         at.Y <- rep(current.viewport()$yscale, length(at.x))
         grid.polyline(at.X, at.Y, id.lengths = rep(2, length(at.X)/2),
                       default.units = "native",
-                      gp = gpar(col = col.grid, lwd = 1))
+                      gp = gpar(col = col.grid, lwd = 1), name = paste("inz-x-grid", opts$rowNum, opts$colNum, sep = "."))
     }
     if (y) {
         at.y <- pretty(gen$LIM[3:4])
@@ -93,6 +96,6 @@ addGrid <- function(x = FALSE, y = FALSE, gen, opts) {
         at.X <- rep(current.viewport()$xscale, length(at.y))
         grid.polyline(at.X, at.Y, id.lengths = rep(2, length(at.Y)/2),
                       default.units = "native",
-                      gp = gpar(col = col.grid, lwd = 1))
+                      gp = gpar(col = col.grid, lwd = 1), name = paste("inz-y-grid", opts$rowNum, opts$colNum, sep = "."))
     }
 }

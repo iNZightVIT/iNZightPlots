@@ -320,7 +320,7 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
         pushViewport(viewport(layout = dpLayout))
 
         pushViewport(viewport(layout.pos.row = 2, xscale = xlim, clip = "on"))
-        if (boxplot) addBoxplot(boxinfo[[i]])
+        if (boxplot) addBoxplot(boxinfo[[i]], opts, i)
         if (!is.null(inflist)) addUnivarInference(inflist, i, opts)
         upViewport()
 
@@ -353,7 +353,7 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
                              cex = opts$cex.dotpt / expand.points, lwd = opts$lwd.pt,
                              alpha = opts$alpha,
                              fill = if (obj$fill.pt == "fill") ptCols else obj$fill.pt),
-                        name = "DOTPOINTS")
+                        name = paste("inz-DOTPOINTS", opts$rowNum, opts$colNum, i, sep = "."))
 
             ## Highlighting:
             if (!is.null(pp$highlight) & length(ptCols) > 1) {
@@ -368,12 +368,14 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
                     grid.points(pp$x[hl], pp$y[hl], pch = 19,
                                 gp =
                                 gpar(col = hcol,
-                                     cex = opts$cex.dotpt * 1.4, lwd = opts$lwd.pt))
+                                     cex = opts$cex.dotpt * 1.4, lwd = opts$lwd.pt),
+                                name = paste("inz-point-highlight-out", opts$rowNum, opts$colNum, i, sep = "."))
 
                     grid.points(pp$x[hl], pp$y[hl], pch = 19,
                                 gp =
                                 gpar(col = ptCols[hl],
-                                     cex = opts$cex.dotpt, lwd = opts$lwd.pt))
+                                     cex = opts$cex.dotpt, lwd = opts$lwd.pt),
+                                name = paste("inz-point-highlight-in", opts$rowNum, opts$colNum, i, sep = "."))
                 }
             }
         }
@@ -383,12 +385,14 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
             if (sum(!is.na(pp$text.labels) > 0) & (length(locID) > 0))
                 grid.text(paste0("  ", pp$text.labels[locID]), pp$x[locID], pp$y[locID],
                           default.units = "native", just = c("left"), rot = 45,
-                          gp = gpar(cex = 0.6))
+                          gp = gpar(cex = 0.6),
+                          name = paste("inz-label-extreme", i, sep = "."))
 
         ## Label group
         if (!is.null(GROUP.names))
             grid.text(GROUP.names[i], x = 0.01, y = 0.98, just = c("left", "top"),
-                      gp = gpar(cex = 0.8))
+                      gp = gpar(cex = 0.8),
+                      name = paste("inz-group-label", i, sep = "."))
     }
 
     seekViewport("VP:dotplot-levels")
@@ -427,8 +431,11 @@ boxSummary <- function(obj, opts) {
 
 
 
-addBoxplot <- function(x) {
+addBoxplot <- function(x, opts, i) {
+    r <- opts$rowNum
+    c <- opts$colNum
     opts <- x$opts
+    
     if (is.null(x))
         return()
 
@@ -436,10 +443,12 @@ addBoxplot <- function(x) {
     yy <- rep(c(0.2, 0.8, 0.8, 0.2), 2)
     id <- rep(1:2, each = 4)
     grid.polygon(unit(xx, "native"), unit(yy, "npc"), id = id,
-                 gp = gpar(lwd = opts$box.lwd[1], fill = opts$box.fill))
+                 gp = gpar(lwd = opts$box.lwd[1], fill = opts$box.fill), 
+                 name = paste("inz-box", r, c, i, sep = "."))
     grid.polyline(unit(c(x$min, x$quantiles[1], x$quantiles[3], x$max), "native"),
                   rep(0.5, 4), id = rep(1:2, each = 2),
-                  gp = gpar(lwd = opts$box.lwd[2]))
+                  gp = gpar(lwd = opts$box.lwd[2]), 
+                  name = paste("inz-box-line", r, c, i, sep = "."))
 
 }
 

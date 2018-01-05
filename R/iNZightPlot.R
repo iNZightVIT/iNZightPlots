@@ -497,33 +497,33 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                                         # split the title text into the appropriate number of lines,
                                         # then calcualate the height of it.
         VPcontainer.width <- convertWidth(unit(1, "npc"), "in", TRUE)
-        main.grob <- textGrob(titles$main, gp = gpar(cex = opts$cex.main))
+        main.grob <- textGrob(titles$main, gp = gpar(cex = opts$cex.main), name = "inz-main-title")
         MAIN.width <- convertWidth(grobWidth(main.grob), "in", TRUE)
         MAIN.lnheight <- convertWidth(grobHeight(main.grob), "in", TRUE)
         if (MAIN.width > 0.9 * VPcontainer.width) {
             titles$main <- gsub(",", ",\n", titles$main)
-            main.grob <- textGrob(titles$main, gp = gpar(cex = opts$cex.main))
+            main.grob <- textGrob(titles$main, gp = gpar(cex = opts$cex.main), name = "inz-main-title")
             MAIN.width <- convertWidth(grobWidth(main.grob), "in", TRUE)
         }
         if (MAIN.width > 0.9 * VPcontainer.width) {
             titles$main <- gsub("subset", "\nsubset", titles$main)
-            main.grob <- textGrob(titles$main, gp = gpar(cex = opts$cex.main))
+            main.grob <- textGrob(titles$main, gp = gpar(cex = opts$cex.main), name = "inz-main-title")
             MAIN.width <- convertWidth(grobWidth(main.grob), "in", TRUE)
         }
         if (MAIN.width > 0.9 * VPcontainer.width) {
             titles$main <- gsub(" (size prop", "\n (size prop", titles$main, fixed = TRUE)
-            main.grob <- textGrob(titles$main, gp = gpar(cex = opts$cex.main))
+            main.grob <- textGrob(titles$main, gp = gpar(cex = opts$cex.main), name = "inz-main-title")
             MAIN.width <- convertWidth(grobWidth(main.grob), "in", TRUE)
         }
         MAIN.height <- convertHeight(grobHeight(main.grob), "in", TRUE) + MAIN.lnheight
 
                                         # -- xaxis labels
         xlab.grob <- textGrob(titles$xlab, y = unit(0.6, "lines"),
-                              gp = gpar(cex = opts$cex.lab))
+                              gp = gpar(cex = opts$cex.lab), name = "inz-xlab")
         XLAB.height <- convertHeight(grobHeight(xlab.grob), "in", TRUE) * 3
                                         # -- yaxis labels
         if (!is.null(titles$ylab)) {
-            ylab.grob <- textGrob(titles$ylab, x = unit(0.6, "lines"),
+            ylab.grob <- textGrob(titles$ylab, x = unit(0.6, "lines"), name = "inz-ylab",
                                   rot = 90, gp = gpar(cex = opts$cex.lab))
             YLAB.width <- convertWidth(grobWidth(ylab.grob), "in", TRUE) * 3
         } else {
@@ -694,7 +694,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         ## --- Figure out a subtitle for the plot:
 
         if (!is.null(dots$subtitle)) {
-            SUB <- textGrob(dots$subtitle, gp = gpar(cex = opts$cex.text * 0.8))
+            SUB <- textGrob(dots$subtitle, gp = gpar(cex = opts$cex.text * 0.8), name = "inz-main-sub-bottom")
         } else {
             subtitle <- ""
             if (missing.info & length(missing) > 0) {
@@ -722,7 +722,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             if (subtitle == "")
                 SUB <- NULL
             else
-                SUB <- textGrob(subtitle, gp = gpar(cex = opts$cex.text * 0.8))
+                SUB <- textGrob(subtitle, gp = gpar(cex = opts$cex.text * 0.8), name = "inz-main-sub-bottom")
         }
 
 
@@ -866,7 +866,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         hspace <- ifelse(any(TYPE %in% c("scatter", "grid", "hex")), 0, 0.01)
         wds <- rep(unit.c(unit(hspace, "npc"), unit(1, "null")), nc)[-1]
 
-        subt <- textGrob("dummy text", gp = gpar(cex = opts$cex.lab, fontface = "bold"))
+        subt <- textGrob("dummy text", gp = gpar(cex = opts$cex.lab, fontface = "bold"), name = "inz-dummy-txt")
         sub.hgt <- unit(convertHeight(grobHeight(subt), "in", TRUE) * 1.2, "in")
         vspace <- if (matrix.plot) sub.hgt else unit(0, "in")
         hgts <- rep(unit.c(vspace, unit(1, "null")), nr)
@@ -907,6 +907,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
             }
 
             for (c in 1:nc) {
+                
+                ## store row and column number
+                opts$rowNum <- r
+                opts$colNum <- c
+
                 if (g2id > NG2) next()
                 C <- c * 2 - 1
 
@@ -935,7 +940,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 p.title <- if (subt == "all") NULL else subt
                 hgt <- unit.c(
                     if (!is.null(p.title)) {
-                        subt <- textGrob(p.title, gp = gpar(cex = opts$cex.lab, fontface = "bold"))
+                        subt <- textGrob(p.title, gp = gpar(cex = opts$cex.lab, fontface = "bold"), name = paste("inz-sub", r, c, sep = "."))
                         if (matrix.plot)
                             sub.hgt
                         else
@@ -951,9 +956,10 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 nameVP <- if (NG1 == 1 && NG2 == 1) "VP:locate.these.points" else paste0("VP:locate.these.points", g2id, g1id)
                 pushViewport(viewport(layout.pos.row = 2, xscale = xlim, yscale = ylim, clip = "on",
                                       name = nameVP))
+                
                 if (!layout.only) {
                     ## background color:
-                    grid.rect(gp = gpar(fill = opts$bg, lty = 0))
+                    grid.rect(gp = gpar(fill = opts$bg, lty = 0), name = paste("inz-plot-bg", r, c, sep = "."))
                     plot(plot.list[[g2id]][[g1id]], gen =
                          list(opts = opts, mcex = multi.cex, col.args = col.args,
                               maxcount = maxcnt, LIM = c(xlim.raw, ylim.raw)))
@@ -962,12 +968,12 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
                 if (!is.null(p.title)) {
                     pushViewport(viewport(layout.pos.row = 1))
-                    grid.rect(gp = gpar(fill = opts$col.sub[1]))
+                    grid.rect(gp = gpar(fill = opts$col.sub[1]), name = paste("inz-sub-bg", r, c, sep = "."))
                     grid.draw(subt)
                     upViewport()
                 }
 
-                grid.rect(gp = gpar(fill = "transparent"))
+                grid.rect(gp = gpar(fill = "transparent"), name = paste("inz-rect-tp", r, c, sep = "."))
 
 
                 ## add the appropriate axes:
@@ -989,16 +995,16 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 opts$ZOOM <- zoombars
                 if (r == nr & xaxis)  # bottom
                     drawAxes(X, "x", TRUE, c %% 2 == 1 | !any(TYPE %in% c("scatter", "grid", "hex")),
-                             opts, layout.only = layout.only)
+                             opts, layout.only = layout.only, pos = "bottom")
 
                 if (c == 1 & (!opts$internal.labels | !any(TYPE %in% c("dot", "hist"))) & yaxis)  # left column
                     drawAxes(if (any(TYPE == "bar")) ylim else Y, "y", TRUE, (nr - r) %% 2 == 0, opts,
-                             layout.only = layout.only)
+                             layout.only = layout.only, pos = "left")
 
                 if (!any(TYPE %in% c("dot", "hist")) & yaxis) {
                     if (c == nc | g1id == NG1) # right column (or last plot in top row)
                         drawAxes(if (any(TYPE == "bar")) ylim else Y, "y", FALSE, (nr - r) %% 2 == 1,
-                                 opts, layout.only = layout.only)
+                                 opts, layout.only = layout.only, pos = "right")
                 }
                 upViewport()
 

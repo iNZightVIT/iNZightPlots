@@ -5,7 +5,7 @@ function(lab, col, pch = opts$pch, cex.mult = 1,
     legcex <- opts$cex.text * cex.mult
 
     title.grob <- textGrob(title, gp = gpar(cex = legcex * opts$cex.lab),
-                           just = c("center"))
+                           just = c("center"), name = "inz-leg-title")
     if (title != "") {
         title.hgt <- convertHeight(grobHeight(title.grob), "in") * 2
         title.wd <- convertWidth(grobWidth(title.grob), "in", TRUE)
@@ -34,7 +34,7 @@ function(lab, col, pch = opts$pch, cex.mult = 1,
                               heights = unit.c(title.hgt, unit(0.5, "lines"),
                                   unit(rep(lab.height, n), "in")))
     
-    fg <- frameGrob(layout = leg.layout)
+    fg <- frameGrob(layout = leg.layout, name = "inz-leg-layout")
     fg <- placeGrob(fg, title.grob, row = 1, col = 1:2)
 
     ## if (opts$reverse.palette)
@@ -45,12 +45,12 @@ function(lab, col, pch = opts$pch, cex.mult = 1,
         fg <- placeGrob(fg, pointsGrob(0.5, 0.5, pch = pch[i],
                                        gp =
                                        gpar(col = col[i], cex = legcex, lwd = opts$lwd.pt,
-                                            fill = col[i])),
+                                            fill = col[i]), name = paste("inz-leg-pt", i, sep = "-")),
                         col = 1, row = i + 2)
        
         fg <- placeGrob(fg, textGrob(lab[i], x = 0 , y = 0.5,
                                      just = c("left", "center"),
-                                     gp = gpar(cex = legcex)),
+                                     gp = gpar(cex = legcex), name = paste("inz-leg-txt", i, sep = "-")),
                         col = 2, row = i + 2)
     }
     
@@ -63,7 +63,7 @@ drawContLegend <- function(var, title = "", height = NULL, cex.mult = 1,
     legcex <- opts$cex.text * cex.mult
 
     title.grob <- textGrob(title, gp = gpar(cex = legcex * opts$cex.lab),
-                           just = c("center"))
+                           just = c("center"), name = "inz-leg-cont-title")
     title.hgt <- convertHeight(grobHeight(title.grob), "in") * 2
 
     vp <- viewport(yscale = range(var, na.rm = TRUE))
@@ -96,11 +96,11 @@ drawContLegend <- function(var, title = "", height = NULL, cex.mult = 1,
     n.cols <- if (!is.null(opts$col.fun)) opts$col.fun(200) else opts$col.default$cont(200)
     ## if (opts$reverse.palette)
     ##     n.cols <- rev(n.cols)
-    poly <- polygonGrob(xx, yy, id = id, gp = gpar(lty = 0, fill = n.cols, stroke = NA))
+    poly <- polygonGrob(xx, yy, id = id, gp = gpar(lty = 0, fill = n.cols, stroke = NA), name = "inz-leg-cont-scale")
     
-    fg <- frameGrob(layout = legend.layout)
+    fg <- frameGrob(layout = legend.layout, name = "inz-leg-layout")
     fg <- placeGrob(fg, poly, row = 3, col = 1)
-    fg <- placeGrob(fg, rectGrob(width = unit(rect.wd, "in"), gp = gpar(fill = "transparent")),
+    fg <- placeGrob(fg, rectGrob(width = unit(rect.wd, "in"), gp = gpar(fill = "transparent"), name = "inz-leg-rect-tp-cont"),
                     col = 1, row = 3)
     fg <- placeGrob(fg, title.grob, row = 1, col = 1:2)
     fg <- placeGrob(fg, yax, row = 3, col = 1)
@@ -108,10 +108,10 @@ drawContLegend <- function(var, title = "", height = NULL, cex.mult = 1,
     if (any.missing) {
         fg <- placeGrob(fg, pointsGrob(0.5, 0.5, pch = 21, gp =
                                        gpar(col = opts$col.missing, cex = legcex,
-                                            lwd = opts$lwd.pt, fill = opts$col.missing)),
+                                            lwd = opts$lwd.pt, fill = opts$col.missing), name = "inz-leg-miss-pt"),
                         row = 5, col = 1)
         fg <- placeGrob(fg, textGrob("missing", x = unit(1, "lines"), y = 0.5, just = c("left", "center"),
-                                     gp = gpar(cex = legcex * opts$cex.axis)),
+                                     gp = gpar(cex = legcex * opts$cex.axis), name = "inz-leg-miss-lab"),
                     col = 2, row = 5)
     }
     
@@ -197,17 +197,18 @@ drawLinesLegend <- function(x, opts = inzpar(), cex.mult = 1) {
                               widths = unit.c(unit(2, "lines"), unit(lab.width, "in"), unit(0.5, "lines")),
                               heights = unit.c(unit(2, "lines"), unit(rep(lab.height, n), "in")))
     
-    fg <- frameGrob(layout = leg.layout)
+    fg <- frameGrob(layout = leg.layout, name = "inz-leg-lines")
 
     for (i in 1:n) {
         fg <- placeGrob(fg, linesGrob(c(0.2, 0.8), 0.5,
                                        gp =
-                                       gpar(col = col[i], lty = lty[i], lwd = lwd[i] * 2)),
+                                       gpar(col = col[i], lty = lty[i], lwd = lwd[i] * 2), 
+                                      name = paste0("inz-leg-line-", lab[i])),
                         col = 1, row = i + 1)
        
         fg <- placeGrob(fg, textGrob(lab[i], x = 0 , y = 0.5,
                                      just = c("left", "center"),
-                                     gp = gpar(cex = legcex)),
+                                     gp = gpar(cex = legcex), name = paste0("inz-leg-", lab[i])),
                         col = 2, row = i + 1)
     }
     
