@@ -1,18 +1,19 @@
 // COMMON FUNCTIONS FOR SINGLE PANEL PLOTS:
-
 /* set svg with no width, height */
 var svg = document.getElementsByTagName('svg')[0];
 svg.removeAttribute('height');
 svg.removeAttribute('width');
 
+var data = chart.data;
+
 //table functions:
 // insert an x-header:
 function insertXHeader() {
   var xrow = table.insertRow(0),
-    xhead = xrow.insertCell(0);
-xhead.setAttribute('class', 'headings');
-xhead.innerHTML = document.getElementsByTagName('tspan')[2].innerHTML;
-xhead.colSpan = ncol;
+      xhead = xrow.insertCell(0);
+  xhead.setAttribute('class', 'headings');
+  xhead.innerHTML = document.getElementsByTagName('tspan')[2].innerHTML;
+  xhead.colSpan = ncol;
 };
 
 // creating a y-header:
@@ -26,71 +27,14 @@ function insertYHeader() {
 function button(name) {
   var button = document.createElement('button');
   button.setAttribute("type", "button");
-  button.setAttribute("class","btn btn-primary hidden Button" + name);
+  button.setAttribute("class","btn btn-primary hidden " + name);
   button.innerHTML = "Show " + name;
   button.setAttribute("onclick", "change" + name + "()");
   button.setAttribute('id', 'Button' + name);
   document.getElementById('control').appendChild(button);
 };
 
-// add classes and remove classes to elements:
-function addClass(id, className) {
-  var el = document.getElementById(id);
-  if (el == null) {
-    return(null);
-  } else {
-    el.classList.add(className);
-  }
-}
-
-function removeClass(id, className) {
-  var el = document.getElementById(id);
-  if (el == null) {
-    return(null);
-  } else {
-      el.classList.remove(className);
-  }
-}
-
-// Additional forms/selections for dotplots and scatterplots:
-function createVariableSelectionForm() {
-  //create form
-  var form = document.createElement('form');
-  form.setAttribute('class', 'form-inline');
-  form.setAttribute('id', 'form');
-  document.getElementById('control').appendChild(form);
-
-  //create label for form
-  var formLabel = document.createElement('label');
-  formLabel.setAttribute('for', 'selectVar');
-  formLabel.innerHTML = "Variables to display";
-  form.appendChild(formLabel);
-
-  //create selection options:
-  var selectVar = document.createElement('select');
-  selectVar.setAttribute('class', 'form-control');
-  selectVar.setAttribute('id', 'selectVar');
-  selectVar.setAttribute('multiple', 'multiple');
-  form.appendChild(selectVar);
-
-  for (i = 0; i<=ncol; i++){
-      var opt = document.createElement('option');
-      if (i == 0) {
-        opt.value = 0;
-        opt.classList.add('select');
-        opt.innerHTML = "Display all";
-        opt.selected = "selected";
-      } else {
-      opt.value = i;
-      opt.innerHTML = th[i-1].innerHTML;
-    }
-    selectVar.appendChild(opt);
-  };
-
-}
-
-//FUNCTIONS FOR CREATING LABELS
-
+// TODO: revise further
 function getGrob(chartType) {
   var polygon = document.getElementsByTagName('polygon');
   if (chartType == 'hist'){
@@ -105,70 +49,30 @@ function getGrob(chartType) {
   return(Grob);
 }
 
-//hide lines in bar plots:
-function hideBarLines() {
-  var polyline = document.getElementsByTagName('polyline');
-  //finding lines that are labeled with "GRID".
-  for (i = 0; i < polyline.length; i ++) {
-   if (polyline[i].id.indexOf("GRID") >= 0) {
-     polyline[i].setAttribute("class", "line");
-   }
-  }
-  var lines = document.getElementsByClassName('line');
-  var lastId = lines[lines.length-1].getAttribute('id');
-  var lastLine = lastId.substring(0, lastId.lastIndexOf('.'));
-
-  //separating bar lines from axes lines
-  for (i = 0; i < lines.length; i++) {
-   if(lines[i].id.indexOf(lastLine) >= 0) {
-     lines[i].classList.add('hidden');
-   } else {
-     lines[i].classList.add('visible');
-    }
-  }
-}
-
 //FUNCTIONS FOR BOXPLOTS
+var boxMe = function(lastLine, boxElements) {
+  d3.select(boxElements).selectAll('polygon')
+    .attr('class', 'box');
 
-// returns the minimum and maximum line id of the box plot:
-function getMinMaxLinesId() {
-  var polyLines = document.getElementsByTagName('polyline');
-  for (i = 1; i <= polyLines.length; i++) {
-  if (polyLines[i-1].id.indexOf('GRID') >= 0) {
-    polyLines[i-1].setAttribute("class", "line");
-  }
-  };
-  var lines = document.getElementsByClassName("line");
-  var lastId = lines[lines.length-1].id;
-  var lastLine = lastId.substring(0, lastId.lastIndexOf('.'));
-  return(lastLine);
-  //obtaining the ends of of the boxplot (lines):
-//min line: lastLine + '.' + 0; max line: lastLine + '.' + 1;
-}
+    boxLabelSet(0, 1, 0,'LQ');
+    boxLabelSet(1, 2, 2, 'UQ');
+    boxLabelSet(1, 0, 1, 'Median');
+    boxLabelSet(1, 0, 3, 'Min');
+    boxLabelSet(2, 1, 4, 'Max');
 
-//obtains the boxes that make up the box plot (2 boxes):
-function getBoxes(chartType) {
-  //Obtaining the 'polygon' boxes associated with the boxplot:
-  // this differs from dotplots - the boxplot appears to be drawn first... (histograms)
-  polygonBox = document.getElementsByTagName('polygon');
+    //group boxplot together as a single object
+    var box = d3.selectAll('.box');
+    var boxData = d3.selectAll('.boxData');
+    var totalRow = document.getElementById('totalRow');
 
-  if (chartType == "hist") {
-    polygonId = polygonBox[0].id;
-  } else { // for dotplots
-    var polygonId = polygonBox[polygonBox.length -1].id;
-  }
-
-  var idLine = polygonId.substring(0, polygonId.lastIndexOf('.'));
-
-  for (i = 1; i <= polygonBox.length; i ++) {
-    if (polygonBox[i-1].id.indexOf(idLine) >= 0){
-      polygonBox[i-1].setAttribute('class', 'box');
-    }
-  }
+    //set event listeners:
+    box.on("mouseover", function() { box.classed("fillBox", true);})
+       .on("mouseout", function() { box.classed("fillBox", false);})
+       .on("click", function() { boxData.classed("hidden", false)});
 }
 
 //functions to create boxLabels:
-function boxLabel(textinput) {
+function boxLabel(textinput, x ,y) {
 
 var boxLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
   boxLabel.setAttributeNS(null, 'id', textinput);
@@ -192,65 +96,34 @@ function boxLabelSet(p, r, q, textinput) {
     // boxplot split into two boxes - lowerbox (p = 0) and upperbox (p = 1)
     boxPoints = box.getAttribute('points').split(" ")[r].split(",");
   }
-  x = boxPoints[0];
-  y = boxPoints[1];
+  var x = boxPoints[0];
+  var y = boxPoints[1];
 
   if (textinput == "Median") { // move median label below the box plot
-   y = boxPoints[1] - 25;
+  var y = boxPoints[1] - 25;
   }
 
-  text = textinput + ": " + boxData[q].quantiles;
-  // this is associated with the boxData imported from R.
-  boxLabel(text);
+  text = textinput + ": " + chart.boxData[q].quantiles;
+  boxLabel(text, x, y);
 };
-
-// Boxplot Interactions:
-//on hover:
-function fillBox() {
-  for (i = 0; i < box.length; i++) {
-  box[i].classList.add('fillBox');
-}
-};
-
-//hover out:
-function normalBox() {
-  for (i = 0; i < box.length; i++) {
-    box[i].classList.remove('fillBox');
-}
-};
-
-//on click:
-function showBox() {
-  for (i =0; i < boxData.length; i++) {
-    boxData[i].classList.remove('hidden');
-}
-};
-
-//hide box:
-function hideBox() {
-  for (i =0; i < boxData.length; i++) {
-    boxData[i].classList.add('hidden');
-  }
-}
 
 //FUNCTIONS FOR INTERACTING WITH LEGEND
 // hover on a legend group:
 show = function(i) {
   var keyText = document.getElementById(text[i+3].id);
-  if (Grob == "DOTPOINTS.1") {
+  if (Grob == "inz-DOTPOINTS.1.1.1.1") {
     var keyText = document.getElementById(text[i+2].id);
   }
   var key = document.getElementById(keys[i-1].id);
   keyText.setAttribute('fill', key.getAttribute('fill'));
   keyText.setAttribute('class', 'show');
   key.setAttribute('class', 'show');
-
 };
 
 //hover out:
 out = function(i) {
   var keyText = document.getElementById(text[i+3].id);
-  if (Grob == "DOTPOINTS.1") {
+  if (Grob == "inz-DOTPOINTS.1.1.1.1") {
     var keyText = document.getElementById(text[i+2].id);
   }
   var key = document.getElementById(keys[i-1].id);
@@ -290,29 +163,15 @@ resetTabSelection = function(data) {
   data.style.backgroundColor = "white";
 }
 
-// Mouse events:
-// co-ordinate conversion for svg:
-convertCoord = function(svg, evt) {
-  var pt = svg.createSVGPoint();
-  pt.x = evt.pageX;
-  pt.y = evt.pageY;
-  return pt.matrixTransform(svg.getScreenCTM().inverse());
+// Brush events:
+function brushend() {
+  if (!d3.event.selection) {
+    d3.select(".selection")
+      .style("display", "none");
+  }
 }
 
-//MouseDown:
-MouseDown = function(evt) {
-  var pt = convertCoord(svg, evt);
-    zoomBox["startX"] = pt.x;
-    zoomBox["startY"] = pt.y;
-    zoomBox["isDrawing"] = true;
-   selectRect.setAttribute('points',  zoomBox["startX"] + ',' + zoomBox["startY"]);
-};
-
-//MouseUp:
-MouseUp = function(evt) {
-  var pt = convertCoord(svg, evt);
-  svg.style.cursor = "default";
-      zoomBox["endX"] = pt.x;
-      zoomBox["endY"] = pt.y;
-      zoomBox["isDrawing"] = false;
-  };
+function brushstart() {
+  d3.select(".selection")
+    .style("display", null);
+}

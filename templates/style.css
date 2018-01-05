@@ -1,9 +1,4 @@
-/* STYLING:
-- Originally written in JS, styling has been moved to CSS.
-Note: there are some stylings still done with JS (such as control of background colors,
-but hopefully that can be somehow transferred some other day...)*/
-
- body {
+body {
   padding: 20px;
 }
 
@@ -17,7 +12,7 @@ but hopefully that can be somehow transferred some other day...)*/
 .tbl-div {
   float: right;
    width: 50%; /* optional */
-   overflow-x: scroll;
+   overflow-x: auto;
 }
 
 /* attempt to use media queries */
@@ -30,7 +25,7 @@ but hopefully that can be somehow transferred some other day...)*/
   .tbl-div {
     float: left;
     width: 100%;
-    overflow-x: scroll;
+    overflow-x: auto;
   }
 }
 
@@ -68,7 +63,7 @@ td, th {
   font-size: 13px;
 }
 
-/* xheading and yheading */
+/* table headings */
 .headings {
   font-style: italic;
   font-weight:normal;
@@ -95,13 +90,13 @@ td, th {
   margin-right: 10px;
 }
 
-.ButtonPercentage {
+.Percentage {
   background-color:rgb(0, 0, 255);
   opacity: 0.5;
   margin-left: 10px;
 }
 
-.ButtonCount {
+.Count {
  background-color: purple;
  opacity: 0.5;
  margin-left: 10px;
@@ -112,8 +107,7 @@ td, th {
   padding: 5px;
 }
 
-/*** LABEL PROPERTIES ***/
-/* style for rectangular labels */
+/* labels */
 .gRect {
   visibility: inherit;
   fill: white;
@@ -123,7 +117,7 @@ td, th {
   stroke: lightgray;
 }
 
-/* textlabels in general */
+/* textlabels */
 .label {
   font-size: 12;
   fill: black;
@@ -134,12 +128,10 @@ td, th {
   font-weight: normal;
 }
 
-/* tlabels */
 .tLabel {
   font-weight: bold;
   visibility: inherit;
 }
-
 
 /* BAR PROPERTIES (for bar charts) */
 .bar {
@@ -148,13 +140,12 @@ td, th {
   opacity: 1;
 }
 
-.bar:hover{
+.bar:hover {
   stroke-width: 50%;
   fill-opacity: 0.5;
 }
 
 /* bars on hover on and off */
-
 .normal {
   fill-opacity: 1;
 }
@@ -163,7 +154,6 @@ td, th {
 .selected {
   opacity: 1;
   visibility: visible;
-
 }
 
 .none {
@@ -171,7 +161,6 @@ td, th {
 }
 
 /* hiding elements - extra bars and lines... */
-
 .hidden {
   display: none;
   visibility: hidden;
@@ -187,12 +176,8 @@ td, th {
 }
 
 /*highlighting data */
-.totalRow {
+.totalRow, .tabSelect, .select {
   align: center;
-  font-weight: bold;
-}
-
-.tabSelect {
   font-weight: bold;
 }
 
@@ -200,7 +185,6 @@ td, th {
   display: table-row;
   opacity: 1;
 }
-
 
 /* legend interactions and styling */
 .show {
@@ -215,10 +199,6 @@ td, th {
 
 .keyText {
   fill: black;
-}
-
-.select {
-  font-weight: bold;
 }
 
 /* for box plots - dot plots, histograms */
@@ -244,26 +224,21 @@ td, th {
   visibility: visible;
 }
 
-/* for histograms */
+/* for histograms and hexbins */
 .histBar {
   stroke: white;
   stroke-width: 0.25;
 }
 
-.histBar:hover {
-  fill-opacity: 0.5;
-}
-
-/* hexbins */
 .hexbin {
   stroke: none;
 }
 
-.hexbin:hover {
+.hexbin:hover, .histBar:hover {
   fill-opacity: 0.5;
 }
 
-/* user selection drag box */
+/* user selection drag box  - to be retired*/
 .selectRect {
   fill: transparent;
   stroke: black;
