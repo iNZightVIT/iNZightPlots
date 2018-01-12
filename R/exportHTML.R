@@ -39,18 +39,13 @@ exportHTML.function <- function(x, file = 'index.html', data = NULL, extra.vars 
   #set to temp directory
   tdir <- tempdir()
   setwd(tdir)
-
-  #create pdf graphics device into here:
   pdf(NULL, width = width, height = height, onefile = TRUE)
 
   #do exporting:
   obj <- x()
   url <- exportHTML(obj, file, data, extra.vars)
 
-  #turn off device:
   dev.off()
-
-  #reset back to original directory:
   setwd(curdir)
 
   ## pass URL from exportHTML.inzplotoutput
@@ -64,7 +59,7 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
 
   #suggest gridSVG, jsonlite, xtable:
   if(!requireNamespace("gridSVG",  quietly = TRUE) ||
-     !requireNamespace("xtable",   quietly = TRUE) ||
+     !requireNamespace("knitr",   quietly = TRUE) ||
      !requireNamespace("jsonlite", quietly = TRUE) ) {
     stop(paste("Required packages aren't installed",
                "Use 'install.packages('iNZightPlots', depends = TRUE)' to install them.",
@@ -93,7 +88,7 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
   # if it passes the above: work in temp. directory
   setwd(tempdir())
 
-  # Get data (refer to getTable function):
+  # Get data (refer to getInfo function):
   if (is.null(extra.vars) && is.null(data)) {
     info <- getInfo(plot, x)
   } else {
@@ -103,21 +98,16 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
   tbl <- info$tbl
   js <- info$js
 
-  # write HTML table using xtable:
+  # generate HTML table
   if (is.null(tbl)) {
     HTMLtable <- '<p> No table available. </p>'
   } else {
-    HTMLtable <- print(xtable::xtable(tbl$tab, caption = tbl$cap, auto = TRUE),
-                       type = "html",
-                       html.table.attributes = 'class="table table-bordered table-condensed hidden" id ="table"',
-                       caption.placement = "top", align = "center",
-                       include.rownames = tbl$includeRow, print.results = FALSE)
+    # switched from xtable to knitr: table in desired format for dataTables to work
+    HTMLtable <- knitr::kable(tbl$tab, format = "html", row.names = tbl$includeRow,
+                              align = "c", caption = tbl$cap, table.attr = "id=\"table\" class=\"table table-condensed table-hover\" cellspacing=\"0\"")
   }
 
-  # Get JS file  + JSON
-  #jsData <- convertToJS(plot, tbl)
-
-  #bind JSON to grid plot, generate SVG
+  # bind JSON to grid plot, generate SVG
   gridSVG::grid.script(paste0("var chart = ", js$chart,";"), inline = TRUE, name = "linkedJSONdata")
   svgOutput <- gridSVG::grid.export(NULL)$svg
 
@@ -127,7 +117,6 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
 
   #get JS code associated with plot type
   jsCode <-  js$jsFile
-
   svgCode <- paste(capture.output(svgOutput), collapse = "\n")
 
   #remove svg file and other scripts
@@ -138,7 +127,7 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
   cssLine <- grep("styles.css", HTMLtemplate)
   functionLine <- grep("commonFunctions", HTMLtemplate)
   jsLine <- grep("JSfile", HTMLtemplate)
-  tableLineOne <- grep("table", HTMLtemplate)
+  tableLineOne <- grep("<!-- insert table -->", HTMLtemplate)
 
   # insert inline JS, CSS, table, SVG:
   HTMLtemplate[cssLine] <- paste(styles, collapse = "\n")
@@ -169,7 +158,6 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
 
   #return url:
   invisible(url)
-
 }
 
 
@@ -212,7 +200,7 @@ getInfo.inzbar <- function(plot, x) {
   counts <- plot$tab
   percent <- plot$widths
   n <- attributes(x)$total.obs
-  
+
   if (attributes(x)$total.missing != 0) {
     n <- attributes(x)$total.obs - attributes(x)$total.missing
   }
@@ -228,7 +216,7 @@ getInfo.inzbar <- function(plot, x) {
   colnames(dt) <- c('varx', 'counts', 'pct')
   colCounts = NULL;
   order = NULL;
-  
+
   # selecting appropriate JS code:
   jsFile <- bpJS
 
@@ -251,7 +239,7 @@ getInfo.inzbar <- function(plot, x) {
     proportions <- round(rbind(colorMatchRev, colSums(colorMatchRev)), 4)
     tab <- rbind(proportions,counts)
     rownames(tab)[nrow(proportions):nrow(tab)] <- c("Total", "Col N")
-    
+
   } else {
     # creating table for 1 way plots
     tab <- rbind(counts, round(prop*100,2))
@@ -281,7 +269,7 @@ getInfo.inzbar <- function(plot, x) {
     dt$counts <- with(dt, c1*Freq)
     dt <- cbind(dt, order)
     dt <- dt[order(dt$order), ]
-    
+
     # reset colorMatch
     colorMatch <- TRUE
     jsFile <- bpstackedJS
@@ -318,9 +306,8 @@ getInfo.inzhist <- function(plot, x) {
 
   ## Attributes for HTML table
   cap <- "Frequency Distribution Table"
-  includeRow <- FALSE
-  tableInfo <- list(caption = cap, includeRow = includeRow, tab = tab, n = n)
-  #return(tableInfo)
+  includeRow <- TRUE
+  tableInfo <- list(caption = cap, includeRow = includeRow, tab = data.frame(tab), n = n)
 
   # next, store info as JSON
   pct <- round(counts/n*100, 2)
@@ -334,7 +321,7 @@ getInfo.inzhist <- function(plot, x) {
   boxTable <- rbind(as.data.frame(quantiles), min, max)
   rownames(boxTable)[4:5] <- c("min", "max")
   jsFile <- histJS
-  ##Output as a list:
+  # Output as a list:
   chart <- list(type = "hist", data = tab, boxData = boxTable, n = n, inf = NULL)
   JSData <- list(chart = jsonlite::toJSON(chart), jsFile = histJS)
   return(list(tbl = tableInfo, js = JSData))
@@ -394,7 +381,7 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
     names(tab) <- varNames$x
 
     #variable selection
-    tab <- varSelect(x, extra.vars, plot, data, tab, xVal,
+    tab <- varSelect(x, extra.vars, pl, data, tab, xVal,
                      NULL, order, varNames)
 
     #To obtain box whisker plot information:
@@ -408,16 +395,14 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
     ## JS:
     chart <- list(type = "dot", varNames = names(tab), data = tab, colGroupNo = colGroupNo,
                   boxData = boxTable)
-    #boxJSON <- paste0("var boxData = ", jsonlite::toJSON(boxTable), ";");
     JSData <- list(chart = jsonlite::toJSON(chart), jsFile = dpspJS)
   }
 
   ##Attributes for HTML table
   cap <- "Data"
-  includeRow <- FALSE
+  includeRow <- TRUE
   tableInfo <- list(caption = cap, includeRow = includeRow,
-                    tab = tab, varNames = varNames)
-  
+                    tab = data.frame(tab), varNames = varNames)
   return(list(tbl = tableInfo, js = JSData))
 }
 
@@ -437,7 +422,7 @@ getInfo.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
 
   ## Attributes for HTML table
   cap <- "Data"
-  includeRow <- FALSE
+  includeRow <- TRUE
   tbl <- list(caption = cap, includeRow = includeRow, tab = tab)
 
   # simplistic inference information: beta coefficients + R^2
@@ -475,7 +460,7 @@ getInfo.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
   chart <- list(type = "scatter", varNames = names(tab), data = tab,
                 colGroupNo = colGroupNo, trendInfo = trendInfo)
   JSData <- list(chart = jsonlite::toJSON(chart), jsFile = dpspJS)
-  
+
   return(list(tbl = tbl, js = JSData))
 }
 
@@ -497,7 +482,7 @@ getInfo.inzhex <- function(plot, x = NULL) {
   jsFile <- hexbinJS
   chart <- list(type = "hex", data = tab, n = n)
   JSData <- list(chart = jsonlite::toJSON(chart), jsFile = hexbinJS)
-  
+
   return(list(tbl = tbl, js = JSData))
 }
 
