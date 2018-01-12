@@ -1,22 +1,14 @@
 // dot plots and scatter plots
-var table = document.getElementById('table'),
-    th = document.getElementsByTagName('th'),
-    ncol = document.getElementsByTagName('th').length;
-
-d3.selectAll("td")
-  .attr("id", function(d, i) { return i + 1; })
-  .attr("class", function(d, i) { if ((i + 1) % ncol == 0) {
-                                    return ncol;
-                                  } else {
-                                    return ((i + 1) % ncol);
-                                  }
-                                });
-
-d3.selectAll("th")
-  .attr("class", function(d, i) { return i + 1; });
-
-d3.selectAll("tr")
-  .attr("id", function(d, i) { return "tr" + i; });
+//initialize DataTable:
+var table = $('#table').DataTable({
+    "colReorder": true,
+    "columnDefs": [
+      { //hide rowID column
+        "targets": [0],
+        "visible": false
+      }
+    ]
+  });
 
 // create form for variable selection:
 function createVariableSelectionForm() {
@@ -39,7 +31,10 @@ function createVariableSelectionForm() {
   selectVar.setAttribute('multiple', 'multiple');
   form.appendChild(selectVar);
 
-  for (i = 0; i<=ncol; i++){
+  // get column names:
+  var ncol = $("#table thead tr th").length;
+  var th = document.getElementsByTagName('th');
+  for (var i = 0; i <= ncol; i++){
       var opt = document.createElement('option');
       if (i == 0) {
         opt.value = 0;
@@ -55,24 +50,12 @@ function createVariableSelectionForm() {
 
 }
 
-//create form and select options for variable selection/display.
 createVariableSelectionForm();
 
 //drive the viewTable button:
-  var t = true;
 showTable = function() {
-  var viewTable = document.getElementById('viewTable');
-  if(t) {
-    viewTable.innerHTML = "Hide Table";
-    d3.select('table')
-      .classed('hidden', false);
-    t = false;
-  } else {
-    viewTable.innerHTML = "View Table";
-    d3.select('table')
-      .classed('hidden', true);
-    t = true;
-  }
+  var tableWrapper = $('#table_wrapper');
+  tableWrapper.toggleClass('hidden');
 };
 
 //find out whether it's a dot or scatter:
@@ -89,8 +72,9 @@ if (boxElements !== null) {
 
 var panel = document.getElementById(Grob);
 var count = panel.childElementCount;
+var ind = [];
 
-//make  tooltip:
+// TOOLTIPS:
 var tooltip = d3.select('body').append('div')
               .attr('class', 'tooltip')
               .style('width', '100');
@@ -101,6 +85,7 @@ d3.select(panel).selectAll('use')
   .on('mouseover', function (d, i) {
       var g = ' ';
       var names = chart.varNames;
+      var selectVar = document.getElementsByTagName('select')[0];
       var sOpt = selectVar.selectedOptions;
       var s = [];
       for (j = 0; j < sOpt.length; j++) {
@@ -127,95 +112,116 @@ d3.select(panel).selectAll('use')
      }
    }
 
-      return tooltip.style('visibility', 'visible')
-                    .style("left", d3.event.pageX - 50 + "px")
-                    .style("top", d3.event.pageY - 30 - 15*(p-1) + "px")
-                    .html(g);
+   return tooltip.style('visibility', 'visible')
+                 .style("left", d3.event.pageX - 50 + "px")
+                 .style("top", d3.event.pageY - 30 - 15*(p-1) + "px")
+                 .html(g);
     })
     .on('mouseout', function () { return tooltip.style("visibility", 'hidden'); })
     .on('click', function (d, i) {
-      for (j = 1; j <= count; j++) {
-          var point = document.getElementById(Grob + "." + j);
-          var l = point.getAttribute('stroke');
-          if (l == "none") {
-            var l = point.getAttribute('fill');
-          }
-          var lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
-          var dataRow = document.getElementById('tr' + j);
-          if (point.getAttribute('class') !== "point selected") {
-              if ((i+1) == j) {
-                  point.setAttribute('class', 'point selected');
-                  returnRowSelection(lp, dataRow);
-              } else {
-                  point.setAttribute('class', 'point none');
-                  omitRowSelection(dataRow);
-              }
-            }
-        }
+      var selected = this;
+        var ind = [];
 
+        d3.select(panel).selectAll('.point')
+            .attr("class", function() {
+              if (this.getAttribute('class') === "point selected") {
+                return "point selected";
+              } else if (this === selected) {
+                  return "point selected";
+              } else {
+                return "point none";
+              }
+            })
+
+        //filter table:
+        //search for all those that are selected, then extract id num:
+        var selected = document.getElementsByClassName('selected');
+            for (var k = 0; k < selected.length; k++) {
+                var id = selected[k].id;
+                idNum = id.substring(id.lastIndexOf('.') + 1);
+                ind.push("^" + idNum + "$");
+            }
+        table.search('').columns().search('').draw();
+        table.columns(0).search(ind.join("|"), true).draw();
+
+        //hide box
         d3.selectAll('.boxData')
           .classed('hidden', true);
     })
 
     .on('dblclick', function (d, i) { // deselect
-        for (j = 1; j <= count; j++) {
-        var point = document.getElementById(Grob + "." + j);
-        var dataRow = document.getElementById('tr' + j);
-        if ((i+1) == j) {
-            point.setAttribute('class', 'point none');
-            omitRowSelection(dataRow);
-        }
-      }
+      var selected = this;
+        var ind = [];
+       selected.setAttribute('class', 'point none');
+
+        // update table:
+        var selected = document.getElementsByClassName('selected');
+            for (var k = 0; k < selected.length; k++) {
+                var id = selected[k].id;
+                idNum = id.substring(id.lastIndexOf('.') + 1);
+                ind.push("^" + idNum + "$");
+            }
+       table.search('').columns().search('').draw();
+       table.columns(0).search(ind.join("|"), true).draw();
     });
 
+//link TABLE TO PLOT:
+$('#table tbody').on('click', 'tr', function() {
+    $(this).toggleClass('active');
+    var ind = table.rows('.active')[0];
+    d3.select(panel).selectAll('.point')
+      .attr("class", function(d, i) {
+        return (ind.includes(i) ? "point selected" : "point none");
+      })
+    })
+
 //LEGEND INTERACTION:
-// TODO: change to d3 usage.
 var legendLayout = document.getElementById('inz-leg-layout.1');
+if (legendLayout) {
+  //grabbing keys and text from the legend:
+  var colGroupNo = chart.colGroupNo;
+  //assigning mouse events:
+  for (i = 1; i <= colGroupNo; i++) { //colGroupNo -> colby levels from R (nlevels)
+      var keyText = document.getElementById('inz-leg-txt-' + i + '.1.1.tspan.1');
+      var key = document.getElementById('inz-leg-pt-' + i + '.1.1');
 
-if (legendLayout) { // if there is a legend, colGroupNo should be a value
-    //grabbing keys and text from the legend:
-    var keys = document.getElementsByTagName('use');
-    var text = document.getElementsByTagName('text');
-    var colGroupNo = chart.colGroupNo;
+      (function (i) {
+          key.addEventListener("mouseover", function () { show(i) }, false);
+          key.addEventListener("mouseout", function () { out(i) }, false);
+          key.addEventListener("click", function () { subset(i) }, false);
 
-    //assigning mouse events:
-    for (i = 1; i <= colGroupNo; i++) { //colGroupNo -> colby levels from R (nlevels)
-        var key = document.getElementById(keys[i - 1].id),
-            keyText = document.getElementById(text[i + 3].id);
-        if (Grob == "inz-DOTPOINTS.1.1.1.1") { // for dot plots - legend text differs
-            var keyText = document.getElementById(text[i + 2].id);
-        }
-        (function (i) {
-            key.addEventListener("mouseover", function () { show(i) }, false);
-            key.addEventListener("mouseout", function () { out(i) }, false);
-            key.addEventListener("click", function () { subset(i) }, false);
-
-            keyText.addEventListener("mouseover", function () { show(i) }, false);
-            keyText.addEventListener("mouseout", function () { out(i) }, false);
-            keyText.addEventListener("click", function () { subset(i) }, false);
-        })(i)
-    };
+          keyText.addEventListener("mouseover", function () { show(i) }, false);
+          keyText.addEventListener("mouseout", function () { out(i) }, false);
+          keyText.addEventListener("click", function () { subset(i) }, false);
+      })(i)
+    }
 
     //on click, subsetting occurs:
     subset = function (i) {
-        for (j = 1; j <= count; j++) {
-            var point = document.getElementById(Grob + '.' + j);
-            var key = document.getElementById(keys[i - 1].id);
-            var gLabel = document.getElementById('gLabel' + j);
-            var dataRow = document.getElementById('tr' + j);
 
-            if (key.getAttribute('fill') == point.getAttribute('stroke')) {
-                point.setAttribute('class', 'point selected');
-                returnRowSelection('0,0,0', dataRow);
+      //get the title variable:
+      var titleVar = document.getElementById('inz-leg-title.1.1.tspan.1').innerHTML;
+      var key = document.getElementById('inz-leg-pt-' + i + '.1.1');
+      var keyText = document.getElementById('inz-leg-txt-' + i + '.1.1.tspan.1').innerHTML;
+      var names = chart.varNames;
 
-            } else {
-                point.setAttribute('class', 'point none');
-                omitRowSelection(dataRow);
-            }
-        }
+      for (j = 1; j <= count; j++) {
+          var point = document.getElementById(Grob + '.' + j);
+          if (key.getAttribute('fill') == point.getAttribute('stroke')) {
+              point.setAttribute('class', 'point selected');
+          } else {
+              point.setAttribute('class', 'point none');
+          }
+      }
+
+      // find column index + filter: (add one for hidden column)
+      var colInd = names.indexOf(titleVar) + 1;
+      table.search('').columns().search('').draw();
+      table.columns(colInd).search("^" + keyText + "$", true).draw();
     }
 };
 
+// BRUSH EFFECTS:
 var brush = d3.brush()
               .on("brush", brushmove)
               .on("end", brushend);
@@ -237,6 +243,8 @@ d3.select(pp)
 // make handles invisible:
 d3.selectAll('.handle')
   .style('opacity', 0);
+d3.select('.overlay')
+  .style('stroke', 'none');
 
 function brushmove() {
   var s = d3.event.selection;
@@ -244,6 +252,7 @@ function brushmove() {
   var x2 = s[1][0];
   var y1 = s[0][1];
   var y2 = s[1][1];
+  var ind = [];
 
   for (i =1; i <= count; i++) {
     var point = document.getElementById(Grob + '.' + i);
@@ -253,18 +262,15 @@ function brushmove() {
 
     //points that lie within the  boundary box drawn:
     if ((x1 <= x && x <= x2) && (y1 <= y && y <= y2)) {
-      var l = point.getAttribute('stroke');
-      if (l == "none") {
-        var l = point.getAttribute('fill');
-      }
-      var lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
-      returnRowSelection(lp, dataRow);
       point.setAttribute('class', 'point selected');
+      ind.push("^" + i + "$");
     } else {
       point.setAttribute('class', 'point none');
-      omitRowSelection(dataRow);
     }
   }
+  //reset and filter table:
+  table.columns('').search().columns('').draw();
+  table.columns(0).search(ind.join("|"), true).draw();
 };
 
 //Reset Button:
@@ -272,9 +278,9 @@ reset = function() {
     d3.selectAll('.point')
       .classed("none selected", false);
 
-    d3.selectAll('tr')
-      .classed("hidden rowSelect", false)
-      .style("background-color", "white");
+    // restore table to original state
+    table.search('').columns().search('').draw();
+    table.rows().nodes().to$().removeClass('active');
 
     d3.selectAll('.boxData')
       .classed("hidden", true);

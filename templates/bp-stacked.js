@@ -126,16 +126,14 @@ showTable = function() {
   var bpct = d3.select(".Percentage");
   var bct = d3.select(".Count");
   if(t) {
-    viewTable.innerHTML = "Hide Table";
-    table.classed("hidden", false);
-    bpct.classed("hidden", false);
-    bct.classed("hidden", false);
-    t = false;
-  } else {
-    viewTable.innerHTML = "View Table";
     table.classed("hidden", true);
     bpct.classed("hidden", true);
     bct.classed("hidden", true);
+    t = false;
+  } else {
+    table.classed("hidden", false);
+    bpct.classed("hidden", false);
+    bct.classed("hidden", false);
     t = true;
   }
 };
@@ -226,13 +224,10 @@ bars.data(data)
 
   d3.select('table')
     .classed('hidden', true);
-  d3.select('#Percentage')
+  d3.select('.Percentage')
     .classed('hidden', true);
-  d3.select('#Count')
+  d3.select('.Count')
     .classed('hidden', true);
-
-var viewTable = document.getElementById('viewTable');
- viewTable.innerHTML = "View Table";
  t = true;
  };
 

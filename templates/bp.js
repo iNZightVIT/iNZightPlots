@@ -161,16 +161,14 @@ showTable = function() {
   var bpct = d3.select(".Percentage");
   var bct = d3.select(".Count");
   if(t) {
-    viewTable.innerHTML = "Hide Table";
-    table.classed("hidden", false);
-    bpct.classed("hidden", false);
-    bct.classed("hidden", false);
-    t = false;
-  } else {
-    viewTable.innerHTML = "View Table";
     table.classed("hidden", true);
     bpct.classed("hidden", true);
     bct.classed("hidden", true);
+    t = false;
+  } else {
+    table.classed("hidden", false);
+    bpct.classed("hidden", false);
+    bct.classed("hidden", false);
     t = true;
   }
 };
@@ -196,7 +194,6 @@ if (colorMatch[0] !== null) {
   var barLines = document.getElementById('inz-bar-line.1.1.1');
   d3.select(barLines).selectAll('polyline')
     .classed("hidden", true);
-//hideBarLines();
 };
 
 //tooltip:
@@ -255,7 +252,9 @@ bars.data(data)
 
           if(data[0].var1 !== undefined) {
             var row = document.getElementById('tr' + ((j-1)%(nrow-1)+1));
-            resetRowSelection(row);
+            row.classList.remove('hidden');
+            row.classList.remove('rowSelect');
+            row.style.backgroundColor = "white";
             cell = document.getElementById('td' + j);
             //it differs due to different formation of tables
             if ((i+1) == j) {
@@ -297,24 +296,21 @@ if (data[0].var1 !== undefined) {
 //LEGEND INTERACTION:
 var legendLayout = document.getElementById('inz-leg-layout.1');
 if (legendLayout) {
-  //grabbing keys and text from the legend:
-  var keys = document.getElementsByTagName('use');
-  var text = document.getElementsByTagName('text');
+  //assigning mouse events:
+  for (i = 1; i < group; i++) { //colGroupNo -> colby levels from R (nlevels)
+      var keyText = document.getElementById('inz-leg-txt-' + i + '.1.1.tspan.1');
+      var key = document.getElementById('inz-leg-pt-' + i + '.1.1');
 
-  //Legend interaction:
-  for (i = 1; i < group; i ++) {
-    key = document.getElementById(keys[i-1].id);
-    keyText = document.getElementById(text[i+3].id);
-    (function(i){
-    keyText.addEventListener("mouseover", function(){show(i)}, false);
-    keyText.addEventListener("mouseout", function(){out(i)}, false);
-    keyText.addEventListener("click", function(){subset(i)}, false);
+      (function (i) {
+          key.addEventListener("mouseover", function () { show(i) }, false);
+          key.addEventListener("mouseout", function () { out(i) }, false);
+          key.addEventListener("click", function () { subset(i) }, false);
 
-    key.addEventListener("mouseover", function(){show(i)}, false);
-    key.addEventListener("mouseout", function(){out(i)}, false);
-    key.addEventListener("click", function(){subset(i)}, false);
-    }) (i)
-  };
+          keyText.addEventListener("mouseover", function () { show(i) }, false);
+          keyText.addEventListener("mouseout", function () { out(i) }, false);
+          keyText.addEventListener("click", function () { subset(i) }, false);
+      })(i)
+    }
 
 subset = function(i) {
   for (j = 1; j < count; j++) {

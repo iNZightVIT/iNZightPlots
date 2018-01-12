@@ -110,11 +110,8 @@ function boxLabelSet(p, r, q, textinput) {
 //FUNCTIONS FOR INTERACTING WITH LEGEND
 // hover on a legend group:
 show = function(i) {
-  var keyText = document.getElementById(text[i+3].id);
-  if (Grob == "inz-DOTPOINTS.1.1.1.1") {
-    var keyText = document.getElementById(text[i+2].id);
-  }
-  var key = document.getElementById(keys[i-1].id);
+  var keyText = document.getElementById('inz-leg-txt-' + i + '.1.1.tspan.1');
+  var key = document.getElementById('inz-leg-pt-' + i + '.1.1');
   keyText.setAttribute('fill', key.getAttribute('fill'));
   keyText.setAttribute('class', 'show');
   key.setAttribute('class', 'show');
@@ -122,37 +119,14 @@ show = function(i) {
 
 //hover out:
 out = function(i) {
-  var keyText = document.getElementById(text[i+3].id);
-  if (Grob == "inz-DOTPOINTS.1.1.1.1") {
-    var keyText = document.getElementById(text[i+2].id);
-  }
-  var key = document.getElementById(keys[i-1].id);
+  var keyText = document.getElementById('inz-leg-txt-' + i + '.1.1.tspan.1');
+  var key = document.getElementById('inz-leg-pt-' + i + '.1.1');
   keyText.setAttribute('class', 'out keyText');
   key.setAttribute('class', 'out');
-
 };
 
-//FUNCTIONS FOR HIGHLIGHTING TABLE ROWS
-// highlight rows in table corresponding to selection (link to table):
-returnRowSelection = function(lp, dataRow) {
-  dataRow.style.backgroundColor = "rgba" + lp + ", 0.25)";
-  dataRow.classList.remove('hidden');
-  dataRow.classList.add('rowSelect');
-}
 
-omitRowSelection = function(dataRow) {
-  dataRow.classList.remove('rowSelect');
-  dataRow.classList.add('hidden');
-  dataRow.style.backgroundColor = "white";
-}
-
-resetRowSelection = function(dataRow) {
-  dataRow.classList.remove('hidden');
-  dataRow.classList.remove('rowSelect');
-  dataRow.style.backgroundColor = "white";
-}
-
-//for certain tabs/cells:
+//FUNCTIONS FOR HIGHLIGHTING tabs/cells:
 returnTabSelection = function(lp, data) {
   data.classList.add('tabSelect');
   data.style.backgroundColor = "rgba(" + lp + ",0.5)";

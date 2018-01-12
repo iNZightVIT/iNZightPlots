@@ -1,41 +1,35 @@
 // for histograms
-var table = document.getElementById('table');
-    nrow = table.rows.length, //no. of rows in table
-    td = document.getElementsByTagName('td'),
-    tr = document.getElementsByTagName('tr'),
-    totalRow = tr[nrow-1],
-    cellNo = td.length;
+//initialize DataTable:
+var table = $('#table').DataTable({
+    "colReorder": true,
+    "columnDefs": [
+      { //hide rowID column
+        "targets": [0],
+        "visible": false
+      }
+    ]
+  });
 
-d3.selectAll('td')
-  .attr('id', function(d, i) { return("td" + i); })
-
-d3.selectAll('tr')
-  .attr('id', function(d, i) { return ("tr" + i); })
-
-totalRow.setAttribute('class', 'totalRow');
+var tableWrapper = $('#table_wrapper').addClass('hidden');
 
 //drive the viewTable button:
-  var t = true;
 showTable = function() {
-  var viewTable = document.getElementById('viewTable');
-  if(t) {
-    viewTable.innerHTML = "Hide Table";
-    d3.select('table')
-      .classed('hidden', false);
-    t = false;
-  } else {
-    viewTable.innerHTML = "View Table";
-    d3.select('table')
-      .classed('hidden', true);
-    t = true;
-  }
+  var tableWrapper = $('#table_wrapper');
+  tableWrapper.toggleClass('hidden');
 };
+
+// BOX PLOT
+//identify lines and box plot:
+var lastLine = "inz-box-line.1.1.1.1";
+var boxElements = document.getElementById('inz-box.1.1.1.1');
+boxMe(lastLine, boxElements);
 
 var svg = document.getElementsByTagName('svg')[0],
     count = data.length,
-    Grob = getGrob('hist')
+    Grob = getGrob('hist'),
     panel = document.getElementById(Grob);
 
+//TOOLTIP
 var tooltip = d3.select('body').append('div')
               .attr('class', 'tooltip')
               .attr('id', 'tooltip')
@@ -53,42 +47,36 @@ d3.select(panel).selectAll('polygon')
                                               d.counts + ", " + d.pct + "% </span>");})
     .on('mouseout', function(){tooltip.style("visibility", "hidden");})
     .on('click', function(d, i) {
-
       var selected = this;
-      var l = selected.getAttribute('fill');
-      var lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
-      var col = "rgba" + lp + ", 0.25)";
-
       d3.select(panel).selectAll('polygon')
         .attr("class", function() {
           return (this === selected ? "histBar selected" : "histBar none");
         })
 
-        var dataRow = document.getElementById('tr' + (i + 1));
-        d3.selectAll('tr')
-          .style('background-color', function() {
-            return(this === dataRow ? col : "white");
-          })
-          .attr("class", function(d, i) {
-            if (i === 0) {
-              return "header"
-            } else {
-              return(this === dataRow ? "rowSelect" : "hidden");
-            }
-          });
+        // because dataTable searches using columns but not rows
+        // add an additional column for row num using regex:
+        var ind = "^" + (i+1) + "$";
+        table.columns(0).search(ind, true).draw();
+
       // hide box
       d3.selectAll('.boxData')
         .classed('hidden', true);
       d3.select("#tt").style('visibility', 'hidden');
+
+      //remove box if present
+      d3.selectAll(".selection")
+        .style("display", "none");
     });
 
-/* -------------------------------------------------------------
-                  Box plot properties and interactions:
----------------------------------------------------------------- */
-//identify lines and box plot:
-var lastLine = "inz-box-line.1.1.1.1";
-var boxElements = document.getElementById('inz-box.1.1.1.1');
-boxMe(lastLine, boxElements);
+// TABLE TO PLOT:
+$('#table tbody').on('click', 'tr', function() {
+  $(this).toggleClass('active');
+      var ind = table.rows('.active')[0];
+      d3.select(panel).selectAll('.histBar')
+        .attr("class", function(d, i) {
+            return (ind.includes(i) ? "histBar selected" : "histBar none");
+    })
+})
 
  // create another tooltip for selection box:
  var tt = d3.select('#control').append('div')
@@ -107,13 +95,15 @@ boxMe(lastLine, boxElements);
 
  var pp = panel.parentNode.parentNode;
  d3.select(pp)
-  .insert("g", "g:first-child") //"g" ":first-child"
+  .insert("g", "g:first-child")
   .attr("class", "brush")
   .call(brush);
 
  // make handles invisible:
  d3.selectAll('.handle')
   .style('opacity', 0);
+  d3.selectAll('.overlay')
+  .style('stroke', 'none');
 
   function brushmove() {
 
@@ -128,10 +118,10 @@ boxMe(lastLine, boxElements);
     var tab = chart.data;
     var groupN = [];
     var intRange = [];
+    var ind = [];
 
     for (i = 1; i <= count; i++) {
     var bar = document.getElementById(Grob + '.' + i);
-    var dataRow = document.getElementById('tr' + i);
 
     //obtain end points of the bar
     //TODO: maybe fix this so you don't have to select the bottom?:
@@ -150,45 +140,39 @@ boxMe(lastLine, boxElements);
         //points that lie within the  boundary box drawn:
         if(((x1 <= bx && bx <= x2) && (x1 <= tx && tx <= x2)) && ((y1 <= by && by <= y2) && (y1 <= ty && ty <= y2))) {
           bar.setAttribute('class', ' histBar selected');
-          l = bar.getAttribute('fill');
-          lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
-          returnRowSelection(lp, dataRow);
           // store frequency from selected
           groupN.push(tab[i - 1].counts);
           intRange.push(tab[i - 1].lower, tab[i - 1].upper);
+          ind.push("^" + i + "$");
         } else {
           bar.setAttribute('class', 'histBar none');
-          omitRowSelection(dataRow);
        }
      }
-
-     //summation of array:
-     var sum = groupN.reduce(function(a, b) { return a + b; }, 0);
-
-     d3.select('.totalRow')
-       .classed('hidden', false);
-     var total = td[td.length-1];
-     total.innerHTML = sum;
-
-    // report a proportion + interval number:
-    var nProp = (sum/n*100).toFixed(2) + "%";
-    var intervalNo = document.getElementsByClassName('selected').length;
-
-    // create another  tooltip for selection box:
-    d3.select("#tt").style('visibility', 'visible')
-                    .html("Interval Range: <span>" + intRange[0] + " - " + intRange[intRange.length-1] +
-                          "</span> <br> Frequency: <span>" + sum +  "," + nProp + "</span> <br> No. of intervals: <span>" +
-                          intervalNo + "</span>");
    }
+   //summation of array:
+   var sum = groupN.reduce(function(a, b) { return a + b; }, 0);
+   // report a proportion + interval number:
+   var nProp = (sum/n*100).toFixed(2) + "%";
+   var intervalNo = document.getElementsByClassName('selected').length;
+
+   // filter table
+   table.columns(0).search(ind.join("|"), true).draw();
+
+   // update tooltip
+   d3.select("#tt").style('visibility', 'visible')
+                   .html("Interval Range: <span>" + intRange[0] + " - " + intRange[intRange.length-1] +
+                         "</span> <br> Frequency: <span>" + sum +  "," + nProp + "</span> <br> No. of intervals: <span>" +
+                         intervalNo + "</span>");
 };
 
 //Reset Button:
 reset = function() {
-    d3.select(panel).selectAll('.histBar') //polygon
+    d3.select(panel).selectAll('.histBar')
       .attr('class', 'histBar');
 
-    d3.select('.totalRow')
-      .classed('hidden', false);
+    // restore table to original state
+    table.search('').columns().search('').draw();
+    table.rows().nodes().to$().removeClass('active');
 
     d3.select('#tt')
       .classed('hidden', true);
@@ -197,20 +181,11 @@ reset = function() {
       .classed('hidden rowSelect', false)
       .style('background-color', 'white');
 
-    //reset total to n
-    var total = td[td.length-1];
-    total.innerHTML = chart.n;
-
-    //remove box:
+    //remove box
     d3.selectAll(".selection")
       .style("display", "none");
 
-    //hide boxplot data:
+    //hide boxplot data
     d3.selectAll('.boxData')
       .classed('hidden', true);
-
-    var viewTable = document.getElementById('viewTable');
-    viewTable.innerHTML = "View Table";
-    table.classList.add('hidden');
-    t = true;
  };
