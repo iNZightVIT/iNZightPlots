@@ -112,7 +112,11 @@ function boxLabelSet(p, r, q, textinput) {
 show = function(i) {
   var keyText = document.getElementById('inz-leg-txt-' + i + '.1.1.tspan.1');
   var key = document.getElementById('inz-leg-pt-' + i + '.1.1');
-  keyText.setAttribute('fill', key.getAttribute('fill'));
+  if (key.getAttribute("fill") !== "none") {
+        keyText.setAttribute('fill', key.getAttribute('fill'));
+    } else {
+        keyText.setAttribute('fill', key.getAttribute('stroke'));
+    }
   keyText.setAttribute('class', 'show');
   key.setAttribute('class', 'show');
 };
@@ -124,7 +128,6 @@ out = function(i) {
   keyText.setAttribute('class', 'out keyText');
   key.setAttribute('class', 'out');
 };
-
 
 //FUNCTIONS FOR HIGHLIGHTING tabs/cells:
 returnTabSelection = function(lp, data) {

@@ -36,15 +36,19 @@ body {
   border-radius: 5px;
   padding: 10px;
   margin-right: 10px;
+  margin-bottom: 10px;
 }
 
 button {
   margin: 5px;
 }
 
+p {
+  margin-top: 5px;
+}
+
 /*** TABLE PROPERTIES ***/
 /*totals column  or totals row */
-
 table {
   width: 100%;
 }

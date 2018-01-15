@@ -148,7 +148,6 @@ d3.select(panel).selectAll('use')
         d3.selectAll('.boxData')
           .classed('hidden', true);
     })
-
     .on('dblclick', function (d, i) { // deselect
       var selected = this;
         var ind = [];
@@ -198,7 +197,6 @@ if (legendLayout) {
 
     //on click, subsetting occurs:
     subset = function (i) {
-
       //get the title variable:
       var titleVar = document.getElementById('inz-leg-title.1.1.tspan.1').innerHTML;
       var key = document.getElementById('inz-leg-pt-' + i + '.1.1');
@@ -220,6 +218,86 @@ if (legendLayout) {
       table.columns(colInd).search("^" + keyText + "$", true).draw();
     }
 };
+
+//LINES LEGEND: for trends only + single scatters
+// future work: possibly smoothers, LOE (but don't do it if no-one's going to use it.)
+var legLineLayout = document.getElementById('inz-leg-lines.1');
+var trendInfo = chart.trendInfo;
+
+function getEquation(t) {
+    switch(t) {
+                case "linear":
+                return "Linear fit:" + "<span> y = " + trendInfo[t][0] + " " +
+                       (trendInfo[t][1] > 0 ? ("+" + trendInfo[t][1]) : trendInfo[t][1])
+                       + "x " + "</span> <br />" + "R" + "<sup>2</sup> : " + "<span>"
+                       + trendInfo[t][2] + "</span>";
+                break;
+
+                case "quadratic":
+                return "Quadratic fit:" + "<span> y = " + trendInfo[t][0] + " "
+                      + (trendInfo[t][1] > 0 ? ("+" + trendInfo[t][1]) : trendInfo[t][1])
+                      + "x " + (trendInfo[t][2] > 0 ? ("+" + trendInfo[t][2]) : trendInfo[t][2])
+                      + "x<sup>2</sup>" + "</span>" + "<br />"+ "R" + "<sup>2</sup> : " + "<span>"
+                      + trendInfo["rank.cor"][0] + "</span>";
+                break;
+
+                case "cubic":
+                return "Cubic fit: <span> y = " + trendInfo[t][0] + " " +
+                        (trendInfo[t][1] > 0 ? ("+" + trendInfo[t][1]) : trendInfo[t][1])
+                        + "x " + (trendInfo[t][2] > 0 ? ("+" + trendInfo[t][2]) : trendInfo[t][2])
+                        + "x<sup>2</sup> " + (trendInfo[t][3] > 0 ? ("+" + trendInfo[t][3]) : trendInfo[t][3])
+                        + "x<sup>3</sup> </span>" + "<br />" +  "R" + "<sup>2</sup> : <span>"
+                        + trendInfo["rank.cor"][0] + "</span>";
+                break;
+        }
+}
+
+function addLineInteraction(t, g, ptip) {
+    d3.select(legLineLayout).selectAll("." + t)
+    .on('mouseover', function() {
+        show(t);
+    })
+    .on('mouseout', function() {
+        out(t);
+    })
+    .on('click', function() {
+        d3.selectAll('.trend')
+        .classed('hidden', function() {
+          return(this.getAttribute('class').includes(t) == true ? false : true);
+      });
+
+      return ptip.style("display", null)
+                 .html(g);
+        });
+}
+
+function setUpLegend(legLineLayout, trendInfo) {
+    if (legLineLayout) {
+    var lines = d3.select(legLineLayout).selectAll('polyline');
+    var keys = d3.select(legLineLayout).selectAll('tspan')
+                 .attr('class', function() { return this.innerHTML; });
+
+   //insert text into the control panel:
+   var ptip = d3.select('#control')
+             .append("p")
+             .attr('class', 'trend-info')
+             .style('display', 'none');
+
+  var ll = legLineLayout.querySelectorAll('tspan');
+
+  //loop over lines
+  for (var i = 0; i < ll.length; i++) {
+      var t = ll[i].innerHTML;
+      var line = document.getElementById('inz-trend-' + t + '.1.1.1.1');
+      line.setAttribute('class', t + ' trend');
+
+      var g = getEquation(t);
+      addLineInteraction(t, g, ptip);
+    }
+  }
+}
+
+setUpLegend(legLineLayout);
 
 // BRUSH EFFECTS:
 var brush = d3.brush()
@@ -287,6 +365,13 @@ reset = function() {
 
     d3.selectAll('.selection')
       .style("display", "none");
+
+    d3.selectAll('.trend')
+      .classed("hidden", false);
+
+    d3.select('.trend-info')
+      .classed("hidden", true);
+
 };
 
 // deselection/reset using plotregion double-click:
