@@ -40,16 +40,14 @@ reset = function() {
       // hide brush
       d3.selectAll(".selection")
         .style("display", "none");
+
+      d3.select('.brush-info')
+        .style("display", "none");
 }
 
 // create another tooltip for selection box:
-var tt = d3.select('#control').append('div')
-             .attr('class', 'tooltip')
-             .attr('id', 'tt')
-             .style('width', '150')
-             .style('padding', '5px')
-             .style('margin-top', '5px')
-             .style('height', '35');
+var tt = d3.select('#control').append('p')
+             .attr('class', 'brush-info');
 
 //create brush:
 var svg = d3.select('svg');
@@ -111,8 +109,8 @@ function brushmove() {
      var nbins = document.getElementsByClassName('selected').length;
 
     //update tooltip
-    d3.select('#tt')
-      .style('visibility', 'visible')
+    d3.select('.brush-info')
+      .style('display', null)
       .html("Frequency: <span>" + sum + ", " + nProp +
              "</span>" + "<br> bins: <span>" + nbins + "</span>");
 };

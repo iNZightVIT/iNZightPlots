@@ -61,7 +61,7 @@ d3.select(panel).selectAll('polygon')
       // hide box
       d3.selectAll('.boxData')
         .classed('hidden', true);
-      d3.select("#tt").style('visibility', 'hidden');
+      d3.select(".brush-info").style('display', 'none');
 
       //remove box if present
       d3.selectAll(".selection")
@@ -79,13 +79,8 @@ $('#table tbody').on('click', 'tr', function() {
 })
 
  // create another tooltip for selection box:
- var tt = d3.select('#control').append('div')
-            .attr('class', 'tooltip')
-            .attr('id', 'tt')
-            .style('width', '150')
-            .style('padding', '5px')
-            .style('margin-top', '5px')
-            .style('height', '35');
+ var tt = d3.select('#control').append('p')
+            .attr('class', 'brush-info');
 
  //create invisible selection box that is enabled when dragging occurs:
  var brush = d3.brush()
@@ -159,7 +154,7 @@ $('#table tbody').on('click', 'tr', function() {
    table.columns(0).search(ind.join("|"), true).draw();
 
    // update tooltip
-   d3.select("#tt").style('visibility', 'visible')
+   d3.select(".brush-info").style('display', null)
                    .html("Interval Range: <span>" + intRange[0] + " - " + intRange[intRange.length-1] +
                          "</span> <br> Frequency: <span>" + sum +  "," + nProp + "</span> <br> No. of intervals: <span>" +
                          intervalNo + "</span>");
@@ -174,7 +169,7 @@ reset = function() {
     table.search('').columns().search('').draw();
     table.rows().nodes().to$().removeClass('active');
 
-    d3.select('#tt')
+    d3.select('.brush-info')
       .classed('hidden', true);
 
     d3.selectAll('tr')
