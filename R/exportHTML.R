@@ -456,7 +456,6 @@ getInfo.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
     trendInfo$rank.cor <- cor(x, y, method = "spearman")
   }
 
-  # JS
   chart <- list(type = "scatter", varNames = names(tab), data = tab,
                 colGroupNo = colGroupNo, trendInfo = trendInfo)
   JSData <- list(chart = jsonlite::toJSON(chart), jsFile = dpspJS)

@@ -203,12 +203,12 @@ drawLinesLegend <- function(x, opts = inzpar(), cex.mult = 1) {
         fg <- placeGrob(fg, linesGrob(c(0.2, 0.8), 0.5,
                                        gp =
                                        gpar(col = col[i], lty = lty[i], lwd = lwd[i] * 2), 
-                                      name = paste0("inz-leg-line-", lab[i])),
+                                      name = paste0("inz-leg-pt-", lab[i])),
                         col = 1, row = i + 1)
        
         fg <- placeGrob(fg, textGrob(lab[i], x = 0 , y = 0.5,
                                      just = c("left", "center"),
-                                     gp = gpar(cex = legcex), name = paste0("inz-leg-", lab[i])),
+                                     gp = gpar(cex = legcex), name = paste0("inz-leg-txt-", lab[i])),
                         col = 2, row = i + 1)
     }
     

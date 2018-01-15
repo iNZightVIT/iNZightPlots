@@ -87,7 +87,8 @@ function(x, y, order, xlim, col, bs, opts) {
     if (!inherits(yy, "try-error")) {
         grid.lines(xx, yy,
                    default.units = "native",
-                   gp = gpar(col = col, lwd = 2 * opts$lwd, lty = opts$lty.trend[[ord]]))
+                   gp = gpar(col = col, lwd = 2 * opts$lwd, lty = opts$lty.trend[[ord]]),
+                   name = paste(paste0("inz-trend-", ord), opts$rowNum, opts$colNum, sep = "."))
 
         if (bs) {
             bs.lines <- vector("list", 30)
@@ -114,7 +115,8 @@ function(x, y, order, xlim, col, bs, opts) {
             all.lines <- do.call(rbind, bs.lines)
             grid.polyline(all.lines[, 1], all.lines[, 2], id = all.lines[, 3],
                           default.units = "native",
-                          gp = gpar(col = col, lwd = 1 * opts$lwd, lty = 3))
+                          gp = gpar(col = col, lwd = 1 * opts$lwd, lty = 3),
+                          name = paste(paste0("inz-bs-", ord), opts$rowNum, opts$colNum, sep = "."))
         }
     }
 }
@@ -144,7 +146,8 @@ addParTrend <- function(x, y, by, order, xlim, cols, opts) {
         for (i in 1:length(lby)) {
             grid.lines(xx[byy == lby[i]], yy[byy == lby[i]],
                        default.units = "native",
-                       gp = gpar(col = (cols[i]), lwd = 2 * opts$lwd, lty = opts$lty.trend[[ord]]))
+                       gp = gpar(col = (cols[i]), lwd = 2 * opts$lwd, lty = opts$lty.trend[[ord]]),
+                       name = paste(paste0("inz-par-trend-", ord), opts$rowNum, opts$colNum, sep = "."))
         }
     }
 }
