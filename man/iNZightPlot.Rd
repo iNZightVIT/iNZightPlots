@@ -116,4 +116,3 @@ Some details here ...
 \author{
 Tom Elliott
 }
-
