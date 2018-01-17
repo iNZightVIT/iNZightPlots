@@ -10,19 +10,22 @@ var table = $('#table').DataTable({
     ]
   });
 
-var tableWrapper = $('#table_wrapper').addClass('hidden');
-
 //drive the viewTable button:
 showTable = function() {
   var tableWrapper = $('#table_wrapper');
   tableWrapper.toggleClass('hidden');
 };
 
+// check levels:
+if (chart.levNames) {
+  var levelNo = chart.levNames.length;
+} else {
+  var levelNo = 1;
+}
+
 // BOX PLOT
 //identify lines and box plot:
-var lastLine = "inz-box-line.1.1.1.1";
-var boxElements = document.getElementById('inz-box.1.1.1.1');
-boxMe(lastLine, boxElements);
+boxMe(levelNo);
 
 var svg = document.getElementsByTagName('svg')[0],
     count = data.length,
@@ -37,8 +40,10 @@ var tooltip = d3.select('body').append('div')
               .style('height', '50');
 
 d3.select(panel).selectAll('polygon')
+  .attr('class', 'histBar');
+
+d3.selectAll('.histBar')
     .data(data)
-    .attr('class', 'histBar')
     .on('mouseover', function(d){tooltip.style('visibility', 'visible')
                                               .style("left", d3.event.pageX - 40 + "px")
                                               .style("top", d3.event.pageY - 55 + "px")
@@ -61,7 +66,9 @@ d3.select(panel).selectAll('polygon')
       // hide box
       d3.selectAll('.boxData')
         .classed('hidden', true);
-      d3.select(".brush-info").style('display', 'none');
+
+      d3.select(".brush-info")
+        .style('display', 'none');
 
       //remove box if present
       d3.selectAll(".selection")
@@ -82,8 +89,8 @@ $('#table tbody').on('click', 'tr', function() {
  var tt = d3.select('#control').append('p')
             .attr('class', 'brush-info');
 
- //create invisible selection box that is enabled when dragging occurs:
- var brush = d3.brush()
+//BRUSH:
+ var brush = d3.brushX()
               .on("start", brushstart)
               .on("brush", brushmove)
               .on("end", brushend);
@@ -103,10 +110,8 @@ $('#table tbody').on('click', 'tr', function() {
   function brushmove() {
 
     var s = d3.event.selection;
-    var x1 = s[0][0];
-    var x2 = s[1][0];
-    var y1 = s[0][1];
-    var y2 = s[1][1];
+    var x1 = s[0];
+    var x2 = s[1];
 
     // information to extract:
     var n = chart.n;
@@ -119,21 +124,18 @@ $('#table tbody').on('click', 'tr', function() {
     var bar = document.getElementById(Grob + '.' + i);
 
     //obtain end points of the bar
-    //TODO: maybe fix this so you don't have to select the bottom?:
     var coords = bar.getAttribute('points').split(" ");
     var bottomEdge = coords[0].split(',');
     var topEdge =  coords[3].split(',');
     var bx = bottomEdge[0];
-    var by = bottomEdge[1];
     var tx = topEdge[0];
-    var ty = topEdge[1];
 
       if (bar.getAttribute('visibility') == 'hidden') {
         // those that are hidden, remain hidden
         bar.classList.add('hidden');
       } else {
         //points that lie within the  boundary box drawn:
-        if(((x1 <= bx && bx <= x2) && (x1 <= tx && tx <= x2)) && ((y1 <= by && by <= y2) && (y1 <= ty && ty <= y2))) {
+        if(((x1 <= bx && bx <= x2) && (x1 <= tx && tx <= x2))) {
           bar.setAttribute('class', ' histBar selected');
           // store frequency from selected
           groupN.push(tab[i - 1].counts);
@@ -172,9 +174,8 @@ reset = function() {
     d3.select('.brush-info')
       .classed('hidden', true);
 
-    d3.selectAll('tr')
-      .classed('hidden rowSelect', false)
-      .style('background-color', 'white');
+    d3.selectAll('.label')
+      .classed('hidden', true);
 
     //remove box
     d3.selectAll(".selection")

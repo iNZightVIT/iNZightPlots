@@ -3,7 +3,7 @@
 #' \code{exportHTML} is designed to export the iNZight plot as a dynamic, interactive HTML page.
 #' Currently only handles single panel plots. Coloured hex plots are currently not available yet.
 #'
-#' @param x An iNZight plot object or function (such as updatePlot) that captures iNZight environment
+#' @param x An iNZight plot object that captures iNZight environment
 #' @param file Name of temporary HTML file generated
 #' Additional parameters for scatterplots and dotplots only:
 #' @param data dataset/dataframe that you wish to investigate and export more variables from
@@ -132,14 +132,7 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
   # insert inline JS, CSS, table, SVG:
   HTMLtemplate[cssLine] <- paste(styles, collapse = "\n")
   HTMLtemplate[jsLine] <- paste(jsCode, collapse = "\n")
-
-  # for now: the singleFunctions file is read through (for multi-panel plots, this will change.)
-  if(length(plot$toplot) > 1) {
-    HTMLtemplate[functionLine] <- "null"
-  } else {
-    HTMLtemplate[functionLine] <- paste(singleFunctions, collapse = "\n")
-  }
-
+  HTMLtemplate[functionLine] <- paste(singleFunctions, collapse = "\n")
   HTMLtemplate[tableLineOne] <- HTMLtable
   HTMLtemplate[svgLine] <- svgCode
 
@@ -287,7 +280,11 @@ getInfo.inzbar <- function(plot, x) {
 
 getInfo.inzhist <- function(plot, x) {
   #plot <- x$all$all or plot <- x$all[[1]]
+
   toPlot <- plot$toplot$all
+  if (is.null(toPlot)) {
+    stop("This histogram has levels. Currently not available yet!")
+  }
   intervals <- toPlot$breaks
   counts <- toPlot$counts
   n <- attributes(x)$total.obs
@@ -363,11 +360,8 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
     tab <- do.call("rbind", data)
     colnames(tab) <- c(attributes(x)$varnames$x, attributes(x)$varnames$y)
 
-    jsFile <- multidotJS
-    chart <- list(type = "dot", boxData = boxList, levList = levList,
+    chart <- list(type = "dot", data = data.frame(tab), boxData = boxList, levList = levList,
                   countsTab = countsTab, levNames = names(plots), varNames = colnames(tab))
-
-    JSData <- list(chart = jsonlite::toJSON(chart), jsFile = multidotJS)
 
   } else { #for single dot plots
 
@@ -395,7 +389,6 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
     ## JS:
     chart <- list(type = "dot", varNames = names(tab), data = tab, colGroupNo = colGroupNo,
                   boxData = boxTable)
-    JSData <- list(chart = jsonlite::toJSON(chart), jsFile = dpspJS)
   }
 
   ##Attributes for HTML table
@@ -403,6 +396,7 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
   includeRow <- TRUE
   tableInfo <- list(caption = cap, includeRow = includeRow,
                     tab = data.frame(tab), varNames = varNames)
+  JSData <- list(chart = jsonlite::toJSON(chart), jsFile = dpspJS)
   return(list(tbl = tableInfo, js = JSData))
 }
 

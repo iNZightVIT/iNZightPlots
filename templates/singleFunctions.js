@@ -8,7 +8,7 @@ var data = chart.data;
 
 //table functions:
 // insert an x-header:
-function insertXHeader() {
+insertXHeader = function() {
   var xrow = table.insertRow(0),
       xhead = xrow.insertCell(0);
   xhead.setAttribute('class', 'headings');
@@ -17,14 +17,14 @@ function insertXHeader() {
 };
 
 // creating a y-header:
-function insertYHeader() {
+insertYHeader = function() {
   var yHeading = document.getElementsByTagName('th')[0];
   yHeading.innerHTML = document.getElementsByTagName('tspan')[3].innerHTML;
   yHeading.setAttribute('class',' headings');
 }
 
 //create buttons:
-function button(name) {
+button = function(name) {
   var button = document.createElement('button');
   button.setAttribute("type", "button");
   button.setAttribute("class","btn btn-primary hidden " + name);
@@ -35,7 +35,7 @@ function button(name) {
 };
 
 // TODO: revise further
-function getGrob(chartType) {
+getGrob = function(chartType) {
   var polygon = document.getElementsByTagName('polygon');
   if (chartType == 'hist'){
     var p = polygon[2];
@@ -50,61 +50,92 @@ function getGrob(chartType) {
 }
 
 //FUNCTIONS FOR BOXPLOTS
-var boxMe = function(lastLine, boxElements) {
-  d3.select(boxElements).selectAll('polygon')
-    .attr('class', 'box');
+boxMe = function(levelNo) {
 
-    boxLabelSet(0, 1, 0,'LQ');
-    boxLabelSet(1, 2, 2, 'UQ');
-    boxLabelSet(1, 0, 1, 'Median');
-    boxLabelSet(1, 0, 3, 'Min');
-    boxLabelSet(2, 1, 4, 'Max');
+  var polygonBoxes = document.querySelectorAll('g[id^="inz-box."]')
+  var boxLines = document.querySelectorAll('g[id^="inz-box-line."]')
 
-    //group boxplot together as a single object
-    var box = d3.selectAll('.box');
-    var boxData = d3.selectAll('.boxData');
-    var totalRow = document.getElementById('totalRow');
+  for (i = 1; i <= levelNo; i++) { //separate boxes for each plot
+    var polygonBox = polygonBoxes[i-1].children;
+    var boxLine = boxLines[i-1].children;
+    for (j=0; j < 2; j++) {
+      polygonBox[j].setAttribute('class', 'box-' + i);
+      boxLine[j].setAttribute('class', 'box-' + i);
+    }
+    boxLabelSet(i, 0, 1, 0,'LQ');
+    boxLabelSet(i, 1, 2, 2, 'UQ');
+    boxLabelSet(i, 1, 0, 1, 'Med');
+    boxLabelSet(i, 1, 0, 3, 'Min');
+    boxLabelSet(i, 2, 1, 4, 'Max');
+  };
 
-    //set event listeners:
-    box.on("mouseover", function() { box.classed("fillBox", true);})
-       .on("mouseout", function() { box.classed("fillBox", false);})
-       .on("click", function() { boxData.classed("hidden", false)});
+  //Box Plot interactions:
+  for (j = 1; j <= levelNo; j++) {
+  var box = document.getElementsByClassName('box-' + j);
+  for (i = 0; i < box.length; i++) {
+    box[i].setAttribute('onmouseover', 'fillBox(' + j + ')');
+    box[i].setAttribute('onmouseout', 'normalBox(' + j + ')');
+    box[i].setAttribute('onclick', 'showBox(' + j + ')');
+    }
+  }
+
+  fillBox = function(j) {
+    d3.selectAll('.box-' + j)
+      .classed('fillBox', true);
+  };
+
+  normalBox = function(j) {
+    d3.selectAll('.box-' + j)
+      .classed('fillBox', false);
+    };
+
+  showBox = function(j) {
+    var boxData = d3.selectAll('.boxData-' + j);
+      boxData.classed('hidden', !boxData.classed('hidden'));
+  }
 }
 
 //functions to create boxLabels:
-function boxLabel(textinput, x ,y) {
-
+boxLabel = function(i, textinput, panel, x, y) {
 var boxLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  boxLabel.setAttribute('class', 'label boxData-' + i + ' hidden'); //hidden
+  boxLabel.setAttributeNS(null, 'transform', 'translate(' + Number(x) + ',' + (Number(y) + 2) + ') scale(1, -1)');
   boxLabel.setAttributeNS(null, 'id', textinput);
-  boxLabel.setAttributeNS(null, 'class', 'label boxData hidden');
-  boxLabel.setAttributeNS(null, 'transform', 'translate(' + Number(x) + ',' + (Number(y) + 10) + ') scale(1, -1)');
 
   var textNode = document.createTextNode(textinput);
   boxLabel.appendChild(textNode);
-  var panel = document.getElementsByTagName('g')[0];
+  //var panel = document.getElementById('inz-' + tag + '.1.1.' + i + ".1");
   panel.appendChild(boxLabel);
 };
 
-function boxLabelSet(p, r, q, textinput) {
+boxLabelSet = function(i, p, r, q, textinput) {
   if (textinput == "Min" ||  textinput == "Max") {
-    line = document.getElementById(lastLine + '.' +  p);
+    var line = document.getElementById('inz-box-line.1.1.' + i  + '.1.' + p); //i is levelNo.
     // p will either be 1 or 2 -> 1 = minLine, 2 = maxLine
-    line.setAttribute('class', 'box');
-    boxPoints = line.getAttribute('points').split(" ")[r].split(",");
+    line.setAttribute('class', 'box-' + i);
+    var boxPoints = line.getAttribute('points').split(" ")[r].split(",");
+    var panel = line.parentNode;
   } else {
-    box = document.getElementsByClassName('box')[p];
+    var box = document.getElementsByClassName('box-' + i)[p];
     // boxplot split into two boxes - lowerbox (p = 0) and upperbox (p = 1)
-    boxPoints = box.getAttribute('points').split(" ")[r].split(",");
+    var boxPoints = box.getAttribute('points').split(" ")[r].split(",");
+    var panel = box.parentNode;
   }
-  var x = boxPoints[0];
-  var y = boxPoints[1];
+  x = boxPoints[0];
+  y = boxPoints[1];
 
-  if (textinput == "Median") { // move median label below the box plot
-  var y = boxPoints[1] - 25;
+  if (textinput == "Med") {
+    // move median label below the box plot
+   y = boxPoints[1] - 11;
   }
-
-  text = textinput + ": " + chart.boxData[q].quantiles;
-  boxLabel(text, x, y);
+  if (levelNo == 1) {
+    text = textinput + ": " + chart.boxData[q].quantiles;
+  } else {
+    text = textinput + ": " + chart.boxData[i-1][q].quantiles;
+  }
+  // this is associated with the boxData imported from R.
+  //q = 0 (LQ), 1 (UQ), 2 (Median), 3 (Min), 4 (Max)
+  boxLabel(i, text, panel, x, y);
 };
 
 //FUNCTIONS FOR INTERACTING WITH LEGEND

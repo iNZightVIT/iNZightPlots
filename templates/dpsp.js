@@ -10,8 +10,14 @@ var table = $('#table').DataTable({
     ]
   });
 
+  if (chart.levNames) {
+    var levelNo = chart.levNames.length;
+  } else {
+    var levelNo = 1;
+  }
+
 // create form for variable selection:
-function createVariableSelectionForm() {
+varForm = function() {
   //create form
   var form = document.createElement('form');
   form.setAttribute('class', 'form-inline');
@@ -50,7 +56,7 @@ function createVariableSelectionForm() {
 
 }
 
-createVariableSelectionForm();
+varForm();
 
 //drive the viewTable button:
 showTable = function() {
@@ -59,27 +65,23 @@ showTable = function() {
 };
 
 //find out whether it's a dot or scatter:
-// if a box plot exists:
-var boxElements = document.getElementById('inz-box.1.1.1.1');
-if (boxElements !== null) {
-  // for dotplots only...
-  var Grob = "inz-DOTPOINTS.1.1.1.1",
-      lastLine = "inz-box-line.1.1.1.1";
-  boxMe(lastLine, boxElements);
+if (chart.type == "dot") {
+  var Grob = document.querySelectorAll('g[id^="inz-DOTPOINTS."]');
+  boxMe(levelNo);
 } else {
-  var Grob = "inz-SCATTERPOINTS.1.1.1";
+  var Grob = document.querySelectorAll('g[id^="inz-SCATTERPOINTS."]');
 }
-
-var panel = document.getElementById(Grob);
-var count = panel.childElementCount;
-var ind = [];
 
 // TOOLTIPS:
 var tooltip = d3.select('body').append('div')
               .attr('class', 'tooltip')
               .style('width', '100');
 
-d3.select(panel).selectAll('use')
+//select all points
+d3.selectAll(Grob).selectAll('use')
+  .attr('class', 'point');
+
+d3.selectAll('.point')
   .data(data)
   .attr('class', 'point')
   .on('mouseover', function (d, i) {
@@ -122,7 +124,7 @@ d3.select(panel).selectAll('use')
       var selected = this;
         var ind = [];
 
-        d3.select(panel).selectAll('.point')
+        d3.selectAll('.point')
             .attr("class", function() {
               if (this.getAttribute('class') === "point selected") {
                 return "point selected";
@@ -136,17 +138,24 @@ d3.select(panel).selectAll('use')
         //filter table:
         //search for all those that are selected, then extract id num:
         var selected = document.getElementsByClassName('selected');
-            for (var k = 0; k < selected.length; k++) {
-                var id = selected[k].id;
-                idNum = id.substring(id.lastIndexOf('.') + 1);
-                ind.push("^" + idNum + "$");
+        for (var j = 0; j < selected.length; j++) {
+            var id = selected[j].id;
+            if(levelNo > 1) {
+              // search for the middle number due to levels:
+              var mid = id.substring(0, id.lastIndexOf('.1.'));
+              var levNum = Number(mid.substring(mid.lastIndexOf('.') + 1));
+              var num = Number(id.substring(id.lastIndexOf('.') + 1));
+              // actual index in table:
+              var idNum = chart.countsTab[levNum - 1] + num;
+            } else {
+              var idNum = id.substring(id.lastIndexOf('.') + 1);
             }
+            ind.push("^" + idNum + "$");
+        }
+
         table.search('').columns().search('').draw();
         table.columns(0).search(ind.join("|"), true).draw();
 
-        //hide box
-        d3.selectAll('.boxData')
-          .classed('hidden', true);
     })
     .on('dblclick', function (d, i) { // deselect
       var selected = this;
@@ -155,11 +164,19 @@ d3.select(panel).selectAll('use')
 
         // update table:
         var selected = document.getElementsByClassName('selected');
-            for (var k = 0; k < selected.length; k++) {
-                var id = selected[k].id;
-                idNum = id.substring(id.lastIndexOf('.') + 1);
-                ind.push("^" + idNum + "$");
-            }
+          for (var i = 0; i < selected.length; i++) {
+              var id = selected[i].id;
+              if(levelNo > 1) {
+                // search for the middle number due to levels:
+                var mid = id.substring(0, id.lastIndexOf('.1.'));
+                var levNum = Number(mid.substring(mid.lastIndexOf('.') + 1));
+                var num = Number(id.substring(id.lastIndexOf('.') + 1));
+                // actual index in table:
+                var idNum = chart.countsTab[levNum - 1] + num;
+              } else {
+                var idNum = id.substring(id.lastIndexOf('.') + 1);
+              }
+          }
        table.search('').columns().search('').draw();
        table.columns(0).search(ind.join("|"), true).draw();
     });
@@ -168,15 +185,19 @@ d3.select(panel).selectAll('use')
 $('#table tbody').on('click', 'tr', function() {
     $(this).toggleClass('active');
     var ind = table.rows('.active')[0];
-    d3.select(panel).selectAll('.point')
+    d3.selectAll('.point')
       .attr("class", function(d, i) {
         return (ind.includes(i) ? "point selected" : "point none");
       })
+    //clear brush
+    d3.selectAll('.selection')
+      .style("display", "none");
     })
 
 //LEGEND INTERACTION:
+// only for single levels
 var legendLayout = document.getElementById('inz-leg-layout.1');
-if (legendLayout) {
+if (legendLayout && levelNo == 1) {
   //grabbing keys and text from the legend:
   var colGroupNo = chart.colGroupNo;
   //assigning mouse events:
@@ -202,9 +223,10 @@ if (legendLayout) {
       var key = document.getElementById('inz-leg-pt-' + i + '.1.1');
       var keyText = document.getElementById('inz-leg-txt-' + i + '.1.1.tspan.1').innerHTML;
       var names = chart.varNames;
+      var count = document.getElementsByClassName('point').length;
 
       for (j = 1; j <= count; j++) {
-          var point = document.getElementById(Grob + '.' + j);
+          var point = document.getElementById(Grob[0].id + '.' + j);
           if (key.getAttribute('fill') == point.getAttribute('stroke')) {
               point.setAttribute('class', 'point selected');
           } else {
@@ -224,7 +246,7 @@ if (legendLayout) {
 var legLineLayout = document.getElementById('inz-leg-lines.1');
 var trendInfo = chart.trendInfo;
 
-function getEquation(t) {
+getEquation = function(t) {
     switch(t) {
                 case "linear":
                 return "Linear fit:" + "<span> y = " + trendInfo[t][0] + " " +
@@ -252,7 +274,7 @@ function getEquation(t) {
         }
 }
 
-function addLineInteraction(t, g, ptip) {
+addLineInteraction = function(t, g, ptip) {
     d3.select(legLineLayout).selectAll("." + t)
     .on('mouseover', function() {
         show(t);
@@ -271,7 +293,7 @@ function addLineInteraction(t, g, ptip) {
         });
 }
 
-function setUpLegend(legLineLayout, trendInfo) {
+setUpLegend = function(legLineLayout, trendInfo) {
     if (legLineLayout) {
     var lines = d3.select(legLineLayout).selectAll('polyline');
     var keys = d3.select(legLineLayout).selectAll('tspan')
@@ -297,30 +319,27 @@ function setUpLegend(legLineLayout, trendInfo) {
   }
 }
 
-setUpLegend(legLineLayout);
+setUpLegend(legLineLayout, trendInfo);
 
 // BRUSH EFFECTS:
 var brush = d3.brush()
+              .on("start", brushstart)
               .on("brush", brushmove)
               .on("end", brushend);
 
-// attaching brush to correct positions:
-if (chart.type == "dot") {
-  var pp = panel.parentNode.parentNode,
-      insertBrush = ":first-child";
-} else {
-  var pp = panel.parentNode,
-      insertBrush = "g:nth-child(4)";
-}
-
+// find where inz-x-grid is:
+var pp = document.getElementById('inz-x-grid.1.1.1').parentNode;
 d3.select(pp)
-  .insert("g", insertBrush)
+  .insert("g", "g:nth-child(4)")
   .attr("class", "brush")
   .call(brush);
 
 // make handles invisible:
 d3.selectAll('.handle')
   .style('opacity', 0);
+d3.select('.overlay')
+  .attr('width', '100%')
+  .attr('height', '100%');
 d3.select('.overlay')
   .style('stroke', 'none');
 
@@ -332,23 +351,38 @@ function brushmove() {
   var y2 = s[1][1];
   var ind = [];
 
-  for (i =1; i <= count; i++) {
-    var point = document.getElementById(Grob + '.' + i);
-    var x = point.x.baseVal.value;
-    var y = point.y.baseVal.value;
-    var dataRow = document.getElementById('tr' + i);
+  d3.selectAll('.point')
+        .attr('class', function(d, i) {
+          var selected = this;
+          var x = this.x.baseVal.value;
+          var y = this.y.baseVal.value;
+          if ((x1 <= x && x <= x2) && (y1 <= y && y <= y2)) {
+            return('point selected');
+          } else {
+            return('point none');
+          }
+        });
 
-    //points that lie within the  boundary box drawn:
-    if ((x1 <= x && x <= x2) && (y1 <= y && y <= y2)) {
-      point.setAttribute('class', 'point selected');
-      ind.push("^" + i + "$");
-    } else {
-      point.setAttribute('class', 'point none');
+  // find all selected points and return indices:
+  var selected = document.getElementsByClassName('selected');
+    for (var i = 0; i < selected.length; i++) {
+      //calculate idNum:
+      var id = selected[i].id;
+      if (levelNo > 1) {
+      // search for the middle number due to levels:
+        var mid = id.substring(0, id.lastIndexOf('.1.'));
+        var levNum = Number(mid.substring(mid.lastIndexOf('.') + 1));
+        var num = Number(id.substring(id.lastIndexOf('.') + 1));
+        // actual index in table:
+        var idNum = chart.countsTab[levNum - 1] + num;
+      } else {
+        var idNum = id.substring(id.lastIndexOf('.') + 1);
+      }
+        ind.push("^" + idNum + "$");
     }
-  }
-  //reset and filter table:
-  table.columns('').search().columns('').draw();
-  table.columns(0).search(ind.join("|"), true).draw();
+    //filter table:
+    table.columns('').search().columns('').draw();
+    table.columns(0).search(ind.join("|"), true).draw();
 };
 
 //Reset Button:
@@ -360,8 +394,8 @@ reset = function() {
     table.search('').columns().search('').draw();
     table.rows().nodes().to$().removeClass('active');
 
-    d3.selectAll('.boxData')
-      .classed("hidden", true);
+    d3.selectAll('.label')
+    .classed("hidden", true);
 
     d3.selectAll('.selection')
       .style("display", "none");

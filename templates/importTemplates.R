@@ -18,9 +18,8 @@ bpstackedJS <- readLines(file.path(dirname, 'bp-stacked.js'))
 dpspJS <- readLines(file.path(dirname, 'dpsp.js'))
 histJS <- readLines(file.path(dirname, 'histogram.js'))
 hexbinJS <- readLines(file.path(dirname, 'hexbin.js'))
-multidotJS <- readLines(file.path(dirname, 'multidot.js'))
 
-devtools::use_data(HTMLtemplate, styles, singleFunctions, bpJS, bpstackedJS, dpspJS, multidotJS, histJS, hexbinJS, internal = TRUE, overwrite = TRUE)
+devtools::use_data(HTMLtemplate, styles, singleFunctions, bpJS, bpstackedJS, dpspJS, histJS, hexbinJS, internal = TRUE, overwrite = TRUE)
 
 #add/delete files where necessary: - what is written here would be the same in the exportHTML function.
 
