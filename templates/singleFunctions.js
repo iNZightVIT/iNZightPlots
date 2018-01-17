@@ -64,7 +64,7 @@ boxMe = function(levelNo) {
     }
     boxLabelSet(i, 0, 1, 0,'LQ');
     boxLabelSet(i, 1, 2, 2, 'UQ');
-    boxLabelSet(i, 1, 0, 1, 'Med');
+    boxLabelSet(i, 1, 0, 1, 'Median');
     boxLabelSet(i, 1, 0, 3, 'Min');
     boxLabelSet(i, 2, 1, 4, 'Max');
   };
@@ -124,7 +124,7 @@ boxLabelSet = function(i, p, r, q, textinput) {
   x = boxPoints[0];
   y = boxPoints[1];
 
-  if (textinput == "Med") {
+  if (textinput == "Median") {
     // move median label below the box plot
    y = boxPoints[1] - 11;
   }
