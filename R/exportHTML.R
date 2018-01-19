@@ -507,19 +507,20 @@ varSelect <- function(x, extra.vars, pl, data, tab, xVal, yVal, order, varNames)
          .call = FALSE)
   } else {
     tab <- tab
-    # if there's a colby variable
-    if (!is.null(pl$colby)) {
-      colby <- pl$colby
-      tab <- cbind(tab, as.data.frame(colby))
-      names(tab)[ncol(tab)] <- varNames$colby
-    }
+  }
 
-    # if there's a sizeby variable
-    if (!is.null(varNames$sizeby)) {
-      sizeby <- pl$propsize
-      tab <- cbind(tab, as.data.frame(sizeby))
-      names(tab)[ncol(tab)] <- varNames$sizeby
-    }
+  # if there's a colby variable
+  if (!is.null(pl$colby)) {
+    colby <- pl$colby
+    tab <- cbind(tab, as.data.frame(colby))
+    names(tab)[ncol(tab)] <- varNames$colby
+  }
+
+  # if there's a sizeby variable
+  if (!is.null(varNames$sizeby)) {
+    sizeby <- pl$propsize
+    tab <- cbind(tab, as.data.frame(sizeby))
+    names(tab)[ncol(tab)] <- varNames$sizeby
   }
 
   # for maps only

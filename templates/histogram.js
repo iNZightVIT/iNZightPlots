@@ -68,7 +68,7 @@ d3.selectAll('.histBar')
         .classed('hidden', true);
 
       d3.select(".brush-info")
-        .style('display', 'none');
+        .classed('hidden', true);
 
       //remove box if present
       d3.selectAll(".selection")
@@ -156,8 +156,9 @@ $('#table tbody').on('click', 'tr', function() {
    table.columns(0).search(ind.join("|"), true).draw();
 
    // update tooltip
-   d3.select(".brush-info").style('display', null)
-                   .html("Interval Range: <span>" + intRange[0] + " - " + intRange[intRange.length-1] +
+   d3.select(".brush-info")
+     .classed('hidden', false)
+     .html("Interval Range: <span>" + intRange[0] + " - " + intRange[intRange.length-1] +
                          "</span> <br> Frequency: <span>" + sum +  "," + nProp + "</span> <br> No. of intervals: <span>" +
                          intervalNo + "</span>");
 };

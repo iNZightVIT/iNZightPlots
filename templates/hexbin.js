@@ -42,7 +42,7 @@ reset = function() {
         .style("display", "none");
 
       d3.select('.brush-info')
-        .style("display", "none");
+        .classed('hidden', true);
 }
 
 // create another tooltip for selection box:
@@ -110,7 +110,7 @@ function brushmove() {
 
     //update tooltip
     d3.select('.brush-info')
-      .style('display', null)
+      .classed('hidden', false)
       .html("Frequency: <span>" + sum + ", " + nProp +
              "</span>" + "<br> bins: <span>" + nbins + "</span>");
 };

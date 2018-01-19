@@ -6,6 +6,20 @@ svg.removeAttribute('width');
 
 var data = chart.data;
 
+// make tables not go wide when there's only 1 column
+if (chart.type !== "bar") {
+  var ncol = $("#table thead tr th").length;
+  if (ncol < 3) {
+    $('#table').css('width', '50%');
+  } else if (ncol <= 4) {
+    $('#table').css('width', '75%');
+  } else {
+    $('#table').css('width', '100%');
+  }
+} else {
+  $('#table').css('width', '100%');
+}
+
 //table functions:
 // insert an x-header:
 insertXHeader = function() {
