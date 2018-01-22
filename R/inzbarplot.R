@@ -139,7 +139,7 @@ plot.inzbar <- function(obj, gen) {
         grid.polygon(unit(xx, "native"), unit(yy, "native"), id = id,
                      gp =
                      gpar(fill = colz, col = "transparent",
-                          lwd = 0))
+                          lwd = 0), name = paste("inz-bar-rev", opts$rowNum, opts$colNum, sep = "."))
 
         ## separating lines
         mat <- apply(sweep(obj$p.colby, 2, tops[2, ], "*"), 2, cumsum)
@@ -150,7 +150,8 @@ plot.inzbar <- function(obj, gen) {
         id <- rep(1:length(c(mat)), each = 2)
 
         grid.polyline(xl, yl, default.units = "native", id = id,
-                      gp = gpar(col = opts$bar.col, lwd = opts$bar.lwd))
+                      gp = gpar(col = opts$bar.col, lwd = opts$bar.lwd),
+                      name = paste("inz-bar-line", opts$rowNum, opts$colNum, sep = "."))
     }
 
     xx <- rep(edges, nx) + rep(1:nx - 1, each = 4 * nrow(p))
@@ -163,7 +164,8 @@ plot.inzbar <- function(obj, gen) {
     grid.polygon(unit(xx, "native"), unit(yy, "native"), id = id,
                      gp =
                      gpar(fill = if (SEG) "transparent" else colz, col = opts$bar.col,
-                          lwd = opts$bar.lwd))
+                          lwd = opts$bar.lwd), 
+                     name = paste("inz-BAR", opts$rowNum, opts$colNum, sep = "."))
 
     center <- apply(matrix(xx, ncol = 4, byrow = TRUE), 1, function(x) x[2] + (x[3] - x[2]) / 2)
     bounds <- apply(matrix(xx, ncol = 4, byrow = TRUE), 1, function(x) x[2:3])

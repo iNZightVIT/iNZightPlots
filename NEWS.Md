@@ -30,6 +30,11 @@ __Release date__: 23 March 2017
 
 - More interactive plot/SVG fixes
 
+### Patch 2.7.5 - 23/01/2018
+
+- More fixes and features for interactive plots
+
+
 ***
 # Version 2.6
 __Release date__: 12 December 2016

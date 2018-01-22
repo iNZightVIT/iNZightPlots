@@ -1,17 +1,15 @@
 /*-------------------------------------------------------------------
-JS code for stacked bar plots:
-
-Note: this is slightly different to the 2 way table of count due
-to the stacking nature and different information being displayed.
+Stacked bar plots:
+Different to the 2 way table of count.
 In 2 way table of count: rows add to 100%, while here columns add
 to 100%.
 -------------------------------------------------------------------*/
-
 var table = document.getElementById('table');
     tr = document.getElementsByTagName('tr'), //no. of columns in table
     ncol = tr[0].childElementCount,
     td = document.getElementsByTagName('td'),
     nrow = document.getElementById('table').rows.length, //no. of rows in table
+    colorMatch = chart.colorMatch,
     cellNo = td.length; // no. of cells in table
 
   // labelling rows:
@@ -27,24 +25,21 @@ for (var i = 1; i < nrow; i ++) {
 
 //finding no. of rows, and labelling
 for (var j = 1; j <ncol; j++) {
-for (var i = 1; i <= cellNo; i ++) {
-
-  if (i % ncol == 1){
-    td[i-1].setAttribute('id', 'yGroup' + ((i-1)/ncol + 1));
-    td[i-1].setAttribute('class', 'yGroup');
-  } else if (document.getElementsByClassName('countRow')[0].contains(td[i-1])){
-    td[i-1].setAttribute('id', 'counts' + ((i-1)%ncol));
-    td[i-1].innerHTML = Number(td[i-1].innerHTML);
-
-  } else if (document.getElementsByClassName('tc')[0].contains(td[i-1])) {
-    td[i-1].setAttribute('id', 'tc' +((i-1)%ncol));
-    td[i-1].setAttribute('class', 'tc');
+  for (var i = 1; i <= cellNo; i ++) {
+    if (i % ncol == 1){
+      td[i-1].setAttribute('id', 'yGroup' + ((i-1)/ncol + 1));
+      td[i-1].setAttribute('class', 'yGroup');
+    } else if (document.getElementsByClassName('countRow')[0].contains(td[i-1])){
+      td[i-1].setAttribute('id', 'counts' + ((i-1)%ncol));
+      td[i-1].innerHTML = Number(td[i-1].innerHTML);
+    } else if (document.getElementsByClassName('tc')[0].contains(td[i-1])) {
+      td[i-1].setAttribute('id', 'tc' +((i-1)%ncol));
+      td[i-1].setAttribute('class', 'tc');
+    } else {
+      td[i-1].setAttribute('id',  'td' + i);
+      td[i-1].setAttribute('class', 'td' + chart.order[i-Math.ceil(i/ncol)-1]);
+    }
   }
-  else {
-  td[i-1].setAttribute('id',  'td' + i);
-  td[i-1].setAttribute('class', 'td' + order[i-Math.ceil(i/ncol)-1]);
-}
-}
 };
 
 //Finding the sum of countsTab:
@@ -56,7 +51,6 @@ for (j = 1; j < ncol; j++) {
 
 var sum = countsTab.reduce(function(a, b) { return a + b; }, 0);
 
-
 //Inserting table headers:
 insertXHeader();
 insertYHeader();
@@ -67,15 +61,16 @@ button("Count");
 
   //Conversion to percentages:
 changePercentage = function() {
-
-  addClass('ButtonPercentage', 'dark');
-  removeClass('ButtonCount', 'dark');
+  d3.select(".Percentage")
+    .classed("dark", true);
+  d3.select(".Count")
+    .classed("dark", false);
 
   for (var i = 1; i <= cellNo; i++) {
       var td = document.getElementById('td' + i);
       var total = document.getElementById('tc' + ((i-1)%ncol));
       var countsCol = document.getElementById('counts' + ((i-1)%ncol));
-      if (td != undefined) {
+      if (td !== null) {
       if ((td.innerHTML.indexOf(".") >= 0) && (td.innerHTML.indexOf('%') == -1)) { // change proportion to percentages
       td.innerHTML = (td.innerHTML*100).toFixed(2) + "%";
       total.innerHTML = "100.00%"; // this is a bit iffy. Fixed at 100.
@@ -96,16 +91,17 @@ changePercentage = function() {
 
 //Conversion to counts:
 changeCount = function() {
-
-  addClass('ButtonCount', 'dark');
-  removeClass('ButtonPercentage', 'dark');
+  d3.select(".Percentage")
+    .classed("dark", false);
+  d3.select(".Count")
+    .classed("dark", true);
 
   for(i = 1; i <= cellNo; i++) {
       var td = document.getElementById('td' + i);
       var total = document.getElementById('tc' + ((i-1)%ncol)); // by columns
       var countsCol = document.getElementById('counts' + ((i-1)%ncol));
-      if (td != undefined && total != undefined) {
-      if (td.innerHTML.indexOf('%') >= 0){ // convert percentage to counts
+      if (td !== null && total !== undefined) {
+      if (td.innerHTML.indexOf('%') >= 0) { // convert percentage to counts
       td.innerHTML = Math.round(Number(td.innerHTML.substring(0,td.innerHTML.lastIndexOf('%')))/100 * countsTab[((i-1)%ncol)-1]);
       countsCol.innerHTML = (countsTab[((i-1)%ncol)-1]/sum*100).toFixed(2) + "%";
       total.innerHTML = Math.round(countsTab[((i-1)%ncol)-1]);
@@ -122,38 +118,32 @@ changeCount = function() {
   document.getElementById('yGroup' + (nrow - 1)).innerHTML = "Total %"; // change from 'Col N' to 'total %'
 };
 
-
-//drive the viewTable button:
-  var t = true;
+//viewTable button:
+var t = true;
 showTable = function() {
   var viewTable = document.getElementById('viewTable');
+  var table = d3.select('table');
+  var bpct = d3.select(".Percentage");
+  var bct = d3.select(".Count");
   if(t) {
-    viewTable.innerHTML = "Hide Table";
-    removeClass('table', 'hidden');
-    removeClass('ButtonPercentage', 'hidden');
-    removeClass('ButtonCount', 'hidden');
-
+    table.classed("hidden", true);
+    bpct.classed("hidden", true);
+    bct.classed("hidden", true);
     t = false;
   } else {
-    viewTable.innerHTML = "View Table";
-    addClass('table', 'hidden');
-    addClass('ButtonPercentage', 'hidden');
-    addClass('ButtonCount', 'hidden');
-    t = true
+    table.classed("hidden", false);
+    bpct.classed("hidden", false);
+    bct.classed("hidden", false);
+    t = true;
   }
 };
 
-//bar plot - add tooltips:
-
-var svg = document.getElementsByTagName('svg')[0],
-     count = tab.length; //total no. of different combinations
-
-//Identifying bars
-
-Grob = getGrob('bp-stacked');
+//identify bars:
+var count = data.length;
+var Grob = getGrob('bp-stacked');
 
 //hide underlying bars:
-var  p = document.getElementsByTagName('polygon');
+var p = document.getElementsByTagName('polygon');
 for (i = 0; i < p.length; i++) {
   if (p[i].id.indexOf(Grob) >= 0) {
     p[i].classList.add('bar');
@@ -163,7 +153,9 @@ for (i = 0; i < p.length; i++) {
 };
 
 //getting rid of polylines:
-hideBarLines();
+var barLines = document.getElementById('inz-bar-line.1.1.1');
+d3.select(barLines).selectAll('polyline')
+  .classed("hidden", true);
 
 //tooltip:
 var tooltip = d3.select('body').append('div')
@@ -182,7 +174,7 @@ if (colorMatch !== null) {
 }
 
 // tooltips:
-bars.data(tab)
+bars.data(data)
 .attr('class', 'bar')
 .on('mouseover', function (d) {
     var el = d3.select(this);
@@ -213,9 +205,7 @@ bars.data(tab)
         //colors:
         var l = bar.getAttribute('fill');
         var lp = l.substring(4, l.length - 1);
-
         var data = table.getElementsByClassName('td' + j)[0];
-
         //relate to table
         if ((i+1) == j) {
             returnTabSelection(lp, data);
@@ -225,21 +215,19 @@ bars.data(tab)
     }
 })
 
-
-//Return  - reset button:
+//Reset:
  reset = function() {
    for (var i = 1; i <= count; i++) {
-
      data = table.getElementsByClassName('td' + i)[0];
      resetTabSelection(data);
    }
 
- addClass('table', 'hidden');
- addClass('ButtonPercentage', 'hidden');
- addClass('ButtonCount', 'hidden');
-
-var viewTable = document.getElementById('viewTable');
- viewTable.innerHTML = "View Table";
+  d3.select('table')
+    .classed('hidden', true);
+  d3.select('.Percentage')
+    .classed('hidden', true);
+  d3.select('.Count')
+    .classed('hidden', true);
  t = true;
  };
 

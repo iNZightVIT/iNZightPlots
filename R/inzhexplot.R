@@ -93,7 +93,8 @@ plot.inzhex <- function(obj, gen) {
     if (opts$LOE) {
         xx <- c(min(xlim, ylim), max(xlim, ylim))
         grid.lines(xx, xx, default.units = "native",
-                   gp = gpar(col = opts$col.LOE, lty = opts$lty.LOE))
+                   gp = gpar(col = opts$col.LOE, lty = opts$lty.LOE),
+                   name = paste("inz-loe", opts$rowNum, opts$colNum, sep = "."))
     }
 
     addXYsmoother(obj, opts, col.args, xlim, ylim)

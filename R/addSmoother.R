@@ -76,7 +76,8 @@ function(x, y = NULL, f, col, bs, lty = 1, opts) {
     }
     grid.lines(sm$x, sm$y,
                default.units = "native",
-               gp = gpar(col = col, lwd = 2 * opts$lwd, lty = lty))
+               gp = gpar(col = col, lwd = 2 * opts$lwd, lty = lty),
+               name = paste("inz-smoother", opts$rowNum, opts$colNum, sep = "."))
 
     if (bs) {
         for (i in 1:30) {
@@ -87,7 +88,8 @@ function(x, y = NULL, f, col, bs, lty = 1, opts) {
             sm <- lowess(x2, y2, f = f)
             grid.lines(sm$x, sm$y,
                        default.units = "native",
-                       gp = gpar(col = col, lwd = 1 * opts$lwd, lty = 3))
+                       gp = gpar(col = col, lwd = 1 * opts$lwd, lty = 3),
+                       name = paste("inz-bs-smoother", opts$rowNum, opts$colNum, sep = "."))
         }
     }
 }
@@ -110,7 +112,8 @@ function(x, y = NULL, quantile, col, lty, lwd, opts) {
                          s <- svysmooth(y ~ x, design = des,
                                         method = "quantreg", quantile = a)$x
                          grid.lines(s$x, s$y, default.units = "native",
-                                    gp = gpar(col = col, lty = lty, lwd = lwd * opts$lwd))
+                                    gp = gpar(col = col, lty = lty, lwd = lwd * opts$lwd),
+                                    name = paste(paste0("inz-quant-smooth-", a), opts$rowNum, opts$colNum, sep = "."))
                      }))
 }
 

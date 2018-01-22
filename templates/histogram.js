@@ -1,55 +1,49 @@
-//histograms!
-
-var table = document.getElementById('table');
-    nrow = table.rows.length, //no. of rows in table
-    ncol = document.getElementsByTagName('th').length, //no. of columns in table
-    td = document.getElementsByTagName('td'),
-    tr = document.getElementsByTagName('tr'),
-    totalRow = tr[nrow-1],
-    cellNo = td.length;
-
-for (i = 1; i <= cellNo; i++) {
-  td[i-1].setAttribute('id', 'td' + i);
-};
-
-for (i = 1; i < nrow; i++) {
-  tr[i].setAttribute('id', 'tr' + i);
-};
-
-totalRow.setAttribute('class', 'tc');
+// for histograms
+//initialize DataTable:
+var table = $('#table').DataTable({
+    "colReorder": true,
+    "columnDefs": [
+      { //hide rowID column
+        "targets": [0],
+        "visible": false
+      }
+    ]
+  });
 
 //drive the viewTable button:
-  var viewTable = document.getElementById('viewTable');
-  t = true;
 showTable = function() {
-  if(t) {
-    viewTable.innerHTML = "Hide Table";
-    table.classList.remove('hidden');
-    t = false;
-  } else {
-    viewTable.innerHTML = "View Table";
-    table.classList.add('hidden');
-    t = true
-  }
+  var tableWrapper = $('#table_wrapper');
+  tableWrapper.toggleClass('hidden');
 };
 
-var svg = document.getElementsByTagName('svg')[0];
+// check levels:
+if (chart.levNames) {
+  var levelNo = chart.levNames.length;
+} else {
+  var levelNo = 1;
+}
 
-var count = tab.length;
+// BOX PLOT
+//identify lines and box plot:
+boxMe(levelNo);
 
-//get Grob object where hist bars lie:
-var Grob = getGrob('hist');
+var svg = document.getElementsByTagName('svg')[0],
+    count = data.length,
+    Grob = getGrob('hist'),
+    panel = document.getElementById(Grob);
 
+//TOOLTIP
 var tooltip = d3.select('body').append('div')
               .attr('class', 'tooltip')
               .attr('id', 'tooltip')
               .style('width', '200')
               .style('height', '50');
 
-var panel = document.getElementById(Grob);
 d3.select(panel).selectAll('polygon')
-    .data(tab)
-    .attr('class', 'histBar')
+  .attr('class', 'histBar');
+
+d3.selectAll('.histBar')
+    .data(data)
     .on('mouseover', function(d){tooltip.style('visibility', 'visible')
                                               .style("left", d3.event.pageX - 40 + "px")
                                               .style("top", d3.event.pageY - 55 + "px")
@@ -58,211 +52,137 @@ d3.select(panel).selectAll('polygon')
                                               d.counts + ", " + d.pct + "% </span>");})
     .on('mouseout', function(){tooltip.style("visibility", "hidden");})
     .on('click', function(d, i) {
-        for (j = 1; j <= count; j ++) {
-          var bar = document.getElementById(Grob + '.' + j);
-          var dataRow = document.getElementById('tr' + j);
-          var totalRow = document.getElementsByClassName('tc')[0];
-          totalRow.classList.add('hidden');
+      var selected = this;
+      d3.select(panel).selectAll('polygon')
+        .attr("class", function() {
+          return (this === selected ? "histBar selected" : "histBar none");
+        })
 
-          if ((i+1) == j) {
-            bar.setAttribute('class', 'histBar selected');
-           var l = bar.getAttribute('fill');
-           var lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
+        // because dataTable searches using columns but not rows
+        // add an additional column for row num using regex:
+        var ind = "^" + (i+1) + "$";
+        table.columns(0).search(ind, true).draw();
 
-           returnRowSelection(lp, dataRow);
+      // hide box
+      d3.selectAll('.boxData')
+        .classed('hidden', true);
 
-          } else {
-            bar.setAttribute('class', 'histBar none');
-            omitRowSelection(dataRow);
+      d3.select(".brush-info")
+        .classed('hidden', true);
 
-          }
-        hideBox();
-        tt2.style('visibility', 'hidden');
-      }
+      //remove box if present
+      d3.selectAll(".selection")
+        .style("display", "none");
     });
 
-/* -------------------------------------------------------------
-                  Box plot properties and interactions:
----------------------------------------------------------------- */
+// TABLE TO PLOT:
+$('#table tbody').on('click', 'tr', function() {
+  $(this).toggleClass('active');
+      var ind = table.rows('.active')[0];
+      d3.select(panel).selectAll('.histBar')
+        .attr("class", function(d, i) {
+            return (ind.includes(i) ? "histBar selected" : "histBar none");
+    })
+})
 
-//identify lines and box plot:
-var lastLine = getMinMaxLinesId();
-getBoxes("hist");
+ // create another tooltip for selection box:
+ var tt = d3.select('#control').append('p')
+            .attr('class', 'brush-info');
 
-//set labels
-boxLabelSet(0, 1, 0,'LQ');
-boxLabelSet(1, 2, 2, 'UQ');
-boxLabelSet(1, 0, 1, 'Median');
-boxLabelSet(1, 0, 3, 'Min');
-boxLabelSet(2, 1, 4, 'Max');
+//BRUSH:
+ var brush = d3.brushX()
+              .on("start", brushstart)
+              .on("brush", brushmove)
+              .on("end", brushend);
 
-//group boxplot together as a single object
-var box = document.getElementsByClassName('box');
-var boxData = document.getElementsByClassName('boxData');
-var totalRow = document.getElementById('totalRow');
+ var pp = panel.parentNode.parentNode;
+ d3.select(pp)
+  .insert("g", "g:first-child")
+  .attr("class", "brush")
+  .call(brush);
 
-//setting interactions and colors for box plot:
-for (i = 0; i < box.length; i++) {
-  box[i].addEventListener('mouseover', fillBox, false);
-  box[i].addEventListener('mouseout', normalBox, false);
-  box[i].addEventListener('click', showBox, false);
-}
+ // make handles invisible:
+ d3.selectAll('.handle')
+  .style('opacity', 0);
+  d3.selectAll('.overlay')
+  .style('stroke', 'none');
 
- // facilitate selection box for users:
+  function brushmove() {
 
-// create another  tooltip for selection box:
-  var tt2 = d3.select('body').append('div')
-            .attr('class', 'tooltip')
-            .attr('id', 'selection')
-            .style('width', '150')
-            .style('height', '35');
+    var s = d3.event.selection;
+    var x1 = s[0];
+    var x2 = s[1];
 
-//create invisible selection box that is enabled when dragging occurs:
-d3.select(panel).append('polygon')
-   .attr('id', 'selectRect')
-   .attr('class', 'selectRect');
+    // information to extract:
+    var n = chart.n;
+    var tab = chart.data;
+    var groupN = [];
+    var intRange = [];
+    var ind = [];
 
-var evt = window.event; // required for FF to work.
-var zoomBox = {};
+    for (i = 1; i <= count; i++) {
+    var bar = document.getElementById(Grob + '.' + i);
 
-// assign mouse events:
-svg.setAttribute('onmouseup', 'MouseUp(evt)');
-svg.setAttribute('onmousemove', 'MouseDrag(evt)');
-svg.setAttribute('onmousedown', 'MouseDown(evt)'); // defined below.
+    //obtain end points of the bar
+    var coords = bar.getAttribute('points').split(" ");
+    var bottomEdge = coords[0].split(',');
+    var topEdge =  coords[3].split(',');
+    var bx = bottomEdge[0];
+    var tx = topEdge[0];
 
-MouseDrag = function(evt) {
-    if(zoomBox["isDrawing"]) {
-        var pt = convertCoord(svg, evt);
-        svg.style.cursor = "crosshair";
-        zoomBox["endX"] = pt.x;
-        zoomBox["endY"] = pt.y;
-
-        //Because the y-axis is inverted in the plot - need to invert the scale
-         tVal = document.getElementsByTagName('g')[0].getAttribute('transform').substring(13, 16);
-        var selectRect = document.getElementById('selectRect');
-
-         // for rectangles with positive height, positive width
-        if(zoomBox["startX"] < zoomBox["endX"]) {
-        var x1 = zoomBox["startX"];
-        var x2 = zoomBox["endX"];
+      if (bar.getAttribute('visibility') == 'hidden') {
+        // those that are hidden, remain hidden
+        bar.classList.add('hidden');
       } else {
-        var x1 = zoomBox["endX"];
-        var x2 = zoomBox["startX"];
-      }
-
-      // for rectangles with opposite directions ('negative' widths, heights)
-      if (zoomBox["startY"] < zoomBox["endY"]) {
-        var y1 = tVal - zoomBox["startY"] - (zoomBox["endY"]-zoomBox["startY"]);
-        var y2 = y1 + (zoomBox["endY"]-zoomBox["startY"]);
-      } else {
-        var y1 = tVal - zoomBox["endY"] - (zoomBox["startY"]-zoomBox["endY"]);
-        var y2 = y1 + (zoomBox["startY"]-zoomBox["endY"]);
-      }
-
-        selectRect.setAttribute('points', x1 + ',' + y1 + " " + x1 + ',' + y2 + ' '
-                                          + x2 + ',' + y2 + ' ' + x2 + ',' + y1);
-
-        // information to extract:
-        var groupN = [];
-        var intRange = [];
-
-        for (i =1; i <= count; i++) {
-        var bar = document.getElementById(Grob + '.' + i);
-        //var gLabel = document.getElementById('gLabel' + i);
-        var dataRow = document.getElementById('tr' + i);
-
-        //obtain end points of the bar:
-        var coords = bar.getAttribute('points').split(" ");
-        var bottomEdge = coords[0].split(',');
-        var topEdge =  coords[3].split(',');
-        var bx = bottomEdge[0];
-        var by = bottomEdge[1];
-        var tx = topEdge[0];
-        var ty = topEdge[1];
-
-          if (bar.getAttribute('visibility') == 'hidden') {
-            // those that are hidden, remain hidden
-              bar.classList.add('hidden');
-            } else {
-              //points that lie within the  boundary box drawn:
-          if(((x1 <= bx && bx <= x2) && (x1 <= tx && tx <= x2)) && ((y1 <= by && by <= y2) && (y1 <= ty && ty <= y2))) {
-            bar.setAttribute('class', ' histBar selected');
-            l = bar.getAttribute('fill');
-            lp = l.substring(l.lastIndexOf("("), l.lastIndexOf(")"));
-
-            returnRowSelection(lp, dataRow);
-
-           // store frequency from each hexbin that's selected
-            groupN.push(tab[i].counts);
-
-            intRange.push(tab[i].lower, tab[i].upper);
-
-           } else {
-             bar.setAttribute('class', 'histBar none');
-             omitRowSelection(dataRow);
-
-           }
-         }
-
-         //summation of array:
-         var sum = groupN.reduce(function(a, b) { return a + b; }, 0);
-
-         var totalRow = document.getElementsByClassName('tc')[0];
-         totalRow.classList.remove('hidden');
-         var total = td[td.length-1];
-         total.innerHTML = sum;
-
-         // report a proportion:
-         var nProp = (sum/n*100).toFixed(2) + "%";
-
-           //information to extract:
-           var intervalNo = document.getElementsByClassName('selected').length;
-
-        // create another  tooltip for selection box:
-                tt2.style("left", ((x1+x2)/4) + "px"); //positioning!
-                tt2.style("top", tVal - (y1 - 30) + "px");
-                tt2.style('visibility', 'visible');
-                tt2.html("Interval Range: <span>" + intRange[0] + " - " + intRange[intRange.length-1] +
-                        "</span> <br> Frequency: <span>" + sum +  "," + nProp + "</span> <br> No. of intervals: <span>" +
-                       intervalNo + "</span>");
-
+        //points that lie within the  boundary box drawn:
+        if(((x1 <= bx && bx <= x2) && (x1 <= tx && tx <= x2))) {
+          bar.setAttribute('class', ' histBar selected');
+          // store frequency from selected
+          groupN.push(tab[i - 1].counts);
+          intRange.push(tab[i - 1].lower, tab[i - 1].upper);
+          ind.push("^" + i + "$");
+        } else {
+          bar.setAttribute('class', 'histBar none');
        }
-    }
+     }
+   }
+   //summation of array:
+   var sum = groupN.reduce(function(a, b) { return a + b; }, 0);
+   // report a proportion + interval number:
+   var nProp = (sum/n*100).toFixed(2) + "%";
+   var intervalNo = document.getElementsByClassName('selected').length;
+
+   // filter table
+   table.columns(0).search(ind.join("|"), true).draw();
+
+   // update tooltip
+   d3.select(".brush-info")
+     .classed('hidden', false)
+     .html("Interval Range: <span>" + intRange[0] + " - " + intRange[intRange.length-1] +
+                         "</span> <br> Frequency: <span>" + sum +  "," + nProp + "</span> <br> No. of intervals: <span>" +
+                         intervalNo + "</span>");
 };
 
- //Reset Button:
-   reset = function() {
+//Reset Button:
+reset = function() {
+    d3.select(panel).selectAll('.histBar')
+      .attr('class', 'histBar');
 
-     d3.select(panel).selectAll('polygon')
-        .attr('class', 'histBar');
+    // restore table to original state
+    table.search('').columns().search('').draw();
+    table.rows().nodes().to$().removeClass('active');
 
-      var totalRow = document.getElementsByClassName('tc')[0];
-      totalRow.classList.remove('hidden');
+    d3.select('.brush-info')
+      .classed('hidden', true);
 
-     for (i = 1; i <= count; i++) {
+    d3.selectAll('.label')
+      .classed('hidden', true);
 
-       var dataRow = document.getElementById('tr' + i);
-       resetRowSelection(dataRow);
-     };
+    //remove box
+    d3.selectAll(".selection")
+      .style("display", "none");
 
-       //reset total to n
-       var total = td[td.length-1];
-       total.innerHTML = n;
-
-       //remove box:
-    d3.select('#selectRect')
-      .attr('points', '0,0')
-      .attr("class", "selectRect");
-      d3.select('#selection')
-      .style('visibility', 'hidden');
-
-    hideBox();
-
-    viewTable.innerHTML = "View Table";
-    table.classList.add('hidden');
-    t = true;
+    //hide boxplot data
+    d3.selectAll('.boxData')
+      .classed('hidden', true);
  };
-
- // plotregion reset:
- var plotRegion = document.getElementsByTagName('rect')[1];
-   plotRegion.addEventListener("click", reset, false);
