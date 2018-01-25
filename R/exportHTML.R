@@ -10,6 +10,7 @@
 #' @param extra.vars extra variables specified by the user to be exported
 #' @param width the desired width of the SVG plot
 #' @param height the desired height of the SVG plot
+#' @param mapObj iNZightMap object (from iNZightMaps)
 #' @param ... extra arguments
 #'
 #' @return Opens up an HTML file of \code{x} with filename \code{file} in the browser (best performance on Chrome/Firefox)
@@ -52,7 +53,113 @@ exportHTML.function <- function(x, file = 'index.html', data = NULL, extra.vars 
   invisible(url)
 }
 
-#this is generalized for every plot - involves binding everything together.
+## for the new maps model: assuming class ggplot + mapObj is there.
+#' @describeIn exportHTML method for iNZightMaps output (via new module)
+#' @export
+exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, extra.vars = NULL,
+                              mapObj, ...) {
+
+  if (!inherits(mapObj, "iNZightMapPlot")) {
+    stop("mapObj is not an 'iNZightMapPlot' object. This is only available for iNZightMaps.
+         Are you using the new iNZightMaps module?")
+  }
+
+  # package check:
+  if(!requireNamespace("gridSVG",  quietly = TRUE) ||
+     !requireNamespace("knitr",   quietly = TRUE) ||
+     !requireNamespace("jsonlite", quietly = TRUE) ) {
+    stop(paste("Required packages aren't installed",
+               "Use 'install.packages('iNZightPlots', depends = TRUE)' to install them.",
+               sep = "\n"))
+  }
+
+  curdir <- getwd()
+  mapObj <- mapObj
+  plot <- x
+  dt <- as.data.frame(plot[[1]])
+  spark <- NULL
+  timeData <- data
+
+  # determine if it's a point plot or a region plot?
+  # using mapObj
+  if (mapObj$type == "region") {
+    colby <- plot$labels$fill
+    varNames <- c(mapObj$region.var, colby)
+  } else if (mapObj$type == "point") {
+    colby <- plot$labels$colour
+    varNames <- c(mapObj$region.var, colby)
+  } else {
+    ## for sparklines
+    colby <- plot$labels$colour
+    region <- plot$labels$group
+    timex <- plot$labels$line_x
+    timey <- plot$labels$line_y
+    varNames <- mapObj$region.var
+    ## need to min/max
+    minXY <- apply(timeData[,c(timex, timey)], 2, FUN = min)
+    maxXY <- apply(timeData[,c(timex, timey)], 2, FUN = max)
+    spark <- c(region, timex, timey, minXY, maxXY)
+  }
+
+  if (!is.null(colby)) {
+    if (is.character(dt[[colby]]) || is.factor(dt[[colby]])) {
+      # sort by alphabetical order for character/factor variables
+      dt <- dt[order(dt[[colby]]), ]
+      rownames(dt) <- 1:nrow(dt)
+    }
+  }
+
+  setwd(tempdir())
+
+  # drop the last column (geometry)
+  dt <- dt[, - which(names(dt) == "geometry")]
+  chart <- list(data = dt, names = varNames, spark = spark, timeData = timeData)
+  tab <- if (mapObj$type == "sparklines") timeData else dt
+  tbl <- list(tab = tab, includeRow = TRUE, cap = "Data")
+  js <- list(chart = jsonlite::toJSON(chart), jsFile = mapsJS)
+
+  # generate HTML table
+  if (is.null(tbl)) {
+    HTMLtable <- '<p> No table available. </p>'
+  } else {
+    HTMLtable <- knitr::kable(tbl$tab, format = "html", row.names = tbl$includeRow,
+                              align = "c", caption = tbl$cap, table.attr = "id=\"table\" class=\"table table-condensed table-hover\" cellspacing=\"0\"")
+  }
+
+  # bind JSON to grid plot, generate SVG
+  print(plot)
+  gridSVG::grid.script(paste0("var chart = ", js$chart,";"), inline = TRUE, name = "linkedJSONdata")
+  svgOutput <- gridSVG::grid.export(NULL)$svg
+
+  #get JS code associated with plot type
+  jsCode <-  js$jsFile
+  svgCode <- paste(capture.output(svgOutput), collapse = "\n")
+
+  #remove svg file and other scripts
+  grid.remove("linkedJSONdata")
+
+  #finding places where to substitute code:
+  svgLine <- grep("SVG", HTMLtemplate)
+  cssLine <- grep("styles.css", HTMLtemplate)
+  jsLine <- grep("JSfile", HTMLtemplate)
+  tableLineOne <- grep("<!-- insert table -->", HTMLtemplate)
+
+  # insert inline JS, CSS, table, SVG:
+  HTMLtemplate[cssLine] <- paste(styles, collapse = "\n")
+  HTMLtemplate[jsLine] <- paste(jsCode, collapse = "\n")
+  HTMLtemplate[tableLineOne] <- HTMLtable
+  HTMLtemplate[svgLine] <- svgCode
+
+  write(HTMLtemplate, file)
+  url <- normalizePath(file)
+  class(url) <- "inzHTML"
+
+  setwd(curdir)
+  invisible(url)
+
+  }
+
+
 #' @describeIn exportHTML method for output from iNZightPlot
 #' @export
 exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.vars = NULL, ...) {

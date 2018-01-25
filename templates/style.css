@@ -223,3 +223,10 @@ div.tooltip {
 span {
   font-weight: bold;
 }
+
+/* for iNZightMaps */
+.selectRegion {
+  stroke: darkgray;
+  fill: black;
+  fill-opacity: 0.5;
+}
