@@ -230,3 +230,52 @@ span {
   fill: black;
   fill-opacity: 0.5;
 }
+
+/* line chart container */
+.spark-div {
+  width: 100%;
+  padding: 10px;
+  clear: left;
+}
+
+/* lines on the chart */
+.spark-line {
+  stroke: black;
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.follow-text {
+    stroke: white;
+    fill: black;
+    stroke-width: 0.05;
+    font-size: 0.75em;
+}
+
+/* time slider */
+#control div {
+  padding: 10px;
+  margin: auto;
+}
+
+.slider {
+  width: 95%;
+  display: block;
+  margin: auto;
+}
+
+.x-lab, .y-lab, .spark-title {
+  text-anchor: center;
+}
+
+.x-line {
+  stroke: black;
+  stroke-width: 0.5;
+}
+
+.slider li {
+  float: left;
+  position: relative;
+  text-align: center;
+  font-size: 10px;
+}

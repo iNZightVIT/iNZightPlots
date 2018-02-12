@@ -56,8 +56,7 @@ exportHTML.function <- function(x, file = 'index.html', data = NULL, extra.vars 
 ## for the new maps model: assuming class ggplot + mapObj is there.
 #' @describeIn exportHTML method for iNZightMaps output (via new module)
 #' @export
-exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, extra.vars = NULL,
-                              mapObj, ...) {
+exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, extra.vars = NULL, mapObj, ...) {
 
   if (!inherits(mapObj, "iNZightMapPlot")) {
     stop("mapObj is not an 'iNZightMapPlot' object. This is only available for iNZightMaps.
@@ -74,47 +73,57 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, extra.vars = 
   }
 
   curdir <- getwd()
+  print(x)
   mapObj <- mapObj
   plot <- x
   dt <- as.data.frame(plot[[1]])
   spark <- NULL
-  timeData <- data
+  timeData <- data.frame(mapObj$region.data)
+  multi <- mapObj$multiple.obs
+  seqVar <- mapObj$sequence.var
 
   # determine if it's a point plot or a region plot?
   # using mapObj
-  if (mapObj$type == "region") {
-    colby <- plot$labels$fill
-    varNames <- c(mapObj$region.var, colby)
-  } else if (mapObj$type == "point") {
-    colby <- plot$labels$colour
-    varNames <- c(mapObj$region.var, colby)
-  } else {
-    ## for sparklines
-    colby <- plot$labels$colour
-    region <- plot$labels$group
-    timex <- plot$labels$line_x
-    timey <- plot$labels$line_y
-    varNames <- mapObj$region.var
-    ## need to min/max
-    minXY <- apply(timeData[,c(timex, timey)], 2, FUN = min)
-    maxXY <- apply(timeData[,c(timex, timey)], 2, FUN = max)
-    spark <- c(region, timex, timey, minXY, maxXY)
-  }
+  lab <- plot$labels
 
-  if (!is.null(colby)) {
+  if (mapObj$type == "region") {
+    colby <- lab$fill
     if (is.character(dt[[colby]]) || is.factor(dt[[colby]])) {
       # sort by alphabetical order for character/factor variables
       dt <- dt[order(dt[[colby]]), ]
       rownames(dt) <- 1:nrow(dt)
     }
+    varNames <- c(mapObj$region.var, colby)
+  } else if (mapObj$type == "point") {
+    colby <- lab$colour
+    sizeby <- lab$size
+    varNames <- c(mapObj$region.var, colby, sizeby)
+  } else {
+    ## for sparklines
+    colby <- lab$colour
+    region <- lab$group
+    timex <- lab$line_x
+    timey <- lab$line_y
+    varNames <- c(mapObj$region.var, timex, timey)
   }
 
   setwd(tempdir())
 
+  # get palette colours used: continuous scale
+  grid::grid.force()
+  bar <- grid::grid.get("bar.4-2-4-2")
+  pal <- rev(as.vector(bar$raster))
+
   # drop the last column (geometry)
   dt <- dt[, - which(names(dt) == "geometry")]
-  chart <- list(data = dt, names = varNames, spark = spark, timeData = timeData)
+  timeData <- timeData[, - which(names(timeData) == "geometry")]
   tab <- if (mapObj$type == "sparklines") timeData else dt
+  # only extract variables that are numeric
+  t <- sapply(tab, is.numeric)
+  numVar <- colnames(tab)[t]
+
+  chart <- list(type = mapObj$type, data = dt, names = varNames, palette = pal,
+                numVar = numVar, multi = multi, seqVar = seqVar, timeData = timeData)
   tbl <- list(tab = tab, includeRow = TRUE, cap = "Data")
   js <- list(chart = jsonlite::toJSON(chart), jsFile = mapsJS)
 
@@ -127,7 +136,6 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, extra.vars = 
   }
 
   # bind JSON to grid plot, generate SVG
-  print(plot)
   gridSVG::grid.script(paste0("var chart = ", js$chart,";"), inline = TRUE, name = "linkedJSONdata")
   svgOutput <- gridSVG::grid.export(NULL)$svg
 
