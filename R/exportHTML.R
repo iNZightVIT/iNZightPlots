@@ -81,9 +81,6 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, extra.vars = 
   timeData <- data.frame(mapObj$region.data)
   multi <- mapObj$multiple.obs
   seqVar <- mapObj$sequence.var
-
-  # determine if it's a point plot or a region plot?
-  # using mapObj
   lab <- plot$labels
 
   if (mapObj$type == "region") {
@@ -117,13 +114,20 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, extra.vars = 
   # drop the last column (geometry)
   dt <- dt[, - which(names(dt) == "geometry")]
   timeData <- timeData[, - which(names(timeData) == "geometry")]
-  tab <- if (mapObj$type == "sparklines") timeData else dt
+  tab <- if (mapObj$type == "sparklines" || multi) timeData else dt
   # only extract variables that are numeric
   t <- sapply(tab, is.numeric)
   numVar <- colnames(tab)[t]
+  # find time interval
+  if (is.null(seqVar)) {
+    int <- NULL
+  } else {
+    d <- unique(diff(tab[,seqVar]))
+    int <- d[which(d > 0)]
+  }
 
   chart <- list(type = mapObj$type, data = dt, names = varNames, palette = pal,
-                numVar = numVar, multi = multi, seqVar = seqVar, timeData = timeData)
+                numVar = numVar, multi = multi, seqVar = seqVar, int = int, timeData = timeData)
   tbl <- list(tab = tab, includeRow = TRUE, cap = "Data")
   js <- list(chart = jsonlite::toJSON(chart), jsFile = mapsJS)
 

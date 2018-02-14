@@ -51,7 +51,16 @@ showTable = function() {
                     .attr('class', 'centroid'),
       tooltip = d3.select('body').append('div')
                   .attr('class', 'tooltip')
-                  .style('width', '100');
+                  .style('width', '100'),
+     defaultColours = ["#101f33", "#162e47", "#1b3c5e", "#234c78", "#2b5f94",
+                       "#3572b2", "#3c89d3", "#46a0f7"];
+
+// return column names:
+var colNames = document.getElementsByTagName('th');
+var cnames = [];
+for (i = 0; i < colNames.length; i++) {
+  cnames.push(colNames[i].innerHTML.trim());
+}
 
   var arr = filterMissing(chart);
 
@@ -164,15 +173,13 @@ makeTooltips = function(chart) {
             }
           })
 
-        //filter table
-        table.search('').columns().search('').draw();
-          // find column number:
-          var colNames = document.getElementsByTagName('th');
-          for (var k = 0; k < colNames.length; k++) {
-            if(colNames[k].innerHTML == " " + (group ? group : names[0]) + " ") {
-              var colNum = k;
-            }
-          }
+        if (chart.multi[0] == false && chart.type !== "region") {
+          table.search('').columns().search('').draw();
+        }
+
+        // find column number:
+        var colNum = cnames.findIndex(cnames => cnames === names[0]);
+
         // find selected regions:
         var regionsSelected = document.getElementsByClassName('region selected');
           for (var i = 0; i < regionsSelected.length; i++) {
@@ -219,17 +226,29 @@ tableToPlot = function(type) {
   //link TABLE TO PLOT:
   $('#table tbody').on('click', 'tr', function() {
     $(this).toggleClass('active');
-    var ind = table.rows('.active')[0];
+    var r = table.rows('.active').data();
+    var ind = [];
+    // go by region rather than by index:
+    var colNum = cnames.findIndex(cnames => cnames === names[0]);
+    var regions = [];
+    for (i = 0; i < r.length; i++) {
+      regions.push(r[i][colNum + 1]);
+    }
 
     d3.selectAll("." + type)
-      .attr("class", function(d, i) {
-        return (ind.includes(i) ? type + " selected" : type + " none");
+      .attr("class", function() {
+        var id = this.id;
+        var rr = id.substring(0, id.lastIndexOf("."))
+        if (regions.includes(rr)) {
+          ind.push(+id.substring(id.lastIndexOf(".") + 1));
+        }
+        return (regions.includes(rr) ? type + " selected" : type + " none");
       });
 
     // for centroids:
-    if (chart.type !== "region") {
-
-      if (chart.type == "point") {
+    if (chart.type == "region") {
+        return;
+      } else if (chart.type == "point") {
         var p = "centroid";
       } else {
         var p = "sparkRegion";
@@ -239,12 +258,11 @@ tableToPlot = function(type) {
       for (i = 0; i < arr.length; i++) {
          var el = document.getElementById(p + "." + arr[i]);
         if (ind.includes(arr[i])) {
-          el.setAttribute('class', "centroid selected");
+          el.setAttribute('class', p + " selected");
         } else {
-          el.setAttribute('class', "centroid none");
+          el.setAttribute('class', p + " none");
         }
-      };
-    }
+      }
   })
 }
 
@@ -261,9 +279,15 @@ reset = function() {
 
   d3.selectAll('.centroid')
     .classed('.centroid none', false);
+
   // clear table
   table.search('').columns().search('').draw();
   table.rows().nodes().to$().removeClass('active');
+
+  if (chart.type == "region" && chart.multi[0] == true) {
+    // screen for certain year:
+    setTable();
+  }
 
   d3.select('.spark-div')
     .classed('hidden', true);
@@ -441,9 +465,13 @@ updateFills = function() {
 
   var yvar = d3.select('.control-var').property('value'),
       data = chart.data,
-      pal = chart.palette;
+      pal = (chart.palette) ? chart.palette : defaultColours;
 
+  if (chart.multi[0] == true) {
+    var dd = chart.timeData;
+  } else {
     var dd = data;
+  }
 
   //hide original scale:
   var ss = document.querySelectorAll('g[id^="guide-box"]');
@@ -728,7 +756,7 @@ circleControl = function() {
 
 }
 
-// For filtering data and updating chart when variable changes:
+// For filtering data and updating line chart when variable changes:
 function changeVar() {
 
   var newY = d3.select('.control-var').property('value');
@@ -760,16 +788,85 @@ function changeVar() {
               dt.push(updated);
             }
 
-        // then update spark:
+        // then update line chart:
         var xvar = chart.names[1];
         updateSpark(dt, dd, xvar, newY);
+}
+
+// add a time slider:
+addSlider = function() {
+
+    // suggests there are multiple observations over time...
+    var seqVar = chart.seqVar[0],
+        current = chart.data[0][seqVar],
+        range = d3.extent(chart.timeData, function(d) { return d[seqVar]; }),
+        int = chart.int[0];
+
+    // input a slider:
+    var sliderDiv = d3.select("#control").append("div")
+                   .attr("class", "slider-div");
+
+    var sliderTitle = sliderDiv.append("label")
+                               .html("By " + seqVar + ":");
+
+    var sliderVal = sliderDiv.append("div")
+                             .attr("class", "slider-val")
+                             .html(current);
+
+    var slider = sliderDiv.append("input")
+                    .attr("class", "slider")
+                   .attr("type", "range")
+                   .attr("min", range[0])
+                   .attr("max", range[1])
+                   .attr("step", int)
+                   .attr("value", current)
+                   .on("input", timeChange);
+
+}
+
+// what happens when the slider moves?
+timeChange = function() {
+
+  var cur = this.value;
+  d3.select(".slider-val").html(cur);
+  // filter data across this time variable:
+  var data = filterData(chart.timeData, chart.seqVar[0], cur);
+  //sort data relative to how regions are plotted:
+  data.sort(function(a, b){
+      if(a[chart.names[0]] < b[chart.names[0]]) return - 1;
+      if(a[chart.names[0]] > b[chart.names[0]]) return 1;
+      return 0;
+    });
+
+  var yvar = chart.names[chart.names.length - 1];
+  chart.data = data;
+
+  // update regions:
+  if (chart.type == "region") {
+    updateFills();
+  } else {
+    circleControl();
+  }
+
+    //update tooltips and table:
+    makeTooltips(chart);
+    var colNum = cnames.findIndex(cnames => cnames == chart.seqVar[0]);
+    table.search('').columns().search('').draw();
+    table.columns(colNum + 1).search(cur + "|NA", true, false).draw();
+
+}
+
+//screen table if there are multiple observations and is a regional map:
+setTable = function() {
+  var cur = $(".slider-val").html();
+  var colNum = cnames.findIndex(cnames => cnames == chart.seqVar[0]);
+  table.columns(colNum + 1).search(cur + "|NA", true, false).draw();
 }
 
 addZoom = function(chart) {
   // TODO: make this better...
   // adapted from: https://bl.ocks.org/iamkevinv/0a24e9126cd2fa6b283c6f2d774b69a2
   zoomed = function() {
-      // not exactly the best kind of thing?
       bg.setAttribute("transform", d3.event.transform);
   }
     // attempt zooming within the box.
@@ -800,6 +897,13 @@ setPlot = function(chart) {
         circleSize = getCircleSize();
         selectForm(circleControl);
     }
+
+    // add time slider if there are multiple observations:
+    if ((chart.type[0] != "sparklines") && (chart.multi[0] == true)) {
+        addSlider();
+        setTable();
+    }
+
     //if it's got sparklines, add line chart
     if (chart.type == "sparklines") {
         sparkPlot(chart);
