@@ -126,14 +126,22 @@ d3.selectAll('.point')
 
         d3.selectAll('.point')
             .attr("class", function() {
-              if (this.getAttribute('class') === "point selected") {
-                return "point selected";
-              } else if (this === selected) {
-                  return "point selected";
+              if (!d3.event.shiftKey) {
+                if (this === selected) {
+                  return ("point selected")
+                } else {
+                  return ("point none");
+                }
               } else {
-                return "point none";
-              }
-            })
+                if (this.getAttribute('class') === "point selected") {
+                  return "point selected";
+                } else if (this === selected) {
+                    return "point selected";
+                } else {
+                  return "point none";
+                }
+            }
+          });
 
         //filter table:
         //search for all those that are selected, then extract id num:
@@ -291,11 +299,29 @@ addLineInteraction = function(t, g, ptip) {
       return ptip.style("display", null)
                  .html(g);
         });
+
+    d3.selectAll(".trend." + t)
+      .on("mouseover", function() {
+          d3.select(".tooltip")
+            .style("left", d3.event.pageX - 50 + "px")
+            .style("top", d3.event.pageY - 50 + "px")
+            .style("visibility", "visible")
+            .html(g);
+          })
+      .on("mouseout", function() {
+          d3.select(".tooltip")
+            .style("visibility", "hidden");
+          })
 }
 
 setUpLegend = function(legLineLayout, trendInfo) {
     if (legLineLayout) {
-    var lines = d3.select(legLineLayout).selectAll('polyline');
+    var lines = d3.select(legLineLayout).selectAll('polyline')
+                  .attr('class', function() {
+                    var id = this.id;
+                    var type = id.substring(id.lastIndexOf("-") + 1, id.indexOf("."));
+                    return type;
+                  });
     var keys = d3.select(legLineLayout).selectAll('tspan')
                  .attr('class', function() { return this.innerHTML; });
 
