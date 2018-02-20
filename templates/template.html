@@ -29,29 +29,44 @@
   </head>
 
   <body>
-    <div class = "container-fluid" id = "main">
-      <div class = "svg-div">
-    <!-- insert SVG code from SVG file here -->
-
-        <div class = "control" id="control">
-          <button type="button" class="btn btn-info" onclick="reset()" id="reset">
-            <span class="glyphicon glyphicon-refresh"> </span> Reset </button>
-          <button type="button" class="btn btn-info" onclick="showTable()" id="viewTable">
-            <span class="glyphicon glyphicon-list-alt"> </span> Table </button>
-        </div>
+    <div class = "control" id = "control">
+      <ul class = "menu">
+        <li class = "plot"> <span class="glyphicon glyphicon-stats"></span> Plot </li>
+        <li class = "view-tbl"><span class="glyphicon glyphicon-list-alt"></span> Table </li>
+        <li class = "reset" id = "reset" onclick = "reset()"> <span class="glyphicon glyphicon-refresh"></span> Reset </li>
+      </ul>
     </div>
 
-    <div class = "tbl-div">
+    <div id = "main">
+      <div class = "svg-div">
+    <!-- insert SVG code from SVG file here -->
+    </div>
+
+    <div class = "tbl-div table-responsive">
         <!-- insert table -->
 
-      </div>
+    </div>
   </div>
+    <script>
+    $(".view-tbl").click(function() {
+      $(".tbl-div").removeClass("expand").toggleClass("moveRight");
+      $(".svg-div").removeClass("moveLeft").toggleClass("mid");
+      // for bars:
+      $(".Percentage").toggleClass("hidden");
+      $(".Count").toggleClass("hidden");
+    });
 
-    <script defer type = "text/javascript">
+    $(".plot").click(function() {
+      $(".svg-div").removeClass("mid").toggleClass("moveLeft");
+      $(".tbl-div").removeClass("moveRight").toggleClass("expand");
+    })
+    </script>
+
+    <script type = "text/javascript">
       //insert commonFunctions
     </script>
 
-    <script defer type = "text/javascript">
+    <script type = "text/javascript">
     // insert inline JSfile here
     </script>
 

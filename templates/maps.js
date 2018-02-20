@@ -669,14 +669,14 @@ selectForm = function(ff) {
     var yvar = chart.names[chart.names.length - 1];
 
     // create selection:
-    var controlVar = d3.select('#control').append('div')
-                       .attr('class', 'form-group ccvar');
+    var controlVar = d3.select('.control').append('div')
+                       .attr('class', 'form-group form-inline form-div');
 
     // add label:
-    var label = d3.select('.ccvar').append('label')
+    var label = d3.select('.form-div').append('label')
                   .html('Variable to display:');
 
-    var selection = d3.select('.ccvar').append('select')
+    var selection = d3.select('.form-div').append('select')
                       .attr("class", "form-control control-var")
                       .on('change', ff);
 
