@@ -50,21 +50,13 @@ p {
 /*** TABLE PROPERTIES ***/
 /*totals column  or totals row */
 table {
-  width: 100%;
-}
-
-.tc {
-  font-weight:bold;
-}
-
-tr {
-  align: center;
+  width: 100% !important;
 }
 
 td, th {
   text-align: center;
   word-wrap: break-word;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 /* table headings */
@@ -78,7 +70,7 @@ td, th {
 }
 
 /* groups for two way bar plots */
-.yGroup {
+.yGroup, .tc {
   text-align: center;
   font-weight: bold;
 }
@@ -252,18 +244,6 @@ span {
     font-size: 0.75em;
 }
 
-/* time slider */
-#control div {
-  padding: 10px;
-  margin: auto;
-}
-
-.slider {
-  width: 95%;
-  display: block;
-  margin: auto;
-}
-
 .x-lab, .y-lab, .spark-title {
   text-anchor: center;
 }
@@ -273,9 +253,48 @@ span {
   stroke-width: 0.5;
 }
 
-.slider li {
-  float: left;
-  position: relative;
+/* time slider */
+#control div {
+  padding: 10px;
+  margin: auto;
+}
+
+.slider-div {
+  width: 90%;
+}
+
+.slider {
+  -webkit-appearance: none;
+  height: 5px;
+  border-radius: 5px;
+  background: lightgray;
+  width: calc(100% - 30px);
+  display: block;
+}
+
+/* circle thumb */
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: black;
+  cursor: pointer;
+  transition: background 0.15s ease-in-out;
+}
+
+.slider-val {
+  width: 55px;
+  border-radius: 5px;
+  color: black;
+  background: white;
+  border: 0.5px #B3B6B7 solid;
   text-align: center;
-  font-size: 10px;
+  line-height: 10px;
+  margin: auto;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  background: darkgray;
 }

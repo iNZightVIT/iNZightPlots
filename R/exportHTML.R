@@ -312,6 +312,7 @@ getInfo.inzbar <- function(plot, x) {
   counts <- plot$tab
   percent <- plot$widths
   n <- attributes(x)$total.obs
+  type <- "bar"
 
   if (attributes(x)$total.missing != 0) {
     n <- attributes(x)$total.obs - attributes(x)$total.missing
@@ -384,7 +385,7 @@ getInfo.inzbar <- function(plot, x) {
 
     # reset colorMatch
     colorMatch <- TRUE
-    jsFile <- bpstackedJS
+    type <- "bp-stacked"
   }
 
   # attributes for HTML table
@@ -392,7 +393,7 @@ getInfo.inzbar <- function(plot, x) {
   includeRow <- TRUE
   tableInfo <- list(caption = cap, includeRow = includeRow, tab = tab, n = n)
   #returning all data in a list:
-  chart <- list(data = dt, colorMatch = colorMatch, colCounts = colCounts, group = group, order = order)
+  chart <- list(type = type, data = dt, colorMatch = colorMatch, colCounts = colCounts, group = group, order = order)
   JSData <- list(chart = jsonlite::toJSON(chart), jsFile = jsFile)
   return(list(tbl = tableInfo, js = JSData))
 }
