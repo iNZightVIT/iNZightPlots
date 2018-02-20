@@ -1,8 +1,8 @@
 Package: iNZightPlots
 Type: Package
 Title: iNZightPlots
-Version: 2.7.5
-Date: 2018-01-23
+Version: 2.7.6
+Date: 2018-02-21
 Authors@R: c(person("Tom", "Elliott", role = c("aut", "cre"),
                     email = "tom.elliott@auckland.ac.nz"),
              person("Yu Han", "Soh", role = "ctb"))
