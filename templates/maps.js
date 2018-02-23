@@ -669,7 +669,10 @@ selectForm = function(ff) {
     var yvar = chart.names[chart.names.length - 1];
 
     // create selection:
-    var controlVar = d3.select('.control').append('div')
+    d3.select(".menu").insert("li", ".help")
+      .attr("class", "var-control");
+
+    var controlVar = d3.select('.var-control').append('div')
                        .attr('class', 'form-group form-inline form-div');
 
     // add label:
@@ -677,10 +680,10 @@ selectForm = function(ff) {
                   .html('Variable to display:');
 
     var selection = d3.select('.form-div').append('select')
-                      .attr("class", "form-control control-var")
+                      .attr("class", "form-control select-var")
                       .on('change', ff);
 
-    var options = d3.select('.control-var').selectAll('option')
+    var options = d3.select('.select-var').selectAll('option')
                     .data(numVar).enter()
                     .append('option')
                     .attr('id', function(d) { return ('option.' + d); } )

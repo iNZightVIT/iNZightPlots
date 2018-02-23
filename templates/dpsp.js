@@ -18,8 +18,11 @@ var table = $('#table').DataTable({
 
 // create form for variable selection:
 varForm = function() {
+
+  d3.select(".menu").insert("li", ".help")
+    .attr("class", "var-control")
   //create form
-  var form = d3.select(".control").append("div")
+  var form = d3.select(".var-control").append("div")
                   .attr("class", "form-group form-inline form-div")
                   .attr("id", "form");
 
@@ -27,7 +30,7 @@ varForm = function() {
       .html("Variables to display:");
 
   form.append("select")
-      .attr("class", "form-control")
+      .attr("class", "form-control select-var")
       .attr("id", "selectVar")
       .attr("multiple", "multiple");
 
