@@ -399,9 +399,8 @@ span {
 }
 
 /* time slider */
-
 .slider-div {
-  width: 20%;
+  width: 100%;
 }
 
 .slider {
@@ -428,13 +427,19 @@ span {
 .slider-val {
   width: 55px;
   border-radius: 5px;
-  color: white;
+  color: rgba(255, 255, 255, 0.8);
   text-align: center;
-  line-height: 10px;
+  line-height: 12px;
   margin: auto;
-  margin-bottom: 5px;
 }
 
 .slider::-webkit-slider-thumb:hover {
   background: darkgray;
+}
+
+/* play-pause button */
+.play-pause {
+    text-align: center;
+    margin: auto;
+    width: 100%;
 }
