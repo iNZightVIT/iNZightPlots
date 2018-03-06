@@ -104,7 +104,8 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, extra.vars = 
     varNames <- c(mapObj$region.var, timex, timey)
   }
 
-  setwd(tempdir())
+  # temporarily set this to curdir: comment for demo
+  # setwd(tempdir())
 
   # get palette colours used: continuous scale
   grid::grid.force()
