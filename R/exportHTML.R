@@ -68,7 +68,7 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, extra.vars = 
      !requireNamespace("knitr",   quietly = TRUE) ||
      !requireNamespace("jsonlite", quietly = TRUE) ) {
     stop(paste("Required packages aren't installed",
-               "Use 'install.packages('iNZightPlots', depends = TRUE)' to install them.",
+               "Use 'install.packages('iNZightPlots', dependencies = TRUE)' to install them.",
                sep = "\n"))
   }
 
@@ -452,16 +452,27 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
 
   if (length(levels) > 1)  { # for multi-level dot plots
 
-    levList = list();
-    data = list();
-    boxList = list();
-    countsTab = as.numeric();
-    countsTab[1] = 0;
+    levList = list()
+    dd = list()
+    boxList = list()
+    order = list()
+    countsTab = as.numeric()
+    countsTab[1] = 0
 
     for (i in 1:length(levels)) {
       #currently only takes variable plotted
       levList[[i]] = plots[[i]]$x
-      data[[i]] = cbind(levList[[i]], levels[i])
+      order = attr(plots[[i]], "order")
+      
+      ## exported data frame with extra variables:
+      if (!is.null(extra.vars) && !is.null(data)) {
+        dataByLevel <- data[which(data[,varNames$y] == levels[i]), ]
+        dd[[i]] <- varSelect(varNames, plots[[i]], order, extra.vars, dataByLevel, levels = TRUE)
+      } else {
+        dd[[i]] = cbind(levList[[i]], levels[i])
+        colnames(dd[[i]]) <- c(attributes(x)$varnames$x, attributes(x)$varnames$y)
+      }
+      
 
       #obtain boxplot information
       box = plot$boxinfo
@@ -478,8 +489,7 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
     }
 
     #bind all groups together:
-    tab <- do.call("rbind", data)
-    colnames(tab) <- c(attributes(x)$varnames$x, attributes(x)$varnames$y)
+    tab <- do.call("rbind", dd)
 
     chart <- list(type = "dot", data = data.frame(tab), boxData = boxList, levList = levList,
                   countsTab = countsTab, levNames = names(plots), varNames = colnames(tab))
@@ -488,16 +498,11 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
 
     colGroupNo <- nlevels(plot$toplot$all$colby)
     pl <- plot$toplot$all
+    # note that the order given is with non-missing values (data has been filtered)
     order <- attr(pl, "order")
 
-    # DEFAULT: only shows variables plotted.
-    xVal <- pl$x
-    tab <- as.data.frame(xVal)
-    names(tab) <- varNames$x
-
     #variable selection
-    tab <- varSelect(x, extra.vars, pl, data, tab, xVal,
-                     NULL, order, varNames)
+    tab <- varSelect(varNames, pl, order, extra.vars, data)
 
     #To obtain box whisker plot information:
     boxInfo <- plot$boxinfo$all
@@ -531,9 +536,14 @@ getInfo.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
 
   tab <- cbind(as.data.frame(x), as.data.frame(y))
   names(tab) <- c(varNames$x, varNames$y)
-  #test for variable selection:
-  tab <- varSelect(obj, extra.vars, plot, data, tab,
-                   x, y, order, varNames)
+  
+  # variable selection
+  tab <- varSelect(varNames, plot, order, extra.vars, data)
+  
+  # for maps only
+  if(obj$gen$opts$plottype == "map") {
+    names(tab) <- gsub("expression[(]\\.([[:alpha:]]*)[)]", "\\1", names(tab))
+  }
 
   ## Attributes for HTML table
   cap <- "Data"
@@ -606,47 +616,62 @@ getInfo.default <- function(plot, x) {
 }
 
 # Variable selection: for dot plots and scatter plots
-# Used when user wishes to export additional variables in the table/ in tooltips
-varSelect <- function(x, extra.vars, pl, data, tab, xVal, yVal, order, varNames) {
-  if (!is.null(extra.vars) && !is.null(data)) {
-    # obtain column index
-    colNum <- as.numeric(sapply(extra.vars, function(extra.vars) grep(extra.vars, colnames(data))))
-    # obtain extra data columns
-    extra.cols <- data[order, colNum]
-
-    if (is.null(yVal)) {
-      tab <- cbind(extra.cols, as.data.frame(xVal))
-      names(tab) <- c(extra.vars, varNames$x)
+# For exporting additional variables
+# @param varNames variables used in iNZightPlot object
+# @param pl the plot object (x$all$all)
+# @param order the order of points by how they are plotted (see inzscatter/inzdot function)
+# @param extra.vars extra variables to export 
+# @param data original dataset used 
+# @param levels logical on whether there are levels to be considered (dot plots only)
+# @return returns a data frame to be exported
+varSelect = function(varNames, pl, order, extra.vars, data, levels = FALSE) {
+  
+    if (!is.null(extra.vars) && !is.null(data)) {
+      
+      # filter missing data
+      # This is not required for scatter plots as the order listed takes missing data
+      # into account
+      if (is.null(varNames$y) || levels == TRUE) {
+        data <- data[!is.na(data[, varNames$x]), ]
+      }
+      
+      # selected variables
+      selected = c(extra.vars, varNames$x, varNames$y, varNames$colby, varNames$sizeby)
+      colNum = which(colnames(data) %in% selected)
+      
+      # format in order
+      tab = data[order, colNum]
+      rownames(tab) = 1:nrow(tab)
+      
     } else {
-      tab <- cbind(extra.cols, as.data.frame(xVal), as.data.frame(yVal))
-      names(tab) <- c(extra.vars, varNames$x, varNames$y)
+      
+      # default
+      xVal <- pl$x
+      tab <- data.frame(xVal)
+      names(tab) <- varNames$x
+      
+      # y-var
+      if (!is.null(pl$y)) {
+        yVal <- pl$y
+        tab <- cbind(tab, as.data.frame(yVal))
+        names(tab)[ncol(tab)] <- varNames$y
+      }
+      
+      # find colby/sizeby:
+      if (!is.null(pl$colby)) {
+        colby <- pl$colby
+        tab <- cbind(tab, as.data.frame(colby))
+        names(tab)[ncol(tab)] <- varNames$colby
+      }
+      
+      if (!is.null(varNames$sizeby)) {
+        sizeby <- pl$propsize
+        tab <- cbind(tab, as.data.frame(sizeby))
+        names(tab)[ncol(tab)] <- varNames$sizeby
+      }
+      
     }
-  } else if (ncol(data) < 10 && !is.null(data)) {
-    tab <- data[order, ]
-  } else if (is.null(data) && !is.null(extra.vars)) {
-    stop("Error: no dataset specified to export extra variables! Please specify a dataset.",
-         .call = FALSE)
-  } else {
-    tab <- tab
-  }
 
-  # if there's a colby variable
-  if (!is.null(pl$colby)) {
-    colby <- pl$colby
-    tab <- cbind(tab, as.data.frame(colby))
-    names(tab)[ncol(tab)] <- varNames$colby
-  }
+    return(tab)
 
-  # if there's a sizeby variable
-  if (!is.null(varNames$sizeby)) {
-    sizeby <- pl$propsize
-    tab <- cbind(tab, as.data.frame(sizeby))
-    names(tab)[ncol(tab)] <- varNames$sizeby
-  }
-
-  # for maps only
-  if(x$gen$opts$plottype == "map") {
-    names(tab) <- gsub("expression[(]\\.([[:alpha:]]*)[)]", "\\1", names(tab))
-  }
-  return(tab)
 }
