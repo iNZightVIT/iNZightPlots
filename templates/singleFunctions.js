@@ -41,7 +41,7 @@ insertYHeader = function() {
 button = function(name) {
   var button = document.createElement('button');
   button.setAttribute("type", "button");
-  button.setAttribute("class","btn btn-primary hidden " + name);
+  button.setAttribute("class","btn btn-primary " + name);
   button.innerHTML = "Show " + name;
   button.setAttribute("onclick", "change" + name + "()");
   button.setAttribute('id', 'Button' + name);

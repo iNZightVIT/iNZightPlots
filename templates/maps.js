@@ -669,14 +669,17 @@ selectForm = function(ff) {
     var yvar = chart.names[chart.names.length - 1];
 
     // create selection:
-    var controlVar = d3.select('#control').append('div')
-                       .attr('class', 'form-group ccvar');
+    d3.select(".menu").insert("li", ".help")
+      .attr("class", "var-control");
+
+    var controlVar = d3.select('.var-control').append('div')
+                       .attr('class', 'form-group form-inline form-div');
 
     // add label:
-    var label = d3.select('.ccvar').append('label')
+    var label = d3.select('.form-div').append('label')
                   .html('Variable to display:');
 
-    var selection = d3.select('.ccvar').append('select')
+    var selection = d3.select('.form-div').append('select')
                       .attr("class", "form-control control-var")
                       .on('change', ff);
 
@@ -803,11 +806,11 @@ addSlider = function() {
         int = chart.int[0];
 
     // input a slider:
-    var sliderDiv = d3.select("#control").append("div")
-                   .attr("class", "slider-div");
+    d3.select(".menu").insert("li", ".help")
+      .attr("class", "li-slider");
 
-    var sliderTitle = sliderDiv.append("label")
-                               .html("By " + seqVar + ":");
+    var sliderDiv = d3.select(".li-slider").append("div")
+                   .attr("class", "slider-div");
 
     var sliderVal = sliderDiv.append("div")
                              .attr("class", "slider-val")
@@ -822,12 +825,35 @@ addSlider = function() {
                    .attr("value", current)
                    .on("input", timeChange);
 
+    // add play/pause button:
+    var timer;
+    var play = sliderDiv.append("div").append("i")
+                        .attr("class", "glyphicon glyphicon-play play-pause")
+                        .on("click", function() {
+                                clearInterval(timer);
+                                var el = d3.select(this);
+                                el.classed("glyphicon-pause", !el.classed("glyphicon-pause"));
+                                // adapted from: https://stackoverflow.com/questions/34934577/html-range-slider-with-play-pause-loop
+                                if (el.classed("glyphicon-pause")) {
+                                  //run timer (global to keep track);
+                                   timer = setInterval(function() {
+                                    var val = d3.select(".slider").property("value");
+                                      var num = (val == range[1]) ? 0 : (val - range[0])/int + 1;
+                                    //update value on slider:
+                                    d3.select(".slider").property("value", range[0] + num * int);
+                                    timeChange();
+                                  }, 750);
+                                } else {
+                                  //stop timer
+                                  clearInterval(timer);
+                                }
+                            });
 }
 
 // what happens when the slider moves?
 timeChange = function() {
 
-  var cur = this.value;
+  var cur = d3.select(".slider").property("value");
   d3.select(".slider-val").html(cur);
   // filter data across this time variable:
   var data = filterData(chart.timeData, chart.seqVar[0], cur);

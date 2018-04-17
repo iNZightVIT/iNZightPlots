@@ -1,50 +1,206 @@
-body {
-  padding: 20px;
+/* layout settings */
+#main {
+  position: fixed;
+  display: flex;
+  width: 100%;
+  top: 60px;
+  height: calc(100% - 60px);
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 10px;
+  background-color: #e3e3e3; /*#F5F5F5*/
+  overflow: hidden;
 }
 
-/* layout settings */
+.svg-div, .tbl-div {
+  transition: all ease-in-out 0.5s;
+  padding: 20px;
+  border-radius: 5px;
+  height: 100%;
+  background-color: white;
+  box-shadow: 0 0 3px #B0BEC5;
+}
+
 .svg-div {
-  float: left;
-  width: 50%;
-  position: relative;
+  min-width: 50%;
 }
 
 .tbl-div {
-  float: right;
-   width: 50%; /* optional */
+   min-width: 50%;
    overflow-x: auto;
 }
 
+/*moveEverything left/right */
+.moveRight {
+  transform: translateX(200%);
+}
+
+.moveLeft {
+  transform: translateX(-200%);
+}
+
+.expand {
+  min-width: 100%;
+  transform: translateX(-50%);
+}
+
+.mid {
+  transform: translateX(50%);
+}
+
+svg {
+  display: inline-block;
+  margin: auto;
+  width: 100%;
+  height: 100%;
+}
+
 /* attempt to use media queries */
-@media (max-width: 700px), (orientation: portrait) {
-  .svg-div {
-    float: left;
+@media (max-width: 600px), (orientation: portrait) {
+
+  #main {
+    position: fixed;
     width: 100%;
+    flex-direction: column;
+  }
+
+  .svg-div, .tbl-div {
+    transition: all ease 0.5s;
+  }
+
+  .svg-div {
+    width: 100%;
+    height: 50%;
+  }
+
+  svg {
+    height: 100%;
   }
 
   .tbl-div {
-    float: left;
     width: 100%;
-    overflow-x: auto;
+    height: 50%;
+    overflow-y: auto;
   }
+
+  /* move everything up/down */
+  .moveRight {
+    transform: translateY(200%);
+  }
+
+  .moveLeft {
+    transform: translateY(-200%);
+  }
+
+  .mid {
+    transform: translateY(50%);
+  }
+
+  .expand {
+    min-height: 100%;
+    transform: translateY(-50%);
+  }
+
+  label {
+    display: none;
+  }
+
 }
 
+/* navigation bar */
 #control {
-  clear: left;
-  background-color: #F4F6F7;
-  border: 0.5px #B3B6B7 solid;
-  border-radius: 5px;
-  padding: 10px;
-  margin-right: 10px;
-  margin-bottom: 10px;
+  width: 100%;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  height: 60px;
+  background-color: #12508a;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
 }
 
-button {
+.menu {
+  list-style: none;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+}
+
+.menu li {
+  color: rgba(255, 255, 255, 0.8);
+  text-align: right;
+  font-size: 15px;
   margin: 5px;
+  transition: all ease 0.3s;
+  padding: 7px;
+  border-radius: 3px;
 }
 
-p {
-  margin-top: 5px;
+.menu li:hover {
+  color: rgba(255, 255, 255, 1);
+}
+
+.glyphicon {
+  font-size: 15px;
+}
+
+#selectVar {
+  height: 45px;
+}
+
+.form-div {
+  margin: 15px 0px;
+}
+
+label {
+  color: rgba(255, 255, 255, 0.8);
+  margin-right: 5px;
+  font-weight: normal;
+}
+
+/* style help overlay */
+.help-overlay {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  position: fixed;
+  top: 60px;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(0,0,0,0.5);
+  z-index: -1;
+  transition: all ease 0.5s;
+}
+
+.help-info {
+  padding: 10px;
+  margin: auto;
+  color: black;
+  background-color: white;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.title {
+  font-size: 25px;
+}
+
+.move {
+  opacity: 1;
+  z-index: 5;
+}
+
+.logo {
+  width: 20%;
 }
 
 /*** TABLE PROPERTIES ***/
@@ -66,7 +222,6 @@ td, th {
   text-decoration: underline;
   text-align: center;
   align: center;
-  visibility:visible;
 }
 
 /* groups for two way bar plots */
@@ -75,32 +230,22 @@ td, th {
   font-weight: bold;
 }
 
-/*** BUTTONS ***/
-#viewTable {
-  background-color: #1565C0;
-  margin-right: 10px;
-}
-
-#reset {
-  background-color: rgb(0, 128, 0);
-  margin-right: 10px;
-}
-
 .Percentage {
   background-color:rgb(0, 0, 255);
-  opacity: 0.5;
+  color: white;
+  opacity: 0.75;
   margin-left: 10px;
 }
 
 .Count {
  background-color: purple;
- opacity: 0.5;
+ opacity: 0.75;
+ color: white;
  margin-left: 10px;
 }
 
-#form {
-  display: inline-table;
-  padding: 5px;
+.trend-info, .brush-info {
+  color: white;
 }
 
 /* textlabels */
@@ -202,7 +347,7 @@ div.tooltip {
     position: absolute;
     text-align: center;
     padding: 5px;
-    z-index: 10;
+    z-index: 5;
     opacity: 1;
     visibility: hidden;
     font: 11px sans-serif;
@@ -254,13 +399,8 @@ span {
 }
 
 /* time slider */
-#control div {
-  padding: 10px;
-  margin: auto;
-}
-
 .slider-div {
-  width: 90%;
+  width: 100%;
 }
 
 .slider {
@@ -268,8 +408,8 @@ span {
   height: 5px;
   border-radius: 5px;
   background: lightgray;
-  width: calc(100% - 30px);
-  display: block;
+  width: calc(100% - 15px);
+  display: inline-block;
 }
 
 /* circle thumb */
@@ -287,14 +427,19 @@ span {
 .slider-val {
   width: 55px;
   border-radius: 5px;
-  color: black;
-  background: white;
-  border: 0.5px #B3B6B7 solid;
+  color: rgba(255, 255, 255, 0.8);
   text-align: center;
-  line-height: 10px;
+  line-height: 12px;
   margin: auto;
 }
 
 .slider::-webkit-slider-thumb:hover {
   background: darkgray;
+}
+
+/* play-pause button */
+.play-pause {
+    text-align: center;
+    margin: auto;
+    width: 100%;
 }
