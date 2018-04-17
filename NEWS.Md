@@ -36,7 +36,8 @@ __Release date__: 23 March 2017
 ### Patch 2.7.6 - 21/02/2018
 - Again, more fixes/features for interactive plots - Yu Han is working hard!
 
-
+### Patch 2.7.7 - 18/04/2018
+- more fixes and improvements to interactive plots
 
 ***
 # Version 2.6
