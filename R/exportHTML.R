@@ -10,6 +10,7 @@
 #' @param extra.vars extra variables specified by the user to be exported
 #' @param width the desired width of the SVG plot
 #' @param height the desired height of the SVG plot
+#' @param mapObj iNZightMap object (from iNZightMaps)
 #' @param ... extra arguments
 #'
 #' @return Opens up an HTML file of \code{x} with filename \code{file} in the browser (best performance on Chrome/Firefox)
@@ -52,7 +53,126 @@ exportHTML.function <- function(x, file = 'index.html', data = NULL, extra.vars 
   invisible(url)
 }
 
-#this is generalized for every plot - involves binding everything together.
+## for the new maps model: assuming class ggplot + mapObj is there.
+#' @describeIn exportHTML method for iNZightMaps output (via new module)
+#' @export
+exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, extra.vars = NULL, mapObj, ...) {
+
+  if (!inherits(mapObj, "iNZightMapPlot")) {
+    stop("mapObj is not an 'iNZightMapPlot' object. This is only available for iNZightMaps.
+         Are you using the new iNZightMaps module?")
+  }
+
+  # package check:
+  if(!requireNamespace("gridSVG",  quietly = TRUE) ||
+     !requireNamespace("knitr",   quietly = TRUE) ||
+     !requireNamespace("jsonlite", quietly = TRUE) ) {
+    stop(paste("Required packages aren't installed",
+               "Use 'install.packages('iNZightPlots', dependencies = TRUE)' to install them.",
+               sep = "\n"))
+  }
+
+  curdir <- getwd()
+  print(x)
+  mapObj <- mapObj
+  plot <- x
+  dt <- as.data.frame(plot[[1]])
+  spark <- NULL
+  timeData <- data.frame(mapObj$region.data)
+  multi <- mapObj$multiple.obs
+  seqVar <- mapObj$sequence.var
+  lab <- plot$labels
+
+  if (mapObj$type == "region") {
+    colby <- lab$fill
+    if (is.character(dt[[colby]]) || is.factor(dt[[colby]])) {
+      # sort by alphabetical order for character/factor variables
+      dt <- dt[order(dt[[colby]]), ]
+      rownames(dt) <- 1:nrow(dt)
+    }
+    varNames <- c(mapObj$region.var, colby)
+  } else if (mapObj$type == "point") {
+    colby <- lab$colour
+    sizeby <- lab$size
+    varNames <- c(mapObj$region.var, colby, sizeby)
+  } else {
+    ## for sparklines
+    colby <- lab$colour
+    region <- lab$group
+    timex <- lab$line_x
+    timey <- lab$line_y
+    varNames <- c(mapObj$region.var, timex, timey)
+  }
+
+  # temporarily set this to curdir: comment for demo
+  # setwd(tempdir())
+
+  # get palette colours used: continuous scale
+  grid::grid.force()
+  bar <- grid::grid.get("bar.4-2-4-2")
+  pal <- rev(as.vector(bar$raster))
+
+  # drop the last column (geometry)
+  dt <- dt[, - which(names(dt) == "geometry")]
+  timeData <- timeData[, - which(names(timeData) == "geometry")]
+  tab <- if (mapObj$type == "sparklines" || multi) timeData else dt
+  # only extract variables that are numeric
+  t <- sapply(tab, is.numeric)
+  numVar <- colnames(tab)[t]
+  # find time interval
+  if (is.null(seqVar)) {
+    int <- NULL
+  } else {
+    d <- unique(diff(tab[,seqVar]))
+    int <- d[which(d > 0)]
+  }
+
+  chart <- list(type = mapObj$type, data = dt, names = varNames, palette = pal,
+                numVar = numVar, multi = multi, seqVar = seqVar, int = int, timeData = timeData)
+  tbl <- list(tab = tab, includeRow = TRUE, cap = "Data")
+  js <- list(chart = jsonlite::toJSON(chart), jsFile = mapsJS)
+
+  # generate HTML table
+  if (is.null(tbl)) {
+    HTMLtable <- '<p> No table available. </p>'
+  } else {
+    HTMLtable <- knitr::kable(tbl$tab, format = "html", row.names = tbl$includeRow,
+                              align = "c", caption = tbl$cap, table.attr = "id=\"table\" class=\"table table-condensed table-hover\" cellspacing=\"0\"")
+  }
+
+  # bind JSON to grid plot, generate SVG
+  gridSVG::grid.script(paste0("var chart = ", js$chart,";"), inline = TRUE, name = "linkedJSONdata")
+  svgOutput <- gridSVG::grid.export(NULL)$svg
+
+  #get JS code associated with plot type
+  jsCode <-  js$jsFile
+  svgCode <- paste(capture.output(svgOutput), collapse = "\n")
+
+  #remove svg file and other scripts
+  grid.remove("linkedJSONdata")
+
+  #finding places where to substitute code:
+  svgLine <- grep("SVG", HTMLtemplate)
+  cssLine <- grep("styles.css", HTMLtemplate)
+  jsLine <- grep("JSfile", HTMLtemplate)
+  tableLineOne <- grep("<!-- insert table -->", HTMLtemplate)
+
+  # insert inline JS, CSS, table, SVG:
+  HTMLtemplate[cssLine] <- paste(styles, collapse = "\n")
+  HTMLtemplate[jsLine] <- paste(jsCode, collapse = "\n")
+  HTMLtemplate[tableLineOne] <- HTMLtable
+  HTMLtemplate[svgLine] <- svgCode
+
+  write(HTMLtemplate, file)
+  url <- normalizePath(file)
+  class(url) <- "inzHTML"
+
+  setwd(curdir)
+  invisible(url)
+
+  }
+
+
 #' @describeIn exportHTML method for output from iNZightPlot
 #' @export
 exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.vars = NULL, ...) {
@@ -193,6 +313,7 @@ getInfo.inzbar <- function(plot, x) {
   counts <- plot$tab
   percent <- plot$widths
   n <- attributes(x)$total.obs
+  type <- "bar"
 
   if (attributes(x)$total.missing != 0) {
     n <- attributes(x)$total.obs - attributes(x)$total.missing
@@ -265,7 +386,7 @@ getInfo.inzbar <- function(plot, x) {
 
     # reset colorMatch
     colorMatch <- TRUE
-    jsFile <- bpstackedJS
+    type <- "bp-stacked"
   }
 
   # attributes for HTML table
@@ -273,7 +394,7 @@ getInfo.inzbar <- function(plot, x) {
   includeRow <- TRUE
   tableInfo <- list(caption = cap, includeRow = includeRow, tab = tab, n = n)
   #returning all data in a list:
-  chart <- list(data = dt, colorMatch = colorMatch, colCounts = colCounts, group = group, order = order)
+  chart <- list(type = type, data = dt, colorMatch = colorMatch, colCounts = colCounts, group = group, order = order)
   JSData <- list(chart = jsonlite::toJSON(chart), jsFile = jsFile)
   return(list(tbl = tableInfo, js = JSData))
 }
@@ -331,16 +452,27 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
 
   if (length(levels) > 1)  { # for multi-level dot plots
 
-    levList = list();
-    data = list();
-    boxList = list();
-    countsTab = as.numeric();
-    countsTab[1] = 0;
+    levList = list()
+    dd = list()
+    boxList = list()
+    order = list()
+    countsTab = as.numeric()
+    countsTab[1] = 0
 
     for (i in 1:length(levels)) {
       #currently only takes variable plotted
       levList[[i]] = plots[[i]]$x
-      data[[i]] = cbind(levList[[i]], levels[i])
+      order = attr(plots[[i]], "order")
+      
+      ## exported data frame with extra variables:
+      if (!is.null(extra.vars) && !is.null(data)) {
+        dataByLevel <- data[which(data[,varNames$y] == levels[i]), ]
+        dd[[i]] <- varSelect(varNames, plots[[i]], order, extra.vars, dataByLevel, levels = TRUE)
+      } else {
+        dd[[i]] = cbind(levList[[i]], levels[i])
+        colnames(dd[[i]]) <- c(attributes(x)$varnames$x, attributes(x)$varnames$y)
+      }
+      
 
       #obtain boxplot information
       box = plot$boxinfo
@@ -357,8 +489,7 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
     }
 
     #bind all groups together:
-    tab <- do.call("rbind", data)
-    colnames(tab) <- c(attributes(x)$varnames$x, attributes(x)$varnames$y)
+    tab <- do.call("rbind", dd)
 
     chart <- list(type = "dot", data = data.frame(tab), boxData = boxList, levList = levList,
                   countsTab = countsTab, levNames = names(plots), varNames = colnames(tab))
@@ -367,16 +498,11 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
 
     colGroupNo <- nlevels(plot$toplot$all$colby)
     pl <- plot$toplot$all
+    # note that the order given is with non-missing values (data has been filtered)
     order <- attr(pl, "order")
 
-    # DEFAULT: only shows variables plotted.
-    xVal <- pl$x
-    tab <- as.data.frame(xVal)
-    names(tab) <- varNames$x
-
     #variable selection
-    tab <- varSelect(x, extra.vars, pl, data, tab, xVal,
-                     NULL, order, varNames)
+    tab <- varSelect(varNames, pl, order, extra.vars, data)
 
     #To obtain box whisker plot information:
     boxInfo <- plot$boxinfo$all
@@ -410,9 +536,14 @@ getInfo.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
 
   tab <- cbind(as.data.frame(x), as.data.frame(y))
   names(tab) <- c(varNames$x, varNames$y)
-  #test for variable selection:
-  tab <- varSelect(obj, extra.vars, plot, data, tab,
-                   x, y, order, varNames)
+  
+  # variable selection
+  tab <- varSelect(varNames, plot, order, extra.vars, data)
+  
+  # for maps only
+  if(obj$gen$opts$plottype == "map") {
+    names(tab) <- gsub("expression[(]\\.([[:alpha:]]*)[)]", "\\1", names(tab))
+  }
 
   ## Attributes for HTML table
   cap <- "Data"
@@ -485,47 +616,62 @@ getInfo.default <- function(plot, x) {
 }
 
 # Variable selection: for dot plots and scatter plots
-# Used when user wishes to export additional variables in the table/ in tooltips
-varSelect <- function(x, extra.vars, pl, data, tab, xVal, yVal, order, varNames) {
-  if (!is.null(extra.vars) && !is.null(data)) {
-    # obtain column index
-    colNum <- as.numeric(sapply(extra.vars, function(extra.vars) grep(extra.vars, colnames(data))))
-    # obtain extra data columns
-    extra.cols <- data[order, colNum]
-
-    if (is.null(yVal)) {
-      tab <- cbind(extra.cols, as.data.frame(xVal))
-      names(tab) <- c(extra.vars, varNames$x)
+# For exporting additional variables
+# @param varNames variables used in iNZightPlot object
+# @param pl the plot object (x$all$all)
+# @param order the order of points by how they are plotted (see inzscatter/inzdot function)
+# @param extra.vars extra variables to export 
+# @param data original dataset used 
+# @param levels logical on whether there are levels to be considered (dot plots only)
+# @return returns a data frame to be exported
+varSelect = function(varNames, pl, order, extra.vars, data, levels = FALSE) {
+  
+    if (!is.null(extra.vars) && !is.null(data)) {
+      
+      # filter missing data
+      # This is not required for scatter plots as the order listed takes missing data
+      # into account
+      if (is.null(varNames$y) || levels == TRUE) {
+        data <- data[!is.na(data[, varNames$x]), ]
+      }
+      
+      # selected variables
+      selected = c(extra.vars, varNames$x, varNames$y, varNames$colby, varNames$sizeby)
+      colNum = which(colnames(data) %in% selected)
+      
+      # format in order
+      tab = data[order, colNum]
+      rownames(tab) = 1:nrow(tab)
+      
     } else {
-      tab <- cbind(extra.cols, as.data.frame(xVal), as.data.frame(yVal))
-      names(tab) <- c(extra.vars, varNames$x, varNames$y)
+      
+      # default
+      xVal <- pl$x
+      tab <- data.frame(xVal)
+      names(tab) <- varNames$x
+      
+      # y-var
+      if (!is.null(pl$y)) {
+        yVal <- pl$y
+        tab <- cbind(tab, as.data.frame(yVal))
+        names(tab)[ncol(tab)] <- varNames$y
+      }
+      
+      # find colby/sizeby:
+      if (!is.null(pl$colby)) {
+        colby <- pl$colby
+        tab <- cbind(tab, as.data.frame(colby))
+        names(tab)[ncol(tab)] <- varNames$colby
+      }
+      
+      if (!is.null(varNames$sizeby)) {
+        sizeby <- pl$propsize
+        tab <- cbind(tab, as.data.frame(sizeby))
+        names(tab)[ncol(tab)] <- varNames$sizeby
+      }
+      
     }
-  } else if (ncol(data) < 10 && !is.null(data)) {
-    tab <- data[order, ]
-  } else if (is.null(data) && !is.null(extra.vars)) {
-    stop("Error: no dataset specified to export extra variables! Please specify a dataset.",
-         .call = FALSE)
-  } else {
-    tab <- tab
-  }
 
-  # if there's a colby variable
-  if (!is.null(pl$colby)) {
-    colby <- pl$colby
-    tab <- cbind(tab, as.data.frame(colby))
-    names(tab)[ncol(tab)] <- varNames$colby
-  }
+    return(tab)
 
-  # if there's a sizeby variable
-  if (!is.null(varNames$sizeby)) {
-    sizeby <- pl$propsize
-    tab <- cbind(tab, as.data.frame(sizeby))
-    names(tab)[ncol(tab)] <- varNames$sizeby
-  }
-
-  # for maps only
-  if(x$gen$opts$plottype == "map") {
-    names(tab) <- gsub("expression[(]\\.([[:alpha:]]*)[)]", "\\1", names(tab))
-  }
-  return(tab)
 }

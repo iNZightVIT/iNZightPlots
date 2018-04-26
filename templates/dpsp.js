@@ -18,29 +18,26 @@ var table = $('#table').DataTable({
 
 // create form for variable selection:
 varForm = function() {
+
+  d3.select(".menu").insert("li", ".help")
+    .attr("class", "var-control")
   //create form
-  var form = document.createElement('form');
-  form.setAttribute('class', 'form-inline');
-  form.setAttribute('id', 'form');
-  document.getElementById('control').appendChild(form);
+  var form = d3.select(".var-control").append("div")
+                  .attr("class", "form-group form-inline form-div")
+                  .attr("id", "form");
 
-  //create label for form
-  var formLabel = document.createElement('label');
-  formLabel.setAttribute('for', 'selectVar');
-  formLabel.innerHTML = "Variables to display";
-  form.appendChild(formLabel);
+  form.append("label")
+      .html("Variables to display:");
 
-  //create selection options:
-  var selectVar = document.createElement('select');
-  selectVar.setAttribute('class', 'form-control');
-  selectVar.setAttribute('id', 'selectVar');
-  selectVar.setAttribute('multiple', 'multiple');
-  form.appendChild(selectVar);
+  form.append("select")
+      .attr("class", "form-control select-var")
+      .attr("id", "selectVar")
+      .attr("multiple", "multiple");
 
   // get column names:
   var ncol = $("#table thead tr th").length;
   var th = document.getElementsByTagName('th');
-  for (var i = 0; i <= ncol; i++){
+  for (var i = 0; i <= ncol; i++) {
       var opt = document.createElement('option');
       if (i == 0) {
         opt.value = 0;
@@ -126,14 +123,22 @@ d3.selectAll('.point')
 
         d3.selectAll('.point')
             .attr("class", function() {
-              if (this.getAttribute('class') === "point selected") {
-                return "point selected";
-              } else if (this === selected) {
-                  return "point selected";
+              if (!d3.event.shiftKey) {
+                if (this === selected) {
+                  return ("point selected")
+                } else {
+                  return ("point none");
+                }
               } else {
-                return "point none";
-              }
-            })
+                if (this.getAttribute('class') === "point selected") {
+                  return "point selected";
+                } else if (this === selected) {
+                    return "point selected";
+                } else {
+                  return "point none";
+                }
+            }
+          });
 
         //filter table:
         //search for all those that are selected, then extract id num:
@@ -154,7 +159,7 @@ d3.selectAll('.point')
         }
 
         table.search('').columns().search('').draw();
-        table.columns(0).search(ind.join("|"), true).draw();
+        table.columns(0).search(ind.join("|"), true, false).draw();
 
     })
     .on('dblclick', function (d, i) { // deselect
@@ -178,7 +183,7 @@ d3.selectAll('.point')
               }
           }
        table.search('').columns().search('').draw();
-       table.columns(0).search(ind.join("|"), true).draw();
+       table.columns(0).search(ind.join("|"), true, false).draw();
     });
 
 //link TABLE TO PLOT:
@@ -219,9 +224,9 @@ if (legendLayout && levelNo == 1) {
     //on click, subsetting occurs:
     subset = function (i) {
       //get the title variable:
-      var titleVar = document.getElementById('inz-leg-title.1.1.tspan.1').innerHTML;
+      var titleVar = document.getElementById('inz-leg-title.1.1.tspan.1').textContent;
       var key = document.getElementById('inz-leg-pt-' + i + '.1.1');
-      var keyText = document.getElementById('inz-leg-txt-' + i + '.1.1.tspan.1').innerHTML;
+      var keyText = document.getElementById('inz-leg-txt-' + i + '.1.1.tspan.1').textContent;
       var names = chart.varNames;
       var count = document.getElementsByClassName('point').length;
 
@@ -237,7 +242,7 @@ if (legendLayout && levelNo == 1) {
       // find column index + filter: (add one for hidden column)
       var colInd = names.indexOf(titleVar) + 1;
       table.search('').columns().search('').draw();
-      table.columns(colInd).search("^" + keyText + "$", true).draw();
+      table.columns(colInd).search("^" + keyText + "$", true, false).draw();
     }
 };
 
@@ -288,14 +293,32 @@ addLineInteraction = function(t, g, ptip) {
           return(this.getAttribute('class').includes(t) == true ? false : true);
       });
 
-      return ptip.style("display", null)
+      return ptip.classed("hidden", false)
                  .html(g);
         });
+
+    d3.selectAll(".trend." + t)
+      .on("mouseover", function() {
+          d3.select(".tooltip")
+            .style("left", d3.event.pageX - 50 + "px")
+            .style("top", d3.event.pageY - 50 + "px")
+            .style("visibility", "visible")
+            .html(g);
+          })
+      .on("mouseout", function() {
+          d3.select(".tooltip")
+            .style("visibility", "hidden");
+          })
 }
 
 setUpLegend = function(legLineLayout, trendInfo) {
     if (legLineLayout) {
-    var lines = d3.select(legLineLayout).selectAll('polyline');
+    var lines = d3.select(legLineLayout).selectAll('polyline')
+                  .attr('class', function() {
+                    var id = this.id;
+                    var type = id.substring(id.lastIndexOf("-") + 1, id.indexOf("."));
+                    return type;
+                  });
     var keys = d3.select(legLineLayout).selectAll('tspan')
                  .attr('class', function() { return this.innerHTML; });
 
@@ -303,7 +326,7 @@ setUpLegend = function(legLineLayout, trendInfo) {
    var ptip = d3.select('#control')
              .append("p")
              .attr('class', 'trend-info')
-             .style('display', 'none');
+             .classed("hidden", true);
 
   var ll = legLineLayout.querySelectorAll('tspan');
 
@@ -382,7 +405,7 @@ function brushmove() {
     }
     //filter table:
     table.columns('').search().columns('').draw();
-    table.columns(0).search(ind.join("|"), true).draw();
+    table.columns(0).search(ind.join("|"), true, false).draw();
 };
 
 //Reset Button:

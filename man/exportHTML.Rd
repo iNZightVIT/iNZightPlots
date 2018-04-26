@@ -3,6 +3,7 @@
 \name{exportHTML}
 \alias{exportHTML}
 \alias{exportHTML.function}
+\alias{exportHTML.ggplot}
 \alias{exportHTML.inzplotoutput}
 \title{ExportHTML}
 \usage{
@@ -11,14 +12,17 @@ exportHTML(x, file, data, extra.vars, ...)
 \method{exportHTML}{function}(x, file = "index.html", data = NULL,
   extra.vars = NULL, width = dev.size()[1], height = dev.size()[2], ...)
 
+\method{exportHTML}{ggplot}(x, file = "index.html", data = NULL,
+  extra.vars = NULL, mapObj, ...)
+
 \method{exportHTML}{inzplotoutput}(x, file = "index.html", data = NULL,
   extra.vars = NULL, ...)
 }
 \arguments{
-\item{x}{An iNZight plot object or function (such as updatePlot) that captures iNZight environment}
+\item{x}{An iNZight plot object that captures iNZight environment}
 
 \item{file}{Name of temporary HTML file generated
-Additional parameters for scatterplots only:}
+Additional parameters for scatterplots and dotplots only:}
 
 \item{data}{dataset/dataframe that you wish to investigate and export more variables from}
 
@@ -29,6 +33,8 @@ Additional parameters for scatterplots only:}
 \item{width}{the desired width of the SVG plot}
 
 \item{height}{the desired height of the SVG plot}
+
+\item{mapObj}{iNZightMap object (from iNZightMaps)}
 }
 \value{
 Opens up an HTML file of \code{x} with filename \code{file} in the browser (best performance on Chrome/Firefox)
@@ -40,6 +46,8 @@ Currently only handles single panel plots. Coloured hex plots are currently not 
 \section{Methods (by class)}{
 \itemize{
 \item \code{function}: method for an iNZightPlot-generating function
+
+\item \code{ggplot}: method for iNZightMaps output (via new module)
 
 \item \code{inzplotoutput}: method for output from iNZightPlot
 }}

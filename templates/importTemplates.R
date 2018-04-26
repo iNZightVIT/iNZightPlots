@@ -14,12 +14,12 @@ singleFunctions <- readLines(file.path(dirname, 'singleFunctions.js'))
 
 #load JS files:
 bpJS <- readLines(file.path(dirname, 'bp.js'))
-bpstackedJS <- readLines(file.path(dirname, 'bp-stacked.js'))
 dpspJS <- readLines(file.path(dirname, 'dpsp.js'))
 histJS <- readLines(file.path(dirname, 'histogram.js'))
 hexbinJS <- readLines(file.path(dirname, 'hexbin.js'))
+mapsJS <- readLines(file.path(dirname, 'maps.js'))
 
-devtools::use_data(HTMLtemplate, styles, singleFunctions, bpJS, bpstackedJS, dpspJS, histJS, hexbinJS, internal = TRUE, overwrite = TRUE)
+devtools::use_data(HTMLtemplate, styles, singleFunctions, bpJS, dpspJS, histJS, hexbinJS, mapsJS, internal = TRUE, overwrite = TRUE)
 
 #add/delete files where necessary: - what is written here would be the same in the exportHTML function.
 
