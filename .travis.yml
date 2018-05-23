@@ -4,6 +4,8 @@ language: R
 sudo: false
 
 r:
+  - 3.2
+  - oldrel
   - release
   - devel
 
