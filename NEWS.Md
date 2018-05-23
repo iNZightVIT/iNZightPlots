@@ -39,6 +39,10 @@ __Release date__: 23 March 2017
 ### Patch 2.7.7 - 18/04/2018
 - more fixes and improvements to interactive plots
 
+### Patch 2.7.8 - 23/05/2018
+- fix bug showing up in changes to R 3.5.0
+- latest interact updates
+
 ***
 # Version 2.6
 __Release date__: 12 December 2016
