@@ -179,6 +179,7 @@ label {
   background-color: rgba(0,0,0,0.5);
   z-index: -1;
   transition: all ease 0.5s;
+  overflow-y: auto;
 }
 
 .help-info {
@@ -375,9 +376,35 @@ span {
   clear: left;
 }
 
+/* ggplot2 theme for sparkline chart */
+.grid-background {
+  fill: #ddd;
+}
+
+.spark-xaxis path, .spark-yaxis path {
+  display: none;
+}
+
+.grid-lines {
+  stroke: #fff;
+  stroke-width: 0.75px;
+}
+
+.grid path {
+  display: none;
+}
+
+.minor {
+  stroke-opacity: 0.5;
+  stroke-width: 0.5px;
+}
+
+.grid text {
+  display: none;
+}
+
 /* lines on the chart */
 .spark-line {
-  stroke: black;
   fill: none;
   stroke-width: 1.5;
 }
@@ -387,10 +414,17 @@ span {
     fill: black;
     stroke-width: 0.05;
     font-size: 0.75em;
+    text-anchor: middle;
 }
 
-.x-lab, .y-lab, .spark-title {
-  text-anchor: center;
+.x-lab, .y-lab, .spark-title, .main-title {
+  text-anchor: middle;
+}
+
+.main-title {
+  fill: black;
+  fill-opacity: 1;
+  font-size: 18;
 }
 
 .x-line {
