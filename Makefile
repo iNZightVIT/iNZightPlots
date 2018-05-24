@@ -1,11 +1,5 @@
-RDEVEL := $(shell command -v R-devel 2> /dev/null)
 R := R
-RCMD := $(R) --vanilla --slave
-ifndef RDEVEL
-	Rdev := $(R)
-else
-	Rdev := R-devel
-endif
+RCMD := $(R) --slave
 
 default:
 	@$(RCMD) -f templates/importTemplates.R
@@ -21,8 +15,8 @@ revcheck:
 	@$(RCMD) -f "revdep/check.R"
 
 crancheck:
-	@$(Rdev) CMD build .
-	@$(Rdev) CMD check *.tar.gz
+	@$(RCMD) CMD build .
+	@$(RCMD) CMD check *.tar.gz
 
 install:
 	$(R) CMD INSTALL ./

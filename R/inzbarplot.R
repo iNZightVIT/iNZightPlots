@@ -79,18 +79,17 @@ create.inz.barplot <- function(obj) {
 
     ymax <- max(phat, na.rm = TRUE)
     if (!is.null(ZOOM)) {
-        if (ZOOM[1] > ncol(phat))
-            next
+        if (ZOOM[1] <= ncol(phat)) {
+            ww <- ZOOM[1]:(sum(ZOOM) - 1)
+            ww <- ww - ncol(phat) * (ww > ncol(phat))
 
-        ww <- ZOOM[1]:(sum(ZOOM) - 1)
-        ww <- ww - ncol(phat) * (ww > ncol(phat))
-
-        phat <- phat[, ww, drop = FALSE]
-        if (ynull) {
-            tab <- tab[ww]
-            widths <- widths[ww]
-        } else {
-            tab <- tab[, ww, drop = FALSE]
+            phat <- phat[, ww, drop = FALSE]
+            if (ynull) {
+                tab <- tab[ww]
+                widths <- widths[ww]
+            } else {
+                tab <- tab[, ww, drop = FALSE]
+            }
         }
     }
 

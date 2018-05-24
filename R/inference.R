@@ -339,7 +339,8 @@ inference.inzbar <- function(object, bs, nb, vn, hypothesis, ...) {
                          sprintf("distribution of %s changes with %s", vn$x, vn$y),
                          "true proportions in each category are not equal")
         
-        HypOut <- c("Chi-square test for equal proportions", "",
+        HypOut <- c(sprintf("Chi-square test for equal %s", 
+                            ifelse(twoway, "distributions", "proportions")), "",
                     paste0("   X^2 = ", format(signif(chi2$statistic, 5)), ", ",
                            "df = ", format(signif(chi2$parameter, 5)), ", ",
                            "p-value ", ifelse(chi2$p.value < 2.2e-16, "", "= "), format.pval(chi2$p.value, digits = 5)), "",

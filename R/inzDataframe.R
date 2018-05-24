@@ -41,7 +41,7 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
 
     # take the names and replace if specified
     names <- names[names != ""]
-    varnames <- utils::modifyList(as.list(m[mw]), names)
+    varnames <- utils::modifyList(as.list(m[mw]), as.list(names))
 
     df <- list()  # initialise the object
 
