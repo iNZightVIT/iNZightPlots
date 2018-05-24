@@ -42,6 +42,7 @@ __Release date__: 23 March 2017
 ### Patch 2.7.8 - 23/05/2018
 - fix bug showing up in changes to R 3.5.0
 - latest interact updates
+- reword the inference output for two-way chisquare test: proportions -> distributions
 
 ***
 # Version 2.6
