@@ -78,6 +78,7 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, extra.vars = 
   plot <- x
   dt <- as.data.frame(plot[[1]])
   spark <- NULL
+  lineType <- NULL
   timeData <- data.frame(mapObj$region.data)
   multi <- mapObj$multiple.obs
   seqVar <- mapObj$sequence.var
@@ -102,6 +103,9 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, extra.vars = 
     timex <- lab$line_x
     timey <- lab$line_y
     varNames <- c(mapObj$region.var, timex, timey)
+    ## extract sparkline type
+    code <- attr(plot, "code")["sparklines"]
+    lineType <- sub(".*, sparkline_type = ([[:alpha:]]+).*", "\\1", code)
   }
 
   # temporarily set this to curdir: comment for demo
@@ -128,7 +132,8 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, extra.vars = 
   }
 
   chart <- list(type = mapObj$type, data = dt, names = varNames, palette = pal,
-                numVar = numVar, multi = multi, seqVar = seqVar, int = int, timeData = timeData)
+                numVar = numVar, multi = multi, seqVar = seqVar, int = int, timeData = timeData,
+                sparkline_type = lineType)
   tbl <- list(tab = tab, includeRow = TRUE, cap = "Data")
   js <- list(chart = jsonlite::toJSON(chart), jsFile = mapsJS)
 

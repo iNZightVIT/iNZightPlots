@@ -135,14 +135,14 @@ makeTooltips = function(chart) {
                 } else {
                     return "region none";
                 }
-        } else {
+         } else {
             if(this === selected) {
                 return "region selected";
                 ind.push(i);
             } else {
                 return "region none";
             }
-        }
+          }
         })
 
         var j = i;
@@ -320,6 +320,7 @@ sparkPlot = function(chart) {
     var xvar = chart.names[1];
     var yvar = chart.names[2];
     var timeData = chart.timeData;
+    var lineType = chart.sparkline_type;
 
     // create container for chart
     var sparkContainer = d3.select('.tbl-div').insert('div', ":first-child")
@@ -375,9 +376,6 @@ sparkPlot = function(chart) {
              .ticks(10));
 
     //major/minor lines:
-    var gridY = g.append("g")
-                 .attr("class", "grid grid-Y");
-
     var gridX = g.append("g")
                  .attr("class", "grid grid-X");
 
@@ -393,6 +391,9 @@ sparkPlot = function(chart) {
             return (i % 2 == 0) ? true : false;
           });
 
+    var gridY = g.append("g")
+                 .attr("class", "grid grid-Y");
+
     // for lines:
     g.append("g")
      .attr("class", "line-group")
@@ -401,21 +402,18 @@ sparkPlot = function(chart) {
     //add axis labels:
     var xlab = spark.append("text")
                     .attr("transform", "translate(" + chartWidth/2 + "," + (chartHeight - 10) + ")")
-                    .style("text-anchor", "middle")
                     .text(xvar);
 
     var ylab = spark.append("text")
                     .attr("class", "y-lab")
-                    .attr("transform", "translate(" + margin.left + "," + (margin.top - 10) +")")
-                    .style("text-anchor", "middle")
-                    .text(yvar);
+                    .attr("transform", "translate(" + (margin.left/2) + "," + (margin.top - 10) +")")
+                    .style("text-anchor", "left");
 
     // add a title for the region:
     var title = spark.append("text")
                      .attr("transform", "translate(" + chartWidth/2 + "," + (margin.top/2) + ")")
                      .attr("class", "spark-title")
-                     .attr("font-size", "1.25em")
-                     .style("text-anchor", "middle");
+                     .attr("font-size", "1.25em");
 
     // add region text labels:
     var regionLab =  d3.select('.spark-group').append('g')
@@ -502,7 +500,7 @@ setLegend = function() {
 function changeTitle(varName, year = null) {
   // change the title as things change
   var title = document.querySelectorAll('g[id^="title"] tspan')[0];
-  var text = (year) ? varName + "(" + year + ")" : varName;
+  var text = (year) ? varName + " (" + year + ")" : varName;
   if (title)  {
     // if there's a title present
     title.innerHTML = text;
@@ -627,17 +625,77 @@ updateFills = function() {
 
 }
 
+/* spark line chart calculation for relative, percent changes
+ * @param data
+ * @param sparkline_type specified
+ * @param xvar refers to the time variable
+ * @param yvar y-variable to be assessed
+ * @param flatten to flatten the resulting calculations into a single array
+ */
+calcSpark = function(data, sparkline_type, xvar, yvar, flatten = false) {
+
+    let groupedNest = data;
+    if (sparkline_type == "Absolute") return groupedNest;
+
+    let transformedData = [];
+    // divide and group by each region:
+    let nest = d3.nest().key(function(d) { return d[chart.names[0]]; }).entries(data.reduce((acc, val) => acc.concat(val), []));
+
+    if (sparkline_type == "Relative") {
+        nest.forEach(function(d) {
+            set = [];
+            vals = d.values;
+            // find the most earliest: for relative change
+            minyear = d3.min(vals, function(d) {
+                return d[xvar];
+            });
+            vals.map((value, index, values) => {
+                if (value[xvar] == minyear) ind = index;
+                set.push({ [chart.names[0]]: value[chart.names[0]],[xvar]: value[xvar], [yvar]: +(value[yvar] - vals[ind][yvar]).toFixed(2) });
+            });
+            //store all values into relative:
+            transformedData.push(set);
+        });
+
+    } else {
+      nest.forEach(function(d) {
+        set = [];
+        vals = d.values;
+        // take the previous value and find the difference
+        vals.map((value, index, values) => {
+            let ind = (index == 0) ? 0 : index - 1;
+            change = +((value[yvar] - vals[ind][yvar])/vals[ind][yvar] * 100).toFixed(2) ;
+            set.push({ [chart.names[0]]: value[chart.names[0]],
+                       [xvar]: value[xvar],
+                       [yvar]: change
+                    });
+        });
+        transformedData.push(set);
+     })
+    }
+
+    if (flatten) {
+        return (transformedData.reduce((acc, val) => acc.concat(val), []));
+    } else {
+        return (transformedData);
+    }
+
+}
+
 /* update spark line chart
  * @param data
  * @param selectedRegion which group in particular (either a specific region, or a year)
  * @param xvar refers to the time variable
  * @param yvar y-variable to be assessed
  */
-updateSpark = function(data, selectedRegion, xvar, yvar) {
+updateSpark = function(data, selectedRegion, xvar, yvar, lineType = chart.sparkline_type) {
 
- //if yvar is different, then update yScale titles, and yvar:
- var timeData = chart.timeData;
-  yScale.domain(d3.extent(timeData, function(d) { return d[yvar]; }));
+  //if yvar is different, then update yScale titles, and yvar:
+  var timeData = chart.timeData;
+
+  // calculate y-limits:
+  var nest = calcSpark(chart.timeData, lineType, xvar, yvar, flatten = true);
+  yScale.domain(d3.extent(nest, function(d) { return d[yvar]; }));
 
   d3.select(".spark-yaxis")
     .call(d3.axisLeft(yScale)
@@ -658,14 +716,57 @@ updateSpark = function(data, selectedRegion, xvar, yvar) {
         return (i % 2 == 0) ? true : false;
     });
 
+  // if zero is within yScale, emphasize with a line at 0:
+  if ( yScale.domain()[0] <= 0 && yScale.domain()[1] > 0) {
+
+    d3.select(".grid-Y").select(".zero-line").remove();
+
+    d3.select(".grid-Y")
+      .append("line")
+      .attr("class", "zero-line")
+      .attr("y1", yScale(0))
+      .attr("y2", yScale(0))
+      .attr("x1", 0)
+      .attr("x2", xScale.range()[1])
+      .style("stroke", "black");
+
+  }
+
   d3.select('.spark-title')
     .text(yvar + " by " + xvar);
 
-  d3.select('.y-lab')
-    .text(yvar);
+  // set y-lab title:
+  var ylabText;
 
+  switch(lineType[0]) {
+
+    case "Relative":
+      ylabText = "Relative change in " + yvar;
+      break;
+
+    case "Percent":
+      ylabText = "% change in " + yvar;
+      break;
+
+    default:
+      ylabText = yvar;
+      break;
+
+  }
+
+  d3.select('.y-lab')
+    .text(ylabText);
+
+  // unhide plot
   d3.select('.spark-div')
     .classed('hidden', false);
+
+  // reduce data to single level and calculate based on sparkline type:
+  var dd = calcSpark(data, lineType, xvar, yvar);
+  chart.dd = dd;
+  //regroup by regions:
+  var nest = d3.nest().key(function(d) { return d[chart.names[0]]; })
+               .entries(dd.reduce((acc, val) => acc.concat(val), []));
 
   // line function
   addLines = d3.line()
@@ -682,12 +783,12 @@ updateSpark = function(data, selectedRegion, xvar, yvar) {
   d3.select('.line-group').selectAll('.spark-line').remove();
 
   var lines = d3.select('.line-group').selectAll('.spark-line')
-                .data(data)
+                .data(nest)
                 .enter().append("path")
                 .transition()
                 .duration(500)
                 .attr("class", "spark-line")
-                .attr("d", addLines)
+                .attr("d", function(d) { return addLines(d.values); })
                 .style("stroke", function(d, i) {
                   return (colors[i]);
                 });
@@ -697,7 +798,7 @@ updateSpark = function(data, selectedRegion, xvar, yvar) {
 
   // add number of circles + text for hover effects:
   var cc = lineTool.selectAll('.follow-path')
-                   .data(data)
+                   .data(dd)
                    .enter().append("circle")
                    .attr('class', 'follow-path')
                    .attr("r", 3.5)
@@ -708,7 +809,7 @@ updateSpark = function(data, selectedRegion, xvar, yvar) {
   lineTool.selectAll('.follow-text').remove();
 
   var textLabels = lineTool.selectAll('.follow-text')
-                           .data(data)
+                           .data(dd)
                            .enter().append("text")
                            .attr('class', 'follow-text')
                            .attr("dy", "-0.75em");
@@ -725,7 +826,7 @@ updateSpark = function(data, selectedRegion, xvar, yvar) {
                  .text(function(d) { return d; })
                  .attr("transform", function(d, i) {
                    // for missing values - take the y-position of the last non-missing:
-                   let subset = data[i];
+                   let subset = dd[i];
                    let nonmissing = [];
                    for (var i = 0; i < subset.length; i++) {
                      //filter all the non-missing:
@@ -734,13 +835,17 @@ updateSpark = function(data, selectedRegion, xvar, yvar) {
                      }
                    }
 
-                   /*check = function(val) {
-                     return (val !== undefined);
-                   }*/
+                   //check if value is not missing
+                   if (Array.isArray(nonmissing) && nonmissing.length) {
+                       yPos = yScale(subset[d3.max(nonmissing)][yvar]);
+                       xPos = xScale(d3.max(timeData, function(d) { return d[xvar]; }));
+                   } else {
+                       yPos = yScale.range()[1];
+                       xPos = xScale.range()[0] + 20 * i;
+                   }
 
-                   let yPos = (nonmissing !== []) ? yScale(subset[d3.max(nonmissing)][yvar]) : yScale.range()[1];
-                   let xPos = xScale(d3.max(timeData, function(d) { return d[xvar]; }));
-                   return("translate(" + xPos + "," + yPos + ")");
+                   return ("translate(" + xPos + "," + yPos + ")");
+
                  })
                  .style("fill", function(d, i) {
                    return colors[i];
@@ -749,6 +854,7 @@ updateSpark = function(data, selectedRegion, xvar, yvar) {
 mousemove = function() {
   // FIXME: this only works if it's a Year variable... switch to time scales?
     var x0 = Math.round((xScale.invert(d3.mouse(this)[0])));
+    var data = chart.dd;
 
     //extract x, y:
     var circleData = [];
