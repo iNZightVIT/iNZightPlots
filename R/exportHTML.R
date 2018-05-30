@@ -108,8 +108,8 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, extra.vars = 
     lineType <- sub(".*, sparkline_type = ([[:alpha:]]+).*", "\\1", code)
   }
 
-  # temporarily set this to curdir: comment for demo
-  # setwd(tempdir())
+  # temporarily set this to curdir:
+   setwd(tempdir())
 
   # get palette colours used: continuous scale
   grid::grid.force()
@@ -468,7 +468,7 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
       #currently only takes variable plotted
       levList[[i]] = plots[[i]]$x
       order = attr(plots[[i]], "order")
-      
+
       ## exported data frame with extra variables:
       if (!is.null(extra.vars) && !is.null(data)) {
         dataByLevel <- data[which(data[,varNames$y] == levels[i]), ]
@@ -477,7 +477,7 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
         dd[[i]] = cbind(levList[[i]], levels[i])
         colnames(dd[[i]]) <- c(attributes(x)$varnames$x, attributes(x)$varnames$y)
       }
-      
+
 
       #obtain boxplot information
       box = plot$boxinfo
@@ -541,10 +541,10 @@ getInfo.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
 
   tab <- cbind(as.data.frame(x), as.data.frame(y))
   names(tab) <- c(varNames$x, varNames$y)
-  
+
   # variable selection
   tab <- varSelect(varNames, plot, order, extra.vars, data)
-  
+
   # for maps only
   if(obj$gen$opts$plottype == "map") {
     names(tab) <- gsub("expression[(]\\.([[:alpha:]]*)[)]", "\\1", names(tab))
@@ -625,56 +625,56 @@ getInfo.default <- function(plot, x) {
 # @param varNames variables used in iNZightPlot object
 # @param pl the plot object (x$all$all)
 # @param order the order of points by how they are plotted (see inzscatter/inzdot function)
-# @param extra.vars extra variables to export 
-# @param data original dataset used 
+# @param extra.vars extra variables to export
+# @param data original dataset used
 # @param levels logical on whether there are levels to be considered (dot plots only)
 # @return returns a data frame to be exported
 varSelect = function(varNames, pl, order, extra.vars, data, levels = FALSE) {
-  
+
     if (!is.null(extra.vars) && !is.null(data)) {
-      
+
       # filter missing data
       # This is not required for scatter plots as the order listed takes missing data
       # into account
       if (is.null(varNames$y) || levels == TRUE) {
         data <- data[!is.na(data[, varNames$x]), ]
       }
-      
+
       # selected variables
       selected = c(extra.vars, varNames$x, varNames$y, varNames$colby, varNames$sizeby)
       colNum = which(colnames(data) %in% selected)
-      
+
       # format in order
       tab = data[order, colNum]
       rownames(tab) = 1:nrow(tab)
-      
+
     } else {
-      
+
       # default
       xVal <- pl$x
       tab <- data.frame(xVal)
       names(tab) <- varNames$x
-      
+
       # y-var
       if (!is.null(pl$y)) {
         yVal <- pl$y
         tab <- cbind(tab, as.data.frame(yVal))
         names(tab)[ncol(tab)] <- varNames$y
       }
-      
+
       # find colby/sizeby:
       if (!is.null(pl$colby)) {
         colby <- pl$colby
         tab <- cbind(tab, as.data.frame(colby))
         names(tab)[ncol(tab)] <- varNames$colby
       }
-      
+
       if (!is.null(varNames$sizeby)) {
         sizeby <- pl$propsize
         tab <- cbind(tab, as.data.frame(sizeby))
         names(tab)[ncol(tab)] <- varNames$sizeby
       }
-      
+
     }
 
     return(tab)
