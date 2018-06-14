@@ -406,18 +406,26 @@ span {
     stroke: white;
     fill: black;
     stroke-width: 0.05;
-    font-size: 0.75em;
+    font-size: 12px;
     text-anchor: middle;
+}
+
+.region-lab {
+  font-size: 13px;
 }
 
 .x-lab, .spark-title, .main-title {
   text-anchor: middle;
 }
 
-.main-title {
+.x-lab, .y-lab {
+  font-size: 16px;
+}
+
+.main-title, .spark-title {
   fill: black;
   fill-opacity: 1;
-  font-size: 18;
+  font-size: 18px;
 }
 
 .x-line {

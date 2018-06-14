@@ -117,6 +117,30 @@ makeTooltips = function(chart) {
         selected.classed('selectRegion', false);
         tooltip.style('visibility', 'hidden');
     })
+    .on("dblclick", function() {
+      var selected = d3.select(this);
+      selected.attr("class", "region none");
+      // get index:
+      var ind = this.id.substring(this.id.lastIndexOf('.') + 1);
+
+      if (chart.type == "point") {
+        // deselect centroids:
+        let centroid = document.getElementById("centroid." + ind);
+        centroid.setAttribute("class", "centroid none");
+      }
+
+      if (chart.type == "sparklines") {
+        // deselect sparklines:
+        let sparkRegion = document.getElementById("sparkRegion." + ind);
+        sparkRegion.setAttribute("class", "sparkRegion none");
+        var group = chart.names[0];
+        // update line chart according to specific variable
+          changeVar();
+      }
+
+      filterTable();
+
+    })
     .on('click', function(d, i) {
       var selected = this;
       var ind = [];
@@ -190,19 +214,7 @@ makeTooltips = function(chart) {
           table.search('').columns().search('').draw();
         }
 
-        // find column number:
-        var colNum = cnames.findIndex(cnames => cnames === names[0]);
-
-        // find selected regions:
-        var regionsSelected = document.getElementsByClassName('region selected');
-          for (var i = 0; i < regionsSelected.length; i++) {
-              var id = regionsSelected[i].id;
-              var regionName = id.substring(0, id.lastIndexOf('.'));
-              dd.push(regionName);
-              ind.push("^" + regionName + "$");
-          }
-
-        table.columns(colNum + 1).search(ind.join("|"), true, false).draw();
+        filterTable();
 
         if (chart.type == "sparklines") {
             var group = chart.names[0];
@@ -211,6 +223,30 @@ makeTooltips = function(chart) {
           }
     })
 };
+
+
+// filter table:
+filterTable = function() {
+  var dd = [];
+  var ind = [];
+
+  if (chart.multi[0] == false && chart.type !== "region") {
+    table.search('').columns().search('').draw();
+  }
+
+  // find selected regions:
+  var regionsSelected = document.getElementsByClassName('region selected');
+    for (var i = 0; i < regionsSelected.length; i++) {
+        var id = regionsSelected[i].id;
+        var regionName = id.substring(0, id.lastIndexOf('.'));
+        dd.push(regionName);
+        ind.push("^" + regionName + "$");
+    }
+
+  // find column number:
+  let colNum = cnames.findIndex(cnames => cnames === names[0]);
+  table.columns(colNum + 1).search(ind.join("|"), true, false).draw();
+}
 
 /**
 * filter data to specific region
@@ -307,7 +343,8 @@ reset = function() {
 
   //reset zooming:
   d3.select('.background')
-    .attr('transform', null);
+    .attr('transform', null)
+    .call(zoom.transform, d3.zoomIdentity);
 
 }
 
@@ -401,6 +438,7 @@ sparkPlot = function(chart) {
 
     //add axis labels:
     var xlab = spark.append("text")
+                    .attr("class", "x-lab")
                     .attr("transform", "translate(" + chartWidth/2 + "," + (chartHeight - 10) + ")")
                     .text(xvar);
 
@@ -412,8 +450,7 @@ sparkPlot = function(chart) {
     // add a title for the region:
     var title = spark.append("text")
                      .attr("transform", "translate(" + chartWidth/2 + "," + (margin.top/2) + ")")
-                     .attr("class", "spark-title")
-                     .attr("font-size", "1.25em");
+                     .attr("class", "spark-title");
 
     // add region text labels:
     var regionLab =  d3.select('.spark-group').append('g')
@@ -598,7 +635,7 @@ updateFills = function() {
 
   leg.selectAll("text")
      .attr('x', 1)
-     .attr('font-size', 7)
+     .attr('font-size', '8px')
      .style("text-anchor", "start");
 
   d3.select('#new-scale')
@@ -695,7 +732,10 @@ updateSpark = function(data, selectedRegion, xvar, yvar, lineType = chart.sparkl
 
   // calculate y-limits:
   var nest = calcSpark(chart.timeData, lineType, xvar, yvar, flatten = true);
-  yScale.domain(d3.extent(nest, function(d) { return d[yvar]; }));
+  // set y-axis from 0 if it is absolute:
+  var min = (lineType[0] === "Absolute") ? 0 : d3.min(nest, function(d) { return d[yvar]; });
+  var max = d3.max(nest, function(d) { return d[yvar]; });
+  yScale.domain([min, max]);
 
   d3.select(".spark-yaxis")
     .call(d3.axisLeft(yScale)
@@ -785,8 +825,6 @@ updateSpark = function(data, selectedRegion, xvar, yvar, lineType = chart.sparkl
   var lines = d3.select('.line-group').selectAll('.spark-line')
                 .data(nest)
                 .enter().append("path")
-                .transition()
-                .duration(500)
                 .attr("class", "spark-line")
                 .attr("d", function(d) { return addLines(d.values); })
                 .style("stroke", function(d, i) {
@@ -821,7 +859,6 @@ updateSpark = function(data, selectedRegion, xvar, yvar, lineType = chart.sparkl
                  .data(selectedRegion)
                  .enter().append("text")
                  .attr("class", "region-lab")
-                 .attr("font-size", "0.65em")
                  .attr("dx", "0.5em")
                  .text(function(d) { return d; })
                  .attr("transform", function(d, i) {
@@ -860,25 +897,26 @@ mousemove = function() {
     var circleData = [];
     for (var i = 0; i < data.length; i++) {
       for (var j = 0; j < data[i].length; j++) {
-        if (data[i][j][xvar] == x0) {
-          circleData.push(data[i][j][yvar]);
-        }
+        if (data[i][j][xvar] === undefined) circleData.push(undefined);
+        if (data[i][j][xvar] == x0) circleData.push(data[i][j][yvar]);
       }
     };
 
-    if (circleData) {
+    if (circleData.length === 1 && circleData[0] === undefined) return;
 
-      var lineTool = d3.select('.lineTool'),
+    var lineTool = d3.select('.lineTool'),
           width = $('.tbl-div').width();
 
       // move circles and text according to the mouse...
       cc.data(circleData)
         .attr("transform", function(d) {
+                if (d === undefined) return ("translate(" + (xScale.range()[1] + 10) + "," + yScale.range()[1] + ")");
                 return ("translate(" + xScale(x0) + "," + yScale(+d) + ")");
               });
 
       textLabels.data(circleData)
                 .attr("transform", function(d) {
+                        if (d === undefined) return ("translate(" + (xScale.range()[1] + 10) + "," + yScale.range()[1] + ")");
                         return ("translate(" + xScale(x0) + "," + yScale(+d) + ")")
                       })
                 .text(function(d) { return (x0 + ", " + d); })
@@ -887,10 +925,7 @@ mousemove = function() {
                 })
                 .style("stroke", "transparent");
 
-      } else {
-        return ;
-    }
-}
+  }
 
   d3.select('.spark-overlay')
     .on('mousemove', mousemove);
@@ -1148,9 +1183,9 @@ addZoom = function(chart) {
         .style("stroke-width", (7 - d3.event.transform.k)/10 + "px");
   }
     // attempt zooming within the box.
-    var zoom = d3.zoom()
-                .scaleExtent([1, 8])
-                 .on("zoom", zoomed);
+    zoom = d3.zoom()
+             .scaleExtent([1, 8])
+             .on("zoom", zoomed);
 
     var bg = document.querySelectorAll("g[id^='panel']")[0];
     d3.select(bg)
