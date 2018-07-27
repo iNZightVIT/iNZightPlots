@@ -13,7 +13,7 @@
 #' @param mapObj iNZightMap object (from iNZightMaps)
 #' @param ... extra arguments
 #'
-#' @return Opens up an HTML file of \code{x} with filename \code{file} in the browser (best performance on Chrome/Firefox)
+#' @return HTML file of \code{x} with filename \code{file} in the browser
 #'
 #' @examples
 #' \dontrun{
@@ -72,7 +72,6 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, extra.vars = 
                sep = "\n"))
   }
 
-  curdir <- getwd()
   print(x)
   mapObj <- mapObj
   plot <- x
@@ -108,9 +107,6 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, extra.vars = 
     lineType <- sub(".*, sparkline_type = ([[:alpha:]]+).*", "\\1", code)
   }
 
-  # temporarily set this to curdir:
-   setwd(tempdir())
-
   # get palette colours used: continuous scale
   grid::grid.force()
   bar <- grid::grid.get("bar.4-2-4-2")
@@ -137,46 +133,10 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, extra.vars = 
   tbl <- list(tab = tab, includeRow = TRUE, cap = "Data")
   js <- list(chart = jsonlite::toJSON(chart), jsFile = mapsJS)
 
-  # generate HTML table
-  if (is.null(tbl)) {
-    HTMLtable <- '<p> No table available. </p>'
-  } else {
-    HTMLtable <- knitr::kable(tbl$tab, format = "html", row.names = tbl$includeRow,
-                              align = "c", caption = tbl$cap, table.attr = "id=\"table\" class=\"table table-condensed table-hover\" cellspacing=\"0\"")
-  }
-
-  # bind JSON to grid plot, generate SVG
-  gridSVG::grid.script(paste0("var chart = ", js$chart,";"), inline = TRUE, name = "linkedJSONdata")
-  svgOutput <- gridSVG::grid.export(NULL)$svg
-
-  #get JS code associated with plot type
-  jsCode <-  js$jsFile
-  svgCode <- paste(capture.output(svgOutput), collapse = "\n")
-
-  #remove svg file and other scripts
-  grid.remove("linkedJSONdata")
-
-  #finding places where to substitute code:
-  svgLine <- grep("SVG", HTMLtemplate)
-  cssLine <- grep("styles.css", HTMLtemplate)
-  jsLine <- grep("JSfile", HTMLtemplate)
-  tableLineOne <- grep("<!-- insert table -->", HTMLtemplate)
-
-  # insert inline JS, CSS, table, SVG:
-  HTMLtemplate[cssLine] <- paste(styles, collapse = "\n")
-  HTMLtemplate[jsLine] <- paste(jsCode, collapse = "\n")
-  HTMLtemplate[tableLineOne] <- HTMLtable
-  HTMLtemplate[svgLine] <- svgCode
-
-  write(HTMLtemplate, file)
-  url <- normalizePath(file)
-  class(url) <- "inzHTML"
-
-  setwd(curdir)
+  url <- createHTML(tbl, js, file)
   invisible(url)
 
-  }
-
+}
 
 #' @describeIn exportHTML method for output from iNZightPlot
 #' @export
@@ -191,7 +151,6 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
                sep = "\n"))
   }
 
-  curdir <- getwd()
   x <- x
   plot <- x$all$all
 
@@ -210,9 +169,6 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
     return()
   }
 
-  # if it passes the above: work in temp. directory
-  setwd(tempdir())
-
   # Get data (refer to getInfo function):
   if (is.null(extra.vars) && is.null(data)) {
     info <- getInfo(plot, x)
@@ -223,6 +179,27 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
   tbl <- info$tbl
   js <- info$js
 
+  #create html
+  url <- createHTML(tbl, js, file)
+  invisible(url)
+
+}
+
+## create HTML - processes and generates HTML file
+## @param tbl - list with table information
+## @param js - list with javascript information
+## @param file - filename for HTML file created
+## @return url object of class inzHTML
+createHTML <- function(tbl, js, file = "index.html") {
+
+  curdir <- getwd()
+  # work in temp dir
+  setwd(tempdir())
+
+  # generate svg
+  svgOutput <- gridSVG::grid.export(NULL)$svg
+  svgCode <- paste(capture.output(svgOutput), collapse = "\n")
+
   # generate HTML table
   if (is.null(tbl)) {
     HTMLtable <- '<p> No table available. </p>'
@@ -232,30 +209,20 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
                               align = "c", caption = tbl$cap, table.attr = "id=\"table\" class=\"table table-condensed table-hover\" cellspacing=\"0\"")
   }
 
-  # bind JSON to grid plot, generate SVG
-  gridSVG::grid.script(paste0("var chart = ", js$chart,";"), inline = TRUE, name = "linkedJSONdata")
-  svgOutput <- gridSVG::grid.export(NULL)$svg
-
-  # A possibly more permanent solution using the XML package to remove width and height:
-  # only implement this if we end up using the XML package more often
-  # svgOutput <- XML::removeAttributes(doc, .attrs = c("width", "height"))
-
-  #get JS code associated with plot type
-  jsCode <-  js$jsFile
-  svgCode <- paste(capture.output(svgOutput), collapse = "\n")
-
-  #remove svg file and other scripts
-  grid.remove("linkedJSONdata")
+  jsCode <- js$jsFile
+  chartCode <- paste0("var chart = ", js$chart, ";")
 
   #finding places where to substitute code:
   svgLine <- grep("SVG", HTMLtemplate)
   cssLine <- grep("styles.css", HTMLtemplate)
   functionLine <- grep("commonFunctions", HTMLtemplate)
   jsLine <- grep("JSfile", HTMLtemplate)
+  chartLine <- grep("chart.json", HTMLtemplate)
   tableLineOne <- grep("<!-- insert table -->", HTMLtemplate)
 
   # insert inline JS, CSS, table, SVG:
   HTMLtemplate[cssLine] <- paste(styles, collapse = "\n")
+  HTMLtemplate[chartLine] <- paste(chartCode, collapse = "\n")
   HTMLtemplate[jsLine] <- paste(jsCode, collapse = "\n")
   HTMLtemplate[functionLine] <- paste(singleFunctions, collapse = "\n")
   HTMLtemplate[tableLineOne] <- HTMLtable
@@ -273,9 +240,8 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
 
   #reset back to original directory:
   setwd(curdir)
+  return(url)
 
-  #return url:
-  invisible(url)
 }
 
 
@@ -593,7 +559,6 @@ getInfo.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
   return(list(tbl = tbl, js = JSData))
 }
 
-#No table for hexplots yet!
 getInfo.inzhex <- function(plot, x = NULL) {
   warning("No table available for hexbin plots.")
   tbl <- NULL
@@ -616,7 +581,7 @@ getInfo.inzhex <- function(plot, x = NULL) {
 }
 
 getInfo.default <- function(plot, x) {
-  warning("Cannot generate table! There may not be an interactive version of this plot yet...")
+  warning("There may not be an interactive version of this plot yet...")
   return()
 }
 
