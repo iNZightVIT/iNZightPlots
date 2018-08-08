@@ -1,94 +1,172 @@
-// ggplot2 maps for iNZightMaps
-var svg = d3.select('svg')
-            .attr('width', null)
-            .attr('height', null);
+/** Classes for iNZightMaps 2.0 (maps generated with ggplot2)
+ * @param {Object} chart - chart object from R
+ * General class for maps generated with iNZightMaps 2.0,
+ * which has 3 subclasses : region maps, centroid maps, sparkline maps
+ * Addional class for line chart (sparkPlot) for sparkline maps only */
+class Inzmap {
 
-// initialize data table
-var table = $('#table').DataTable({
-      "colReorder": true,
-      "columnDefs": [
-        { //hide rowID column
-          "targets": [0],
-          "visible": false
-        }
-      ]
-  });
+  constructor(chart) {
+    this.svg = d3.select("svg")
+                 .attr("width", null)
+                 .attr("height", null);
+    this.chart = chart;
+    this.data = chart.data;
+    this.names = chart.names;
+    this.xvar = chart.names[1];
+    this.yvar = chart.names[2];
+    this.multi = chart.multi[0];
+    this.timeData = chart.timeData;
+    this.type = chart.type[0];
+    this.seqVar = chart.seqVar[0];
+    this.int = chart.int[0];
+    this.pathElements = document.querySelectorAll('g[id^="grill.gTree"]~g[id^="GRID.pathgrob"] path');
+    // default color palette = ggplot2 blues
+    let defaultColors = ["#101f33", "#162e47", "#1b3c5e", "#234c78", "#2b5f94",
+                      "#3572b2", "#3c89d3", "#46a0f7"];
+    this.palette = chart.palette ? chart.palette : defaultColors;
+    this.filteredData = this.filterMissing(this.data, this.names);
+    this.cnames = this.getColNames();
 
-filterMissing = function(chart) {
-  // ids to take into account of missing values:
-  var data = chart.data;
-  var names = chart.names;
-  var arr = [];
-
-  for (i = 0; i < data.length; i++) {
-    if (data[i][names[2]]) {
-      arr.push(i);
-    } else {
-      continue;
-    }
+    // bind event handlers:
+    this.reset = this.reset.bind(this);
+    this.matchRegionID = this.matchRegionID.bind(this);
+    this.timeChange = this.timeChange.bind(this);
+    this.setTable = this.setTable.bind(this);
+    this.filterTable = this.filterTable.bind(this);
   }
-  return (arr);
-}
 
-// Display and hide the table
-showTable = function() {
-    var tableWrapper = $('#table_wrapper');
-    tableWrapper.toggleClass('hidden');
-};
+  setRegions() {
+    let data = this.data;
+    let names = this.names;
 
-// assign and find correct elements:
-  var data = chart.data,
-      names = chart.names,
-      pathElements = document.querySelectorAll('g[id^="grill.gTree"]~g[id^="GRID.pathgrob"] path'),
-      sparkElements = document.querySelectorAll('g[id^="GRID.gTree"] path'),
-      regions = d3.selectAll(pathElements)
-                  .attr('class', 'region')
-                  .attr('id', function(d, i) { return(data[i][names[0]] + "." + i); }),
-      sparkRegions = d3.selectAll(sparkElements)
-                       .attr('class', 'sparkRegion')
-                       .attr('id', function(d, i) { return("sparkRegion." + i)}),
-      centroids = d3.select('svg').selectAll('use')
-                    .attr('class', 'centroid'),
-      tooltip = d3.select('body').append('div')
-                  .attr('class', 'tooltip')
-                  .style('width', '100'),
-     defaultColours = ["#101f33", "#162e47", "#1b3c5e", "#234c78", "#2b5f94",
-                       "#3572b2", "#3c89d3", "#46a0f7"];
+    d3.selectAll(this.pathElements)
+      .attr("class", "region")
+      .attr("id", (d, i) => data[i][names[0]] + "." + i);
+  }
 
-// return column names:
-var colNames = document.getElementsByTagName('th');
-var cnames = [];
-for (i = 0; i < colNames.length; i++) {
-  cnames.push(colNames[i].innerHTML.trim());
-}
+  filterMissing(data, names) {
+    // ids to take into account of missing values:
+    let arr = data.map((d, i) => {
+      if (d[names[1]]) return i;
+    }).filter(d => d !== undefined);
+    return (arr);
+  }
 
-  var arr = filterMissing(chart);
-
-  d3.selectAll(".centroid").attr('id', function(d, i) {
-                    return("centroid." + arr[i]);
-                  });
-
-  d3.selectAll(".sparkRegion").attr('id', function(d, i) {
-                    return("sparkRegion." + arr[i]);
-                  });
-
-matchRegionID = function(selected) {
-    var regionID = selected.attr("id").substr(0, selected.attr("id").lastIndexOf("."));
-    // this is required to match data with regions correctly:
-    // in cases like messy gapminder: some countries do not have data recorded in certain years,
-    // while some countries do. This is to make sure the right country data is matched to the right region.
-    // It is possible that a country may not have a data for a specific year, then that var becomes 'undefined'.
-    let ind = undefined;
-    for (var j = 0; j < data.length; j++) {
-        if (data[j][names[0]] == regionID) ind = j;
+  getColNames() {
+    let colNames = document.getElementsByTagName("th");
+    let cnames = [];
+    for (let i = 0; i < colNames.length; i++) {
+      cnames.push(colNames[i].innerHTML.trim());
     }
-    return ind;
-}
+    return cnames;
+  }
 
-//make tooltips!
-makeTooltips = function(chart) {
+  filterTable() {
+    var dd = [];
+    var ind = [];
+    let table = this.tbl;
+    let names = this.names;
 
-  var data = chart.data;
+    if (this.multi && this.type !== "region") {
+    table.search('').columns().search('').draw();
+    }
+
+    // find selected regions:
+    var regionsSelected = document.getElementsByClassName('region selected');
+    for (var i = 0; i < regionsSelected.length; i++) {
+        var id = regionsSelected[i].id;
+        var regionName = id.substring(0, id.lastIndexOf('.'));
+        dd.push(regionName);
+        ind.push("^" + regionName + "$");
+    }
+
+    // find column number:
+    let colNum = this.cnames.findIndex(cnames => cnames === names[0]);
+    table.columns(colNum).search(ind.join("|"), true, false).draw();
+  }
+
+  /** filter data to specific region by a time period
+  * @param data full data set exported from R (timeData)
+  * @param group variable that stores the region names
+  * @param region the region that is selected
+  * @return returns filtered data set for a specific time period
+  */
+  filterData(data, group, region) {
+    let ava = data.filter(d => d[group] == region || d[group] == undefined);
+    let names = this.names;
+
+    //sort data relative to how regions are plotted:
+    ava = ava.sort(function(a, b) {
+      if(a[names[0]] < b[names[0]]) return - 1;
+      if(a[names[0]] > b[names[0]]) return 1;
+      return 0;
+    });
+
+    return ava;
+  }
+
+  /** Link table to plot
+  * @return links table to plot (when you click, it highlights specific region */
+  tableToPlot() {
+    let table = this.tbl;
+    let names = this.names;
+    let cnames = this.cnames;
+    let type = this.type;
+    let arr = this.filteredData;
+
+    $('#table tbody').on('click', 'tr', function() {
+      $(this).toggleClass('active');
+      var r = table.rows('.active').data();
+      var ind = [];
+      // go by region rather than by index:
+      var colNum = cnames.findIndex(cnames => cnames === names[0]);
+      var regions = [], p;
+      for (let i = 0; i < r.length; i++) {
+        regions.push(r[i][colNum]);
+      }
+
+      d3.selectAll(".region")
+        .attr("class", function() {
+          var id = this.id;
+          var rr = id.substring(0, id.lastIndexOf("."))
+          if (regions.includes(rr)) {
+            ind.push(+id.substring(id.lastIndexOf(".") + 1));
+          }
+          return (regions.includes(rr) ? "region selected" : "region none");
+        });
+
+      // for centroids and spark lines:
+      if (type == "region") return;
+      var p = (type === "point") ? "centroid" : "sparkRegion";
+
+      for (let i = 0; i < arr.length; i++) {
+        var el = document.getElementById(p + "." + arr[i]);
+        if (ind.includes(arr[i])) {
+          el.setAttribute('class', p + " selected");
+        } else {
+          el.setAttribute('class', p + " none");
+        }
+      }
+    });
+  }
+
+  setTooltip() {
+    let tooltip = d3.select("body").append("div")
+                    .attr("class", "tooltip")
+                    .style("width", "100");
+    this.tooltip = tooltip;
+    return tooltip;
+  }
+
+  makeTooltips() {
+    let names = this.names;
+    let data = this.data;
+    let chartType = this.type;
+    let matchRegionID = this.matchRegionID;
+    let filterTable = this.filterTable;
+    let tooltip = this.tooltip;
+    let table = this.tbl;
+    let lineChart = this.lineChart;
 
     d3.selectAll(".region")
       .on("mouseover", function(d) {
@@ -117,30 +195,6 @@ makeTooltips = function(chart) {
         selected.classed('selectRegion', false);
         tooltip.style('visibility', 'hidden');
     })
-    .on("dblclick", function() {
-      var selected = d3.select(this);
-      selected.attr("class", "region none");
-      // get index:
-      var ind = this.id.substring(this.id.lastIndexOf('.') + 1);
-
-      if (chart.type == "point") {
-        // deselect centroids:
-        let centroid = document.getElementById("centroid." + ind);
-        centroid.setAttribute("class", "centroid none");
-      }
-
-      if (chart.type == "sparklines") {
-        // deselect sparklines:
-        let sparkRegion = document.getElementById("sparkRegion." + ind);
-        sparkRegion.setAttribute("class", "sparkRegion none");
-        var group = chart.names[0];
-        // update line chart according to specific variable
-          changeVar();
-      }
-
-      filterTable();
-
-    })
     .on('click', function(d, i) {
       var selected = this;
       var ind = [];
@@ -151,64 +205,74 @@ makeTooltips = function(chart) {
           //if the shift key is down, accumulate:
           if(d3.event.shiftKey) {
                 if(this.getAttribute('class') === "region selected") {
-                    return "region selected";
-                    ind.push(i);
+                  if (this === selected)  { // for deselecting
+                    if (chart.type == "sparklines") this.style.fill = null;
+                    return "region none";
+                  }
+                  return "region selected";
                 } else if (this === selected) {
+                  if (chart.type == "sparklines") this.style.fill = lineChart.colors[i];
                     return "region selected";
-                    ind.push(i);
                 } else {
+                  if (chart.type == "sparklines") this.style.fill = null;
                     return "region none";
                 }
-         } else {
+        } else {
             if(this === selected) {
+              if (chart.type == "sparklines") this.style.fill = lineChart.colors[i];
                 return "region selected";
-                ind.push(i);
             } else {
+              if (chart.type == "sparklines") this.style.fill = null;
                 return "region none";
             }
           }
-        })
+        });
 
         var j = i;
 
         // for point maps:
-        d3.selectAll('.centroid')
-          .attr("class", function(d, i) {
-            if (!d3.event.shiftKey) {
-              if (this.getAttribute('id') == ("centroid." + j)) {
-                return ("centroid selected")
+        if (chartType === "point") {
+          d3.selectAll('.centroid')
+            .attr("class", function(d, i) {
+              if (!d3.event.shiftKey) {
+                return (this.getAttribute('id') === ("centroid." + j)) ?
+                        "centroid selected" : "centroid none";
               } else {
-                return ("centroid none");
+                if (this.getAttribute("class") === "centroid selected") {
+                  if (this.getAttribute("id") === ("centroid." + j)) return "centroid none";
+                  return "centroid selected";
+                } else if (this.getAttribute('id') == ("centroid." + j)) {
+                  return "centroid selected";
+                } else {
+                  return "centroid none";
+                }
               }
-            } else {
-              if (this.getAttribute("class") === "centroid selected") {
-                return ("centroid selected");
-              } else if (this.getAttribute('id') == ("centroid." + j)) {
-                return ("centroid selected");
-              } else {
-                return ("centroid none");
-              }
-            }
-          })
+            });
+        }
 
+        if (chartType === "sparklines") {
           // fade sparkregions:
-          sparkRegions.attr('class', function(d, i) {
-            if (!d3.event.shiftKey) {
-              if (this.getAttribute('id') == ("sparkRegion." + j)) {
+          if (lineChart.yvar === names[2]) {
+            d3.selectAll(".sparkRegion").attr('class', function(d, i) {
+              if (!d3.event.shiftKey) {
+                if (this.getAttribute('id') == ("sparkRegion." + j)) {
+                    return "sparkRegion selected";
+                } else {
+                    return "sparkRegion none";
+                }
+              } else {
+                if (this.getAttribute("class") === "sparkRegion selected") {
+                  if (this.getAttribute("id") === ("sparkRegion." + j)) return "sparkRegion none";
                   return "sparkRegion selected";
-              } else {
+                } else if (this.getAttribute('id') == ("sparkRegion." + j)) {
+                  return "sparkRegion selected";
+                } else {
                   return "sparkRegion none";
+                }
               }
-            } else {
-              if (this.getAttribute("class") === "sparkRegion selected") {
-                return ("sparkRegion selected");
-              } else if (this.getAttribute('id') == ("sparkRegion." + j)) {
-                return ("sparkRegion selected");
-              } else {
-                return ("sparkRegion none");
-              }
-            }
-          })
+            });
+          }
+        }
 
         if (chart.multi[0] == false && chart.type !== "region") {
           table.search('').columns().search('').draw();
@@ -217,273 +281,377 @@ makeTooltips = function(chart) {
         filterTable();
 
         if (chart.type == "sparklines") {
-            var group = chart.names[0];
-            // update line chart according to specific variable
-            changeVar();
+            lineChart.highlightLines();
           }
-    })
-};
-
-
-// filter table:
-filterTable = function() {
-  var dd = [];
-  var ind = [];
-
-  if (chart.multi[0] == false && chart.type !== "region") {
-    table.search('').columns().search('').draw();
+      });
   }
 
-  // find selected regions:
-  var regionsSelected = document.getElementsByClassName('region selected');
-    for (var i = 0; i < regionsSelected.length; i++) {
-        var id = regionsSelected[i].id;
-        var regionName = id.substring(0, id.lastIndexOf('.'));
-        dd.push(regionName);
-        ind.push("^" + regionName + "$");
+  matchRegionID(selected) {
+    var regionID = selected.attr("id").substr(0, selected.attr("id").lastIndexOf("."));
+    // this is required to match data with regions correctly:
+    // in cases like messy gapminder: some countries do not have data recorded in certain years,
+    // while some countries do. This is to make sure the right country data is matched to the right region.
+    // It is possible that a country may not have a data for a specific year, then that var becomes 'undefined'.
+    let ind = undefined;
+    let data = this.data;
+    let names = this.names;
+    for (var j = 0; j < data.length; j++) {
+        if (data[j][names[0]] == regionID) ind = j;
+    }
+    return ind;
+  }
+
+  //time change:
+  timeChange() {
+    var yvar = d3.select('.control-var').property('value'),
+        cur = d3.select(".slider").property("value"),
+        seqVar = this.seqVar,
+        // filter data across time variable:
+        data = this.filterData(this.timeData, seqVar, cur),
+        names = this.names;
+
+    this.data = data;
+    this.changeTitle(yvar, cur);
+    d3.select(".slider-val").html(cur);
+
+    // update regions
+    if (this.type === "region") {
+      this.updateFills();
+    } else {
+      this.circleControl();
     }
 
-  // find column number:
-  let colNum = cnames.findIndex(cnames => cnames === names[0]);
-  table.columns(colNum + 1).search(ind.join("|"), true, false).draw();
-}
+    // update tooltips and table
+    this.makeTooltips();
+    var colNum = this.cnames.findIndex(cnames => cnames === seqVar);
+    this.tbl.search('').columns().search('').draw();
+    this.tbl.columns(colNum).search(cur + "|NA", true, false).draw();
 
-/**
-* filter data to specific region
-* @param data full data set exported from R (timeData)
-* @param group variable that stores the region names
-* @param region the region that is selected
-* @return returns filtered data set
-*/
-filterData = function(data, group, region) {
-    var ava = [];
-    //could possibly use filter?
-    for (i = 0; i < data.length; i++) { // to take into account of missings
-        if (data[i][group] == region || data[i][group] == undefined) {
-            ava.push(data[i]);
-        }
+  }
+
+  // add time slider (only for multiple observations over time)
+  addSlider() {
+    var seqVar = this.seqVar,
+        current = this.data[0][seqVar],
+        range = d3.extent(this.timeData, d => d[seqVar]),
+        int = this.int,
+        timeChange = this.timeChange;
+
+    // input a slider:
+    d3.select(".menu").insert("li", ".help")
+      .attr("class", "li-slider");
+
+    var sliderDiv = d3.select(".li-slider").append("div")
+                   .attr("class", "slider-div");
+
+    var sliderVal = sliderDiv.append("div")
+                             .attr("class", "slider-val")
+                             .html(current);
+
+    var slider = sliderDiv.append("input")
+                    .attr("class", "slider")
+                   .attr("type", "range")
+                   .attr("min", range[0])
+                   .attr("max", range[1])
+                   .attr("step", int)
+                   .attr("value", current)
+                   .on("input", timeChange);
+
+    // add play/pause button:
+    // adapted from: https://stackoverflow.com/questions/34934577/html-range-slider-with-play-pause-loop
+    var timer;
+    var play = sliderDiv.append("div").append("i")
+                        .attr("class", "glyphicon glyphicon-play play-pause")
+                        .on("click", function() {
+                            clearInterval(timer);
+                            var el = d3.select(this);
+                            el.classed("glyphicon-pause", !el.classed("glyphicon-pause"));
+                            if (el.classed("glyphicon-pause")) {
+                                timer = setInterval(function() {
+                                  var val = d3.select(".slider").property("value");
+                                  var num = (val == range[1]) ? 0 : (val - range[0])/int + 1;
+                                  //update value on slider:
+                                  d3.select(".slider").property("value", range[0] + num * int);
+                                  timeChange();
+                                  //stop playing when it gets to the last value... (or second last)
+                                  if (num == ((range[1] - range[0])/int + 1) - 1) {
+                                    clearInterval(timer);
+                                    el.classed("glyphicon-pause", false);
+                                  }
+                                }, 750);
+                            } else {
+                              //stop timer
+                              clearInterval(timer);
+                            }
+                        });
+  }
+
+  setTable() {
+    // this is only run when there are multiple observations across time periods
+    let table = this.tbl;
+    var cur = $(".slider-val").html();
+    let seqVar = this.seqVar;
+    var colNum = this.cnames.findIndex(cnames => cnames == seqVar);
+    table.columns(colNum).search(cur + "|NA", true, false).draw();
+  }
+
+  // add zoom
+  enableZoom() {
+    // adapted from: https://bl.ocks.org/iamkevinv/0a24e9126cd2fa6b283c6f2d774b69a2
+    function zoomed() {
+      bg.setAttribute("transform", d3.event.transform);
+      // make path strokes smaller as you zoom in
+      d3.selectAll(".region")
+        .style("stroke-width", (7 - d3.event.transform.k)/10 + "px");
     }
-    return ava;
-}
+    // attempt zooming within the box
+    this.zoom = d3.zoom()
+                 .scaleExtent([1, 8])
+                 .on("zoom", zoomed);
 
-/**
- * link table to plot
- * @param {String} type chart type (generally 'region')
- * @return links table to plot (when you click, it highlights specific region)
-*/
-tableToPlot = function(type) {
-  //link TABLE TO PLOT:
-  $('#table tbody').on('click', 'tr', function() {
-    $(this).toggleClass('active');
-    var r = table.rows('.active').data();
-    var ind = [];
-    // go by region rather than by index:
-    var colNum = cnames.findIndex(cnames => cnames === names[0]);
-    var regions = [];
-    for (i = 0; i < r.length; i++) {
-      regions.push(r[i][colNum + 1]);
-    }
+    var bg = document.querySelectorAll("g[id^='panel']")[0];
+    d3.select(bg)
+      .attr('class', 'background')
+      .call(this.zoom);
+  }
 
-    d3.selectAll("." + type)
-      .attr("class", function() {
-        var id = this.id;
-        var rr = id.substring(0, id.lastIndexOf("."))
-        if (regions.includes(rr)) {
-          ind.push(+id.substring(id.lastIndexOf(".") + 1));
-        }
-        return (regions.includes(rr) ? type + " selected" : type + " none");
-      });
-
-    // for centroids:
-    if (chart.type == "region") {
-        return;
-      } else if (chart.type == "point") {
-        var p = "centroid";
-      } else {
-        var p = "sparkRegion";
-      }
-
-      var arr = filterMissing(chart);
-      for (i = 0; i < arr.length; i++) {
-         var el = document.getElementById(p + "." + arr[i]);
-        if (ind.includes(arr[i])) {
-          el.setAttribute('class', p + " selected");
-        } else {
-          el.setAttribute('class', p + " none");
-        }
-      }
-  })
-}
-
-// reset the entire plot + table
-reset = function() {
-
-  //clear map
-  d3.selectAll('.region')
+  reset() {
+    //clear map
+    d3.selectAll('.region')
     .classed('selected none', false);
 
-  d3.selectAll('.sparkRegion')
-    .classed('.sparkRegion none', false)
-    .classed('hidden', false);
+    d3.selectAll('.sparkRegion')
+    .classed('.sparkRegion none', false);
 
-  d3.selectAll('.centroid')
+    d3.selectAll('.centroid')
     .classed('.centroid none', false);
 
-  // clear table
-  table.search('').columns().search('').draw();
-  table.rows().nodes().to$().removeClass('active');
+    // clear table
+    let table = this.tbl;
+    table.search('').columns().search('').draw();
+    table.rows().nodes().to$().removeClass('active');
 
-  if (chart.type == "region" && chart.multi[0] == true) {
-    // screen for certain year:
-    setTable();
+    if (this.type == "region" && this.multi) {
+      // screen for certain year:
+      this.setTable();
+    }
+
+    if (this.type == "sparklines") {
+      d3.selectAll(".region")
+        .style("fill", null);
+      // deselect lines:
+      d3.selectAll(".spark-line")
+        .style("stroke", "rgb(0, 0, 0)")
+        .style("stroke-width", 1)
+        .style("opacity", 0.2);
+
+      d3.select(".region-labels").html(null);
+    }
+
+    //reset zooming:
+    d3.select('.background')
+    .attr('transform', null)
+    .call(this.zoom.transform, d3.zoomIdentity);
+
   }
 
-  d3.select('.spark-div')
-    .classed('hidden', true);
+  // change title of map
+  changeTitle(varName, year = null) {
+    // change the title as things change
+    var title = document.querySelectorAll('g[id^="title"] tspan')[0];
+    var text = (year) ? varName + " (" + year + ")" : varName;
+    if (title)  {
+    // if there's a title present
+    title.innerHTML = text;
+    return;
+    } else {
+    title = document.getElementsByClassName("main-title")[0];
+    if (title) {
+        d3.select(title)
+          .text(text);
+      } else {
+        // attach a title:
+        title = document.querySelectorAll('g[id^="layout::title"]')[0];
+        // where is this background rectangle:
+        var rect = document.querySelectorAll('g[id^="panel.background..rect"] rect')[0];
+        let w = +rect.getAttribute("width");
+        let h = +rect.getAttribute("height");
+        let x = +rect.getAttribute("x");
+        let y = +rect.getAttribute("y");
+        // append text:
+        d3.select(title).append("text")
+          .attr("class", "main-title")
+          .attr("transform", "scale(1, -1)") // flip text right way up
+          .attr("x", w/2 + x)
+          .attr("y", - h - y - 1)
+          .text(text);
+      }
+    }
+    return;
+  }
 
-  //reset zooming:
-  d3.select('.background')
-    .attr('transform', null)
-    .call(zoom.transform, d3.zoomIdentity);
+  selectForm(ff) {
+    // numeric variables in data set:
+    var numVar = chart.numVar;
+    var yvar = chart.names[chart.names.length - 1];
 
-}
+    // create selection:
+    d3.select(".menu").insert("li", ".help")
+      .attr("class", "var-control");
 
-/* set up the line chart that links to specific spark line
- * @param chart data exported from R
- * @return sets up the chart using d3
-*/
-sparkPlot = function(chart) {
-    // get x and y variables
-    var xvar = chart.names[1];
-    var yvar = chart.names[2];
-    var timeData = chart.timeData;
-    var lineType = chart.sparkline_type;
+    var controlVar = d3.select('.var-control').append('div')
+                       .attr('class', 'form-group form-inline form-div');
 
-    // create container for chart
-    var sparkContainer = d3.select('.tbl-div').insert('div', ":first-child")
-                       .attr('class', 'spark-div')
-                       .classed('hidden', true);
+    // add label:
+    var label = d3.select('.form-div').append('label')
+                  .html('Variable to display:');
 
-    var margin = {top: 60, right: 70, bottom: 40, left: 70};
-    var chartWidth = Number($(".tbl-div").width());
-    var chartHeight = chartWidth * 0.7;
+    var selection = d3.select('.form-div').append('select')
+                      .attr("class", "form-control control-var")
+                      .on('change', ff);
 
-    var spark = d3.select('.spark-div').append('svg')
-            .attr('class', 'sparkPlot')
-            .attr('viewBox', "0 0 " + chartWidth +  " " + chartHeight)
-            .attr("width", "100%")
-            .attr("preserveAspectRatio", "xMidYMid meet");
+    var options = d3.select('.control-var').selectAll('option')
+                    .data(numVar).enter()
+                    .append('option')
+                    .attr('id', function(d) { return ('option.' + d); } )
+                    .attr('value', function(d) { return d; })
+                    .html(function(d) { return d; });
 
-    var g = spark.append('g')
-                 .attr('class', 'spark-group')
-                 .attr('transform', 'translate(' + margin.left + ', ' + margin.top + ')');
+    // set default:
+    document.getElementById('option.' + yvar).setAttribute('selected', "selected");
 
-    // define width and height of chart
-    var width = chartWidth - margin.left - margin.right;
-    var height = chartHeight - margin.bottom - margin.top;
+    //add title:
+    var formTitle = selection.append('p')
+                           .attr("class", "form-title")
+                           .html("Variable to display");
+  }
 
-    // create x and y scales:
-    xScale = d3.scaleLinear()
-               .range([0, width]);
+  gen() {
+    this.setRegions();
+    this.setTooltip();
+    this.makeTooltips();
+    this.tableToPlot();
+    this.enableZoom();
 
-    yScale = d3.scaleLinear()
-               .range([height, 0]);
-
-    xScale.domain(d3.extent(timeData, function(d) { return d[xvar]; }));
-
-    //Mimic ggplot2 theme
-    // gray background, major axes and minor axes
-    g.append("rect")
-     .attr("class", "grid-background")
-     .attr("width", width)
-     .attr("height", height);
-
-    // xaxis:
-    g.append("g")
-     .attr("class", "spark-xaxis")
-     .attr("transform", "translate(0," + (height) + ")")
-     .call(d3.axisBottom(xScale)
-             .ticks(10)
-             .tickFormat(d3.format("d")));
-
-    //yaxis:
-    g.append("g")
-     .attr("class", "spark-yaxis")
-     .call(d3.axisLeft(yScale)
-             .ticks(10));
-
-    //major/minor lines:
-    var gridX = g.append("g")
-                 .attr("class", "grid grid-X");
-
-    gridX.selectAll(".grid-lines")
-         .data(xScale.ticks(10))
-         .enter().append("line")
-         .attr("class", "grid-lines")
-         .attr("x1", function(d) { return (xScale(d)); })
-         .attr("x2", function(d) { return (xScale(d)); })
-         .attr("y1", 0)
-         .attr("y2", height)
-         .classed("minor", function(d, i) {
-            return (i % 2 == 0) ? true : false;
-          });
-
-    var gridY = g.append("g")
-                 .attr("class", "grid grid-Y");
-
-    // for lines:
-    g.append("g")
-     .attr("class", "line-group")
-     .append("path");
-
-    //add axis labels:
-    var xlab = spark.append("text")
-                    .attr("class", "x-lab")
-                    .attr("transform", "translate(" + chartWidth/2 + "," + (chartHeight - 10) + ")")
-                    .text(xvar);
-
-    var ylab = spark.append("text")
-                    .attr("class", "y-lab")
-                    .attr("transform", "translate(" + (margin.left/2) + "," + (margin.top - 10) +")")
-                    .style("text-anchor", "left");
-
-    // add a title for the region:
-    var title = spark.append("text")
-                     .attr("transform", "translate(" + chartWidth/2 + "," + (margin.top/2) + ")")
-                     .attr("class", "spark-title");
-
-    // add region text labels:
-    var regionLab =  d3.select('.spark-group').append('g')
-                       .attr("class", "spark-reglab")
-                       .append("text")
-                       .attr("class", "region-lab");
-
-    // add focus lines - adapted from: https://bl.ocks.org/alandunning/cfb7dcd7951826b9eacd54f0647f48d3
-    var lineTool = g.append('g')
-                    .attr('class', 'lineTool')
-                    .style('display', 'none');
-
-    lineTool.append("circle")
-            .attr("class", "follow-path");
-
-    lineTool.append("text")
-            .attr("class", "follow-text");
-
-    spark.append("rect")
-         .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-         .attr("class", "spark-overlay")
-         .attr("width", width)
-         .attr("height", height)
-         .style('fill', 'transparent')
-         .on("mouseover", function() { lineTool.style("display", null); })
-         .on("mouseout", function() { lineTool.style("display", "none"); });
+    d3.select("#reset")
+      .on("click", this.reset);
+  }
 
 }
 
-// set up a new legend for switching between variables
-// for now refers to a continuous colour scale
-setLegend = function() {
-    //add new scale:
+// CENTROID MAP CLASS
+class CentroidMap extends Inzmap {
+
+  constructor(props) {
+    super(props);
+    // bind event handlers:
+    this.circleControl = this.circleControl.bind(this);
+  }
+
+  setCentroids() {
+    d3.select("svg").selectAll("use")
+      .attr("class", "centroid");
+
+    let arr = this.filteredData;
+
+    d3.selectAll(".centroid")
+      .attr("id", function(d, i) {
+        return "centroid." + arr[i];
+      });
+  }
+
+  //store circle widths and heights - called before circleControl!
+  getCircleSize() {
+    var cc = document.getElementsByClassName('centroid');
+    var w = d3.range(0, cc.length).map(d => +cc[d].getAttribute("width"));
+    return(d3.extent(w));
+  }
+
+  // circle control
+  circleControl() {
+    var newY = d3.select('.control-var').property('value');
+    var data = this.data;
+    var csize = this.getCircleSize();
+
+    this.changeTitle(newY);
+
+    // filter for missing values...
+    var arr = [];
+
+    /*TODO: test on missing data
+    var xx = data.filter(d => d[newY]);
+    console.log(xx);*/
+
+    for (let i = 0; i < data.length; i++) {
+      if (data[i][newY]) {
+        arr.push(data[i]);
+      } else {
+        continue;
+      }
+    }
+
+    // find the maximum circle
+    var max = d3.max(arr, function(d) { return d[newY]; });
+
+    // set a squareroot scale to make circle area proportional to variable:
+    var sqrtScale = d3.scaleSqrt()
+                  .domain(d3.extent(arr, function(d) { return d[newY]; }))
+                  .range(csize);
+
+    // because circles are defined using 'use' elements (with 'shadow DOM' circles)
+    // controlling width and height of these 'use' elements control the circle (radius)
+    // transform is by half of the width and height
+    var circles = d3.selectAll('.centroid')
+                  .data(arr)
+                  .transition()
+                  .duration(300)
+                  .attr('width', function(d) {
+                      return sqrtScale(d[newY]);
+                        })
+                  .attr('height', function(d) {
+                    return sqrtScale(d[newY]);
+                        })
+                  .attr("transform", function(d) {
+                    var c = - sqrtScale(d[newY])/2;
+                        return ("translate(" + c + "," + c + ")");
+                  });
+
+    this.names[2] = newY;
+  }
+
+  init() {
+    //initialized table
+    var tbl = new Table(chart);
+    tbl.init();
+    this.tbl = tbl.DT;
+
+    // set centroids:
+    this.setCentroids();
+    this.gen();
+
+    // set up circle handlers
+    this.selectForm(this.circleControl);
+
+    //add time slider if there are multiple observations
+    if (!this.multi) return;
+      this.addSlider();
+      this.setTable();
+  }
+
+}
+
+// REGION MAPS
+class RegionMap extends Inzmap {
+
+  constructor(props) {
+    super(props);
+    // bind relevant event handlers:
+    this.updateFills = this.updateFills.bind(this);
+  }
+
+  // set up a new legend for switching between variables
+  // for now refers to a continuous colour scale
+  setLegend() {
     var layout = document.querySelectorAll("g[id='layout.2']");
 
     var newScale = d3.selectAll(layout)
@@ -517,7 +685,7 @@ setLegend = function() {
       .attr("fill", "url(#linear-gradient)")
       .attr('fill-opacity', 1);
 
-  var leg = newScale.append('g')
+    var leg = newScale.append('g')
           .attr("class", "leg-axis")
           .attr("fill", "black")
           .attr("fill-opacity", 1)
@@ -525,128 +693,92 @@ setLegend = function() {
           .attr("transform", "translate(" + (+coords[0] + w) + "," + coords[1] + ") scale(1, -1)");
            //flip, cause gridSVG flips
 
-  //add an axis title:
-  var legTitle = newScale.append("text")
+    //add an axis title:
+    var legTitle = newScale.append("text")
                          .attr("class", "leg-title")
                          .attr("fill", "black")
                          .attr("fill-opacity", 1)
                          .attr("transform", "translate(" + coords[0] + "," +  (+coords[1] + 10) + ") scale(1, -1)");
-}
-
-// change the title of the map
-function changeTitle(varName, year = null) {
-  // change the title as things change
-  var title = document.querySelectorAll('g[id^="title"] tspan')[0];
-  var text = (year) ? varName + " (" + year + ")" : varName;
-  if (title)  {
-    // if there's a title present
-    title.innerHTML = text;
-    return;
-  } else {
-    title = document.getElementsByClassName("main-title")[0];
-    if (title) {
-        d3.select(title)
-          .text(text);
-      } else {
-        // attach a title:
-        title = document.querySelectorAll('g[id^="layout::title"]')[0];
-        // where is this background rectangle:
-        var rect = document.querySelectorAll('g[id^="panel.background..rect"] rect')[0];
-        let w = +rect.getAttribute("width");
-        let h = +rect.getAttribute("height");
-        let x = +rect.getAttribute("x");
-        let y = +rect.getAttribute("y");
-        // append text:
-        d3.select(title).append("text")
-          .attr("class", "main-title")
-          .attr("transform", "scale(1, -1)") // flip text right way up
-          .attr("x", w/2 + x)
-          .attr("y", - h - y - 1)
-          .text(text);
-      }
-    }
-  return;
-}
-
-// for updating fills on regional maps (variable change)
-updateFills = function() {
-
-  var yvar = d3.select('.control-var').property('value'),
-      data = chart.data,
-      pal = (chart.palette) ? chart.palette : defaultColours;
-
-  if (chart.multi[0] == true) {
-    var dd = chart.timeData;
-    var cur = d3.select(".slider").property("value");
-    changeTitle(yvar, cur);
-  } else {
-    var dd = data;
-    changeTitle(yvar);
   }
 
-  //hide original scale:
-  var ss = document.querySelectorAll('g[id^="guide-box"]');
+  //update fills on regional maps:
+  updateFills() {
+    var yvar = d3.select('.control-var').property('value'),
+      data = this.data,
+      pal = (this.palette) ? this.palette : this.defaultColours;
+
+    if (this.multi) {
+      var dd = this.timeData;
+      var cur = d3.select(".slider").property("value");
+      this.changeTitle(yvar, cur);
+    } else {
+      var dd = data;
+      this.changeTitle(yvar);
+    }
+
+    //hide original scale:
+    var ss = document.querySelectorAll('g[id^="guide-box"]');
       d3.selectAll(ss)
         .classed('hidden', true);
 
-  // divide domain according to number of colours supplied.
-   var dval = [];
-   var min = d3.min(dd, function(d) { return d[yvar]; });
-   var max = d3.max(dd, function(d) { return d[yvar]; });
+    // divide domain according to number of colours supplied.
+    var min = d3.min(dd, function(d) { return d[yvar]; });
+    var max = d3.max(dd, function(d) { return d[yvar]; });
 
-   for (i = 0; i < pal.length; i++) {
-      dval.push(min + ((max - min)/(pal.length - 1) * i));
-   }
+    let dval = d3.range(0, pal.length).map(d => min + ((max - min)/(pal.length - 1) * d));
 
-//colour scale goes by whatever pal is.
-   colorScale = d3.scaleLinear()
+    //colour scale goes by whatever pal is.
+    let colorScale = d3.scaleLinear()
                      .range(pal)
                      .domain(dval);
+    this.colorScale = colorScale;
 
-  //update linear gradient:
-  // code adapted from: https://www.visualcinnamon.com/2016/05/smooth-color-legend-d3-svg-gradient.html
-  var linearGradient = d3.select('#linear-gradient');
+    //update linear gradient:
+    // code adapted from: https://www.visualcinnamon.com/2016/05/smooth-color-legend-d3-svg-gradient.html
+    var linearGradient = d3.select('#linear-gradient');
 
-  //remove and reset all colours on the scale:
-  linearGradient.selectAll("stop").remove();
+    //remove and reset all colours on the scale:
+    linearGradient.selectAll("stop").remove();
 
-  var stops = linearGradient.selectAll("stop")
+    var stops = linearGradient.selectAll("stop")
                             .data(dval)
                             .enter().append("stop")
                             .attr("offset", function(d, i) { return(i/dval.length * 100 + "%"); })
                             .attr("stop-color", function(d) { return colorScale(d); });
 
-  //update axes and update legend:
-  var legAxis = d3.scaleLinear()
+    //update axes and update legend:
+    var legAxis = d3.scaleLinear()
                   .range([100, 0])
                   .domain([min, max]);
 
-  var leg = d3.select('.leg-axis')
+    var leg = d3.select('.leg-axis')
               .call(d3.axisLeft(legAxis)
               .ticks(4)
               .tickFormat(d3.format("d")));
 
-// attempt to mimic 'ggplot2' legend:
-  leg.selectAll('path')
+    // attempt to mimic 'ggplot2' legend:
+    leg.selectAll('path')
      .attr('stroke', 'none');
 
-  leg.selectAll('line')
+    leg.selectAll('line')
       .attr('stroke', 'white');
 
-  leg.selectAll("text")
+    leg.selectAll("text")
      .attr('x', 1)
      .attr('font-size', '8px')
-     .style("text-anchor", "start");
+     .attr("text-anchor", "start");
 
-  d3.select('#new-scale')
+    d3.select('#new-scale')
     .classed('hidden', false);
 
-  // update legend title:
-  d3.select('.leg-title')
+    // update legend title:
+    d3.select('.leg-title')
     .text(yvar);
 
-  // update regions:
-  d3.selectAll('.region')
+    let matchRegionID = this.matchRegionID;
+
+    // update regions:
+    d3.selectAll('.region')
     .transition()
     .duration(500)
     .attr("fill", function(d) {
@@ -657,33 +789,224 @@ updateFills = function() {
       return ((data[ind][yvar] !== undefined) ? colorScale(data[ind][yvar]) : "#7f7f7f");
     });
 
-  // reassign yvar assessed to update tooltip:
-  chart.names[chart.names.length - 1] = yvar;
+    // reassign yvar assessed to update tooltip:
+    this.names[this.names.length - 1] = yvar;
+  }
+
+  init() {
+    //initialized table
+    var tbl = new Table(this.type);
+    tbl.init();
+    this.tbl = tbl.DT;
+
+    this.gen();
+
+    // set up legend and form selection handlers
+    this.setLegend();
+    this.selectForm(this.updateFills);
+
+    //add time slider:
+    if (this.multi) {
+      this.addSlider();
+      this.setTable();
+    }
+  }
 
 }
 
-/* spark line chart calculation for relative, percent changes
- * @param data
- * @param sparkline_type specified
- * @param xvar refers to the time variable
- * @param yvar y-variable to be assessed
- * @param flatten to flatten the resulting calculations into a single array
- */
-calcSpark = function(data, sparkline_type, xvar, yvar, flatten = false) {
+// SPARKLINE MAP CLASS
+class SparkMap extends Inzmap {
+  constructor(props) {
+    super(props);
+    this.sparkElements = document.querySelectorAll('g[id^="GRID.gTree"] path');
+  }
 
+  setSparkRegions() {
+    d3.selectAll(this.sparkElements)
+      .attr("class", "sparkRegion")
+      .attr("id", function(d, i) {
+        return ("sparkRegion." + i);
+      });
+
+    let arr = this.filteredData;
+
+    d3.selectAll(".sparkRegion")
+      .attr("id", function(d, i) {
+        return("sparkRegion." + arr[i]);
+      });
+  }
+
+  init() {
+    //initialized table
+    var tbl = new Table();
+    tbl.init();
+    this.tbl = tbl.DT;
+
+    // initialize line chart
+    var sp = new SparkPlot(this);
+    sp.init();
+    this.lineChart = sp;
+    // bind form selection
+    this.selectForm(sp.changeVar);
+
+    // set spark regions and interactions on map
+    this.setSparkRegions();
+    this.gen();
+  }
+
+}
+
+/** SPARKLINE PLOT CLASS
+ * This is used to draw the line chart that shows all spark lines
+ * for all regions (for SparkMaps only!)
+ * @param {Object} props - SparkMap object
+ * @return an 'enlarged' time line chart across all regions
+ */
+class SparkPlot {
+
+  constructor(props) {
+    this.xvar = props.chart.names[1];
+    this.yvar = props.chart.names[2];
+    this.group = props.chart.names[0];
+    this.lineType = props.chart.sparkline_type[0];
+    this.timeData = props.timeData;
+    this.tbl = props.tbl;
+    this.names = props.names;
+    this.multi = props.multi;
+    this.type = props.type;
+    this.cnames = props.cnames;
+    this.filterTable = props.filterTable;
+    this.changeTitle = props.changeTitle;
+    this.margin = {top : 60, right: 80, bottom: 40, left: 70};
+    // bind this to event handlers:
+    this.changeVar = this.changeVar.bind(this);
+  }
+
+  setUp() {
+    let xvar = this.xvar,
+        yvar = this.yvar,
+        group = this.group,
+        margin = this.margin;
+
+    let sparkContainer = d3.select('.tbl-div').insert('div', ":first-child")
+                       .attr('class', 'spark-div');
+    let chartWidth = Number($(".tbl-div").width());
+    let chartHeight = chartWidth * 0.7;
+    let width = chartWidth - margin.right - margin.left;
+    let height = chartHeight - margin.bottom - margin.top;
+
+    this.width = width;
+    this.height = height;
+
+    let spark = d3.select(".spark-div").append("svg")
+                  .attr("class", "sparkPlot")
+                  .attr("viewBox", "0 0 " + chartWidth + " " + chartHeight)
+                  .attr("width", "100%")
+                  .attr("preserveAspectRatio", "xMidYMid meet");
+
+    // define a clip path:
+    spark.append("defs").append("clipPath")
+         .attr("id", "spark-clip")
+         .append("rect")
+         .attr("width", width)
+         .attr("height", height);
+
+    let g = spark.append("g")
+                 .attr("class", "spark-group")
+                 .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
+
+    // x and y scales:
+    let xScale = d3.scaleLinear()
+                   .range([0, width])
+                   .domain(d3.extent(this.timeData, function(d) { return d[xvar]; }));
+
+    let yScale = d3.scaleLinear()
+                   .range([height, 0]);
+
+    // Mimic ggplot2 theme: gray background, major and minor axes
+    g.append("rect")
+     .attr("class", "grid-background")
+     .attr("width", width)
+     .attr("height", height);
+
+    //xaxis:
+    g.append("g")
+     .attr("class", "spark-xaxis")
+     .attr("transform", "translate(0," + height + ")")
+     .call(d3.axisBottom(xScale).ticks(10).tickFormat(d3.format("d")));
+
+    //yaxis:
+    g.append("g")
+     .attr("class", "spark-yaxis")
+     .call(d3.axisLeft(yScale).ticks(10));
+
+   // major/minor grid lines:
+   let gridX = g.append("g")
+                .attr("class", "grid grid-X")
+                .selectAll(".grid-lines")
+                .data(xScale.ticks(10))
+                .enter().append("line")
+                .attr("class", "grid-lines")
+                .attr("x1", function(d) { return xScale(d); })
+                .attr("x2", function(d) { return xScale(d); })
+                .attr("y1", 0)
+                .attr("y2", height)
+                .classed("minor", function(d, i) {
+                  return (i % 2 === 0) ? true : false;
+                });
+
+   let gridY = g.append("g")
+                .attr("class", "grid grid-Y");
+
+   // for plotting lines:
+   g.append("g")
+    .attr("class", "line-group")
+    .attr("clip-path", "url(#spark-clip)");
+
+   // add tooltip:
+   d3.select("body").append("div")
+     .attr("class", " tooltip sparkline-tooltip");
+
+  // add labels:
+  spark.append("g")
+       .attr("class", "region-labels");
+
+   //add axis labels:
+   var xlab = spark.append("text")
+                   .attr("class", "x-lab")
+                   .attr("transform", "translate(" + chartWidth/2 + "," + (chartHeight - 10) + ")")
+                   .text(xvar);
+
+   var ylab = spark.append("text")
+                   .attr("class", "y-lab")
+                   .attr("transform", "translate(" + (margin.left/2) + "," + (margin.top - 10) +")")
+                   .style("text-anchor", "left");
+
+   // add a title for the region:
+   var title = spark.append("text")
+                    .attr("transform", "translate(" + chartWidth/2 + "," + (margin.top/2) + ")")
+                    .attr("class", "spark-title");
+
+    // store scales:
+    this.yScale = yScale;
+    this.xScale = xScale;
+  }
+
+  // for calculating percent changes, absolute/relative:
+  calculate(data, xvar, yvar, reduce = false) {
     let groupedNest = data;
-    if (sparkline_type == "Absolute") return groupedNest;
+    if (this.lineType == "Absolute") return groupedNest;
 
     let transformedData = [];
     // divide and group by each region:
     let nest = d3.nest().key(function(d) { return d[chart.names[0]]; }).entries(data.reduce((acc, val) => acc.concat(val), []));
 
-    if (sparkline_type == "Relative") {
+    if (this.lineType == "Relative") {
         nest.forEach(function(d) {
-            set = [];
-            vals = d.values;
+            let set = [];
+            let vals = d.values;
             // find the most earliest: for relative change
-            minyear = d3.min(vals, function(d) {
+            let minyear = d3.min(vals, function(d) {
                 return d[xvar];
             });
             vals.map((value, index, values) => {
@@ -696,12 +1019,12 @@ calcSpark = function(data, sparkline_type, xvar, yvar, flatten = false) {
 
     } else {
       nest.forEach(function(d) {
-        set = [];
-        vals = d.values;
+        let set = [];
+        let vals = d.values;
         // take the previous value and find the difference
         vals.map((value, index, values) => {
             let ind = (index == 0) ? 0 : index - 1;
-            change = +((value[yvar] - vals[ind][yvar])/vals[ind][yvar] * 100).toFixed(2) ;
+            let change = +((value[yvar] - vals[ind][yvar])/vals[ind][yvar] * 100).toFixed(2) ;
             set.push({ [chart.names[0]]: value[chart.names[0]],
                        [xvar]: value[xvar],
                        [yvar]: change
@@ -711,519 +1034,344 @@ calcSpark = function(data, sparkline_type, xvar, yvar, flatten = false) {
      })
     }
 
-    if (flatten) {
-        return (transformedData.reduce((acc, val) => acc.concat(val), []));
-    } else {
-        return (transformedData);
-    }
+    if (reduce) return (transformedData.reduce((acc, val) => acc.concat(val), []));
+    return (transformedData);
+  }
 
-}
+  setGridLines(xScale, yScale) {
+    // update grid lines:
+    d3.select(".grid-Y").selectAll(".grid-lines").remove();
 
-/* update spark line chart
- * @param data
- * @param selectedRegion which group in particular (either a specific region, or a year)
- * @param xvar refers to the time variable
- * @param yvar y-variable to be assessed
- */
-updateSpark = function(data, selectedRegion, xvar, yvar, lineType = chart.sparkline_type) {
-
-  //if yvar is different, then update yScale titles, and yvar:
-  var timeData = chart.timeData;
-
-  // calculate y-limits:
-  var nest = calcSpark(chart.timeData, lineType, xvar, yvar, flatten = true);
-  // set y-axis from 0 if it is absolute:
-  var min = (lineType[0] === "Absolute") ? 0 : d3.min(nest, function(d) { return d[yvar]; });
-  var max = d3.max(nest, function(d) { return d[yvar]; });
-  yScale.domain([min, max]);
-
-  d3.select(".spark-yaxis")
-    .call(d3.axisLeft(yScale)
-            .tickFormat(d3.format("d")));
-
-  // update grid lines:
-  d3.select(".grid-Y").selectAll(".grid-lines").remove();
-
-  d3.select(".grid-Y").selectAll(".grid-lines")
-    .data(yScale.ticks())
-    .enter().append("line")
-    .attr("class", "grid-lines")
-    .attr("y1", function(d) { return (yScale(d)); })
-    .attr("y2", function(d) { return (yScale(d)); })
-    .attr("x1", 0)
-    .attr("x2", xScale.range()[1]) //width
-    .classed("minor", function(d, i) {
-        return (i % 2 == 0) ? true : false;
-    });
-
-  // if zero is within yScale, emphasize with a line at 0:
-  if ( yScale.domain()[0] <= 0 && yScale.domain()[1] > 0) {
-
-    d3.select(".grid-Y").select(".zero-line").remove();
-
-    d3.select(".grid-Y")
-      .append("line")
-      .attr("class", "zero-line")
-      .attr("y1", yScale(0))
-      .attr("y2", yScale(0))
+    d3.select(".grid-Y").selectAll(".grid-lines")
+      .data(yScale.ticks())
+      .enter().append("line")
+      .attr("class", "grid-lines")
+      .attr("y1", function(d) { return (yScale(d)); })
+      .attr("y2", function(d) { return (yScale(d)); })
       .attr("x1", 0)
       .attr("x2", xScale.range()[1])
-      .style("stroke", "black");
+      .classed("minor", function(d, i) {
+        return (i % 2 == 0) ? true : false;
+      });
 
-  }
+    // if zero is within yScale, emphasize with a line at 0:
+    if (yScale.domain()[0] <= 0 && yScale.domain()[1] > 0) {
 
-  d3.select('.spark-title')
-    .text(yvar + " by " + xvar);
+      d3.select(".grid-Y").select(".zero-line").remove();
 
-  // set y-lab title:
-  var ylabText;
-
-  switch(lineType[0]) {
-
-    case "Relative":
-      ylabText = "Relative change in " + yvar;
-      break;
-
-    case "Percent":
-      ylabText = "% change in " + yvar;
-      break;
-
-    default:
-      ylabText = yvar;
-      break;
-
-  }
-
-  d3.select('.y-lab')
-    .text(ylabText);
-
-  // unhide plot
-  d3.select('.spark-div')
-    .classed('hidden', false);
-
-  // reduce data to single level and calculate based on sparkline type:
-  var dd = calcSpark(data, lineType, xvar, yvar);
-  chart.dd = dd;
-  //regroup by regions:
-  var nest = d3.nest().key(function(d) { return d[chart.names[0]]; })
-               .entries(dd.reduce((acc, val) => acc.concat(val), []));
-
-  // line function
-  addLines = d3.line()
-               .x(function(d) { return (d[xvar] ? xScale(d[xvar]) : xScale(0)); })
-               .y(function(d) { return (d[yvar] ? yScale(d[yvar]) : yScale(0)); });
-
-  //colours for sparklines:
-  var start = 0;
-  var end = 360;
-  var h = d3.range(start, end, end/(data.length + 1));
-  colors = h.map(function(d) { return d3.hcl(d, 50, 70); });
-
-  // remove and replot:
-  d3.select('.line-group').selectAll('.spark-line').remove();
-
-  var lines = d3.select('.line-group').selectAll('.spark-line')
-                .data(nest)
-                .enter().append("path")
-                .attr("class", "spark-line")
-                .attr("d", function(d) { return addLines(d.values); })
-                .style("stroke", function(d, i) {
-                  return (colors[i]);
-                });
-
-  var lineTool = d3.select('.lineTool');
-  lineTool.selectAll(".follow-path").remove();
-
-  // add number of circles + text for hover effects:
-  var cc = lineTool.selectAll('.follow-path')
-                   .data(dd)
-                   .enter().append("circle")
-                   .attr('class', 'follow-path')
-                   .attr("r", 3.5)
-                   .style("fill", function(d, i) {
-                     return colors[i];
-                   });
-
-  lineTool.selectAll('.follow-text').remove();
-
-  var textLabels = lineTool.selectAll('.follow-text')
-                           .data(dd)
-                           .enter().append("text")
-                           .attr('class', 'follow-text')
-                           .attr("dy", "-0.75em");
-
-  //append region labels
-  d3.select('.spark-group').selectAll('.region-lab').remove();
-
-  var regLab = d3.select('.spark-reglab').selectAll('.region-lab')
-                 .data(selectedRegion)
-                 .enter().append("text")
-                 .attr("class", "region-lab")
-                 .attr("dx", "0.5em")
-                 .text(function(d) { return d; })
-                 .attr("transform", function(d, i) {
-                   // for missing values - take the y-position of the last non-missing:
-                   let subset = dd[i];
-                   let nonmissing = [];
-                   for (var i = 0; i < subset.length; i++) {
-                     //filter all the non-missing:
-                     if (subset[i][yvar]) {
-                       nonmissing.push(i);
-                     }
-                   }
-
-                   //check if value is not missing
-                   if (Array.isArray(nonmissing) && nonmissing.length) {
-                       yPos = yScale(subset[d3.max(nonmissing)][yvar]);
-                       xPos = xScale(d3.max(timeData, function(d) { return d[xvar]; }));
-                   } else {
-                       yPos = yScale.range()[1];
-                       xPos = xScale.range()[0] + 20 * i;
-                   }
-
-                   return ("translate(" + xPos + "," + yPos + ")");
-
-                 })
-                 .style("fill", function(d, i) {
-                   return colors[i];
-                 });
-
-mousemove = function() {
-  // FIXME: this only works if it's a Year variable... switch to time scales?
-    var x0 = Math.round((xScale.invert(d3.mouse(this)[0])));
-    var data = chart.dd;
-
-    //extract x, y:
-    var circleData = [];
-    for (var i = 0; i < data.length; i++) {
-      for (var j = 0; j < data[i].length; j++) {
-        if (data[i][j][xvar] === undefined) circleData.push(undefined);
-        if (data[i][j][xvar] == x0) circleData.push(data[i][j][yvar]);
-      }
-    };
-
-    if (circleData.length === 1 && circleData[0] === undefined) return;
-
-    var lineTool = d3.select('.lineTool'),
-          width = $('.tbl-div').width();
-
-      // move circles and text according to the mouse...
-      cc.data(circleData)
-        .attr("transform", function(d) {
-                if (d === undefined) return ("translate(" + (xScale.range()[1] + 10) + "," + yScale.range()[1] + ")");
-                return ("translate(" + xScale(x0) + "," + yScale(+d) + ")");
-              });
-
-      textLabels.data(circleData)
-                .attr("transform", function(d) {
-                        if (d === undefined) return ("translate(" + (xScale.range()[1] + 10) + "," + yScale.range()[1] + ")");
-                        return ("translate(" + xScale(x0) + "," + yScale(+d) + ")")
-                      })
-                .text(function(d) { return (x0 + ", " + d); })
-                .style("fill", function(d, i) {
-                  return colors[i];
-                })
-                .style("stroke", "transparent");
-
-  }
-
-  d3.select('.spark-overlay')
-    .on('mousemove', mousemove);
-
-}
-
-// be able to select different numeric variables:
-selectForm = function(ff) {
-
-    // numeric variables in data set:
-    var numVar = chart.numVar;
-    var yvar = chart.names[chart.names.length - 1];
-
-    // create selection:
-    d3.select(".menu").insert("li", ".help")
-      .attr("class", "var-control");
-
-    var controlVar = d3.select('.var-control').append('div')
-                       .attr('class', 'form-group form-inline form-div');
-
-    // add label:
-    var label = d3.select('.form-div').append('label')
-                  .html('Variable to display:');
-
-    var selection = d3.select('.form-div').append('select')
-                      .attr("class", "form-control control-var")
-                      .on('change', ff);
-
-    var options = d3.select('.control-var').selectAll('option')
-                    .data(numVar).enter()
-                    .append('option')
-                    .attr('id', function(d) { return ('option.' + d); } )
-                    .attr('value', function(d) { return d; })
-                    .html(function(d) { return d; });
-
-  // set default:
-  document.getElementById('option.' + yvar).setAttribute('selected', "selected");
-
-  //add title:
-  var formTitle = selection.append('p')
-                           .attr("class", "form-title")
-                           .html("Variable to display");
-
-}
-
-//store circle widths and heights - called before circleControl!
-getCircleSize = function() {
-  var cc = document.getElementsByClassName('centroid');
-  var w = [];
-  for (i = 0; i < cc.length; i++) {
-    w.push(+cc[i].getAttribute('width'));
-  }
-  return(d3.extent(w));
-}
-
-// circle control - change the sizeby variable (for centroid maps only)
-circleControl = function() {
-
-    var newY = d3.select('.control-var').property('value');
-    var data = chart.data;
-    var csize = circleSize;
-
-    changeTitle(newY);
-
-    // filter for missing values...
-    var arr = [];
-
-    for (i = 0; i < data.length; i++) {
-      if (data[i][newY]) {
-        arr.push(data[i]);
-      } else {
-        continue;
-      }
+      d3.select(".grid-Y")
+        .append("line")
+        .attr("class", "zero-line")
+        .attr("y1", yScale(0))
+        .attr("y2", yScale(0))
+        .attr("x1", 0)
+        .attr("x2", xScale.range()[1])
+        .style("stroke", "black");
     }
+  }
 
-  // find the maximum circle
-  var max = d3.max(arr, function(d) { return d[newY]; });
+  setTitle(xvar, yvar, lineType) {
+    // set title:
+   d3.select('.spark-title')
+     .text(yvar + " by " + xvar);
 
-  // set a squareroot scale to make circle area proportional to variable:
-  var sqrtScale = d3.scaleSqrt()
-                  .domain(d3.extent(arr, function(d) { return d[newY]; }))
-                  .range(csize);
+   // set y-variable:
+   var ylabText;
 
- // because circles are defined using 'use' elements (with 'shadow DOM' circles)
- // controlling width and height of these 'use' elements control the circle (radius)
- // transform is by half of the width and height
-  var circles = d3.selectAll('.centroid')
-                  .data(arr)
-                  .transition()
-                  .duration(300)
-                  .attr('width', function(d) {
-                      return sqrtScale(d[newY]);
-                        })
-                  .attr('height', function(d) {
-                    return sqrtScale(d[newY]);
-                        })
-                  .attr("transform", function(d) {
-                    var c = - sqrtScale(d[newY])/2;
-                        return ("translate(" + c + "," + c + ")");
-                  });
+   switch(lineType) {
+      case "Absolute":
+        ylabText = yvar;
+        break;
 
-  // update tooltips:
-  chart.names[2] = newY;
+      case "Relative":
+        ylabText = "Relative change in " + yvar;
+        break;
 
-}
+      case "Percent":
+        ylabText = "% change in " + yvar;
+        break;
+   }
 
-// For filtering data and updating line chart when variable changes:
-function changeVar() {
+   d3.select('.y-lab')
+     .text(ylabText);
+  }
 
-  var newY = d3.select('.control-var').property('value');
-  var yy = chart.names[2];
+  drawLines(xvar, yvar, data, colors) {
 
-  changeTitle(newY);
+    //functions needed:
+    let filterTable = this.filterTable;
+    let addLabels = this.addLabels;
 
-  if (yy == newY) {
-        // show sparklines on map:
-        d3.selectAll('.sparkRegion')
-          .classed('hidden', false);
-    } else {
-        d3.selectAll('.sparkRegion')
-          .classed('hidden', true);
-        }
+    let width = this.width;
+    let margin = this.margin;
+    let xScale = this.xScale;
+    let yScale = this.yScale;
 
-        // find selected regions:
-        var dd = [];
-        var regionsSelected = document.getElementsByClassName('region selected');
-          for (var i = 0; i < regionsSelected.length; i++) {
-              var id = regionsSelected[i].id;
-              var regionName = id.substring(0, id.lastIndexOf('.'));
-              dd.push(regionName);
-          }
+    // line function
+    let addLines = d3.line()
+                 .x(function(d) { return (d[xvar] ? xScale(d[xvar]) : xScale(0)); })
+                 .y(function(d) { return (d[yvar] ? yScale(d[yvar]) : yScale(0)); });
 
-        // for multiples: filter data
-            var dt = [];
-            group = chart.names[0];
-            for (var j = 0; j < dd.length; j++) {
-              var updated = filterData(chart.timeData, group, dd[j]);
-              dt.push(updated);
-            }
+    // rejoin data:
+    let lines = d3.select(".line-group").selectAll("path")
+                  .data(data);
 
-        // then update line chart:
-        var xvar = chart.names[1];
-        updateSpark(dt, dd, xvar, newY);
-}
+    //exit, enter, update
+    lines.exit().remove();
+    lines.enter().append("path")
+         .attr("class", "spark-line")
+         .attr("id", function(d, i) { return ("sparkline." + d.key + "." + i); })
+         .merge(lines)
+         .on("mouseover", function(d) {
+           d3.select(this).style("opacity", 1);
 
-// add a time slider:
-addSlider = function() {
+           let coord = d3.mouse(this);
+           let x = Math.round(xScale.invert(coord[0]));
+           let html;
+           // find the closest value:
+           let t = (d.values.filter(t => t[xvar] === x));
+           if (t.length >= 1) {
+             html = x + ", " + t[0][yvar];
+           } else {
+             html = x + ", " + (yScale.invert(coord[1])).toFixed(2);
+           }
+           d3.select(".sparkline-tooltip")
+               .style("visibility", "visible")
+               .style('left', d3.event.pageX - 50 + "px")
+               .style('top', d3.event.pageY - 50 - 15 + "px")
+               .style("width", "100px")
+               .html("<span>" + d.key  + "</span> <br />"
+                     + html);
 
-    // suggests there are multiple observations over time...
-    var seqVar = chart.seqVar[0],
-        current = chart.data[0][seqVar],
-        range = d3.extent(chart.timeData, function(d) { return d[seqVar]; }),
-        int = chart.int[0];
+         })
+         .on("mouseout", function() {
+           d3.select(this).style("opacity", function() {
+             return (d3.select(this).style("stroke") !== "rgb(0, 0, 0)") ? 1 : 0.2;
+           });
 
-    // input a slider:
-    d3.select(".menu").insert("li", ".help")
-      .attr("class", "li-slider");
+           d3.select(".sparkline-tooltip")
+             .style("visibility", "hidden");
+         })
+         .on("click", function(d, i) {
+           let el = this;
 
-    var sliderDiv = d3.select(".li-slider").append("div")
-                   .attr("class", "slider-div");
+           // if clicked, then just pinpoint 1:
+           d3.selectAll(".spark-line")
+             .classed("on", function(d, i) {
+               let region = document.getElementById(d.key + "." + i);
+               let sparkRegion = document.getElementById("sparkRegion." + i);
+               if (!d3.event.shiftKey) {
+                 if (this === el) {
+                   d3.select(el).style("opacity", 1)
+                                .style("stroke", colors[i])
+                                .style("stroke-width", 3);
+                  // select regions:
+                  region.setAttribute("class", "region selected");
+                  region.style.fill = colors[i];
+                  sparkRegion.setAttribute("class", "sparkRegion selected");
+                  return true;
+                 } else {
+                   d3.select(this).style("opacity", 0.2)
+                                  .style("stroke", null)
+                                  .style("stroke-width", 1.5);
+                   if (region) {
+                     region.setAttribute("class", "region none");
+                     region.style.fill = null;
+                   }
+                   if (sparkRegion) sparkRegion.setAttribute("class", "sparkRegion none");
+                  return false;
+                 }
+               } else {
+                 //accumulate:
+                 if (this === el) {
+                   // deselect:
+                   if (d3.select(el).classed("on")) {
+                     d3.select(el).style("opacity", 0.2)
+                                  .style("stroke", null)
+                                  .style("stroke-width", 1.5);
+                    if (region) {
+                      region.setAttribute("class", "region none");
+                      region.style.fill = null;
+                    }
+                    if (sparkRegion) sparkRegion.setAttribute("class", "sparkRegion none");
+                    return false;
+                  } else {
+                     d3.select(el).style("opacity", 1)
+                                  .style("stroke", colors[i])
+                                  .style("stroke-width", 3);
+                    // select regions:
+                    if (region) {
+                      region.setAttribute("class", "region selected");
+                      region.style.fill = colors[i];
+                    }
+                    if (sparkRegion) sparkRegion.setAttribute("class", "sparkRegion selected");
+                    return true;
+                   }
+                 } else {
+                   return false;
+                 }
+               }
+             });
 
-    var sliderVal = sliderDiv.append("div")
-                             .attr("class", "slider-val")
-                             .html(current);
+           // add labels:
+           let dd = [];
+           let selected = document.getElementsByClassName('region selected');
+           for (var i = 0; i < selected.length; i++) {
+             let id = selected[i].id;
+             dd.push(id);
+           }
 
-    var slider = sliderDiv.append("input")
-                    .attr("class", "slider")
-                   .attr("type", "range")
-                   .attr("min", range[0])
-                   .attr("max", range[1])
-                   .attr("step", int)
-                   .attr("value", current)
-                   .on("input", timeChange);
+           addLabels(dd, data, yvar, colors, width, margin);
+           filterTable();
 
-    // add play/pause button:
-    var timer;
-    var play = sliderDiv.append("div").append("i")
-                        .attr("class", "glyphicon glyphicon-play play-pause")
-                        .on("click", function() {
-                                clearInterval(timer);
-                                var el = d3.select(this);
-                                el.classed("glyphicon-pause", !el.classed("glyphicon-pause"));
-                                // adapted from: https://stackoverflow.com/questions/34934577/html-range-slider-with-play-pause-loop
-                                if (el.classed("glyphicon-pause")) {
-                                  //run timer (global to keep track);
-                                   timer = setInterval(function() {
-                                    var val = d3.select(".slider").property("value");
-                                      var num = (val == range[1]) ? 0 : (val - range[0])/int + 1;
-                                    //update value on slider:
-                                    d3.select(".slider").property("value", range[0] + num * int);
-                                    timeChange();
-                                    //stop playing when it gets to the last value... (or second last)
-                                    if (num == ((range[1] - range[0])/int + 1) - 1) {
-                                      clearInterval(timer);
-                                      el.classed("glyphicon-pause", false);
-                                    }
-                                  }, 750);
-                                } else {
-                                  //stop timer
-                                  clearInterval(timer);
-                                }
-                            });
-}
+         })
+         .transition().duration(500)
+         .attr("d", function(d) { return addLines(d.values); });
+  }
 
-// what happens when the slider moves?
-timeChange = function() {
+  getColors(n) {
+    //colours:
+    var start = 0;
+    var end = 360;
+    var h = d3.range(start, end, end/(n + 1));
+    let colors = h.map(function(d) { return d3.hcl(d, 50, 52); });
+    return colors;
+  }
 
-  var yvar = d3.select('.control-var').property('value');
-  var cur = d3.select(".slider").property("value");
-  d3.select(".slider-val").html(cur);
-
-  changeTitle(yvar, cur);
-
-  // filter data across this time variable:
-  var data = filterData(chart.timeData, chart.seqVar[0], cur);
-  //sort data relative to how regions are plotted:
-  data.sort(function(a, b){
-      if(a[chart.names[0]] < b[chart.names[0]]) return - 1;
-      if(a[chart.names[0]] > b[chart.names[0]]) return 1;
-      return 0;
+  addLabels(regions, data, yvar, colors, width, margin) {
+    // sort by last value:
+    let lastValues = regions.map((d, i) => {
+      let index = +d.substr(d.lastIndexOf(".") + 1);
+      let values = data[index].values;
+      return  {
+        ind: index,
+        region: d.substr(0, d.lastIndexOf(".")),
+        value: values[values.length - 1][yvar]
+      }
     });
 
-  var yvar = chart.names[chart.names.length - 1];
-  chart.data = data;
+    let sorted = lastValues.sort((x, y) => {
+      return d3.descending(x.value, y.value);
+    });
 
-  // update regions:
-  if (chart.type == "region") {
-    updateFills();
-  } else {
-    circleControl();
+    // add new labels:
+    let circles = d3.select(".region-labels").selectAll("circle")
+                    .data(sorted);
+
+    circles.exit().remove();
+    circles.enter().append("circle")
+           .merge(circles)
+           .attr("cx", width + margin.left + 10)
+           .attr("cy", (d, i) => margin.top + i * 20)
+           .attr("r", "3px")
+           .attr("fill", d => colors[d.ind]);
+
+    let labels = d3.select(".region-labels").selectAll("text")
+                   .data(sorted);
+
+    labels.exit().remove();
+    labels.enter().append("text")
+          .merge(labels)
+          .attr("x", width + margin.left + 15)
+          .attr("y", (d, i) => margin.top + i * 20 + 5)
+          .attr("fill", d => colors[d.ind])
+          .text(d => d.region)
+           .style("font-size", "10px");
   }
 
-    //update tooltips and table:
-    makeTooltips(chart);
-    var colNum = cnames.findIndex(cnames => cnames == chart.seqVar[0]);
-    table.search('').columns().search('').draw();
-    table.columns(colNum + 1).search(cur + "|NA", true, false).draw();
+  update() {
+    //if yvar is different, then update yScale titles, and yvar:
+    let xvar = this.xvar;
+    let yvar = this.yvar;
+    let group = this.group;
+    let xScale = this.xScale;
+    let yScale = this.yScale;
 
-}
+    yScale.domain(d3.extent(this.timeData, function(d) { return d[yvar]; }));
 
-//screen table if there are multiple observations and is a regional map:
-setTable = function() {
-  var cur = $(".slider-val").html();
-  var colNum = cnames.findIndex(cnames => cnames == chart.seqVar[0]);
-  table.columns(colNum + 1).search(cur + "|NA", true, false).draw();
-}
+    // calculate y-limits:
+    var nest = this.calculate(this.timeData, xvar, yvar, true);
 
-addZoom = function(chart) {
-  // TODO: make this better...
-  // adapted from: https://bl.ocks.org/iamkevinv/0a24e9126cd2fa6b283c6f2d774b69a2
-  zoomed = function() {
-      bg.setAttribute("transform", d3.event.transform);
-      // make path strokes smaller as you zoom in
-      d3.selectAll(".region")
-        .style("stroke-width", (7 - d3.event.transform.k)/10 + "px");
+    // set to 0 if it is absolute:
+    var min = (this.lineType === "Absolute") ? 0 : d3.min(nest, function(d) { return d[yvar]; });
+    var max = d3.max(nest, function(d) { return d[yvar]; });
+    yScale.domain([min, max]);
+
+    d3.select(".spark-yaxis")
+      .call(d3.axisLeft(yScale)
+              .tickFormat(d3.format("d")));
+
+    this.setGridLines(xScale, yScale);
+    this.setTitle(xvar, yvar, this.lineType);
+
+    // reduce data to single level and calculate based on sparkline type:
+    var dd = this.calculate(this.timeData, xvar, yvar);
+    this.dd = dd;
+
+    //regroup by regions:
+    var nester = d3.nest().key(function(d) { return d[group]; }).sortKeys(d3.ascending)
+                   .entries(dd.reduce((acc, val) => acc.concat(val), []));
+    this.nestedData = nester;
+
+    // get colours:
+    let colors = this.getColors(nester.length);
+    this.colors = colors;
+
+    this.drawLines(xvar, yvar, nester, colors);
   }
-    // attempt zooming within the box.
-    zoom = d3.zoom()
-             .scaleExtent([1, 8])
-             .on("zoom", zoomed);
 
-    var bg = document.querySelectorAll("g[id^='panel']")[0];
-    d3.select(bg)
-      .attr('class', 'background')
-      .call(zoom);
+  highlightLines() {
+    // select a single line:
+    let colors = this.colors;
+    let margin = this.margin;
+    let selected = document.getElementsByClassName('region selected');
+    let dd = [];
+    for (var i = 0; i < selected.length; i++) {
+          let id = selected[i].id;
+          dd.push(id);
+    }
+
+    // reset to all black:
+    d3.selectAll(".spark-line")
+      .style("stroke", "rgb(0, 0, 0)")
+      .style("stroke-width", 1)
+      .style("opacity", 0.2);
+
+    dd.forEach(function(d, i) {
+      let el = document.getElementById("sparkline." + d);
+      let ind = d.substring(d.lastIndexOf(".") + 1);
+      el.style.stroke = colors[ind];
+      el.style.opacity = 1;
+      el.style.strokeWidth = 3;
+    });
+
+    this.addLabels(dd, this.nestedData, this.yvar, colors, this.width, margin);
+  }
+
+  changeVar() {
+    var newY = d3.select('.control-var').property('value');
+    var yy = chart.names[2];
+
+    this.changeTitle(newY);
+
+    if (yy == newY) {
+      // show sparklines on map:
+      d3.selectAll('.sparkRegion')
+        .classed('hidden', false);
+    } else {
+      d3.selectAll('.sparkRegion')
+        .classed('hidden', true);
+    }
+
+    // update line chart
+    this.yvar = newY;
+    this.update();
+  }
+
+  // initialize line chart
+  init() {
+    this.setUp();
+    this.update();
+  }
+
 }
-
-/* set and initialize plot interactivity
- * @param chart all the data exported from R
- * @return a chart with interactivity
-*/
-setPlot = function(chart) {
-    makeTooltips(chart);
-    tableToPlot("region");
-
-    if(chart.type == "region") {
-      setLegend();
-      selectForm(updateFills);
-    }
-
-    if (chart.type == "point") {
-        circleSize = getCircleSize();
-        selectForm(circleControl);
-    }
-
-    // add time slider if there are multiple observations:
-    if ((chart.type[0] != "sparklines") && (chart.multi[0] == true)) {
-        addSlider();
-        setTable();
-    }
-
-    //if it's got sparklines, add line chart
-    if (chart.type == "sparklines") {
-        sparkPlot(chart);
-        selectForm(changeVar);
-    }
-    addZoom(chart);
-}
-
-// initialize:
-setPlot(chart);
