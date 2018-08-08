@@ -1,29 +1,18 @@
-## This script is for updating the sysdata.rda that contains the HTML template and JS files for each iNZight plot.
-#Requires devtools:
-
+## DEV-SCRIPT: updating the sysdata.rda that contains the interactive scripts
+# for each iNZight plot.
 dirname <- "templates"
-
-#load HTML template: change path to wherever it's stored...
+# HTML template, CSS
 HTMLtemplate <- readLines(file.path(dirname, 'template.html'))
+styles <- paste(readLines(file.path(dirname, 'style.css')), collapse = "\n")
 
-#load CSS:
-styles <- readLines(file.path(dirname, 'style.css'))
+#load JS files
+files <- list(inzJS = "inzplot.js", bpJS = "barplot.js", dpspJS = "dpsp.js",
+              histJS = "histogram.js", hexbinJS = "hexbin.js", mapsJS = "maps.js")
+filePaths <- do.call(file.path, list(dirname, files))
+jsFiles <- lapply(filePaths, function(x) {
+  paste(readLines(x), collapse = "\n")
+})
 
-#load singleFunctions file:
-singleFunctions <- readLines(file.path(dirname, 'singleFunctions.js'))
+names(jsFiles) <- names(files)
 
-#load JS files:
-bpJS <- readLines(file.path(dirname, 'bp.js'))
-dpspJS <- readLines(file.path(dirname, 'dpsp.js'))
-histJS <- readLines(file.path(dirname, 'histogram.js'))
-hexbinJS <- readLines(file.path(dirname, 'hexbin.js'))
-mapsJS <- readLines(file.path(dirname, 'maps.js'))
-
-devtools::use_data(HTMLtemplate, styles, singleFunctions, bpJS, dpspJS, histJS, hexbinJS, mapsJS, internal = TRUE, overwrite = TRUE)
-
-#add/delete files where necessary: - what is written here would be the same in the exportHTML function.
-
-##shortened version: - using a list?
-#files <- list('bp.js', 'bp-stacked.js', 'dpsp.js', 'histogram.js')
-#filePaths <- do.call(file.path, list('~/Desktop/jsFinal', files))
-#hello <- lapply(filePaths, readLines)
+devtools::use_data(HTMLtemplate, styles, jsFiles, internal = TRUE, overwrite = TRUE)
