@@ -9,7 +9,7 @@ class Histogram extends Inzplot {
     this.brushmove = this.brushmove.bind(this);
     this.reset = this.reset.bind(this);
   }
-  
+
   brushmove() {
     var s = d3.event.selection,
         x1 = s[0],
@@ -148,7 +148,7 @@ class Histogram extends Inzplot {
     // set tooltips, hovers, selection box:
     this.setTooltip(200, 50);
     this.setHovers();
-    this.enableBrush(this.panel.parentNode.parentNode, 0, "x", true);
+    this.enableBrush(this.panel.parentNode.parentNode, 1, "x", true);
 
     //attach:
     d3.select("#reset")
