@@ -7,24 +7,27 @@
 \alias{exportHTML.inzplotoutput}
 \title{ExportHTML}
 \usage{
-exportHTML(x, file, data, extra.vars, ...)
+exportHTML(x, file, data, local = FALSE, extra.vars, ...)
 
 \method{exportHTML}{function}(x, file = "index.html", data = NULL,
-  extra.vars = NULL, width = dev.size()[1], height = dev.size()[2], ...)
+  local = FALSE, extra.vars = NULL, width = dev.size()[1],
+  height = dev.size()[2], ...)
 
 \method{exportHTML}{ggplot}(x, file = "index.html", data = NULL,
-  extra.vars = NULL, mapObj, ...)
+  local = FALSE, extra.vars = NULL, mapObj, ...)
 
 \method{exportHTML}{inzplotoutput}(x, file = "index.html", data = NULL,
-  extra.vars = NULL, ...)
+  local = FALSE, extra.vars = NULL, ...)
 }
 \arguments{
 \item{x}{An iNZight plot object that captures iNZight environment}
 
-\item{file}{Name of temporary HTML file generated
-Additional parameters for scatterplots and dotplots only:}
+\item{file}{Name of temporary HTML file generated}
 
 \item{data}{dataset/dataframe that you wish to investigate and export more variables from}
+
+\item{local}{Logical for creating local files (default to false)
+Additional parameters for scatterplots and dotplots only:}
 
 \item{extra.vars}{extra variables specified by the user to be exported}
 
@@ -37,7 +40,7 @@ Additional parameters for scatterplots and dotplots only:}
 \item{mapObj}{iNZightMap object (from iNZightMaps)}
 }
 \value{
-Opens up an HTML file of \code{x} with filename \code{file} in the browser (best performance on Chrome/Firefox)
+HTML file of \code{x} with filename \code{file} in the browser
 }
 \description{
 \code{exportHTML} is designed to export the iNZight plot as a dynamic, interactive HTML page.

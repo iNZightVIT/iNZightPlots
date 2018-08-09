@@ -1,23 +1,15 @@
 <!DOCTYPE HTML>
 <!-- template for HTML conversion plot -->
 <html>
-
   <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title> iNZight Plot </title>
-
       <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap.min.css">
-      <!-- style sheet -->
-      <style>
-      /* insert styles.css */
-      </style>
-
-      <!-- jQuery library -->
+    <!-- insert styles.css -->
+    <!-- jQuery library -->
     <script type = "text/javascript" src = "https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <!-- D3 library -->
     <script type = "text/javascript" src = "https://d3js.org/d3.v4.min.js"></script>
@@ -25,36 +17,30 @@
     <script type = "text/javascript" src ="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"> </script>
     <script type = "text/javascript" charset="utf8" src = "https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap.min.js"></script>
     <script type = "text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-
   </head>
-
   <body>
     <!-- control panel -->
     <div class = "control" id = "control">
       <ul class = "menu">
         <li class = "plot"> <span class="glyphicon glyphicon-stats"></span> Plot </li>
         <li class = "view-tbl"><span class="glyphicon glyphicon-list-alt"></span> Table </li>
-        <li class = "reset" id = "reset" onclick = "reset()"> <span class="glyphicon glyphicon-refresh"></span> Reset </li>
+        <li class = "reset" id = "reset"> <span class="glyphicon glyphicon-refresh"></span> Reset </li>
         <li class = "help"><span class = "glyphicon glyphicon-question-sign"> </span> </li>
       </ul>
     </div>
-
     <div id = "main">
       <div class = "svg-div">
-    <!-- insert SVG code from SVG file here -->
-    </div>
-
-    <div class = "tbl-div table-responsive">
+      <!-- insert SVG code from SVG file here -->
+      </div>
+      <div class = "tbl-div table-responsive">
         <!-- insert table -->
-
+      </div>
     </div>
-  </div>
 
-  <!-- help guide -->
-  <div class = "help-overlay">
-  <div class= "help-info">
-    <h4> <span class = "glyphicon glyphicon-question-sign title"> </span>
-        Help </h4>
+    <!-- help guide -->
+    <div class = "help-overlay">
+      <div class= "help-info">
+        <h4> <span class = "glyphicon glyphicon-question-sign title"> </span> Help </h4>
         <span class = "glyphicon glyphicon-stats"> </span><strong> Plot </strong> show/hide plot <br />
         <span class = "glyphicon glyphicon-list-alt"> </span><strong> Table </strong> show/hide table <br/>
         <span class = "glyphicon glyphicon-refresh"> </span><strong> Reset </strong> clear all selections/return <br />
@@ -76,45 +62,12 @@
         <hr />
         Found a bug or got suggestions? Contact us!  <br/>
         <a href="https://www.stat.auckland.ac.nz/~wild/iNZight/support/contact/">
-          <img alt = "inzight-logo" class="logo" src = "https://www.stat.auckland.ac.nz/~wild/iNZight/img/inzight_transp.png"> </img>
+          <img alt = "inzight-logo" class="logo" src = "https://www.stat.auckland.ac.nz/~wild/iNZight/img/inzight_transp.png" />
         </a>
-      </p>
-  </div>
-</div>
-
-    <script>
-    $(function() {
-      $(".view-tbl").click(function() {
-        $(".tbl-div").removeClass("expand").toggleClass("moveRight");
-        $(".svg-div").removeClass("moveLeft").toggleClass("mid");
-        // for bars:
-        $(".Percentage").toggleClass("hidden");
-        $(".Count").toggleClass("hidden");
-      });
-
-      $(".plot").click(function() {
-        $(".svg-div").removeClass("mid").toggleClass("moveLeft");
-        $(".tbl-div").removeClass("moveRight").toggleClass("expand");
-      });
-
-      $(".help").click(function() {
-        $(".help-overlay").toggleClass("move");
-      });
-
-      $(".help-overlay").click(function() {
-        $(".help-overlay").toggleClass("move");
-      });
-    });
-    </script>
-
-    <script type = "text/javascript">
-      //insert commonFunctions
-    </script>
-
-    <script type = "text/javascript">
-    // insert inline JSfile here
-    </script>
-
+      </div>
+    </div>
+    <!-- insert chart.json
+         insert inzplot
+         insert inline JSfile -->
   </body>
-
 </html>
