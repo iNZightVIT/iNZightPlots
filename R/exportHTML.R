@@ -224,7 +224,7 @@ createHTML <- function(tbl, js, file = "index.html", local = FALSE) {
   if (local) {
     assets <- system.file("assets.zip", package = "iNZightPlots")
     ## if local = TRUE, create directories
-    utils::unzip(assets, exdir = "iNZight_interactive_plot/assets")
+    utils::unzip(assets, exdir = "iNZight_interactive_plot")
     setwd("./iNZight_interactive_plot/assets")
 
     vendorCSS <- c("bootstrap.min.css", "dataTables.bootstrap.min.css")
