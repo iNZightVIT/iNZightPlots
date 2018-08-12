@@ -5,7 +5,7 @@
 #'
 #' @param x An iNZight plot object that captures iNZight environment
 #' @param file Name of temporary HTML file generated
-#' @param local Logical for creating local files (default to false)
+#' @param local Logical for creating local files for offline use (default to false)
 #' Additional parameters for scatterplots and dotplots only:
 #' @param data dataset/dataframe that you wish to investigate and export more variables from
 #' @param extra.vars extra variables specified by the user to be exported
@@ -219,12 +219,19 @@ createHTML <- function(tbl, js, file = "index.html", local = FALSE) {
   tableLineOne <- grep("<!-- insert table -->", HTMLtemplate)
 
   curdir <- getwd()
+  setwd(tempdir())
 
   if (local) {
-    ## if local = TRUE, create directories in current directory
-    dir.create("iNZight_interactive_plot", showWarnings = FALSE)
-    dir.create("iNZight_interactive_plot/assets", showWarnings = FALSE)
-    setwd("iNZight_interactive_plot/assets")
+    assets <- system.file("assets.zip", package = "iNZightPlots")
+    ## if local = TRUE, create directories
+    utils::unzip(assets, exdir = "iNZight_interactive_plot/assets")
+    setwd("./iNZight_interactive_plot/assets")
+
+    vendorCSS <- c("bootstrap.min.css", "dataTables.bootstrap.min.css")
+    HTMLtemplate[9:10] <- paste0("<link rel='stylesheet' href= 'assets/vendor/", vendorCSS, "'>")
+    vendorJS <- c("jquery.min.js", "d3.v4.min.js", "bootstrap.min.js",
+                  "jquery.dataTables.min.js", "dataTables.bootstrap.min.js")
+    HTMLtemplate[12:16] <- paste0("<script src ='assets/vendor/", vendorJS, "'></script>")
 
     # create files
     write(styles, "main.css")
@@ -232,7 +239,6 @@ createHTML <- function(tbl, js, file = "index.html", local = FALSE) {
     write(jsFiles[["inzJS"]], "inzplot.js")
     write(jsCode, "main.js")
 
-    # add links
     HTMLtemplate[cssLine] <- "<link rel='stylesheet' href='assets/main.css'>"
     HTMLtemplate[chartLine] <- "<script src='assets/chart.js'></script>"
     HTMLtemplate[inzplotLine] <- "<script src='assets/inzplot.js'></script>"
@@ -241,9 +247,6 @@ createHTML <- function(tbl, js, file = "index.html", local = FALSE) {
     setwd("../")
 
   } else {
-
-    # work in temp dir
-    setwd(tempdir())
 
     ## insert inline JS, CSS
     HTMLtemplate[cssLine] <- paste("<style>", styles, "</style>", collapse = "\n")
