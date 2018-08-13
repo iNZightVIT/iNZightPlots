@@ -132,7 +132,8 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, local = FALSE
                 numVar = numVar, multi = multi, seqVar = seqVar, int = int, timeData = timeData,
                 sparkline_type = lineType)
   tbl <- list(tab = tab, includeRow = TRUE, cap = "Data")
-  js <- list(chart = jsonlite::toJSON(chart), jsFile = jsFiles[["mapsJS"]])
+  mapsJS <- paste(readLines(system.file("maps.js", package = "iNZightPlots")), collapse = "\n")
+  js <- list(chart = jsonlite::toJSON(chart), jsFile = mapsJS)
 
   url <- createHTML(tbl, js, file, local)
   invisible(url)
@@ -194,6 +195,10 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, local 
 ## @return url object of class inzHTML
 createHTML <- function(tbl, js, file = "index.html", local = FALSE) {
 
+  # load templates
+  HTMLtemplate <- readLines(system.file("template.html", package = "iNZightPlots"))
+  styles <- paste(readLines(system.file("style.css", package = "iNZightPlots")), collapse = "\n")
+  inzJS <- paste(readLines(system.file("inzplot.js", package = "iNZightPlots")), collapse = "\n")
   # generate svg
   svgOutput <- gridSVG::grid.export(NULL)$svg
   svgCode <- paste(capture.output(svgOutput), collapse = "\n")
@@ -236,7 +241,7 @@ createHTML <- function(tbl, js, file = "index.html", local = FALSE) {
     # create files
     write(styles, "main.css")
     write(chartCode, "chart.js")
-    write(jsFiles[["inzJS"]], "inzplot.js")
+    write(inzJS, "inzplot.js")
     write(jsCode, "main.js")
 
     HTMLtemplate[cssLine] <- "<link rel='stylesheet' href='assets/main.css'>"
@@ -251,7 +256,7 @@ createHTML <- function(tbl, js, file = "index.html", local = FALSE) {
     ## insert inline JS, CSS
     HTMLtemplate[cssLine] <- paste("<style>", styles, "</style>", collapse = "\n")
     HTMLtemplate[chartLine] <- paste("<script type='text/javascript'>", chartCode, collapse = "\n")
-    HTMLtemplate[inzplotLine] <- jsFiles[["inzJS"]]
+    HTMLtemplate[inzplotLine] <- inzJS
     HTMLtemplate[jsLine] <- paste(jsCode, "</script>", collapse = "\n")
 
   }
@@ -393,7 +398,8 @@ getInfo.inzbar <- function(plot, x) {
   tableInfo <- list(caption = cap, includeRow = includeRow, tab = tab, n = n)
   #returning all data in a list:
   chart <- list(type = type, data = dt, colorMatch = colorMatch, colCounts = colCounts, group = group, order = order)
-  JSData <- list(chart = jsonlite::toJSON(chart), jsFile = jsFiles[["bpJS"]])
+  bpJS <- paste(readLines(system.file("barplot.js", package = "iNZightPlots")), collapse = "\n")
+  JSData <- list(chart = jsonlite::toJSON(chart), jsFile = bpJS)
   return(list(tbl = tableInfo, js = JSData))
 }
 
@@ -438,7 +444,8 @@ getInfo.inzhist <- function(plot, x) {
   rownames(boxTable)[4:5] <- c("min", "max")
   # Output as a list:
   chart <- list(type = "hist", data = tab, boxData = boxTable, n = n, inf = NULL)
-  JSData <- list(chart = jsonlite::toJSON(chart), jsFile = jsFiles[["histJS"]])
+  histJS <- paste(readLines(system.file("histogram.js", package = "iNZightPlots")), collapse = "\n")
+  JSData <- list(chart = jsonlite::toJSON(chart), jsFile = histJS)
   return(list(tbl = tableInfo, js = JSData))
 }
 
@@ -470,7 +477,6 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
         colnames(dd[[i]]) <- c(attributes(x)$varnames$x, attributes(x)$varnames$y)
       }
 
-
       #obtain boxplot information
       box = plot$boxinfo
       quantiles = box[[i]]$quantiles
@@ -487,7 +493,6 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
 
     #bind all groups together:
     tab <- do.call("rbind", dd)
-
     chart <- list(type = "dot", data = data.frame(tab), boxData = boxList, levList = levList,
                   countsTab = countsTab, levNames = names(plots), varNames = colnames(tab))
 
@@ -519,7 +524,8 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
   includeRow <- TRUE
   tableInfo <- list(caption = cap, includeRow = includeRow,
                     tab = data.frame(tab), varNames = varNames)
-  JSData <- list(chart = jsonlite::toJSON(chart), jsFile = jsFiles[["dpspJS"]])
+  dpspJS <- paste(readLines(system.file("dpsp.js", package = "iNZightPlots")), collapse = "\n")
+  JSData <- list(chart = jsonlite::toJSON(chart), jsFile = dpspJS)
   return(list(tbl = tableInfo, js = JSData))
 }
 
@@ -580,7 +586,8 @@ getInfo.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
 
   chart <- list(type = "scatter", varNames = names(tab), data = tab,
                 colGroupNo = colGroupNo, trendInfo = trendInfo)
-  JSData <- list(chart = jsonlite::toJSON(chart), jsFile = jsFiles[["dpspJS"]])
+  dpspJS <- paste(readLines(system.file("dpsp.js", package = "iNZightPlots")), collapse = "\n")
+  JSData <- list(chart = jsonlite::toJSON(chart), jsFile = dpspJS)
 
   return(list(tbl = tbl, js = JSData))
 }
@@ -600,7 +607,8 @@ getInfo.inzhex <- function(plot, x = NULL) {
 
   # JS
   chart <- list(type = "hex", data = tab, n = n)
-  JSData <- list(chart = jsonlite::toJSON(chart), jsFile = jsFiles[["hexbinJS"]])
+  hexJS <- paste(readLines(system.file("hexbin.js", package = "iNZightPlots")), collapse = "\n")
+  JSData <- list(chart = jsonlite::toJSON(chart), jsFile = hexJS)
 
   return(list(tbl = tbl, js = JSData))
 }
