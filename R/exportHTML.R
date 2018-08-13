@@ -654,7 +654,7 @@ varSelect = function(varNames, pl, order, extra.vars, data, levels = FALSE) {
       names(tab) <- varNames$x
 
       # y-var
-      if (!is.null(pl$y)) {
+      if (!is.null(varNames$y)) {
         yVal <- pl$y
         tab <- cbind(tab, as.data.frame(yVal))
         names(tab)[ncol(tab)] <- varNames$y
