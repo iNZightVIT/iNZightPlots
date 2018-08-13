@@ -63,11 +63,8 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         md <- eval(m$data, env)
     }
 
-    varnames <- varnames
-
     ## Any varnames supplied that AREN'T needed must be removed, otherwise errors:
-    nullVars <- sapply(as.list(m)[names(varnames)], is.null)
-    varnames[nullVars] <- NULL
+    varnames <- varnames[which(names(varnames) %in% names(as.list(m)))]
 
     ## fix up some subsetting group stuff
     if (is.null(m$g1)) {
