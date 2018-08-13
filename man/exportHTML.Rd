@@ -26,7 +26,7 @@ exportHTML(x, file, data, local = FALSE, extra.vars, ...)
 
 \item{data}{dataset/dataframe that you wish to investigate and export more variables from}
 
-\item{local}{Logical for creating local files (default to false)
+\item{local}{Logical for creating local files for offline use (default to false)
 Additional parameters for scatterplots and dotplots only:}
 
 \item{extra.vars}{extra variables specified by the user to be exported}
