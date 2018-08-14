@@ -1,9 +1,6 @@
 R := R
 RCMD := $(R) --slave
 
-default:
-	@$(RCMD) -f templates/importTemplates.R
-
 document:
 	@$(RCMD) -e "devtools::document()"
 

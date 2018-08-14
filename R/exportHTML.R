@@ -5,6 +5,7 @@
 #'
 #' @param x An iNZight plot object that captures iNZight environment
 #' @param file Name of temporary HTML file generated
+#' @param local Logical for creating local files for offline use (default to false)
 #' Additional parameters for scatterplots and dotplots only:
 #' @param data dataset/dataframe that you wish to investigate and export more variables from
 #' @param extra.vars extra variables specified by the user to be exported
@@ -13,7 +14,7 @@
 #' @param mapObj iNZightMap object (from iNZightMaps)
 #' @param ... extra arguments
 #'
-#' @return Opens up an HTML file of \code{x} with filename \code{file} in the browser (best performance on Chrome/Firefox)
+#' @return HTML file of \code{x} with filename \code{file} in the browser
 #'
 #' @examples
 #' \dontrun{
@@ -26,11 +27,11 @@
 #'
 #' @author Yu Han Soh
 #' @export
-exportHTML <- function(x, file, data, extra.vars, ...) UseMethod("exportHTML")
+exportHTML <- function(x, file, data, local = FALSE, extra.vars, ...) UseMethod("exportHTML")
 
 #' @describeIn exportHTML method for an iNZightPlot-generating function
 #' @export
-exportHTML.function <- function(x, file = 'index.html', data = NULL, extra.vars = NULL,
+exportHTML.function <- function(x, file = 'index.html', data = NULL, local = FALSE, extra.vars = NULL,
                                 width = dev.size()[1], height = dev.size()[2], ...) {
 
   #get current directory
@@ -56,7 +57,7 @@ exportHTML.function <- function(x, file = 'index.html', data = NULL, extra.vars 
 ## for the new maps model: assuming class ggplot + mapObj is there.
 #' @describeIn exportHTML method for iNZightMaps output (via new module)
 #' @export
-exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, extra.vars = NULL, mapObj, ...) {
+exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, local = FALSE, extra.vars = NULL, mapObj, ...) {
 
   if (!inherits(mapObj, "iNZightMapPlot")) {
     stop("mapObj is not an 'iNZightMapPlot' object. This is only available for iNZightMaps.
@@ -72,12 +73,12 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, extra.vars = 
                sep = "\n"))
   }
 
-  curdir <- getwd()
   print(x)
   mapObj <- mapObj
   plot <- x
   dt <- as.data.frame(plot[[1]])
   spark <- NULL
+  lineType <- NULL
   timeData <- data.frame(mapObj$region.data)
   multi <- mapObj$multiple.obs
   seqVar <- mapObj$sequence.var
@@ -102,10 +103,10 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, extra.vars = 
     timex <- lab$line_x
     timey <- lab$line_y
     varNames <- c(mapObj$region.var, timex, timey)
+    ## extract sparkline type
+    code <- attr(plot, "code")["sparklines"]
+    lineType <- sub(".*, sparkline_type = ([[:alpha:]]+).*", "\\1", code)
   }
-
-  # temporarily set this to curdir: comment for demo
-  # setwd(tempdir())
 
   # get palette colours used: continuous scale
   grid::grid.force()
@@ -128,54 +129,20 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, extra.vars = 
   }
 
   chart <- list(type = mapObj$type, data = dt, names = varNames, palette = pal,
-                numVar = numVar, multi = multi, seqVar = seqVar, int = int, timeData = timeData)
+                numVar = numVar, multi = multi, seqVar = seqVar, int = int, timeData = timeData,
+                sparkline_type = lineType)
   tbl <- list(tab = tab, includeRow = TRUE, cap = "Data")
+  mapsJS <- paste(readLines(system.file("maps.js", package = "iNZightPlots")), collapse = "\n")
   js <- list(chart = jsonlite::toJSON(chart), jsFile = mapsJS)
 
-  # generate HTML table
-  if (is.null(tbl)) {
-    HTMLtable <- '<p> No table available. </p>'
-  } else {
-    HTMLtable <- knitr::kable(tbl$tab, format = "html", row.names = tbl$includeRow,
-                              align = "c", caption = tbl$cap, table.attr = "id=\"table\" class=\"table table-condensed table-hover\" cellspacing=\"0\"")
-  }
-
-  # bind JSON to grid plot, generate SVG
-  gridSVG::grid.script(paste0("var chart = ", js$chart,";"), inline = TRUE, name = "linkedJSONdata")
-  svgOutput <- gridSVG::grid.export(NULL)$svg
-
-  #get JS code associated with plot type
-  jsCode <-  js$jsFile
-  svgCode <- paste(capture.output(svgOutput), collapse = "\n")
-
-  #remove svg file and other scripts
-  grid.remove("linkedJSONdata")
-
-  #finding places where to substitute code:
-  svgLine <- grep("SVG", HTMLtemplate)
-  cssLine <- grep("styles.css", HTMLtemplate)
-  jsLine <- grep("JSfile", HTMLtemplate)
-  tableLineOne <- grep("<!-- insert table -->", HTMLtemplate)
-
-  # insert inline JS, CSS, table, SVG:
-  HTMLtemplate[cssLine] <- paste(styles, collapse = "\n")
-  HTMLtemplate[jsLine] <- paste(jsCode, collapse = "\n")
-  HTMLtemplate[tableLineOne] <- HTMLtable
-  HTMLtemplate[svgLine] <- svgCode
-
-  write(HTMLtemplate, file)
-  url <- normalizePath(file)
-  class(url) <- "inzHTML"
-
-  setwd(curdir)
+  url <- createHTML(tbl, js, file, local)
   invisible(url)
 
-  }
-
+}
 
 #' @describeIn exportHTML method for output from iNZightPlot
 #' @export
-exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.vars = NULL, ...) {
+exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, local = FALSE, extra.vars = NULL, ...) {
 
   #suggest gridSVG, jsonlite, xtable:
   if(!requireNamespace("gridSVG",  quietly = TRUE) ||
@@ -186,7 +153,6 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
                sep = "\n"))
   }
 
-  curdir <- getwd()
   x <- x
   plot <- x$all$all
 
@@ -205,9 +171,6 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
     return()
   }
 
-  # if it passes the above: work in temp. directory
-  setwd(tempdir())
-
   # Get data (refer to getInfo function):
   if (is.null(extra.vars) && is.null(data)) {
     info <- getInfo(plot, x)
@@ -218,6 +181,28 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
   tbl <- info$tbl
   js <- info$js
 
+  #create html
+  url <- createHTML(tbl, js, file, local)
+  invisible(url)
+
+}
+
+## create HTML - processes and generates HTML file
+## @param tbl - list with table information
+## @param js - list with javascript information
+## @param file - filename for HTML file created
+## @param local - logical if it's to be made in a folder with source files
+## @return url object of class inzHTML
+createHTML <- function(tbl, js, file = "index.html", local = FALSE) {
+
+  # load templates
+  HTMLtemplate <- readLines(system.file("template.html", package = "iNZightPlots"))
+  styles <- paste(readLines(system.file("style.css", package = "iNZightPlots")), collapse = "\n")
+  inzJS <- paste(readLines(system.file("inzplot.js", package = "iNZightPlots")), collapse = "\n")
+  # generate svg
+  svgOutput <- gridSVG::grid.export(NULL)$svg
+  svgCode <- paste(capture.output(svgOutput), collapse = "\n")
+
   # generate HTML table
   if (is.null(tbl)) {
     HTMLtable <- '<p> No table available. </p>'
@@ -227,32 +212,56 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
                               align = "c", caption = tbl$cap, table.attr = "id=\"table\" class=\"table table-condensed table-hover\" cellspacing=\"0\"")
   }
 
-  # bind JSON to grid plot, generate SVG
-  gridSVG::grid.script(paste0("var chart = ", js$chart,";"), inline = TRUE, name = "linkedJSONdata")
-  svgOutput <- gridSVG::grid.export(NULL)$svg
-
-  # A possibly more permanent solution using the XML package to remove width and height:
-  # only implement this if we end up using the XML package more often
-  # svgOutput <- XML::removeAttributes(doc, .attrs = c("width", "height"))
-
-  #get JS code associated with plot type
-  jsCode <-  js$jsFile
-  svgCode <- paste(capture.output(svgOutput), collapse = "\n")
-
-  #remove svg file and other scripts
-  grid.remove("linkedJSONdata")
+  jsCode <- js$jsFile
+  chartCode <- paste0("var chart = ", js$chart, ";")
 
   #finding places where to substitute code:
   svgLine <- grep("SVG", HTMLtemplate)
   cssLine <- grep("styles.css", HTMLtemplate)
-  functionLine <- grep("commonFunctions", HTMLtemplate)
+  inzplotLine <- grep("inzplot", HTMLtemplate)
   jsLine <- grep("JSfile", HTMLtemplate)
+  chartLine <- grep("chart.json", HTMLtemplate)
   tableLineOne <- grep("<!-- insert table -->", HTMLtemplate)
 
-  # insert inline JS, CSS, table, SVG:
-  HTMLtemplate[cssLine] <- paste(styles, collapse = "\n")
-  HTMLtemplate[jsLine] <- paste(jsCode, collapse = "\n")
-  HTMLtemplate[functionLine] <- paste(singleFunctions, collapse = "\n")
+  curdir <- getwd()
+  setwd(tempdir())
+
+  if (local) {
+    assets <- system.file("assets.zip", package = "iNZightPlots")
+    ## if local = TRUE, create directories
+    utils::unzip(assets, exdir = "iNZight_interactive_plot")
+    setwd("./iNZight_interactive_plot/assets")
+
+    vendorCSS <- c("bootstrap.min.css", "dataTables.bootstrap.min.css")
+    HTMLtemplate[9:10] <- paste0("<link rel='stylesheet' href= 'assets/vendor/", vendorCSS, "'>")
+    vendorJS <- c("jquery.min.js", "d3.v4.min.js", "bootstrap.min.js",
+                  "jquery.dataTables.min.js", "dataTables.bootstrap.min.js")
+    HTMLtemplate[12:16] <- paste0("<script src ='assets/vendor/", vendorJS, "'></script>")
+
+    # create files
+    write(styles, "main.css")
+    write(chartCode, "chart.js")
+    write(inzJS, "inzplot.js")
+    write(jsCode, "main.js")
+
+    HTMLtemplate[cssLine] <- "<link rel='stylesheet' href='assets/main.css'>"
+    HTMLtemplate[chartLine] <- "<script src='assets/chart.js'></script>"
+    HTMLtemplate[inzplotLine] <- "<script src='assets/inzplot.js'></script>"
+    HTMLtemplate[jsLine] <- "<script src='assets/main.js'></script>"
+
+    setwd("../")
+
+  } else {
+
+    ## insert inline JS, CSS
+    HTMLtemplate[cssLine] <- paste("<style>", styles, "</style>", collapse = "\n")
+    HTMLtemplate[chartLine] <- paste("<script type='text/javascript'>", chartCode, collapse = "\n")
+    HTMLtemplate[inzplotLine] <- inzJS
+    HTMLtemplate[jsLine] <- paste(jsCode, "</script>", collapse = "\n")
+
+  }
+
+  # insert table and SVG
   HTMLtemplate[tableLineOne] <- HTMLtable
   HTMLtemplate[svgLine] <- svgCode
 
@@ -266,11 +275,8 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL, extra.
   url <- normalizePath(file)
   class(url) <- "inzHTML"
 
-  #reset back to original directory:
   setwd(curdir)
-
-  #return url:
-  invisible(url)
+  return(url)
 }
 
 
@@ -330,9 +336,6 @@ getInfo.inzbar <- function(plot, x) {
   colnames(dt) <- c('varx', 'counts', 'pct')
   colCounts = NULL;
   order = NULL;
-
-  # selecting appropriate JS code:
-  jsFile <- bpJS
 
   if (all(percent != 1)) {
     # This condition is used to identify if it's a two way plot...
@@ -395,7 +398,8 @@ getInfo.inzbar <- function(plot, x) {
   tableInfo <- list(caption = cap, includeRow = includeRow, tab = tab, n = n)
   #returning all data in a list:
   chart <- list(type = type, data = dt, colorMatch = colorMatch, colCounts = colCounts, group = group, order = order)
-  JSData <- list(chart = jsonlite::toJSON(chart), jsFile = jsFile)
+  bpJS <- paste(readLines(system.file("barplot.js", package = "iNZightPlots")), collapse = "\n")
+  JSData <- list(chart = jsonlite::toJSON(chart), jsFile = bpJS)
   return(list(tbl = tableInfo, js = JSData))
 }
 
@@ -438,9 +442,9 @@ getInfo.inzhist <- function(plot, x) {
   max <- boxInfo$max
   boxTable <- rbind(as.data.frame(quantiles), min, max)
   rownames(boxTable)[4:5] <- c("min", "max")
-  jsFile <- histJS
   # Output as a list:
   chart <- list(type = "hist", data = tab, boxData = boxTable, n = n, inf = NULL)
+  histJS <- paste(readLines(system.file("histogram.js", package = "iNZightPlots")), collapse = "\n")
   JSData <- list(chart = jsonlite::toJSON(chart), jsFile = histJS)
   return(list(tbl = tableInfo, js = JSData))
 }
@@ -463,7 +467,7 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
       #currently only takes variable plotted
       levList[[i]] = plots[[i]]$x
       order = attr(plots[[i]], "order")
-      
+
       ## exported data frame with extra variables:
       if (!is.null(extra.vars) && !is.null(data)) {
         dataByLevel <- data[which(data[,varNames$y] == levels[i]), ]
@@ -472,7 +476,6 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
         dd[[i]] = cbind(levList[[i]], levels[i])
         colnames(dd[[i]]) <- c(attributes(x)$varnames$x, attributes(x)$varnames$y)
       }
-      
 
       #obtain boxplot information
       box = plot$boxinfo
@@ -490,7 +493,6 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
 
     #bind all groups together:
     tab <- do.call("rbind", dd)
-
     chart <- list(type = "dot", data = data.frame(tab), boxData = boxList, levList = levList,
                   countsTab = countsTab, levNames = names(plots), varNames = colnames(tab))
 
@@ -522,6 +524,7 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
   includeRow <- TRUE
   tableInfo <- list(caption = cap, includeRow = includeRow,
                     tab = data.frame(tab), varNames = varNames)
+  dpspJS <- paste(readLines(system.file("dpsp.js", package = "iNZightPlots")), collapse = "\n")
   JSData <- list(chart = jsonlite::toJSON(chart), jsFile = dpspJS)
   return(list(tbl = tableInfo, js = JSData))
 }
@@ -536,10 +539,10 @@ getInfo.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
 
   tab <- cbind(as.data.frame(x), as.data.frame(y))
   names(tab) <- c(varNames$x, varNames$y)
-  
+
   # variable selection
   tab <- varSelect(varNames, plot, order, extra.vars, data)
-  
+
   # for maps only
   if(obj$gen$opts$plottype == "map") {
     names(tab) <- gsub("expression[(]\\.([[:alpha:]]*)[)]", "\\1", names(tab))
@@ -583,12 +586,12 @@ getInfo.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
 
   chart <- list(type = "scatter", varNames = names(tab), data = tab,
                 colGroupNo = colGroupNo, trendInfo = trendInfo)
+  dpspJS <- paste(readLines(system.file("dpsp.js", package = "iNZightPlots")), collapse = "\n")
   JSData <- list(chart = jsonlite::toJSON(chart), jsFile = dpspJS)
 
   return(list(tbl = tbl, js = JSData))
 }
 
-#No table for hexplots yet!
 getInfo.inzhex <- function(plot, x = NULL) {
   warning("No table available for hexbin plots.")
   tbl <- NULL
@@ -603,15 +606,15 @@ getInfo.inzhex <- function(plot, x = NULL) {
   tab$pct <- round(tab$counts/n*100, 2)
 
   # JS
-  jsFile <- hexbinJS
   chart <- list(type = "hex", data = tab, n = n)
-  JSData <- list(chart = jsonlite::toJSON(chart), jsFile = hexbinJS)
+  hexJS <- paste(readLines(system.file("hexbin.js", package = "iNZightPlots")), collapse = "\n")
+  JSData <- list(chart = jsonlite::toJSON(chart), jsFile = hexJS)
 
   return(list(tbl = tbl, js = JSData))
 }
 
 getInfo.default <- function(plot, x) {
-  warning("Cannot generate table! There may not be an interactive version of this plot yet...")
+  warning("There may not be an interactive version of this plot yet...")
   return()
 }
 
@@ -620,56 +623,56 @@ getInfo.default <- function(plot, x) {
 # @param varNames variables used in iNZightPlot object
 # @param pl the plot object (x$all$all)
 # @param order the order of points by how they are plotted (see inzscatter/inzdot function)
-# @param extra.vars extra variables to export 
-# @param data original dataset used 
+# @param extra.vars extra variables to export
+# @param data original dataset used
 # @param levels logical on whether there are levels to be considered (dot plots only)
 # @return returns a data frame to be exported
 varSelect = function(varNames, pl, order, extra.vars, data, levels = FALSE) {
-  
+
     if (!is.null(extra.vars) && !is.null(data)) {
-      
+
       # filter missing data
       # This is not required for scatter plots as the order listed takes missing data
       # into account
       if (is.null(varNames$y) || levels == TRUE) {
         data <- data[!is.na(data[, varNames$x]), ]
       }
-      
+
       # selected variables
       selected = c(extra.vars, varNames$x, varNames$y, varNames$colby, varNames$sizeby)
       colNum = which(colnames(data) %in% selected)
-      
+
       # format in order
       tab = data[order, colNum]
       rownames(tab) = 1:nrow(tab)
-      
+
     } else {
-      
+
       # default
       xVal <- pl$x
       tab <- data.frame(xVal)
       names(tab) <- varNames$x
-      
+
       # y-var
-      if (!is.null(pl$y)) {
+      if (!is.null(varNames$y)) {
         yVal <- pl$y
         tab <- cbind(tab, as.data.frame(yVal))
         names(tab)[ncol(tab)] <- varNames$y
       }
-      
+
       # find colby/sizeby:
       if (!is.null(pl$colby)) {
         colby <- pl$colby
         tab <- cbind(tab, as.data.frame(colby))
         names(tab)[ncol(tab)] <- varNames$colby
       }
-      
+
       if (!is.null(varNames$sizeby)) {
         sizeby <- pl$propsize
         tab <- cbind(tab, as.data.frame(sizeby))
         names(tab)[ncol(tab)] <- varNames$sizeby
       }
-      
+
     }
 
     return(tab)
