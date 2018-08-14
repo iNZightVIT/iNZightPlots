@@ -44,6 +44,11 @@ __Release date__: 23 March 2017
 - latest interact updates
 - reword the inference output for two-way chisquare test: proportions -> distributions
 
+### Patch 2.7.9 - 14/08/2018
+- restructure templates dir into inst dir to make html/css/js templates accessible via `system.file()`
+- various other bug fixes and changes to interactive plots
+
+
 ***
 # Version 2.6
 __Release date__: 12 December 2016
