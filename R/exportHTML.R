@@ -45,7 +45,7 @@ exportHTML.function <- function(x, file = 'index.html', data = NULL, local = FAL
 
   #do exporting:
   obj <- x()
-  url <- exportHTML(obj, file, data, extra.vars)
+  url <- exportHTML(obj, file, data = data, extra.vars = extra.vars)
 
   dev.off()
   setwd(curdir)
