@@ -2,6 +2,7 @@
 
 language: R
 sudo: false
+cache: packages
 latex: false
 
 r:
@@ -11,4 +12,4 @@ r:
   - devel
 
 repos:
-  docker: http://r.docker.stat.auckland.ac.nz/R
+  docker: https://r.docker.stat.auckland.ac.nz
