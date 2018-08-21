@@ -48,6 +48,8 @@ __Release date__: 23 March 2017
 - restructure templates dir into inst dir to make html/css/js templates accessible via `system.file()`
 - various other bug fixes and changes to interactive plots
 
+### Patch 2.7.10 - 17/08/2018
+- fix a bug in exportHTML where arguments not passed correctly
 
 ***
 # Version 2.6
