@@ -678,3 +678,38 @@ varSelect = function(varNames, pl, order, extra.vars, data, levels = FALSE) {
     return(tab)
 
 }
+
+
+##' Identify if a plot can be interactive
+##' @param x the plot object (either from iNZightPlots or iNZightMaps)
+##' @return Logical to identify if there is an interactive version
+##' @export
+can.interact <- function(x) {
+  # could be written in S3
+  if (inherits(x, "inzplotoutput")) {
+    pl <- x$all$all
+    # if it's not single panelled/or of only 1 group
+    if (is.null(pl) && (length(x$all) != 1)) {
+      return(FALSE)
+    }
+    ## singular groups
+    if (length(x$all) == 1) {
+      pl <- x$all[[1]]
+    }
+    # coloured hex-plots not available
+    if(attributes(x)$plottype == "hex" && !is.null(pl$colby)) {
+      return(FALSE)
+    }
+    return(TRUE)
+  } else if (inherits(x,"ggplot")) {
+    # only for iNZightMaps
+    if (inherits(x$data, "sf") && inherits(x$facet, "FacetNull")) {
+      return(TRUE)
+    } else {
+      return(FALSE)
+    }
+  } else {
+    # all other plots
+    return(FALSE)
+  }
+}
