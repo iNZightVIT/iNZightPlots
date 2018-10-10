@@ -1,3 +1,7 @@
+- add interactive plot helper function
+
+***
+
 # Version 2.7
 __Release date__: 23 March 2017
 
