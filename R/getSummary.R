@@ -53,6 +53,11 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                                              test = match.arg(hypothesis.test)),
                            ...) {
 
+    if (inherits(x, "data.frame")) {
+        class(x) <- c("inzdata", class(x))
+        return(summary(x, design))
+    }
+
     ## Grab a plot object!
     m <- match.call(expand.dots = FALSE)
     env <- parent.frame()
@@ -347,6 +352,103 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
     add("")
 
 
+
+    class(out) <- "inzight.plotsummary"
+    out
+}
+
+summary.inzdata <- function(object, des, width = 100, ...) {
+    out <- character()
+    rule <- function(char, width)
+        paste0(rep(char, width), collapse = "")
+    Hrule <- rule("=", width)
+    hrule <- rule("-", width)
+    srule <- rule("*", width)
+    center <- centerText
+    ind <- function(x, indent = 3)
+        paste0(paste0(rep(" ", indent), collapse = ""), x)
+
+    add <- function(..., underline = FALSE) {
+        x <- paste0(..., collapse = "")
+        out <<- c(out, x)
+        if (underline)
+            out <<- c(out, rule("-", width = nchar(x)))
+    }
+
+    add(Hrule)
+    add(center(sprintf(
+        "iNZight summary of %s",
+        ifelse(is.null(attr(object, "name", exact = TRUE)), "dataset",
+               paste0("\"", attr(object, "name", exact = TRUE), "\""))),
+        width))
+    add(hrule)
+
+    # mat <- cbind(ind(ifelse(scatter, "Response/outcome variable: ", "Primary variable of interest: ")),
+    #              paste0(ifelse(scatter, vnames$y, vnames$x),
+    #                     " (", gsub("factor", "categorical", vartypes[[ifelse(scatter, vnames$y, vnames$x)]]), ")"))
+
+    n.numeric <- sum(sapply(object, is.numeric))
+    n.factor <- sum(!sapply(object, is.numeric))
+    mat <- rbind(c(ind("Number of observations (rows): "), nrow(object)),
+                 c(ind("Number of variables (columns): "), 
+                   sprintf("%s (%s numeric and %s categorical)", ncol(object), n.numeric, n.factor)))
+
+    mat <- cbind(format(mat[, 1], justify = "right"), mat[, 2])
+    apply(mat, 1, add)
+    add("")
+
+    add(Hrule)
+
+
+    ## variable summaries
+    if (n.numeric > 0) {
+        add("Numeric variables:", underline = TRUE)
+        add("")
+        numvars <- object[,sapply(object, is.numeric)]
+        mat <- do.call(rbind, 
+            lapply(numvars, function(x) {
+                c(min(x, na.rm = TRUE), max(x, na.rm = TRUE), sum(is.na(x)))
+            })
+        )
+        mat <- matrix(apply(mat, 2, function(col) {
+            format(col, digits = 4)
+        }), nrow = nrow(mat))
+        mat[grep("NA", mat)] <- ""
+        
+        mat <- rbind(c("", "min", "max", "n. missing"), cbind(names(numvars), mat))
+        mat <- matrix(apply(mat, 2, function(col) {
+            format(col, justify = "right")
+        }), nrow = nrow(mat))
+        apply(mat, 1, function(x) add(paste0("   ", paste(x, collapse = "   "))))
+        add("")
+    }
+
+    if (n.factor > 0) {
+        add("")
+        add("Categorical variables:", underline = TRUE)
+        add("")
+
+        catvars <- object[, !sapply(object, is.numeric)]
+        mat <- do.call(rbind, 
+            lapply(catvars, function(x) {
+                nlev <- length(levels(x))
+                c(nlev, sum(is.na(x)))
+            })
+        )
+        mat <- matrix(apply(mat, 2, function(col) {
+            format(col, digits = 4)
+        }), nrow = nrow(mat))
+        mat[grep("NA", mat)] <- ""
+        
+        mat <- rbind(c("", "n. categories", "n. missing"), cbind(names(catvars), mat))
+        mat <- matrix(apply(mat, 2, function(col) {
+            format(col, justify = "right")
+        }), nrow = nrow(mat))
+        apply(mat, 1, function(x) add(paste0("   ", paste(x, collapse = "   "))))
+        add("")
+    }
+
+    add(Hrule)
 
     class(out) <- "inzight.plotsummary"
     out
