@@ -703,7 +703,7 @@ can.interact <- function(x) {
     return(TRUE)
   } else if (inherits(x,"ggplot")) {
     # only for iNZightMaps
-    if (inherits(x$data, "sf") && inherits(x$facet, "FacetNull")) {
+    if (inherits(x$data, "sf") && !inherits(x, "gTable")) {
       return(TRUE)
     } else {
       return(FALSE)
