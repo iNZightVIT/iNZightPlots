@@ -1,4 +1,5 @@
-- add interactive plot helper function
+- [add] interactive plot helper function
+- [add] dataset summary function
 
 ***
 
