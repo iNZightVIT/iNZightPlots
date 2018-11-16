@@ -566,7 +566,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
              (any(TYPE %in% c("grid", "hex")) && !is.null(opts$trend) && opts$trend.by) ||
              (any(TYPE == "bar") && ynull && is.factor(df$data$colby)))) {
 
-            if (TYPE == "hex") {
+            if (any(TYPE == "hex")) {
               df$data$colby <- convert.to.factor(df$data$colby)
             }
 

@@ -51,6 +51,11 @@ __Release date__: 23 March 2017
 ### Patch 2.7.10 - 17/08/2018
 - fix a bug in exportHTML where arguments not passed correctly
 
+### Patch 2.7.11 - 15/11/2018
+- [add] interactive plot helper function
+- [add] dataset summary function
+- [fix] bug in exporting thematic maps (and other fixes for interactive plots)
+
 ***
 # Version 2.6
 __Release date__: 12 December 2016
