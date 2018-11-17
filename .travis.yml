@@ -4,12 +4,25 @@ language: R
 sudo: false
 cache: packages
 latex: false
+pandoc: false
 
-r:
-  - 3.2
-  - oldrel
-  - release
-  - devel
+matrix:
+  include:
+    - os: linux
+      r: oldrel
+    - os: linux
+      r: release
+    - os: linux
+      r: devel
+    - os: osx
+      r: 3.3
+      brew_packages: libgit2
 
 repos:
   docker: https://r.docker.stat.auckland.ac.nz
+
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo chown -R $(whoami) /usr/local/share; fi
+
+after_success:
+  - Rscript -e 'covr::codecov()'
