@@ -56,6 +56,9 @@ __Release date__: 23 March 2017
 - [add] dataset summary function
 - [fix] bug in exporting thematic maps (and other fixes for interactive plots)
 
+### Patch 2.7.12 - 26/11/2018
+- fix bug in exporting interactive maps after implementing Stamen Maps
+
 ***
 # Version 2.6
 __Release date__: 12 December 2016
