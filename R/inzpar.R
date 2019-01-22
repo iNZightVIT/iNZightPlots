@@ -196,6 +196,7 @@ inzpar <- function(..., .viridis = requireNamespace("viridis", quietly = TRUE)) 
                internal.labels= TRUE,
                xlim           = NULL,
                ylim           = NULL,
+               transform      = list(),
                plot.features  = list())
 
     # update any user has specified

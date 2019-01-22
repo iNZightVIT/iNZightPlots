@@ -1,8 +1,10 @@
 inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env) {
 
-  # This function takes the given arguments and converts them into a
-  # data frame for easy use by iNZightPlot.
-  # It returns an object with a class: `inz.(simple|freq|survey)`
+    # This function takes the given arguments and converts them into a
+    # data frame for easy use by iNZightPlot.
+    # It returns an object with a class: `inz.(simple|freq|survey)`
+    
+    extra.info <- list()
 
     if ("g2" %in% names(m) & (!("g1" %in% names(m)) | is.null(m$g1))) {
         if (!is.null(m$g2)) {
@@ -101,9 +103,24 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     # NOTE: this is just precautionary; as.data.frame should set any
     # character strings to factors by default.
     makeF <- sapply(df$data, function(x) !is.numeric(x) & !is.factor(x))
-    if (any(makeF))
-        for (i in colnames(df$data)[makeF])
-            df$data[[i]] <- as.factor(df$data[[i]])
+    trans <- list()
+    print(colnames(df$data))
+    if (any(makeF)) 
+        for (i in colnames(df$data)[makeF]) {
+            if (inherits(df$data[[i]], "Date")) {
+                trans[[ i ]] <- "date"
+                df$data[[i]] <- as.numeric(df$data[[i]])
+            } else if (inherits(df$data[[i]], "POSIXct")) {
+                trans[[ i ]] <- "datetime"
+                df$data[[i]] <- as.numeric(df$data[[i]])
+            } else if (inherits(df$data[[i]], "times")) {
+                trans[[ i ]] <- "time"
+                df$data[[i]] <- as.numeric(df$data[[i]])
+            } else {
+                df$data[[i]] <- as.factor(df$data[[i]])
+            }
+        }
+    if (length(trans)) df$transformations <- trans
 
     # convert any -Inf/Inf values to NA's
     # this is likely to occur if the user supplies a transformed value such as 1 / x, or
