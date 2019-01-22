@@ -104,7 +104,6 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     # character strings to factors by default.
     makeF <- sapply(df$data, function(x) !is.numeric(x) & !is.factor(x))
     trans <- list()
-    print(colnames(df$data))
     if (any(makeF)) 
         for (i in colnames(df$data)[makeF]) {
             if (inherits(df$data[[i]], "Date")) {
