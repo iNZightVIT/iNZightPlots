@@ -100,7 +100,7 @@ function(x) {
       # the supplied x vector if it is already a factor.
         x.fact <- x
     } else {
-    
+        
         ## converts a 
         if (length(unique(x)) < 5)
             x.fact <- factor(x)

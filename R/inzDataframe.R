@@ -117,13 +117,26 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
         for (i in colnames(df$data)[makeF]) {
             if (inherits(df$data[[i]], "Date")) {
                 trans[[ i ]] <- "date"
-                df$data[[i]] <- as.numeric(df$data[[i]])
-            } else if (inherits(df$data[[i]], "POSIXct")) {
-                trans[[ i ]] <- "datetime"
-                df$data[[i]] <- as.numeric(df$data[[i]])
-            } else if (inherits(df$data[[i]], "times")) {
-                trans[[ i ]] <- "time"
-                df$data[[i]] <- as.numeric(df$data[[i]])
+                if (i %in% c("g1", "g2")) {
+                    df$data[[i]] <- as.factor(df$data[[i]])
+                } else if (i == "colby" && length(unique(df$data[[i]]) < 10)) {
+                    df$data[[i]] <- as.factor(df$data[[i]])
+                } else {
+                    df$data[[i]] <- as.numeric(df$data[[i]])
+                }
+            } else if (inherits(df$data[[i]], "POSIXct") || 
+                       inherits(df$data[[i]], "times")) {
+                trans[[ i ]] <- 
+                    ifelse(inherits(df$data[[i]], "POSIXct"), "datetime", "time")
+                if (i %in% c("g1", "g2")) {
+                    ## convert datetime to factor ...
+                    lvls <- scales::pretty_breaks(4)(df$data[[i]])
+                    labs <- names(lvls)
+                    labs <- paste(labs[-length(labs)], labs[-1], sep = " to ")
+                    df$data[[i]] <- cut(df$data[[i]], lvls, labs)
+                } else {
+                    df$data[[i]] <- as.numeric(df$data[[i]])
+                }
             } else {
                 df$data[[i]] <- as.factor(df$data[[i]])
             }
@@ -139,10 +152,10 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
 
     # convert numeric grouping variables to factors
     if ("g2" %in% colnames(df$data))
-        if (is.numeric(df$data$g2))
+        if (!is.factor(df$data$g2))
             df$data$g2 <- convert.to.factor(df$data$g2)
     if ("g1" %in% colnames(df$data)) {
-        if (is.numeric(df$data$g1))
+        if (!is.factor(df$data$g1))
             df$data$g1 <- convert.to.factor(df$data$g1)
     } else {
         if (!is.null(g2.level)) {
