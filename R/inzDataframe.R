@@ -102,7 +102,16 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     # convert anything that isn't a numeric variable to a factor
     # NOTE: this is just precautionary; as.data.frame should set any
     # character strings to factors by default.
-    makeF <- sapply(df$data, function(x) !is.numeric(x) & !is.factor(x))
+    needs_transform <- function(x) {
+        if (is.factor(x)) return(FALSE)
+
+        if (is.numeric(x) && class(x) %in% c('integer', 'numeric'))
+            return(FALSE)
+
+        ## anything else
+        TRUE
+    }
+    makeF <- sapply(df$data, needs_transform)
     trans <- list()
     if (any(makeF)) 
         for (i in colnames(df$data)[makeF]) {

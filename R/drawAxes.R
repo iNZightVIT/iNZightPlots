@@ -8,6 +8,28 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts, sub = 0, h
 
 .numericAxis <- function(x, which = "x", main = TRUE, label = TRUE, opts, sub = 0, 
                          heightOnly = FALSE, layout.only = FALSE, pos = NULL) {
+
+    xt <- x
+    ## put X into the correct format ...
+    if (!is.null(opts$transform[[which]])) {
+        ## we need to apply a transformation
+        if (opts$transform[[which]] == "datetime") {
+            ## format labels for datetime
+            xt <- as.POSIXct(x, origin = "1970-01-01")
+        } else if (opts$transform[[which]] == "date") {
+            xt <- as.Date(x, origin = "1970-01-01")
+        } else if (opts$transform[[which]] == "time") {
+            xt <- chron::chron(times. = x)
+        }
+    }
+
+    breaks <- scales::pretty_breaks()(xt)
+    xl <- current.viewport()[[switch(which, "x" = "xscale", y = "yscale")]]
+    breaks <- breaks[breaks > xl[1] & breaks < xl[2]]
+    at <- as.numeric(breaks)
+    labs <- FALSE
+    if (label) labs <- if (!is.null(names(breaks))) names(breaks) else at
+
     switch(
         which,
         "x" = {
@@ -15,7 +37,8 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts, sub = 0, h
                 grid.xaxis(
                     gp = gpar(cex = opts$cex.axis), 
                     main = main, 
-                    label = label, 
+                    at = at,
+                    label = labs, 
                     name = paste(paste0("inz-xaxis-", pos), opts$rowNum, opts$colNum, 
                         sep = ".")
                 )
@@ -27,7 +50,8 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts, sub = 0, h
                 ))
                 grid.xaxis(
                     gp = gpar(cex = opts$cex.axis), 
-                    label = label, 
+                    at = at,
+                    label = labs, 
                     main = FALSE, 
                     name = paste("inz-xaxis-top", opts$rowNum, opts$colNum, 
                         sep = ".")
@@ -39,7 +63,8 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts, sub = 0, h
             yax <- yaxisGrob(
                 gp = gpar(cex = opts$cex.axis), 
                 main = main, 
-                label = label, 
+                at = at,
+                label = labs, 
                 name = paste(paste0("inz-yaxis-", pos), opts$rowNum, opts$colNum, 
                     sep = ".")
             )
