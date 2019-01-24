@@ -3,3 +3,4 @@
 ^.*\.md$
 ^revdep$
 ^\.travis\.yml$
+^appveyor\.yml$
