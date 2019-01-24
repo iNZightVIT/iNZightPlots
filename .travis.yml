@@ -2,7 +2,9 @@
 
 language: R
 sudo: false
-cache: packages
+cache: 
+- bundler
+- packages
 latex: false
 pandoc: false
 
