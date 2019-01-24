@@ -8,15 +8,17 @@ pandoc: false
 
 matrix:
   include:
-    - os: linux
-      r: oldrel
-    - os: linux
-      r: release
-    - os: linux
-      r: devel
-    - os: osx
-      r: 3.3
-      brew_packages: libgit2
+  - os: linux
+    r: oldrel
+  - os: linux
+    r: release
+  - os: linux
+    r: devel
+  - os: osx
+    r: 3.3
+    brew_packages: libgit2
+
+r_check_args: "--as-cran --install-args=--build"
 
 repos:
   docker: https://r.docker.stat.auckland.ac.nz
@@ -26,3 +28,18 @@ before_install:
 
 after_success:
   - Rscript -e 'covr::codecov()'
+
+before_deploy:
+  - if [[ "${TRAVIS_OS_NAME}" = "osx" ]]; then rm -f *.tar.gz; fi
+
+deploy:
+  provider: releases
+  skip_cleanup: true
+  api_key:
+    secure: vnkP+d9MWQCGsyBO7E5IMIz6U9G+sJnjMWfCgaidum6RlW3pn+mE7WaO0ORCCaORUOaTHGcwQ+XefVbFxG+rYTZqR+a75e/MdWu5lnMbdljz6R2mMJijfpW3jGT20JyFJC7TYmccTt5UyVKS+vbVezSvbNfKoYdmM+sKvLP3hvcxxl0QFbhxrXesf/cAj9rhwqOxIbo7JP0ihHf4vBieSzwDhlfRL6945jze+qWX3tG+j3Po/PiBSgks/kCAmjnZrsuLLML3qqa9eUC7NQDOls43Mbdhg7gu2TjHAl+qaJT4gf+U7auX4JANJi69GCgKJ0kvkJio8LcFTfhzmJsHv4nZ1MKGy8Js0zEH4hdE55SHzA39Zm113+2xIyrEQ4+r/VnZJB496q250banSmArTGv23LqLpn04UY0i3maY8iN9eDnm7KGaPNABiZNWkui8Hs6s46W1xIubGieCtqo5k9Bw9g8ht01UB13+7kqkNhjVHEJcQ/QuIV6brfqqwOTSeXIcTbIc0XiVWgVyCJW/7RPZ1CATGCTDgoUpyJPyef+dOdUQAWm9aDefsc/cxpJxwj1ASqvCGVdfu+dXR1OCzGPab+1rcag5pmYkqZe5/Hc9IR9FNtvvxK7Bz/arcsLbVpaX38zAmvbzSjrDT9YRGcVZdZLP4FARcT0nHfowhMA=
+  file_glob: true
+  file: iNZightPlots_*.t*gz
+  overwrite: true
+  on:
+    tags: true    
+    repo: iNZightVIT/iNZightPlots
