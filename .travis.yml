@@ -17,10 +17,6 @@ matrix:
   - os: osx
     r: 3.3
     brew_packages: libgit2
-  - os: osx
-    osx_image: xcode6.4
-    r: 3.3
-    brew_packages: libgit2
 
 r_check_args: "--as-cran --install-args=--build"
 
@@ -36,7 +32,7 @@ after_success:
 before_deploy:
   - if [[ "${TRAVIS_OS_NAME}" = "osx" ]]; then 
       rm -f *.tar.gz; 
-      mv iNZightPlots_$TRAVIS_TAG.tgz iNZightPlots_$TRAVIS_TAG_R$TRAVIS_R_VERSION_$TRAVIS_OSX_IMAGE.tgz;
+      #mv iNZightPlots_$TRAVIS_TAG.tgz iNZightPlots_$TRAVIS_TAG_R$TRAVIS_R_VERSION_$TRAVIS_OSX_IMAGE.tgz;
     fi
 
 deploy:
