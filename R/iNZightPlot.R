@@ -61,6 +61,7 @@
 ##'
 ##' @import stats grid grDevices boot survey quantreg survey hexbin iNZightMR colorspace dichromat
 ##' @importFrom utils capture.output browseURL capture.output
+##' @importFrom iNZightTools is_num is_cat is_dt
 ##' @author Tom Elliott
 ##' @export
 iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,

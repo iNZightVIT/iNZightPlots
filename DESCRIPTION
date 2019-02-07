@@ -22,7 +22,8 @@ Imports:
     colorspace,
     dichromat,
     iNZightMR,
-    chron
+    chron,
+    scales
 Suggests:
     viridis,
     gridSVG,
