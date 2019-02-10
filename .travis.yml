@@ -19,7 +19,9 @@ matrix:
     brew_packages: libgit2
 
 r_check_args: "--as-cran --install-args=--build"
-R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+
+env:
+  - R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
 
 repos:
   docker: https://r.docker.stat.auckland.ac.nz
