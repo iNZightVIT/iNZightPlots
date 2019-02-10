@@ -121,6 +121,8 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
                     df$data[[i]] <- as.factor(df$data[[i]])
                 } else if (i == "colby" && length(unique(df$data[[i]]) < 10)) {
                     df$data[[i]] <- as.factor(df$data[[i]])
+                } else if (i == "symbolby" && length(unique(df$data[[i]] < 6))) {
+                    df$data[[i]] <- as.factor(df$data[[i]])
                 } else {
                     df$data[[i]] <- as.numeric(df$data[[i]])
                 }
