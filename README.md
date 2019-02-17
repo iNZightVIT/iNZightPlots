@@ -6,3 +6,5 @@
 
 
 Plotting functions for iNZight.
+
+__DEVELOPMENT WARNING__: major code-formatting changes (using [lintr](https://github.com/jimhester/lintr)) under way on [feature/axis-transformations-#70](https://github.com/iNZightVIT/iNZightPlots/tree/feature/axis-transformations-%2370). 
