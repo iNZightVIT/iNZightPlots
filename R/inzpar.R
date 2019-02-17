@@ -100,105 +100,122 @@
 #' @return an object of class \code{inzpar.list}
 #' @author tell029
 #' @export
-inzpar <- function(..., .viridis = requireNamespace("viridis", quietly = TRUE)) {
+inzpar <- function(...,
+                   .viridis = requireNamespace("viridis", quietly = TRUE)) {
     dots <- list(...)
 
-    ip <- list(pch            = 1,
-               col.pt         = "grey50",
-               col.fun        = NULL,
-               col.default    =
-                   list(cat  =
-                            if (.viridis) {
-                                function(n)
-                                    if (n > 10) viridis::viridis(n)
-                                    else c( "#E69F00", "#56AAE9", "#D55E00", "#0072B2", "#F0D705",
-                                           "#ADD9FF", "#9BCD9B", "#CC79A7", "#68468C", "#8B0000")[1:n]
-                            } else {
-                                function(n)
-                                    if (n > 10) hcl((1:n) / n * 360, c = 80, l = 50)
-                                    else c( "#E69F00", "#56AAE9", "#D55E00", "#0072B2", "#F0D705",
-                                           "#ADD9FF", "#9BCD9B", "#CC79A7", "#68468C", "#8B0000")[1:n]
-                            },
-                        cont = if (.viridis) viridis::viridis
-                               else function(n) hcl((1:n) / n * 320 + 60, c = 100, l = 50)),
-               col.missing    = "#cccccc",
-               reverse.palette= FALSE,
-               col.method     = "linear",
-               cex            = 1,
-               cex.pt         = 0.8,
-               cex.dotpt      = 0.5,
-               cex.lab        = 1,
-               cex.axis       = 0.8,
-               cex.main       = 1.2,
-               cex.text       = 1,
-               resize.method  = "proportional",
-               alpha          = 1,
-               bg             = "#eeeeee",
-               grid.lines     = TRUE,
-               col.grid       = "default",
-               fill.pt        = "transparent",
-               lwd            = 1,
-               lty            = 1,
-               lwd.pt         = 2,
-               col.line       = "blue",
-               col.sub        = c("#cccccc", "#444444"),
-               locate.col.def = "red",
-               highlight.col  = "shade",
-               jitter         = "",
-               rugs           = "",
-               trend          = NULL,
-               smooth         = 0,
-               smoothby.lty   = 4,  # MUST be numeric
-               quant.smooth   = NULL,
-               LOE            = FALSE,
-               join           = FALSE,
-               lines.by       = TRUE,
-               col.trend =
-                   list(linear = "blue",
-                        quadratic = "red",
-                        cubic ="green4"),
-               lty.trend =
-                   list(linear = 1,
-                        quadratic = 1,
-                        cubic = 1),
-               trend.by       = FALSE,
-               trend.parallel = TRUE,
-               col.smooth     = c("magenta"),
-               col.LOE        = "black",
-               lty.LOE        = 2,
-               boxplot        = TRUE,
-               box.lwd        = c(2, 0.7),
-               box.col        = "black",
-               box.fill       = "grey90",
-               bar.lwd        = 1,
-               bar.col        = "black",
-               bar.fill       = "darkgreen",
-               full.height    = FALSE,
-               inf.lwd.comp   = 4,
-               inf.lwd.conf   = 2,
-               inf.col.comp   = c("black", "green4"),
-               inf.col.conf   = c("red", "orange"),
-               inference.type = NULL,
-               inference.par  = NULL,
-               bs.inference   = FALSE,
-               min.count      = 5,
-               n.boot         = 1500,
-               large.sample.size = 5001,
-               largesample    = NULL,
-               scatter.grid.bins = 50,
-               hex.bins       = 20,
-               hex.style      = "size",
-               hex.diffuse    = TRUE,
-               hist.bins      = NULL,
-               quant.cutoff   = c(200, 1000),
-               plottype       = "default",
-               matchplots     = TRUE,
-               match.limits   = c(500, 10000),
-               internal.labels= TRUE,
-               xlim           = NULL,
-               ylim           = NULL,
-               transform      = list(),
-               plot.features  = list())
+    ip <- list(
+        pch            = 1,
+        col.pt         = "grey50",
+        col.fun        = NULL,
+        col.default    =
+            list(
+                cat  =
+                    if (.viridis) {
+                        function(n)
+                            if (n > 10) viridis::viridis(n)
+                            else c(
+                                "#E69F00", "#56AAE9", "#D55E00", "#0072B2",
+                                "#F0D705", "#ADD9FF", "#9BCD9B", "#CC79A7",
+                                "#68468C", "#8B0000"
+                            )[1:n]
+                    } else {
+                        function(n)
+                            if (n > 10) hcl( (1:n) / n * 360, c = 80, l = 50)
+                            else c(
+                                "#E69F00", "#56AAE9", "#D55E00", "#0072B2",
+                                "#F0D705", "#ADD9FF", "#9BCD9B", "#CC79A7",
+                                "#68468C", "#8B0000"
+                            )[1:n]
+                    },
+                cont =
+                    if (.viridis) viridis::viridis
+                    else function(n)
+                        hcl( (1:n) / n * 320 + 60, c = 100, l = 50)
+            ),
+        col.missing    = "#cccccc",
+        reverse.palette = FALSE,
+        col.method     = "linear",
+        cex            = 1,
+        cex.pt         = 0.8,
+        cex.dotpt      = 0.5,
+        cex.lab        = 1,
+        cex.axis       = 0.8,
+        cex.main       = 1.2,
+        cex.text       = 1,
+        resize.method  = "proportional",
+        alpha          = 1,
+        bg             = "#eeeeee",
+        grid.lines     = TRUE,
+        col.grid       = "default",
+        fill.pt        = "transparent",
+        lwd            = 1,
+        lty            = 1,
+        lwd.pt         = 2,
+        col.line       = "blue",
+        col.sub        = c("#cccccc", "#444444"),
+        locate.col.def = "red",
+        highlight.col  = "shade",
+        jitter         = "",
+        rugs           = "",
+        trend          = NULL,
+        smooth         = 0,
+        smoothby.lty   = 4,  # MUST be numeric
+        quant.smooth   = NULL,
+        LOE            = FALSE,
+        join           = FALSE,
+        lines.by       = TRUE,
+        col.trend =
+            list(
+                linear = "blue",
+                quadratic = "red",
+                cubic = "green4"
+            ),
+        lty.trend =
+            list(
+                linear = 1,
+                quadratic = 1,
+                cubic = 1
+            ),
+        trend.by       = FALSE,
+        trend.parallel = TRUE,
+        col.smooth     = c("magenta"),
+        col.LOE        = "black",
+        lty.LOE        = 2,
+        boxplot        = TRUE,
+        box.lwd        = c(2, 0.7),
+        box.col        = "black",
+        box.fill       = "grey90",
+        bar.lwd        = 1,
+        bar.col        = "black",
+        bar.fill       = "darkgreen",
+        full.height    = FALSE,
+        inf.lwd.comp   = 4,
+        inf.lwd.conf   = 2,
+        inf.col.comp   = c("black", "green4"),
+        inf.col.conf   = c("red", "orange"),
+        inference.type = NULL,
+        inference.par  = NULL,
+        bs.inference   = FALSE,
+        min.count      = 5,
+        n.boot         = 1500,
+        large.sample.size = 5001,
+        largesample    = NULL,
+        scatter.grid.bins = 50,
+        hex.bins       = 20,
+        hex.style      = "size",
+        hex.diffuse    = TRUE,
+        hist.bins      = NULL,
+        quant.cutoff   = c(200, 1000),
+        plottype       = "default",
+        matchplots     = TRUE,
+        match.limits   = c(500, 10000),
+        internal.labels = TRUE,
+        xlim           = NULL,
+        ylim           = NULL,
+        transform      = list(),
+        plot.features  = list()
+    )
 
     # update any user has specified
     if (length(dots) > 0) {

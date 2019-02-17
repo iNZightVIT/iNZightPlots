@@ -4,3 +4,4 @@
 ^revdep$
 ^\.travis\.yml$
 ^appveyor\.yml$
+^.lintr$
