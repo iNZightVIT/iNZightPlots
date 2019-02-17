@@ -86,13 +86,13 @@ Shade <- function(x, light, method = c("relative", "absolute")) {
 shade <- Vectorize(Shade)
 
 
-##' Convert a numeric variable in to a factor with four levels.
-##'
-##' @title Convert to Factor
-##' @param x a numeric vector
-##' @return a factor vector
-##' @author tell029
-##' @export
+#' Convert a numeric variable in to a factor with four levels.
+#'
+#' @title Convert to Factor
+#' @param x a numeric vector
+#' @return a factor vector
+#' @author tell029
+#' @export
 convert.to.factor <-
 function(x) {
     if (is_cat(x)) {
