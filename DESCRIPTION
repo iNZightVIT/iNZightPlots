@@ -21,7 +21,10 @@ Imports:
     hextri,
     colorspace,
     dichromat,
-    iNZightMR
+    chron,
+    scales,
+    iNZightMR,
+    iNZightTools
 Suggests:
     viridis,
     gridSVG,

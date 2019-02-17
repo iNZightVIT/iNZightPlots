@@ -61,6 +61,7 @@
 ##'
 ##' @import stats grid grDevices boot survey quantreg survey hexbin iNZightMR colorspace dichromat
 ##' @importFrom utils capture.output browseURL capture.output
+##' @importFrom iNZightTools is_num is_cat is_dt
 ##' @author Tom Elliott
 ##' @export
 iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
@@ -194,6 +195,11 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     wopt <- names(dots) %in% names(opts)  # which additional settings have been specified
     opts <- utils::modifyList(opts, dots[wopt])
 
+    ## store transformation information (for axes, etc)
+    if (!is.null(df$transformations)) {
+        opts$transform <- utils::modifyList(opts$transform, df$transformations)
+    }
+    
     ## --- colour by
     if (!is.null(df$data$colby)) {
         if (!is.numeric(df$data$colby))

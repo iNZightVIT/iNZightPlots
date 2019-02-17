@@ -89,6 +89,7 @@
 ##' large-sample plots}
 ##' \item{'xlim'}{a vector defining the x axis limits (default NULL will use the data)}
 ##' \item{'ylim'}{a vector defining the y axis limits (default NULL will use the data)}
+##' \item{'transform'}{a list of variable transformations (e.g., list(x = 'log'))}
 ##' \item{'plot.features'}{a list containing any additional features for new plots (e.g., maptype)}
 ##' }
 ##'
@@ -196,6 +197,7 @@ inzpar <- function(..., .viridis = requireNamespace("viridis", quietly = TRUE)) 
                internal.labels= TRUE,
                xlim           = NULL,
                ylim           = NULL,
+               transform      = list(),
                plot.features  = list())
 
     # update any user has specified

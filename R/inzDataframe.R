@@ -1,8 +1,10 @@
 inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env) {
 
-  # This function takes the given arguments and converts them into a
-  # data frame for easy use by iNZightPlot.
-  # It returns an object with a class: `inz.(simple|freq|survey)`
+    # This function takes the given arguments and converts them into a
+    # data frame for easy use by iNZightPlot.
+    # It returns an object with a class: `inz.(simple|freq|survey)`
+    
+    extra.info <- list()
 
     if ("g2" %in% names(m) & (!("g1" %in% names(m)) | is.null(m$g1))) {
         if (!is.null(m$g2)) {
@@ -100,10 +102,48 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     # convert anything that isn't a numeric variable to a factor
     # NOTE: this is just precautionary; as.data.frame should set any
     # character strings to factors by default.
-    makeF <- sapply(df$data, function(x) !is.numeric(x) & !is.factor(x))
-    if (any(makeF))
-        for (i in colnames(df$data)[makeF])
-            df$data[[i]] <- as.factor(df$data[[i]])
+    needs_transform <- function(x) {
+        if (is.factor(x)) return(FALSE)
+
+        if (is.numeric(x) && class(x) %in% c('integer', 'numeric'))
+            return(FALSE)
+
+        ## anything else
+        TRUE
+    }
+    makeF <- sapply(df$data, needs_transform)
+    trans <- list()
+    if (any(makeF)) 
+        for (i in colnames(df$data)[makeF]) {
+            if (inherits(df$data[[i]], "Date")) {
+                trans[[ i ]] <- "date"
+                if (i %in% c("g1", "g2")) {
+                    df$data[[i]] <- as.factor(df$data[[i]])
+                } else if (i == "colby" && length(unique(df$data[[i]]) < 10)) {
+                    df$data[[i]] <- as.factor(df$data[[i]])
+                } else if (i == "symbolby" && length(unique(df$data[[i]] < 6))) {
+                    df$data[[i]] <- as.factor(df$data[[i]])
+                } else {
+                    df$data[[i]] <- as.numeric(df$data[[i]])
+                }
+            } else if (inherits(df$data[[i]], "POSIXct") || 
+                       inherits(df$data[[i]], "times")) {
+                trans[[ i ]] <- 
+                    ifelse(inherits(df$data[[i]], "POSIXct"), "datetime", "time")
+                if (i %in% c("g1", "g2")) {
+                    ## convert datetime to factor ...
+                    lvls <- scales::pretty_breaks(4)(df$data[[i]])
+                    labs <- names(lvls)
+                    labs <- paste(labs[-length(labs)], labs[-1], sep = " to ")
+                    df$data[[i]] <- cut(df$data[[i]], lvls, labs)
+                } else {
+                    df$data[[i]] <- as.numeric(df$data[[i]])
+                }
+            } else {
+                df$data[[i]] <- as.factor(df$data[[i]])
+            }
+        }
+    if (length(trans)) df$transformations <- trans
 
     # convert any -Inf/Inf values to NA's
     # this is likely to occur if the user supplies a transformed value such as 1 / x, or
@@ -114,10 +154,10 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
 
     # convert numeric grouping variables to factors
     if ("g2" %in% colnames(df$data))
-        if (is.numeric(df$data$g2))
+        if (!is.factor(df$data$g2))
             df$data$g2 <- convert.to.factor(df$data$g2)
     if ("g1" %in% colnames(df$data)) {
-        if (is.numeric(df$data$g1))
+        if (!is.factor(df$data$g1))
             df$data$g1 <- convert.to.factor(df$data$g1)
     } else {
         if (!is.null(g2.level)) {

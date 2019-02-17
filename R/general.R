@@ -95,17 +95,22 @@ shade <- Vectorize(Shade)
 ##' @export
 convert.to.factor <-
 function(x) {
-    if (is.factor(x)) {
+    if (is_cat(x)) {
       # to simplify coding elsewhere, allow convert to factor to simply return
       # the supplied x vector if it is already a factor.
         x.fact <- x
+    } else if (is_dt(x)) {
+        x.quantiles <- scales::pretty_breaks(4)(x)
+        labs <- names(x.quantiles)
+        labs <- paste(labs[-length(labs)], labs[-1], sep = " to ")
+        x.fact <- cut(x, x.quantiles, labs)
     } else {
-    
+        
         ## converts a 
         if (length(unique(x)) < 5)
             x.fact <- factor(x)
-        else {  
-            x.quantiles <- round((quantile(x, na.rm = TRUE)), 0)  
+        else {
+            x.quantiles <- round((quantile(x, na.rm = TRUE)), 0)
             x.fact <- try(cut(x, c(-Inf, ifelse(unique(x.quantiles[2:4]) == 3,
                                                 x.quantiles[2:4],
                                                 unique(x.quantiles[2:4])),

@@ -20,8 +20,13 @@ matrix:
 
 r_check_args: "--as-cran --install-args=--build"
 
+env:
+  - R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+
 repos:
   docker: https://r.docker.stat.auckland.ac.nz
+
+r_github_packages: iNZightVIT/iNZightTools@feature/datetimes
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo chown -R $(whoami) /usr/local/share; fi
@@ -32,7 +37,6 @@ after_success:
 before_deploy:
   - if [[ "${TRAVIS_OS_NAME}" = "osx" ]]; then 
       rm -f *.tar.gz; 
-      #mv iNZightPlots_$TRAVIS_TAG.tgz iNZightPlots_$TRAVIS_TAG_R$TRAVIS_R_VERSION_$TRAVIS_OSX_IMAGE.tgz;
     fi
 
 deploy:
