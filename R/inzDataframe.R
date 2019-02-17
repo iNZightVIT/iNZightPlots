@@ -1,9 +1,10 @@
-inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env) {
+inzDataframe <- function(m, data = NULL, names = list(),
+                         g1.level, g2.level, env) {
 
     # This function takes the given arguments and converts them into a
     # data frame for easy use by iNZightPlot.
     # It returns an object with a class: `inz.(simple|freq|survey)`
-    
+
     extra.info <- list()
 
     if ("g2" %in% names(m) & (!("g1" %in% names(m)) | is.null(m$g1))) {
@@ -48,8 +49,8 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     df <- list()  # initialise the object
 
     ## ----- DATA TYPES:
-    # here, it is possible to add new data types (add the necessary conditions, etc,
-    # and then simply add the appropriate class)
+    # here, it is possible to add new data types (add the necessary conditions,
+    # etc, and then simply add the appropriate class)
     # e.g., in future we might want to add a TimeSeries data type ...
 
     if (inherits(data, "survey.design")) {
@@ -57,7 +58,9 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
         df$design <- eval(data, env)
         class(df) <- "inz.survey"
     } else if ("freq" %in% names(m)) {
-        df$data <- as.data.frame(lapply(m[mw & names(m) != "sizeby"], eval, data, env))
+        df$data <- as.data.frame(
+            lapply(m[mw & names(m) != "sizeby"], eval, data, env)
+        )
         df$freq <- eval(m$freq, data, env)
         df$max.freq <- max(df$freq)
         class(df) <- "inz.freq"
@@ -105,7 +108,7 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     needs_transform <- function(x) {
         if (is.factor(x)) return(FALSE)
 
-        if (is.numeric(x) && class(x) %in% c('integer', 'numeric'))
+        if (is.numeric(x) && class(x) %in% c("integer", "numeric"))
             return(FALSE)
 
         ## anything else
@@ -113,23 +116,27 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     }
     makeF <- sapply(df$data, needs_transform)
     trans <- list()
-    if (any(makeF)) 
+    if (any(makeF))
         for (i in colnames(df$data)[makeF]) {
             if (inherits(df$data[[i]], "Date")) {
-                trans[[ i ]] <- "date"
+                trans[[i]] <- "date"
                 if (i %in% c("g1", "g2")) {
                     df$data[[i]] <- as.factor(df$data[[i]])
                 } else if (i == "colby" && length(unique(df$data[[i]]) < 10)) {
                     df$data[[i]] <- as.factor(df$data[[i]])
-                } else if (i == "symbolby" && length(unique(df$data[[i]] < 6))) {
+                } else if (i == "symbolby" &&
+                           length(unique(df$data[[i]] < 6))) {
                     df$data[[i]] <- as.factor(df$data[[i]])
                 } else {
                     df$data[[i]] <- as.numeric(df$data[[i]])
                 }
-            } else if (inherits(df$data[[i]], "POSIXct") || 
+            } else if (inherits(df$data[[i]], "POSIXct") ||
                        inherits(df$data[[i]], "times")) {
-                trans[[ i ]] <- 
-                    ifelse(inherits(df$data[[i]], "POSIXct"), "datetime", "time")
+                trans[[i]] <-
+                    ifelse(
+                        inherits(df$data[[i]], "POSIXct"),
+                        "datetime", "time"
+                    )
                 if (i %in% c("g1", "g2")) {
                     ## convert datetime to factor ...
                     lvls <- scales::pretty_breaks(4)(df$data[[i]])
@@ -146,9 +153,10 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     if (length(trans)) df$transformations <- trans
 
     # convert any -Inf/Inf values to NA's
-    # this is likely to occur if the user supplies a transformed value such as 1 / x, or
-    # log(x) (which give Inf and -Inf respectively). Because we can't plot these values,
-    # it is easier just to replace them with missing.
+    # this is likely to occur if the user supplies a transformed value
+    # such as 1 / x, or log(x) (which give Inf and -Inf respectively).
+    # Because we can't plot these values, it is easier just to replace them
+    # with missing.
     for (i in colnames(df$data))
         df$data[[i]][is.infinite(df$data[[i]])] <- NA
 
@@ -189,8 +197,9 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
     }
     if ("symbolby" %in% colnames(df$data)) {
         df$data$symbolby <- convert.to.factor(df$data$symbolby)
-        if (length(levels(df$data$symbolby)) == 1 | length(levels(df$data$symbolby)) > 5) {
-                df$data$symbolby <- varnames$data$symbolby <- NULL
+        if (length(levels(df$data$symbolby)) == 1 |
+            length(levels(df$data$symbolby)) > 5) {
+            df$data$symbolby <- varnames$data$symbolby <- NULL
         }
     }
 
@@ -209,13 +218,17 @@ inzDataframe <- function(m, data = NULL, names = list(), g1.level, g2.level, env
             warning("`extra.vars` must be supplied as a character vector.")
     }
 
-    # fix a bug that ensures colby grouping variable is the same as g2 if both specified
+    # fix a bug that ensures colby grouping variable is the same as g2
+    # if both specified
     if ("g2" %in% colnames(df$data) & "colby" %in% colnames(df$data))
         if (varnames$g2 == varnames$colby)
             df$data$colby <- df$data$g2
 
-    df$varnames <- sapply(varnames,
-                          function(x) ifelse(!is.character(x), deparse(x), x))
+    df$varnames <-
+        sapply(
+            varnames,
+            function(x) ifelse(!is.character(x), deparse(x), x)
+        )
     df$glevels <- list(g1.level = g1.level, g2.level = g2.level)
 
     df
