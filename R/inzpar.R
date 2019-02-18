@@ -59,6 +59,7 @@
 #' \item{'box.lwd', 'box.col', 'box.fill'}{the line width, colour, and fill colour for
 #' the box plot drawn}
 #' \item{'bar.lwd', 'bar.col', 'bar.fill'}{the line width, colour, and fill colour of bars in a bar plot}
+#' \item{'bar.counts'}{logical, if \code{TRUE} bar graphs will display counts instead of percentages (the default)}
 #' \item{'full.height'}{may no longer be necessary ...}
 #' \item{'inf.lwd.comp', 'inf.lwd.conf'}{the line width of comparison and confidence intervals, respectively}
 #' \item{'inf.col.comp', 'inf.col.conf'}{the colour of comparison and confidence intervals, respectively.
@@ -189,6 +190,7 @@ inzpar <- function(...,
         bar.lwd        = 1,
         bar.col        = "black",
         bar.fill       = "darkgreen",
+        bar.counts     = FALSE,
         full.height    = FALSE,
         inf.lwd.comp   = 4,
         inf.lwd.conf   = 2,

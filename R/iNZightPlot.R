@@ -207,6 +207,8 @@ iNZightPlot <-
     if (!is.null(df$transformations)) {
         opts$transform <- utils::modifyList(opts$transform, df$transformations)
     }
+    ## apply transformations
+    df <- inztransform(df, opts$transform)
 
     ## --- colour by
     if (!is.null(df$data$colby)) {
@@ -365,6 +367,8 @@ iNZightPlot <-
     }
 
 
+
+
     ## createPlot - uses various things such as "grobWidth" which causes
     ## a new device to open so create a NULL device and delete it afterwards ...
     if (plot) {
@@ -514,7 +518,7 @@ iNZightPlot <-
             titles$ylab <-
                 if (xfact & yfact) "Proportion (%)" else ylab
         } else if (xfact) {
-            titles$ylab <- "Proportion (%)"
+            titles$ylab <- ifelse(opts$bar.counts, "Count", "Proportion (%)")
         }
         if ("colby" %in% df.vs) titles$legend <- varnames$colby
 
@@ -905,6 +909,13 @@ iNZightPlot <-
                     "in", TRUE
                 ) > maxWd))
             opts$rot <- rot
+
+            # transform?
+            opts$transform$y <-
+                ifelse(opts$bar.counts, "bar_counts", "bar_percentage")
+            if (opts$bar.counts) {
+                opts$bar.n <- nrow(df$data)
+            }
 
             if (rot) {
                 ## Unable to update the viewport, so just recreate it:
