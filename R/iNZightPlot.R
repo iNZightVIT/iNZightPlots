@@ -366,7 +366,11 @@ iNZightPlot <-
                                    mult.width = mult.width)
     }
 
-
+    # for now, disable barplot counts if two-way table
+    if (xattr$class == "inz.survey" && opts$bar.counts) {
+        warning("Showing counts on survey bar plots is currently unavailable")
+        opts$bar.counts <- FALSE
+    }
 
 
     ## createPlot - uses various things such as "grobWidth" which causes
@@ -429,6 +433,13 @@ iNZightPlot <-
     ylim <-
         if (any(TYPE %in% c("scatter", "grid", "hex"))) extendrange(ylim)
         else c(0, extendrange(ylim)[2])
+    barplot <- any(TYPE == "bar")
+
+    if (barplot) {
+        BARPLOT.N <- 
+            lapply(plot.list, function(x) 
+                lapply(x, function(y) y$ntotal))
+    }
 
     maxcnt <- NULL
     if (any(TYPE %in% c("grid", "hex"))) {
@@ -516,7 +527,9 @@ iNZightPlot <-
         titles$xlab <- xlab
         if (!ynull) {
             titles$ylab <-
-                if (xfact & yfact) "Proportion (%)" else ylab
+                if (xfact & yfact) 
+                    ifelse(opts$bar.counts, "Count", "Proportion (%)") 
+                else ylab
         } else if (xfact) {
             titles$ylab <- ifelse(opts$bar.counts, "Count", "Proportion (%)")
         }
@@ -624,7 +637,6 @@ iNZightPlot <-
         YAX.width <- ifelse(yaxis, YAX.width + YAX.default.width, 0.1)
 
         ## -- legend(s)
-        barplot <- any(TYPE == "bar")
         leg.grob1 <- leg.grob2 <- leg.grob3 <- leg.grob4 <- NULL
         cex.mult <- ifelse("g1" %in% df.vs, 1,
             ifelse("g1.level" %in% df.vs,
@@ -1085,6 +1097,9 @@ iNZightPlot <-
                 ## store row and column number
                 opts$rowNum <- r
                 opts$colNum <- c
+
+                if (barplot)
+                    opts$bar.nmax <- BARPLOT.N[[r]][[c]]
 
                 if (g2id > NG2) next ()
                 C <- c * 2 - 1

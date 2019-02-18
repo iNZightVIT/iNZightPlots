@@ -63,14 +63,17 @@ create.inz.barplot <- function(obj) {
     } else {
         if (is.null(svy)) {
             tab <- table(df$y, df$x)
-            phat <- sweep(tab, 1, nn <- rowSums(tab), "/")
+            nn <- rowSums(tab)
+            phat <- 
+                if (opts$bar.counts) tab / sum(tab)
+                else sweep(tab, 1, nn, "/")
         } else {
             tab <- svytable(~y + x, design = svy)
             phat <- svyby(~x, by = ~y, svy, FUN = svymean)[, 1 + 1:ncol(tab)]
             nn <- rowSums(tab)
         }
 
-        widths <- nn / sum(nn)
+        widths <- if(opts$bar.counts) rep(1 / length(nn), length(nn)) else nn / sum(nn)
         edges <- c(0, cumsum(widths))
     }
 
@@ -93,10 +96,19 @@ create.inz.barplot <- function(obj) {
         }
     }
 
-    out <- list(phat = phat, tab = tab, widths = widths, edges = edges, nx = ncol(phat),
-                full.height = opts$full.height, inference.info = inflist,
-                xlim = c(0, if (ynull) length(tab) else ncol(tab)),
-                ylim = c(0, max(ymax, if (!is.null(inflist)) attr(inflist, "max"), na.rm = TRUE)))
+    out <- list(
+        phat = phat, tab = tab, widths = widths, edges = edges, 
+        nx = ncol(phat), ntotal = sum(tab),
+        full.height = opts$full.height, inference.info = inflist,
+        xlim = c(0, if (ynull) length(tab) else ncol(tab)),
+        ylim = c(
+            0, 
+            max(
+                ymax, 
+                if (!is.null(inflist)) attr(inflist, "max"), na.rm = TRUE
+            )
+        )
+    )
     if (SEG) out$p.colby <- p2[nrow(p2):1, ]
     if (!is.null(ZOOM)) out$zoom.index <- ww
 

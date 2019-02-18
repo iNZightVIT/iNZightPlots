@@ -9,64 +9,10 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts, sub = 0, h
 .numericAxis <- function(x, which = "x", main = TRUE, label = TRUE, opts, sub = 0, 
                          heightOnly = FALSE, layout.only = FALSE, pos = NULL) {
 
-    xt <- x
-    breaks <- NULL
-    ## put X into the correct format ...
-    if (!is.null(opts$transform[[which]])) {
-        ## we need to apply a transformation
-        switch(
-            opts$transform[[which]],
-            "datetime" = {
-                ## format labels for datetime
-                xt <- as.POSIXct(x, origin = "1970-01-01")
-            },
-            "date" = {
-                xt <- as.Date(x, origin = "1970-01-01")
-            },
-            "time" = {
-                xt <- chron::chron(times. = x)
-            },
-            "log" = {
-                breaks <- scales::log_trans()$breaks(exp(x))
-                breaks <- log(breaks)
-                if (all(round(breaks) == breaks))
-                    names(breaks) <- paste0("e^", breaks)
-                else {
-                    names(breaks) <- round(exp(breaks))
-                }
-            },
-            "log10" = {
-                breaks <- scales::log10_trans()$breaks(10^x)
-                names(breaks) <- breaks
-                breaks <- log10(breaks)
-            },
-            "bar_percentage" = {
-                breaks <- scales::pretty_breaks()(100 * xt)
-            },
-            "bar_counts" = {
-                breaks <- scales::pretty_breaks()(xt * opts$bar.n)
-                names(breaks) <- breaks
-                breaks <- breaks / opts$bar.n * 100
-            },
-            {
-                warning(sprintf(
-                    "Unsupported transformation `%s`",
-                    opts$transform[[which]]
-                ))
-                xt <- x
-            }
-        )
-    }
-
-    if (is.null(breaks)) {
-        breaks <- scales::pretty_breaks()(xt)
-    }
-    xl <- current.viewport()[[switch(which, "x" = "xscale", y = "yscale")]]
-    breaks <- breaks[breaks > xl[1] & breaks < xl[2]]
-    at <- as.numeric(breaks)
-    labs <- FALSE
-    if (label) labs <- if (!is.null(names(breaks))) names(breaks) else at
-
+    x <- transform_axes(x, which, opts, label)
+    at <- x$at
+    labs <- x$labs
+    
     switch(
         which,
         "x" = {
@@ -205,4 +151,68 @@ addGrid <- function(x = FALSE, y = FALSE, gen, opts) {
             name = paste("inz-y-grid", opts$rowNum, opts$colNum, sep = ".")
         )
     }
+}
+
+transform_axes <- function(x, which, opts, label) {
+    xt <- x
+    breaks <- NULL
+
+    ## put X into the correct format ...
+    if (!is.null(opts$transform[[which]])) {
+        ## we need to apply a transformation
+        switch(
+            opts$transform[[which]],
+            "datetime" = {
+                ## format labels for datetime
+                xt <- as.POSIXct(x, origin = "1970-01-01")
+            },
+            "date" = {
+                xt <- as.Date(x, origin = "1970-01-01")
+            },
+            "time" = {
+                xt <- chron::chron(times. = x)
+            },
+            "log" = {
+                breaks <- scales::log_trans()$breaks(exp(x))
+                breaks <- log(breaks)
+                if (all(round(breaks) == breaks))
+                    names(breaks) <- paste0("e^", breaks)
+                else {
+                    names(breaks) <- round(exp(breaks))
+                }
+            },
+            "log10" = {
+                breaks <- scales::log10_trans()$breaks(10^x)
+                names(breaks) <- breaks
+                breaks <- log10(breaks)
+            },
+            "bar_percentage" = {
+                breaks <- scales::pretty_breaks()(100 * xt)
+            },
+            "bar_counts" = {
+                breaks <- scales::pretty_breaks()(xt * opts$bar.nmax)
+                names(breaks) <- breaks
+                print(opts$bar.nmax)
+                breaks <- breaks / opts$bar.nmax * 100
+            },
+            {
+                warning(sprintf(
+                    "Unsupported transformation `%s`",
+                    opts$transform[[which]]
+                ))
+                xt <- x
+            }
+        )
+    }
+
+    if (is.null(breaks)) {
+        breaks <- scales::pretty_breaks()(xt)
+    }
+    xl <- current.viewport()[[switch(which, "x" = "xscale", y = "yscale")]]
+    breaks <- breaks[breaks > xl[1] & breaks < xl[2]]
+    at <- as.numeric(breaks)
+    labs <- FALSE
+    if (label) labs <- if (!is.null(names(breaks))) names(breaks) else at
+
+    list(at = at, labs = labs)
 }
