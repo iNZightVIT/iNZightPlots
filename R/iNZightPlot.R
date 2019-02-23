@@ -1078,7 +1078,7 @@ iNZightPlot <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     if (any(attr(plot.list, "plottype") %in% c("dot", "hist")))
         attr(plot.list, "nbins") <- length(plot.list[[1]][[1]]$toplot[[1]]$counts)
 
-    if (itsADotplot) {
+    if (itsADotplot && plot) {
         ## some recursion instructions
         ## i.e., [original.size, new.size]
         attr(plot.list, "dotplot.redraw") <-
