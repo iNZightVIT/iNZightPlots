@@ -28,10 +28,34 @@ test_that("Single-sample dot plots", {
         c(xbar - wd, xbar + wd, xbar)
     )
 
-    pl <- iNZightPlot(x, 
-        plot = FALSE, 
-        inference.par = "iqr", 
-        inference.type = "conf"
-    )
+    ### Bootstraps
+    # pl <- iNZightPlot(x, 
+    #     plot = FALSE, 
+    #     inference.par = "iqr", 
+    #     inference.type = "conf"
+    # )
 
+})
+
+test_that("One-way table barplots", {
+    set.seed(1)
+    df <- data.frame(
+        x = sample(LETTERS[1:3], 100, replace = TRUE, prob = c(0.5, 0.3, 0.2))
+    )
+    pl <- iNZightPlot(x, data = df,
+        plot = FALSE,
+        inference.type = "conf",
+        inference.par = "proportion"
+    )
+    tab <- table(df$x)
+    pr <- tab / nrow(df)
+    wd <- as.numeric(1.96 * sqrt(pr * (1 - pr) / nrow(df)))
+    expect_equal(
+        pl$all$all$inference.info$conf,
+        list(
+            lower = unclass(t(pr - wd)),
+            upper = unclass(t(pr + wd)),
+            estimate = t(as.numeric(pr))
+        )
+    )
 })
