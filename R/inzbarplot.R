@@ -64,9 +64,9 @@ create.inz.barplot <- function(obj) {
         if (is.null(svy)) {
             tab <- table(df$y, df$x)
             nn <- rowSums(tab)
-            phat <- 
-                if (opts$bar.counts) tab / sum(tab)
-                else sweep(tab, 1, nn, "/")
+            phat <- sweep(tab, 1, nn, "/")
+                # if (opts$bar.counts) tab / sum(tab)
+                # else sweep(tab, 1, nn, "/")
         } else {
             tab <- svytable(~y + x, design = svy)
             phat <- svyby(~x, by = ~y, svy, FUN = svymean)[, 1 + 1:ncol(tab)]
@@ -80,7 +80,12 @@ create.inz.barplot <- function(obj) {
     ## Cannot have inference on segmented plot (too complicated for now)
     inflist <- if (!SEG) barinference(obj, tab, phat) else NULL
 
-    ymax <- max(phat, na.rm = TRUE)
+    ## y-axis limits are based on opts$bar.counts
+    # true: use tab
+    # false: use phat
+    ymax <-
+        if (opts$bar.counts) max(tab, na.rm = TRUE)
+        else max(phat, na.rm = TRUE)
     if (!is.null(ZOOM)) {
         if (ZOOM[1] <= ncol(phat)) {
             ww <- ZOOM[1]:(sum(ZOOM) - 1)
@@ -96,15 +101,17 @@ create.inz.barplot <- function(obj) {
         }
     }
 
+
+
     out <- list(
-        phat = phat, tab = tab, widths = widths, edges = edges, 
+        phat = phat, tab = tab, widths = widths, edges = edges,
         nx = ncol(phat), ntotal = sum(tab),
         full.height = opts$full.height, inference.info = inflist,
         xlim = c(0, if (ynull) length(tab) else ncol(tab)),
         ylim = c(
-            0, 
+            0,
             max(
-                ymax, 
+                ymax,
                 if (!is.null(inflist)) attr(inflist, "max"), na.rm = TRUE
             )
         )
@@ -175,7 +182,7 @@ plot.inzbar <- function(obj, gen) {
     grid.polygon(unit(xx, "native"), unit(yy, "native"), id = id,
                      gp =
                      gpar(fill = if (SEG) "transparent" else colz, col = opts$bar.col,
-                          lwd = opts$bar.lwd), 
+                          lwd = opts$bar.lwd),
                      name = paste("inz-BAR", opts$rowNum, opts$colNum, sep = "."))
 
     center <- apply(matrix(xx, ncol = 4, byrow = TRUE), 1, function(x) x[2] + (x[3] - x[2]) / 2)
