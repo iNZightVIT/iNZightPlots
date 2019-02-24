@@ -423,6 +423,7 @@ iNZightPlot <-
     if (!is.null(xlim)) xlim.raw <- xlim
     if (!is.null(ylim)) ylim.raw <- ylim
 
+
     ## Allow plot create methods to turn off axes:
     if (!is.null(plot.list[[1]][[1]]$draw.axes))
         if (!plot.list[[1]][[1]]$draw.axes)
@@ -436,7 +437,6 @@ iNZightPlot <-
         xlim <- xlim.raw
     if (is.null(ylim) | "inzbar" %in% plot.class)
         ylim <- ylim.raw
-
 
     TYPE <- gsub("inz", "", class(plot.list[[1]][[1]]))
     if (!any(TYPE %in% c("bar"))) xlim <- extendrange(xlim)
@@ -936,8 +936,8 @@ iNZightPlot <-
             opts$rot <- rot
 
             # transform?
-            opts$transform$y <-
-                ifelse(opts$bar.counts, "bar_counts", "bar_percentage")
+            # opts$transform$y <-
+            #     ifelse(opts$bar.counts, "bar_counts", "bar_percentage")
             if (opts$bar.counts) {
                 opts$bar.n <- nrow(df$data)
             }
@@ -1216,7 +1216,8 @@ iNZightPlot <-
 
                 pushViewport(viewport(
                     layout.pos.row = 2, xscale = xlim,
-                    yscale = if (any(TYPE == "bar")) 100 * ylim else ylim
+                    # yscale = if (any(TYPE == "bar")) 100 * ylim else ylim
+                    yscale = ylim
                 ))
                 opts$ZOOM <- zoombars
                 if (r == nr & xaxis)  # bottom

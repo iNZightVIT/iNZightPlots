@@ -2,6 +2,7 @@ create.inz.barplot <- function(obj) {
     # take the dataframe and settings from the object
     df <- obj$df
     opts <- obj$opts
+    counts <- opts$bar.counts
     xattr <- obj$xattr
 
     ZOOM <- xattr$zoom
@@ -75,7 +76,7 @@ create.inz.barplot <- function(obj) {
         }
 
         widths <-
-            if(opts$bar.counts) rep(1 / length(nn), length(nn))
+            if(counts) rep(1 / length(nn), length(nn))
             else nn / sum(nn)
         edges <- c(0, cumsum(widths))
     }
@@ -87,7 +88,7 @@ create.inz.barplot <- function(obj) {
     # true: use tab
     # false: use phat
     ymax <-
-        if (opts$bar.counts) max(tab, na.rm = TRUE)
+        if (counts) max(tab, na.rm = TRUE)
         else max(phat, na.rm = TRUE)
     if (!is.null(ZOOM)) {
         if (ZOOM[1] <= ncol(phat)) {
@@ -107,8 +108,12 @@ create.inz.barplot <- function(obj) {
 
 
     out <- list(
-        phat = phat, tab = tab, widths = widths, edges = edges,
-        nx = ncol(phat), ntotal = sum(tab),
+        phat = phat,
+        tab = as.matrix(t(tab)),
+        widths = widths,
+        edges = edges,
+        nx = ncol(phat),
+        ntotal = sum(tab),
         full.height = opts$full.height, inference.info = inflist,
         xlim = c(0, if (ynull) length(tab) else ncol(tab)),
         ylim = c(
@@ -119,6 +124,7 @@ create.inz.barplot <- function(obj) {
             )
         )
     )
+
     if (SEG) out$p.colby <- p2[nrow(p2):1, ]
     if (!is.null(ZOOM)) out$zoom.index <- ww
 
@@ -129,7 +135,8 @@ create.inz.barplot <- function(obj) {
 
 plot.inzbar <- function(obj, gen) {
     opts <- gen$opts
-    p <- obj$phat
+    counts <- opts$bar.counts
+    p <- if (counts) obj$tab else obj$phat
     nx <- obj$nx
 
     addGrid(y = TRUE, gen = gen, opts = opts)
@@ -227,7 +234,6 @@ barinference <- function(obj, tab, phat, counts) {
     bs <- opts$bs.inference
     dat <- obj$df
 
-
     if (is.null(inf.type)) {
         return(NULL)
     }
@@ -272,18 +278,21 @@ barinference <- function(obj, tab, phat, counts) {
                                 NULL
                             else
                                 list(
-                                    lower = matrix(cis[1, ],
-                                        nrow = nrow(tab),
-                                        byrow = FALSE
-                                    ),
-                                    upper = matrix(cis[2, ],
-                                        nrow = nrow(tab),
-                                        byrow = FALSE
-                                    ),
-                                    estimate = matrix(cis[3, ],
-                                        nrow = nrow(tab),
-                                        byrow = FALSE
-                                    )
+                                    lower =
+                                        matrix(cis[1, ],
+                                            nrow = nrow(tab),
+                                            byrow = FALSE
+                                        ),
+                                    upper =
+                                        matrix(cis[2, ],
+                                            nrow = nrow(tab),
+                                            byrow = FALSE
+                                        ),
+                                    estimate =
+                                        matrix(cis[3, ],
+                                            nrow = nrow(tab),
+                                            byrow = FALSE
+                                        )
                                 )
                         } else {
                             n <- sum(tab)
@@ -400,6 +409,18 @@ barinference <- function(obj, tab, phat, counts) {
             })
     }) -> result
     names(result) <- inf.type
+
+    # transform counts
+    if (counts) {
+        # loop over [conf, comp]
+        Ns <- if (twoway) colSums(tab) else sum(tab)
+        result <- lapply(result, function(res) {
+            # loop over [lower, upper, estimate]
+            lapply(res, function(r) {
+                sweep(r, 2, Ns, "*")
+            })
+        })
+    }
 
     attr(result, "bootstrap") <- bs
     attr(result, "max") <- max(
