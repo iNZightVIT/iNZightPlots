@@ -7,7 +7,11 @@ create.inz.barplot <- function(obj) {
 
     ZOOM <- xattr$zoom
 
+    if (counts) {
+        opts$inference.type <- NULL
+    }
     inf.type <- opts$inference.type
+
     inf.par <- "proportion"
     bs <- opts$bs.inference
 
@@ -76,13 +80,15 @@ create.inz.barplot <- function(obj) {
         }
 
         widths <-
-            if(counts) rep(1 / length(nn), length(nn))
+            if (counts) rep(1 / length(nn), length(nn))
             else nn / sum(nn)
         edges <- c(0, cumsum(widths))
     }
 
     ## Cannot have inference on segmented plot (too complicated for now)
-    inflist <- if (!SEG) barinference(obj, tab, phat, counts) else NULL
+    inflist <-
+        if (!SEG && !counts) barinference(obj, tab, phat, counts)
+        else NULL
 
     ## y-axis limits are based on opts$bar.counts
     # true: use tab
@@ -109,7 +115,7 @@ create.inz.barplot <- function(obj) {
 
     out <- list(
         phat = phat,
-        tab = as.matrix(t(tab)),
+        tab = if (!ynull) as.matrix(tab) else as.matrix(t(tab)),
         widths = widths,
         edges = edges,
         nx = ncol(phat),
@@ -231,6 +237,7 @@ barinference <- function(obj, tab, phat, counts) {
     xattr <- obj$xattr
     inf.par <- "proportion"
     inf.type <- opts$inference.type
+
     bs <- opts$bs.inference
     dat <- obj$df
 
@@ -413,14 +420,23 @@ barinference <- function(obj, tab, phat, counts) {
     # transform counts
     if (counts) {
         # loop over [conf, comp]
-        Ns <- if (twoway) colSums(tab) else sum(tab)
+        Ns <- if (twoway) rowSums(tab) else sum(tab)
         result <- lapply(result, function(res) {
+            if (is.null(res)) return(res)
             # loop over [lower, upper, estimate]
             lapply(res, function(r) {
-                sweep(r, 2, Ns, "*")
+                sweep(r, 1, Ns, "*")
             })
         })
     }
+
+    # make everything a matrix
+    result <- lapply(result, function(res) {
+        if (is.null(res)) return(res)
+        lapply(res, function(r) {
+            unclass(r)
+        })
+    })
 
     attr(result, "bootstrap") <- bs
     attr(result, "max") <- max(
