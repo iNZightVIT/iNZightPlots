@@ -3,7 +3,7 @@ __Release date:__ TBA
 
 - fix a small bug where new device was created for dotplots even when `plot = FALSE`
 - begin adding unit tests
-
+- allow plotting of bar plots with counts (instead of %) (removes inference)
 
 # Version 2.7
 __Release date__: 23 March 2017
