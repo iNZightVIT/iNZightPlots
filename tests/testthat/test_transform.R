@@ -5,7 +5,7 @@ df$y = 0.2 * df$x + rnorm(100, 5, 1)
 df$ex <- 10^df$x
 df$ey <- 10^df$y
 
-plotit <- TRUE
+plotit <- FALSE
 
 px <- iNZightPlot(x, data = df,
     plot = plotit,

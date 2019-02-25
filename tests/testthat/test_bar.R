@@ -10,7 +10,7 @@ pr <- tab / nrow(df)
 # CI width
 wd <- as.numeric(1.96 * sqrt(pr * (1 - pr) / nrow(df)))
 
-plotit <- TRUE
+plotit <- FALSE
 
 bar1 <- iNZightPlot(x, data = df,
     plot = plotit,

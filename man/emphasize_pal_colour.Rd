@@ -13,6 +13,8 @@ emphasize_pal_colour(n, k, cat = TRUE, ncat = 5, fn)
 
 \item{cat}{logical indicator if palette is categorical or numeric}
 
+\item{ncat}{the number of intervals to use for continuous palettes}
+
 \item{fn}{the colour palette function to use}
 }
 \value{

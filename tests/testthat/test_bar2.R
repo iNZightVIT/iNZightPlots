@@ -12,7 +12,7 @@ wd <- unclass(1.96 * sqrt(
     sweep(pr * (1 - pr), 1, rowSums(tab), "/")
 ))
 
-plotit <- TRUE
+plotit <- FALSE
 
 bar <- iNZightPlot(x, y, data = df,
     plot = plotit,

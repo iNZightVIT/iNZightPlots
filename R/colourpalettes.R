@@ -99,6 +99,7 @@ inzpalette <- function(palette, type) {
 #' @param n the number of colours to draw from the palette
 #' @param k the index of the colour to emphasize
 #' @param cat logical indicator if palette is categorical or numeric
+#' @param ncat the number of intervals to use for continuous palettes
 #' @param fn the colour palette function to use
 #' @return a colour palette, with one level emphasized (or range for numeric)
 #' @author Tom Elliott
