@@ -8,7 +8,7 @@
 #' @return a colour palette function, with argument `n`
 #' @author Tom Elliott
 #' @export
-inzpalette <- function(palette, type) {
+inzpalette <- function(palette) {
     switch(palette,
         "contrast" = function(n) {
             if (n > 8)
@@ -118,7 +118,7 @@ emphasize_pal_colour <- function(n, k, cat = TRUE, ncat = 5, fn) {
     cols
 }
 
-#' @describeIn palette List of categorical colour palettes
+#' @describeIn inzpalette List of categorical colour palettes
 #' @export
 cat_palette_names <- function() {
     pals <- list()
@@ -142,7 +142,7 @@ cat_palette_names <- function() {
     pals
 }
 
-#' @describeIn palette List of continuous  colour palettes
+#' @describeIn inzpalette List of continuous  colour palettes
 #' @export
 const_palette_names <- function() {
     pals <- list()

@@ -2,9 +2,15 @@
 % Please edit documentation in R/colourpalettes.R
 \name{inzpalette}
 \alias{inzpalette}
+\alias{cat_palette_names}
+\alias{const_palette_names}
 \title{iNZight colour palette}
 \usage{
-inzpalette(palette, type)
+inzpalette(palette)
+
+cat_palette_names()
+
+const_palette_names()
 }
 \arguments{
 \item{palette}{the name of a palette}
@@ -17,6 +23,13 @@ Used to obtain a colour palette of a given name.
 A list of available palettes can be obtained by
 `cat_palette_names()` and `cont_palette_names()`.
 }
+\section{Functions}{
+\itemize{
+\item \code{cat_palette_names}: List of categorical colour palettes
+
+\item \code{const_palette_names}: List of continuous  colour palettes
+}}
+
 \author{
 Tom Elliott
 }
