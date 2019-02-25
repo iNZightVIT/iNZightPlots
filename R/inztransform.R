@@ -2,8 +2,8 @@ inztransform <- function(df, transform) {
     if (is.null(transform)) return(df)
 
     for (trans in names(transform)) {
-        cat(sprintf("Transform %s using %s\n", trans, transform[[trans]]))
-        df$data[[trans]] <- 
+        # cat(sprintf("Transform %s using %s\n", trans, transform[[trans]]))
+        df$data[[trans]] <-
             switch(
                 transform[[trans]],
                 "log" = {
