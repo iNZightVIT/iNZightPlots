@@ -27,6 +27,7 @@ Imports:
     iNZightTools
 Suggests:
     viridis,
+    RColorBrewer,
     gridSVG,
     knitr,
     jsonlite,

@@ -1,10 +1,10 @@
-##' Allows easy viewing of every variable in the data set.
-##'
-##' @title Explore all Univariate Plots
-##' @param data a data frame
-##' @return NULL
-##' @author tell029
-##' @export
+#' Allows easy viewing of every variable in the data set.
+#'
+#' @title Explore all Univariate Plots
+#' @param data a data frame
+#' @return NULL
+#' @author tell029
+#' @export
 exploreAllPlots <- function(data) {
     ## Runs iNZightPlot on all of the variables, with a click-for-next thing.
     
