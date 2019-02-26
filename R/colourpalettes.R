@@ -29,7 +29,7 @@ inzpalette <- function(palette) {
         "magma" = viridis::magma,
         "plasma" = viridis::plasma,
         "inferno" = viridis::inferno,
-        "colourblind" = inzpar()$col.defaults$cat,
+        "colourblind" = inzpar()$col.default$cat,
         "rainbow" = function(n) {
             hcl( (1:n) / n * 360, c = 80, l = 50)
         },
@@ -90,7 +90,8 @@ inzpalette <- function(palette) {
                 l = c(50, 90),
                 power = 1
             )
-        }
+        },
+        stop("Unknown palette `", palette, "`")
     )
 }
 
