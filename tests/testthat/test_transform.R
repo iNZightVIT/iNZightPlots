@@ -1,7 +1,7 @@
 context("Axis transformations")
 
 df <- data.frame(x = rnorm(100, 0, 3))
-df$y = 0.2 * df$x + rnorm(100, 5, 1)
+df$y <- 0.2 * df$x + rnorm(100, 5, 1)
 df$ex <- 10^df$x
 df$ey <- 10^df$y
 
