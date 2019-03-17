@@ -1,4 +1,4 @@
-# Version 2.7.12.900
+# Version 2.7.12.9000
 __Release date:__ TBA
 
 - fix a small bug where new device was created for dotplots even when `plot = FALSE`
