@@ -1,14 +1,14 @@
 summary.inzdot <- function(object, des, ...) {
     ## Generate summary information:
-    
+
     ## Produce a matrix of the required summary:
     toplot <- object$toplot
 
 
-    if (is.null(des)) {    
+    if (is.null(des)) {
         do.call(rbind, lapply(names(toplot), function(p) {
             x <- toplot[[p]]$x
-            
+
             s <- suppressWarnings(
                 c(min(x),
                   quantile(x, 0.25),
@@ -52,7 +52,7 @@ summary.inzdot <- function(object, des, ...) {
                          coef(svytotal(~x, des)),
                          coef(svytotal(matrix(rep(1, nrow(des$variables)), ncol = 1), des)),
                          NaN, nrow(dv), min(dv$x, na.rm = TRUE), max(dv$x, na.rm = TRUE))
-            
+
             semat <- cbind(rbind(SE(svyquantile(~x, des, quantiles = c(0.25, 0.5, 0.75), se = TRUE))),
                            SE(svymean(~x, des)),
                            SE(svycontrast(svyvar(~x, des), quote(sqrt(`x`)))),
@@ -82,18 +82,18 @@ summary.inzdot <- function(object, des, ...) {
     mat <- rbind(rns,  mat)
     colnames(mat) <- NULL
 
-    
+
     if (length(toplot) > 1) {
         mat <- cbind(c("", rep(names(toplot), ifelse(exists("semat"), 2, 1))), mat)
     }
     rownames(mat) <- NULL
-    
+
     mat <- matrix(apply(mat, 2, function(col) {
         format(col, justify = "right")
     }), nrow = nrow(mat))
 
     mat <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
-    
+
     if (exists("semat")) {
         top <- 1:((length(mat)-1)/2+1)
         bot <- ((length(mat)-1)/2+2):length(mat)
@@ -116,10 +116,12 @@ summary.inzbar <- function(object, des, ...) {
 
     is.survey <- !is.null(des)
 
-    twoway <- length(dim(tab)) == 2
+    # survey tables do this thing where they retain their dimensions,
+    # even for one-way tables
+    twoway <- length(dim(tab)) == 2 && nrow(tab) > 1
     if (twoway) {
         tab <- as.matrix(tab)
-        
+
         perc <- as.matrix(perc)
         perc <- t(apply(perc, 1, function(p) {
             if (all(is.finite(p)))
@@ -135,7 +137,7 @@ summary.inzbar <- function(object, des, ...) {
         mat1 <- matrix(apply(mat1, 2, function(col) {
             format(col, justify = "right")
         }), nrow = nrow(mat1))
-        
+
 
         mat2 <- rbind(c(colnames(tab), "Total", "Row N"),
                       cbind(perc, rowSums(tab)))
@@ -152,7 +154,7 @@ summary.inzbar <- function(object, des, ...) {
                  apply(mat2, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
 
         if (is.survey) {
-            mat <- format(SE(svyby(~x, ~y, des, svymean, drop.empty.groups = FALSE)) * 100, digits = 4)            
+            mat <- format(SE(svyby(~x, ~y, des, svymean, drop.empty.groups = FALSE)) * 100, digits = 4)
             mat <- cbind(c("", rownames(tab)), rbind(colnames(tab), mat))
             mat <- matrix(apply(mat, 2, function(col) {
                 format(col, justify = "right")
@@ -181,10 +183,10 @@ summary.inzbar <- function(object, des, ...) {
         }), nrow = nrow(mat))
 
         mat[grep("NA", mat)] <- ""
-        
+
         mat <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
-        
-        
+
+
         if (is.survey) {
             return(c("Population Estimates:", "", mat))
         } else {
@@ -234,7 +236,7 @@ summary.inzscatter <- function(object, vn, des, ...) {
             else
                 signif(coef(lm(y ~ x + I(x^2))), 4)
         }, silent = TRUE)
-        
+
         if (inherits(beta, "try-error"))
             out <- "Unable to fit quadratic trend."
         else
