@@ -78,6 +78,7 @@ otherwise they are fit independently}
 \item{'box.lwd', 'box.col', 'box.fill'}{the line width, colour, and fill colour for
 the box plot drawn}
 \item{'bar.lwd', 'bar.col', 'bar.fill'}{the line width, colour, and fill colour of bars in a bar plot}
+\item{'bar.counts'}{logical, if \code{TRUE} bar graphs will display counts instead of percentages (the default)}
 \item{'full.height'}{may no longer be necessary ...}
 \item{'inf.lwd.comp', 'inf.lwd.conf'}{the line width of comparison and confidence intervals, respectively}
 \item{'inf.col.comp', 'inf.col.conf'}{the colour of comparison and confidence intervals, respectively.
@@ -108,10 +109,10 @@ subsets}
 large-sample plots}
 \item{'xlim'}{a vector defining the x axis limits (default NULL will use the data)}
 \item{'ylim'}{a vector defining the y axis limits (default NULL will use the data)}
+\item{'transform'}{a list of variable transformations (e.g., list(x = 'log'))}
 \item{'plot.features'}{a list containing any additional features for new plots (e.g., maptype)}
 }
 }
 \author{
 tell029
 }
-

@@ -1,42 +1,42 @@
-##' Generate summary or inference information for an iNZight plot
-##'
-##' Works much the same as \code{iNZightPlot}
-##' @title iNZight Plot Summary and Inference
-##' @param x a vector (numeric or factor), or the name of a column in the supplied
-##' \code{data} or \code{design} object
-##' @param y a vector (numeric or factor), or the name of a column in the supplied
-##' \code{data} or \code{design} object
-##' @param g1 a vector (numeric or factor), or the name of a column in the supplied
-##' \code{data} or \code{design} object. This variable acts as a subsetting variable.
-##' @param g1.level the name (or numeric position) of the level of \code{g1} that will be
-##' used instead of the entire data set
-##' @param g2 a vector (numeric or factor), or the name of a column in the supplied
-##' \code{data} or \code{design} object. This variable acts as a subsetting variable, similar to
-##' \code{g1}
-##' @param g2.level same as \code{g1.level}, however takes the additional value \code{"_MULTI"},
-##' which produces a matrix of \code{g1} by \code{g2}
-##' @param varnames a list of variable names, with the list named using the appropriate arguments
-##' (i.e., \code{list(x = "height", g1 = "gender")})
-##' @param colby the name of a variable (numeric or factor) to colour points by. In the
-##' case of a numeric variable, a continuous colour scale is used, otherwise each level of
-##' the factor is assigned a colour
-##' @param sizeby the name of a (numeric) variable, which controls the size of points
-##' @param data the name of a data set
-##' @param design the name of a survey object, obtained from the \code{survey} package
-##' @param freq the name of a frequency variable if the data are frequencies
-##' @param missing.info logical, if \code{TRUE}, information regarding missingness is
-##' displayed in the plot
-##' @param inzpars allows specification of iNZight plotting parameters over multiple plots
-##' @param summary.type one of \code{"summary"} or \code{"inference"}
-##' @param hypothesis.value H0 value for hypothesis test
-##' @param hypothesis.alt alternative hypothesis (!=, <, >)
-##' @param hypothesis.var.equal use equal variance assumption for t-test?
-##' @param hypothesis.test in some cases (currently just two-samples) can perform multiple tests (t-test or ANOVA)
-##' @param hypothesis either NULL for no test, or missing (in which case above arguments are used)
-##' @param ... additional arguments, see \code{inzpar}
-##' @return an \code{inzight.plotsummary} object with a print method
-##' @author tell029
-##' @export
+#' Generate summary or inference information for an iNZight plot
+#'
+#' Works much the same as \code{iNZightPlot}
+#' @title iNZight Plot Summary and Inference
+#' @param x a vector (numeric or factor), or the name of a column in the supplied
+#' \code{data} or \code{design} object
+#' @param y a vector (numeric or factor), or the name of a column in the supplied
+#' \code{data} or \code{design} object
+#' @param g1 a vector (numeric or factor), or the name of a column in the supplied
+#' \code{data} or \code{design} object. This variable acts as a subsetting variable.
+#' @param g1.level the name (or numeric position) of the level of \code{g1} that will be
+#' used instead of the entire data set
+#' @param g2 a vector (numeric or factor), or the name of a column in the supplied
+#' \code{data} or \code{design} object. This variable acts as a subsetting variable, similar to
+#' \code{g1}
+#' @param g2.level same as \code{g1.level}, however takes the additional value \code{"_MULTI"},
+#' which produces a matrix of \code{g1} by \code{g2}
+#' @param varnames a list of variable names, with the list named using the appropriate arguments
+#' (i.e., \code{list(x = "height", g1 = "gender")})
+#' @param colby the name of a variable (numeric or factor) to colour points by. In the
+#' case of a numeric variable, a continuous colour scale is used, otherwise each level of
+#' the factor is assigned a colour
+#' @param sizeby the name of a (numeric) variable, which controls the size of points
+#' @param data the name of a data set
+#' @param design the name of a survey object, obtained from the \code{survey} package
+#' @param freq the name of a frequency variable if the data are frequencies
+#' @param missing.info logical, if \code{TRUE}, information regarding missingness is
+#' displayed in the plot
+#' @param inzpars allows specification of iNZight plotting parameters over multiple plots
+#' @param summary.type one of \code{"summary"} or \code{"inference"}
+#' @param hypothesis.value H0 value for hypothesis test
+#' @param hypothesis.alt alternative hypothesis (!=, <, >)
+#' @param hypothesis.var.equal use equal variance assumption for t-test?
+#' @param hypothesis.test in some cases (currently just two-samples) can perform multiple tests (t-test or ANOVA)
+#' @param hypothesis either NULL for no test, or missing (in which case above arguments are used)
+#' @param ... additional arguments, see \code{inzpar}
+#' @return an \code{inzight.plotsummary} object with a print method
+#' @author tell029
+#' @export
 getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            g2 = NULL, g2.level = NULL, varnames = list(),
                            colby = NULL, sizeby = NULL,
@@ -53,6 +53,11 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                                              test = match.arg(hypothesis.test)),
                            ...) {
 
+    if (inherits(x, "data.frame")) {
+        class(x) <- c("inzdata", class(x))
+        return(summary(x, design))
+    }
+
     ## Grab a plot object!
     m <- match.call(expand.dots = FALSE)
     env <- parent.frame()
@@ -63,12 +68,12 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         md <- eval(m$data, env)
     }
 
-    varnames <- varnames
-
     ## Any varnames supplied that AREN'T needed must be removed, otherwise errors:
-    nullVars <- sapply(as.list(m)[names(varnames)], is.null)
-    varnames[nullVars] <- NULL
-    
+
+    # nullVars <- sapply(as.list(m)[names(varnames)], is.null)
+    # varnames[nullVars] <- NULL
+    varnames <- varnames[which(names(varnames) %in% names(as.list(m)))]
+
     ## fix up some subsetting group stuff
     if (is.null(m$g1)) {
         if (!is.null(m$g2)) {
@@ -76,16 +81,16 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                 varnames$g1 <- varnames$g2
                 varnames$g2 <- NULL
             }
-            
+
             getPlotSummary(x = x, y = y, g1 = g2, g1.level = g2.level, g2 = NULL, g2.level = NULL,
                            varnames = varnames, colby = colby, sizeby = sizeby, data = data,
                            design = design, freq = freq, missing.info = missing.info,
-                           new = new, inzpars = inzpars,
+                           inzpars = inzpars,
                            env = env,
                            summary.type = summary.type, hypothesis = hypothesis, ...)
         }
     }
-    
+
     ## we now want to create a data object which contains *ALL* of the necessary
     ## information, including survey design, or frequency information:
 
@@ -93,7 +98,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     rmv <- which(names(m) %in% c("colby", "sizeby"))
     if (length(rmv) > 0)
         m <- m[-rmv]
-    
+
     if (!"df" %in% ls())
         df <- inzDataframe(m, data = md, names = varnames, g1.level, g2.level, env = env)
 
@@ -109,7 +114,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ##         inference.type <- inzpars$inference.type
     ##     else
     ##         inference.type <- dots$inference.type
-        
+
     ##     if (is.null(inference.type))
     ##         inference.type <- "conf"
 
@@ -130,7 +135,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ##     else
     ##         bs.inference <- dots$bs.inference
     ## }
-    
+
     obj <- iNZightPlot(x = x, y = y, g1 = g1, g1.level = g1.level,
                        g2 = g2, g2.level = g2.level, varnames = varnames,
                        colby = NULL, sizeby = NULL,
@@ -155,7 +160,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
     obj <- object  ## same typing ... but match default `summary` method arguments
 
     ## set up some variables/functions to make text processing easier ...
-    
+
     out <- character()
     rule <- function(char, width)
         paste0(rep(char, width), collapse = "")
@@ -165,7 +170,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
     center <- centerText
     ind <- function(x, indent = 3)
         paste0(paste0(rep(" ", indent), collapse = ""), x)
-    
+
     add <- function(..., underline = FALSE) {
         x <- paste0(..., collapse = "")
         out <<- c(out, x)
@@ -181,12 +186,12 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
     total.obs <- attr(obj, "total.obs")
     bs <- attr(obj, "bootstrap")
     inzclass <- attr(obj, "inzclass")
-    
+
     is.survey <- attr(obj, "inzclass") == "inz.survey"
 
     #if (is.survey & summary.type == "inference")
     #    return("Inference for Survey Designs not yet implemented.")
-    
+
     add(Hrule)
     add(center(switch(summary.type,
                       "summary" =
@@ -210,7 +215,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
     mat <- cbind(ind(ifelse(scatter, "Response/outcome variable: ", "Primary variable of interest: ")),
                  paste0(ifelse(scatter, vnames$y, vnames$x),
                         " (", gsub("factor", "categorical", vartypes[[ifelse(scatter, vnames$y, vnames$x)]]), ")"))
-    
+
     if ("y" %in% names(vnames))
         mat <- rbind(mat, cbind(ind(paste0(ifelse(scatter,
                                                   "Predictor/explanatory", "Secondary"),
@@ -222,7 +227,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
 
     if (is.null(g.levels$g2[1]))
         wg[2] <- FALSE
-    
+
     if (any(wg)) {
         mat <- rbind(mat, "")
         mat <- rbind(mat, cbind(ind("Subset by: "),
@@ -282,7 +287,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
         vnames$y <- vnames$x
         vnames$x <- tmpx
     }
-    
+
     ## Cycle through G2 first
     lapply(names(obj), function(this) {
         if (this != "all") {
@@ -331,7 +336,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
                 header <- paste0(header, paste0(", for ", vnames$g1, " = ", o))
             }
             header <- paste0(header, ":")
-            
+
             add(header, underline = TRUE)
             add("")
 
@@ -344,7 +349,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
                                                   vn = vnames, nb = attr(obj, "nboot"),
                                                   hypothesis = hypothesis)),
                    add)
-            
+
             add("")
         })
 
@@ -357,14 +362,111 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
     add("")
     add("")
 
-    
-    
+
+
+    class(out) <- "inzight.plotsummary"
+    out
+}
+
+summary.inzdata <- function(object, des, width = 100, ...) {
+    out <- character()
+    rule <- function(char, width)
+        paste0(rep(char, width), collapse = "")
+    Hrule <- rule("=", width)
+    hrule <- rule("-", width)
+    srule <- rule("*", width)
+    center <- centerText
+    ind <- function(x, indent = 3)
+        paste0(paste0(rep(" ", indent), collapse = ""), x)
+
+    add <- function(..., underline = FALSE) {
+        x <- paste0(..., collapse = "")
+        out <<- c(out, x)
+        if (underline)
+            out <<- c(out, rule("-", width = nchar(x)))
+    }
+
+    add(Hrule)
+    add(center(sprintf(
+        "iNZight summary of %s",
+        ifelse(is.null(attr(object, "name", exact = TRUE)), "dataset",
+               paste0("\"", attr(object, "name", exact = TRUE), "\""))),
+        width))
+    add(hrule)
+
+    # mat <- cbind(ind(ifelse(scatter, "Response/outcome variable: ", "Primary variable of interest: ")),
+    #              paste0(ifelse(scatter, vnames$y, vnames$x),
+    #                     " (", gsub("factor", "categorical", vartypes[[ifelse(scatter, vnames$y, vnames$x)]]), ")"))
+
+    n.numeric <- sum(sapply(object, is.numeric))
+    n.factor <- sum(!sapply(object, is.numeric))
+    mat <- rbind(c(ind("Number of observations (rows): "), nrow(object)),
+                 c(ind("Number of variables (columns): "),
+                   sprintf("%s (%s numeric and %s categorical)", ncol(object), n.numeric, n.factor)))
+
+    mat <- cbind(format(mat[, 1], justify = "right"), mat[, 2])
+    apply(mat, 1, add)
+    add("")
+
+    add(Hrule)
+
+
+    ## variable summaries
+    if (n.numeric > 0) {
+        add("Numeric variables:", underline = TRUE)
+        add("")
+        numvars <- object[,sapply(object, is.numeric)]
+        mat <- do.call(rbind,
+            lapply(numvars, function(x) {
+                c(min(x, na.rm = TRUE), max(x, na.rm = TRUE), sum(is.na(x)))
+            })
+        )
+        mat <- matrix(apply(mat, 2, function(col) {
+            format(col, digits = 4)
+        }), nrow = nrow(mat))
+        mat[grep("NA", mat)] <- ""
+
+        mat <- rbind(c("", "min", "max", "n. missing"), cbind(names(numvars), mat))
+        mat <- matrix(apply(mat, 2, function(col) {
+            format(col, justify = "right")
+        }), nrow = nrow(mat))
+        apply(mat, 1, function(x) add(paste0("   ", paste(x, collapse = "   "))))
+        add("")
+    }
+
+    if (n.factor > 0) {
+        add("")
+        add("Categorical variables:", underline = TRUE)
+        add("")
+
+        catvars <- object[, !sapply(object, is.numeric)]
+        mat <- do.call(rbind,
+            lapply(catvars, function(x) {
+                nlev <- length(levels(x))
+                c(nlev, sum(is.na(x)))
+            })
+        )
+        mat <- matrix(apply(mat, 2, function(col) {
+            format(col, digits = 4)
+        }), nrow = nrow(mat))
+        mat[grep("NA", mat)] <- ""
+
+        mat <- rbind(c("", "n. categories", "n. missing"), cbind(names(catvars), mat))
+        mat <- matrix(apply(mat, 2, function(col) {
+            format(col, justify = "right")
+        }), nrow = nrow(mat))
+        apply(mat, 1, function(x) add(paste0("   ", paste(x, collapse = "   "))))
+        add("")
+    }
+
+    add(Hrule)
+
     class(out) <- "inzight.plotsummary"
     out
 }
 
 
-##' @export
+#' @export
 print.inzight.plotsummary <- function(x, ...) {
     cat(x, sep = "\n")
 }

@@ -2,46 +2,69 @@
 % Please edit documentation in R/exportHTML.R
 \name{exportHTML}
 \alias{exportHTML}
+\alias{exportHTML.function}
+\alias{exportHTML.ggplot}
+\alias{exportHTML.inzplotoutput}
 \title{ExportHTML}
 \usage{
-exportHTML(x, file, data, extra.vars, ...)
+exportHTML(x, file, data, local = FALSE, extra.vars, ...)
+
+\method{exportHTML}{function}(x, file = "index.html", data = NULL,
+  local = FALSE, extra.vars = NULL, width = dev.size()[1],
+  height = dev.size()[2], ...)
+
+\method{exportHTML}{ggplot}(x, file = "index.html", data = NULL,
+  local = FALSE, extra.vars = NULL, mapObj, ...)
+
+\method{exportHTML}{inzplotoutput}(x, file = "index.html", data = NULL,
+  local = FALSE, extra.vars = NULL, ...)
 }
 \arguments{
-\item{x}{An iNZight plot object or function (such as updatePlot) that captures iNZight environment}
+\item{x}{An iNZight plot object that captures iNZight environment}
 
-\item{file}{Name of temporary HTML file generated
-Additional parameters for scatterplots only:}
+\item{file}{Name of temporary HTML file generated}
 
 \item{data}{dataset/dataframe that you wish to investigate and export more variables from}
 
+\item{local}{Logical for creating local files for offline use (default to false)
+Additional parameters for scatterplots and dotplots only:}
+
 \item{extra.vars}{extra variables specified by the user to be exported}
+
+\item{...}{extra arguments}
+
+\item{width}{the desired width of the SVG plot}
+
+\item{height}{the desired height of the SVG plot}
+
+\item{mapObj}{iNZightMap object (from iNZightMaps)}
 }
 \value{
-Opens up an HTML file of \code{x} with filename \code{file} in the browser (best performance on Chrome/Firefox)
+HTML file of \code{x} with filename \code{file} in the browser
 }
 \description{
 \code{exportHTML} is designed to export the iNZight plot as a dynamic, interactive HTML page.
- It opens the written HTML page in a web browser.
 Currently only handles single panel plots. Coloured hex plots are currently not available yet.
 }
-\details{
-Generates an appropriate HTML table, converts data objects into JSON and retrieves a JavaScript file based upon the plot. Converts the plot to an svg,
-and inserts the svg plot, table, and JavaScript into the an HTML template to produce the page that is viewed in the browser.
-This function acts as generic function (either takes in function or iNZight plot object) and is comprised of two other functions.
-\code{getTable} aims to construct the appropriate table for the plot using information stored in the iNZight plot object, or data provided.
-\code{convertToJS} converts appropriate data into JSON and writes the appropriate JS file to give interactivity to the HTML page.
-}
+\section{Methods (by class)}{
+\itemize{
+\item \code{function}: method for an iNZightPlot-generating function
+
+\item \code{ggplot}: method for iNZightMaps output (via new module)
+
+\item \code{inzplotoutput}: method for output from iNZightPlot
+}}
+
 \examples{
 \dontrun{
 x <- iNZightPlot(Petal.Width, Petal.Length, data = iris, colby = Species)
-exportHTML(x, "test.html")
+exportHTML(x, "index.html")
 
 #to export more variables for scatterplots:
- exportHTML(x, "test.html", data = iris, extra.vars = c("Sepal.Length", "Sepal.Width"))
+ exportHTML(x, "index.html", data = iris, extra.vars = c("Sepal.Length", "Sepal.Width"))
 }
 
 }
 \author{
 Yu Han Soh
 }
-

@@ -4,13 +4,15 @@
 \alias{print.inzHTML}
 \title{Print method for `inzHTML` object}
 \usage{
-\method{print}{inzHTML}(x, viewer = getOption("viewer", utils::browseURL),
-  ...)
+\method{print}{inzHTML}(x, viewer = getOption("viewer",
+  utils::browseURL), ...)
 }
 \arguments{
 \item{x}{a URL that will be printed}
 
 \item{viewer}{the viewing function to use to display the URL}
+
+\item{...}{additional arguments}
 }
 \value{
 NULL (it's a print function, after all)
@@ -20,4 +22,3 @@ The default action is for the URL to be 'printed' (opened) in the browser,
 unless `viewer` is specified as something else.
 If `viewer = NULL`, then the URL is printed as a character string.
 }
-

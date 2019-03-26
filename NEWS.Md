@@ -1,3 +1,12 @@
+# Version 2.7.12.9000
+__Release date:__ TBA
+
+- fix a small bug where new device was created for dotplots even when `plot = FALSE`
+- begin adding unit tests
+- allow plotting of bar plots with counts (instead of %) (removes inference)
+- allow transformations using the `transform` argument (a named list)
+
+
 # Version 2.7
 __Release date__: 23 March 2017
 
@@ -18,6 +27,46 @@ __Release date__: 23 March 2017
 - Bumped R version up to 3.0
 - Default line type for all trends is now 1; user can choose alternatives
 
+### Patch 2.7.2 - 18/08/2017
+- Changes to ensure CRAN checks pass
+- More bug fixes in `exportX()` functions
+- Single subset interactive plots and scatterplot maps now available
+
+### Patch 2.7.3 - 02/10/2017
+- Just a few more improvements for interactive plots.
+
+### Patch 2.7.4 - 08/12/2017
+
+- More interactive plot/SVG fixes
+
+### Patch 2.7.5 - 23/01/2018
+- More fixes and features for interactive plots
+
+### Patch 2.7.6 - 21/02/2018
+- Again, more fixes/features for interactive plots - Yu Han is working hard!
+
+### Patch 2.7.7 - 18/04/2018
+- more fixes and improvements to interactive plots
+
+### Patch 2.7.8 - 23/05/2018
+- fix bug showing up in changes to R 3.5.0
+- latest interact updates
+- reword the inference output for two-way chisquare test: proportions -> distributions
+
+### Patch 2.7.9 - 14/08/2018
+- restructure templates dir into inst dir to make html/css/js templates accessible via `system.file()`
+- various other bug fixes and changes to interactive plots
+
+### Patch 2.7.10 - 17/08/2018
+- fix a bug in exportHTML where arguments not passed correctly
+
+### Patch 2.7.11 - 15/11/2018
+- [add] interactive plot helper function
+- [add] dataset summary function
+- [fix] bug in exporting thematic maps (and other fixes for interactive plots)
+
+### Patch 2.7.12 - 26/11/2018
+- fix bug in exporting interactive maps after implementing Stamen Maps
 
 ***
 # Version 2.6

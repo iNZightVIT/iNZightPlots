@@ -1,13 +1,25 @@
-R := R --vanilla --slave
-
-default:
-	@$(R) -f templates/importTemplates.R
+R := R
+RCMD := $(R) --slave
 
 document:
-	@$(R) -e "devtools::document()"
+	@$(RCMD) -e "devtools::document()"
 
 check:
-	@$(R) -e "devtools::check()"
+	@$(RCMD) -e "devtools::check()"
+
+revcheck:
+	@$(RCMD) -e "devtools::use_revdep()"
+	@$(RCMD) -f "revdep/check.R"
+
+crancheck:
+	@$(RCMD) CMD build .
+	@$(RCMD) CMD check *.tar.gz
 
 install:
-	R CMD INSTALL ./
+	$(R) CMD INSTALL ./
+
+clean:
+	@rm -rf *.tar.gz *.Rcheck revdep
+
+test:
+	@$(RCMD) -e "devtools::test()"

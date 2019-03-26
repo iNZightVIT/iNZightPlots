@@ -1,3 +1,8 @@
+^codecov\.yml$
 ^templates$
 ^Makefile$
 ^.*\.md$
+^revdep$
+^\.travis\.yml$
+^appveyor\.yml$
+^.lintr$

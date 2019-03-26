@@ -8,7 +8,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
 
     if (is.character(inf))
         return("Sample too small to get inference")
-    
+
     if (is.null(inf[[1]]$conf)) {
         warning("Please specify `inference.type = conf` to get inference information.")
         return("No inference information available. Sample size too small?")
@@ -21,26 +21,26 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
     mat <- matrix(apply(mat, 2, function(col) {
         format(col, digits = 4)
     }), nrow = nrow(mat))
-    
+
     ## Remove NA's and replace with an empty space
     mat[grep("NA", mat)] <- ""
-    
+
     ## Text formatting to return a character vector - each row of matrix
     mat <- rbind(c("Lower", "Mean", "Upper"), mat)
     colnames(mat) <- NULL
-    
+
     byFactor <- length(toplot) > 1
-    
+
     if (byFactor)
         mat <- cbind(c("", names(toplot)), mat)
     rownames(mat) <- NULL
-    
+
     mat <- matrix(apply(mat, 2, function(col) {
         format(col, justify = "right")
     }), nrow = nrow(mat))
-    
+
     out <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
-    
+
     plural <- ifelse(byFactor, "s", "")
     bsCI <- ifelse(bs, " Percentile Bootstrap", "")
     out <- c(paste0(ifelse(byFactor,
@@ -51,33 +51,33 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
 
     if (bs) {
         if (is.survey) return("Bootstrap inference not yet implemented for survey data.")
-        
+
         ## BOOTSTRAP MEDIAN
         mat <- inf$median$conf[, c("lower", "mean", "upper"), drop = FALSE]
 
         mat <- matrix(apply(mat, 2, function(col) {
             format(col, digits = 4)
         }), nrow = nrow(mat))
-        
+
         ## Remove NA's and replace with an empty space
         mat[grep("NA", mat)] <- ""
-        
+
         ## Text formatting to return a character vector - each row of matrix
         mat <- rbind(c("Lower", "Median", "Upper"), mat)
         colnames(mat) <- NULL
-        
+
         byFactor <- length(toplot) > 1
-        
+
         if (byFactor)
             mat <- cbind(c("", names(toplot)), mat)
         rownames(mat) <- NULL
-        
+
         mat <- matrix(apply(mat, 2, function(col) {
             format(col, justify = "right")
         }), nrow = nrow(mat))
-        
+
         mat <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
-        
+
         out <- c(out, "",
                  paste0(ifelse(byFactor,
                            "Group Medians", "Median"),
@@ -90,26 +90,26 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
         mat <- matrix(apply(mat, 2, function(col) {
             format(col, digits = 4)
         }), nrow = nrow(mat))
-        
+
         ## Remove NA's and replace with an empty space
         mat[grep("NA", mat)] <- ""
-        
+
         ## Text formatting to return a character vector - each row of matrix
         mat <- rbind(c("Lower", "IQR", "Upper"), mat)
         colnames(mat) <- NULL
-        
+
         byFactor <- length(toplot) > 1
-        
+
         if (byFactor)
             mat <- cbind(c("", names(toplot)), mat)
         rownames(mat) <- NULL
-        
+
         mat <- matrix(apply(mat, 2, function(col) {
             format(col, justify = "right")
         }), nrow = nrow(mat))
-        
+
         mat <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
-        
+
         out <- c(out, "",
                  paste0(ifelse(byFactor,
                            "Group Interquartile Ranges", "Interquartile Range"),
@@ -144,15 +144,15 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
 
             if (any(is.na(mat))) {
                 out <- c(out, "")
-            } else {            
+            } else {
                 mat <- cbind(c("", paste0(names(toplot)[1], " - ", names(toplot)[2])), mat)
-                
+
                 mat <- matrix(apply(mat, 2, function(col) {
                     format(col, justify = "right")
                 }), nrow = nrow(mat))
-                
+
                 mat <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
-                
+
                 out <- c(out, "",
                          sprintf("Difference in %s means with 95%s Confidence Interval",
                                  ifelse(is.survey, "population", "group"), "%"),
@@ -189,7 +189,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
                     if (!is.survey && hypothesis$var.equal) {
                         ## F test for equal variance
                         ftest <- var.test(toplot[[1]]$x, toplot[[2]]$x)
-                        
+
                         svar <- sapply(toplot, function(d) var(d$x))
                         sn <- sapply(toplot, function(d) length(d$x))
                         var.pooled <- sum((sn - 1) * svar) / sum(sn - 1)
@@ -237,16 +237,16 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
         if (length(toplot) > 2) {
             ## For x ~ factor, we also include an F test, and multiple comparisons
             ## (estimates, pvalues, and confidence intervals).
-            
+
             out <- c(out, "", "",
-                     sprintf("### Difference in mean %s between %s groups", vn$x, vn$y), 
+                     sprintf("### Difference in mean %s between %s groups", vn$x, vn$y),
                      "    (col group - row group)", "")
-            
+
             means <- predict(fit, newdata = data.frame(y = levels(dat$y)))
             names(means) <- LEVELS <- levels(dat$y)
             diffMat <- outer(means, means, function(x, y) y - x)
             diffMat <- formatTriMat(diffMat, LEVELS)
-            
+
             out <- c(out,
                      "Estimates", "",
                      apply(diffMat, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
@@ -256,19 +256,19 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
                 if (!inherits(mc, "try-error")) {
                     cimat <- triangularMatrix(LEVELS, mc, "ci")
                     cimat <- formatMat(cimat)
-                    
+
                     out <- c(out, "",
                              "95% Confidence Intervals (adjusted for multiple comparisons)", "",
                              apply(cimat, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
-                    
-                    
+
+
                     pmat <- triangularMatrix(LEVELS, mc, "p-values")
                     pmat <- formatMat(pmat, 2)
-                    
+
                     out <- c(out, "",
                              "P-values", "",
                              apply(pmat, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
-                    
+
                 } else {
                     out <- c(out, "", "Unable to compute confidence intervals and p-values.")
                 }
@@ -300,28 +300,28 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
                  )
     }
 
-    
-    
+
+
     out
 }
 
 formatTriMat <- function(mat, names) {
     ## Formats a (lower) triangular matrix nicely for display:
-    
+
     mat[!lower.tri(mat)] <- NA
     mat <- mat[-1, , drop = FALSE]
 
     mat <- matrix(apply(mat, 2, function(col) {
         format(col, digits = 4)
     }), nrow = nrow(mat))
-    
+
     mat[grep("NA", mat)] <- ""
     mat[grep("NaN", mat)] <- ""
-    
+
     mat <- cbind(c("", names[-1]),
                  rbind(names, mat))
     mat <- mat[, -ncol(mat)]
-    
+
     mat <- matrix(apply(mat, 2, function(col) {
         format(col, justify = "right")
     }), nrow = nrow(mat))
@@ -331,14 +331,14 @@ formatTriMat <- function(mat, names) {
 
 formatMat <- function(mat, digits = 4) {
     dn <- dimnames(mat)
-    
+
     mat <- apply(mat, 1, function(x) suppressWarnings(as.numeric(x)))
     ## If the matrix has a single column, apply returns a vector rather than a matrix
     if (is.matrix(mat))
         mat <- t(mat)
     else
         mat <- matrix(mat, ncol = 1)
-    
+
     mat <-  matrix(apply(mat, 2, function(col) {
         format(col, digits = digits)
     }), nrow = nrow(mat))
@@ -347,7 +347,7 @@ formatMat <- function(mat, digits = 4) {
 
     mat <- cbind(c("", dn[[1]]),
                  rbind(dn[[2]], mat))
-    
+
     mat <- matrix(apply(mat, 2, function(col) {
         format(col, justify = "right")
     }), nrow = nrow(mat))
@@ -366,7 +366,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
 
     if (! "conf" %in% names(inf))
         stop("Please specify `inference.type = conf` to get inference information.")
-    
+
     if (is.null(inf$conf))
         return("Unable to obtain inference information.")
 
@@ -375,7 +375,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
 
     twoway <- nrow(phat) > 1
     if (is.survey && !twoway) hypothesis <- NULL
-    
+
     if (!is.null(hypothesis) && !bs) {
         if (is.survey) {
             chi2 <- try(svychisq(~y+x, des), TRUE)
@@ -392,8 +392,9 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
             piece2 <- ifelse(twoway,
                              sprintf("distribution of %s changes with %s", vn$x, vn$y),
                              "true proportions in each category are not equal")
-            
-            HypOut <- c("Chi-square test for equal proportions", "",
+
+            HypOut <- c(sprintf("Chi-square test for equal %s",
+                                ifelse(twoway, "distributions", "proportions")), "",
                         paste0("   X^2 = ", format(signif(chi2$statistic, 5)), ", ",
                                "df = ", format(signif(chi2$parameter, 5)), ", ",
                                "p-value ", ifelse(chi2$p.value < 2.2e-16, "", "= "), format.pval(chi2$p.value, digits = 5)), "",
@@ -419,14 +420,14 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
         ## Text formatting to return a character vector - each row of matrix
         mat <- rbind(dn[[2]], mat)
         colnames(mat) <- NULL
-        
+
         mat <- cbind(c("", dn[[1]]), mat, c("Row sums", rep(1, nrow(phat))))
         rownames(mat) <- NULL
-        
+
         mat <- matrix(apply(mat, 2, function(col) {
             format(col, justify = "right")
         }), nrow = nrow(mat))
-        
+
         out <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
         out <- c("Estimated Proportions", "",  out)
 
@@ -449,7 +450,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
         cis <- matrix(apply(cis, 2, function(col) {
             format(col, justify = "right")
         }), nrow = nrow(cis))
-        
+
         bsCI <- ifelse(bs, " Percentile Bootstrap", "")
         out <- c(out, "", paste0("95%", bsCI, " Confidence Intervals"), "",
                  apply(cis, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
@@ -461,20 +462,20 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
             tab <- object$tab
             dat <- data.frame(x = rep(colnames(tab), times = colSums(tab)),
                               y = rep(rep(rownames(tab), times = ncol(tab)), tab))
-            
+
             b <- boot(dat, function(d, f) {
                 tt <- t(table(d[f, "x"], d[f, "y"]))
                 n1 <- nrow(tt)
                 n2 <- ncol(tt)
                 nn <- rowSums(tt)
                 pp <- sweep(tt, 1, nn, "/")
-                
+
                 d <- c()
                 for (ii in 1:n2)
                     for (jj in 2:n1)
                         d <- c(d, pp[jj, ii] - pp[jj - 1, ii])
-                
-                d  
+
+                d
             }, R = nb)
         }
 
@@ -513,9 +514,9 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
                 }
                 colnames(cis) <- dn[[1]][-n]
                 rownames(cis) <- c(rbind(dn[[1]][-1], ""))
-                
+
                 cis <- formatMat(cis, 3)
-                
+
                 out <- c(out, "",
                          paste0("95% ", bsCI, " Confidence Intervals"), "",
                          apply(cis, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
@@ -523,11 +524,11 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
         }
     } else {
         mat <- t(rbind(inf$conf$lower, inf$conf$estimate, inf$conf$upper))
-        
+
         mat <- matrix(apply(mat, 2, function(col) {
             format(col, digits = 3)
         }), nrow = nrow(mat))
-    
+
         ## Remove NA's and replace with an empty space
         mat[grep("NA", mat)] <- ""
         mat[grep("NaN", mat)] <- ""
@@ -539,13 +540,13 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
         LEVELS <- names(object$tab)
         mat <- cbind(c("", LEVELS), mat)
         rownames(mat) <- NULL
-        
+
         mat <- matrix(apply(mat, 2, function(col) {
             format(col, justify = "right")
         }), nrow = nrow(mat))
-        
+
         out <- apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   ")))
-        
+
         bsCI <- ifelse(bs, " Percentile Bootstrap", "")
         out <- c(paste0(sprintf("Estimated %sProportions with 95%s", ifelse(is.survey, "Population ", ""), "%"),
                                 bsCI, " Confidence Interval"), "",
@@ -556,7 +557,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
             ## method is applicable to the plots themselves.
             ## All other inferences are generated by the plotting function, which are then displayed on the plot
             ## and hence match the output from this function.
-            
+
             dat <- data.frame(x = rep(names(object$tab), times = object$tab))
             b <- boot(dat, function(d, f) {
                 tt <- table(d[f, ])
@@ -569,7 +570,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
                     for (jj in 1:(ii - 1))
                         d <- c(d, pp[ii] - pp[jj])
 
-                d                      
+                d
             }, R = nb)
 
             diffs <- matrix(nrow = length(LEVELS), ncol = length(LEVELS))
@@ -588,13 +589,13 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
 
             rownames(cis) <- rbind(LEVELS[-1], "")
             colnames(cis) <- cil[1, -1]
-            
+
             cis <- formatMat(cis)
-            
+
         } else {
             diffs <- freq1way.edited(object$tab, "estimates")
             diffs <- formatMat(diffs)
-        
+
             cis <- freq1way.edited(object$tab, "ci")
             cis <- formatMat(cis)
         }
@@ -608,7 +609,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
                  paste0("95%", bsCI, " Confidence Intervals"), "",
                  apply(cis, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
     }
-    
+
     out
 }
 
@@ -657,7 +658,7 @@ freq1way.edited <- function(tbl, inf.type = "estimates", conf.level = 0.95) {
                 matw[i1, i2 - 1] <- ifelse((i1 < i2),
                                            paste("(", tempw[1], ",", tempw[2], ")", sep = ""),
                                            " ")
-                
+
                 if(i2 == 2)
                     count <- i2 - 2
                 if(i1 < i2) {
@@ -691,7 +692,7 @@ pDiffCI <- function(p1, p2, n1, n2, z = 1.96) {
 inference.inzscatter <- function(object, des, bs, nb, vn, ...) {
     d <- data.frame(x = object$x, y = object$y)
     trend <- object$trend
-    
+
     if (is.null(trend))
         return("Please specify a trend line to obtain inference information.")
 
@@ -715,7 +716,7 @@ inference.inzscatter <- function(object, des, bs, nb, vn, ...) {
         } else {
             if (bs) {
                 if (is.survey) return("Bootstrap inference not yet implemented for survey data.")
-                
+
                 b <- boot(d,
                           function(dat, f) {
                               fit <- switch(t,
@@ -729,7 +730,7 @@ inference.inzscatter <- function(object, des, bs, nb, vn, ...) {
                     cbind(sprintf("%.5g", colMeans(b$t, na.rm = TRUE)),
                           sprintf("%.5g", apply(b$t, 2, quantile, probs = 0.025, na.rm = TRUE)),
                           sprintf("%.5g", apply(b$t, 2, quantile, probs = 0.975, na.rm = TRUE)))
-                
+
             } else {
                 if (is.survey) {
                     fit <- switch(t,
@@ -742,39 +743,39 @@ inference.inzscatter <- function(object, des, bs, nb, vn, ...) {
                                   lm(y ~ x + I(x^2), data = d),
                                   lm(y ~ x + I(x^2) + I(x^3), data = d))
                 }
-                
+
                 cc <- summary(fit)$coef
                 ci <- confint(fit)
-                
+
                 mat <-
                     cbind(sprintf("%.5g", cc[, 1]),
                           sprintf("%.5g", ci[, 1]),
                           sprintf("%.5g", ci[, 2]),
                           format.pval(cc[, 4], digits = 2))
             }
-            
+
             if (bs & t == 1) {
                 covMat <- mat[3, ]
                 mat <- mat[1:2, ]
             }
-            
-            
+
+
             mat <- rbind(c("Estimate", "Lower", "Upper", if (!bs) "p-value"), mat)
-            
+
             rn <- paste0(vn$x, c("", "^2", "^3"))
             mat <- cbind(c("", "Intercept", rn[1:t]), mat)
             if (bs & t == 1) {
                 mat <- rbind(mat, "", c("correlation", covMat))
             }
             mat <- apply(mat, 2, function(x) format(x, justify = "right"))
-            
+
             out <- c(out, "",
                      paste0(switch(t, "Linear", "Quadratic", "Cubic"), " Trend Coefficients with 95% ",
                             ifelse(bs, "Percentile Bootstrap ", ""), "Confidence Intervals"), "",
                      apply(mat, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
 
             ## add a 'key' to the end of the output
-            if (t == max(tr) & !bs) 
+            if (t == max(tr) & !bs)
                 out <- c(out, "", "",
                          "   p-values for the null hypothesis of no association, H0: beta = 0")
         }

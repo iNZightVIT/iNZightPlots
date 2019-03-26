@@ -9,44 +9,48 @@ iNZightPlot(x, y = NULL, g1 = NULL, g1.level = NULL, g2 = NULL,
   symbolby = NULL, extra.vars, locate = NULL, locate.id = NULL,
   locate.col = NULL, locate.extreme = NULL, highlight = NULL,
   data = NULL, design = NULL, freq = NULL, missing.info = TRUE,
-  xlab = varnames$x, ylab = varnames$y, new = TRUE, inzpars = inzpar(),
-  layout.only = FALSE, plot = TRUE, xaxis = TRUE, yaxis = TRUE,
-  xlim = NULL, ylim = NULL, zoombars = NULL, hide.legend = FALSE, df,
-  env = parent.frame(), ...)
+  xlab = varnames$x, ylab = varnames$y, new = TRUE,
+  inzpars = inzpar(), layout.only = FALSE, plot = TRUE,
+  xaxis = TRUE, yaxis = TRUE, xlim = NULL, ylim = NULL,
+  zoombars = NULL, hide.legend = FALSE, df, env = parent.frame(),
+  ...)
 }
 \arguments{
-\item{x}{a vector (numeric or factor), or the name of a column in the supplied
-\code{data} or \code{design} object}
+\item{x}{a vector (numeric or factor), or the name of a column in the
+supplied \code{data} or \code{design} object}
 
-\item{y}{a vector (numeric or factor), or the name of a column in the supplied
-\code{data} or \code{design} object}
+\item{y}{a vector (numeric or factor), or the name of a column in the
+supplied \code{data} or \code{design} object}
 
-\item{g1}{a vector (numeric or factor), or the name of a column in the supplied
-\code{data} or \code{design} object. This variable acts as a subsetting variable.}
+\item{g1}{a vector (numeric or factor), or the name of a column in the
+supplied \code{data} or \code{design} object.
+This variable acts as a subsetting variable.}
 
-\item{g1.level}{the name (or numeric position) of the level of \code{g1} that will be
-used instead of the entire data set}
+\item{g1.level}{the name (or numeric position) of the level of \code{g1}
+that will be used instead of the entire data set}
 
-\item{g2}{a vector (numeric or factor), or the name of a column in the supplied
-\code{data} or \code{design} object. This variable acts as a subsetting variable, similar to
-\code{g1}}
+\item{g2}{a vector (numeric or factor), or the name of a column in the
+supplied \code{data} or \code{design} object.
+This variable acts as a subsetting variable, similar to \code{g1}}
 
-\item{g2.level}{same as \code{g1.level}, however takes the additional value \code{"_MULTI"},
-which produces a matrix of \code{g1} by \code{g2}}
+\item{g2.level}{same as \code{g1.level}, however takes the additional value
+\code{"_MULTI"}, which produces a matrix of \code{g1} by \code{g2}}
 
-\item{varnames}{a list of variable names, with the list named using the appropriate arguments
+\item{varnames}{a list of variable names, with the list named using
+the appropriate arguments
 (i.e., \code{list(x = "height", g1 = "gender")})}
 
-\item{colby}{the name of a variable (numeric or factor) to colour points by. In the
-case of a numeric variable, a continuous colour scale is used, otherwise each level of
-the factor is assigned a colour}
+\item{colby}{the name of a variable (numeric or factor) to colour points by.
+In the case of a numeric variable, a continuous colour scale is used,
+otherwise each level of the factor is assigned a colour}
 
-\item{sizeby}{the name of a (numeric) variable, which controls the size of points}
+\item{sizeby}{the name of a (numeric) variable,
+which controls the size of points}
 
 \item{symbolby}{the name of a factor variable to code point symbols}
 
-\item{extra.vars}{the names of any additional variables to be passed through the internal functions
-to the create and plot methods.}
+\item{extra.vars}{the names of any additional variables to be passed through
+the internal functions to the create and plot methods.}
 
 \item{locate}{variable to label points}
 
@@ -54,18 +58,21 @@ to the create and plot methods.}
 
 \item{locate.col}{the colour to locate points if a variable is not specified}
 
-\item{locate.extreme}{\code{numeric}, the number of extreme points to label (using Mahalanobis' distance)}
+\item{locate.extreme}{\code{numeric}, the number of extreme points to label
+(using Mahalanobis' distance)}
 
-\item{highlight}{\code{numeric} vector consisting of the row numbers/IDs of points to highlight}
+\item{highlight}{\code{numeric} vector consisting of the row numbers/IDs of
+points to highlight}
 
 \item{data}{the name of a data set}
 
-\item{design}{the name of a survey object, obtained from the \code{survey} package}
+\item{design}{the name of a survey object, obtained from the \code{survey}
+package}
 
 \item{freq}{the name of a frequency variable if the data are frequencies}
 
-\item{missing.info}{logical, if \code{TRUE}, information regarding missingness is
-displayed in the plot}
+\item{missing.info}{logical, if \code{TRUE}, information regarding
+missingness is displayed in the plot}
 
 \item{xlab}{the text for the x-label}
 
@@ -73,12 +80,14 @@ displayed in the plot}
 
 \item{new}{logical, used for compatibility}
 
-\item{inzpars}{allows specification of iNZight plotting parameters over multiple plots}
+\item{inzpars}{allows specification of iNZight plotting parameters over
+multiple plots}
 
-\item{layout.only}{logical, if \code{TRUE}, only the layout is drawn (useful if a
-custom plot is to be drawn)}
+\item{layout.only}{logical, if \code{TRUE}, only the layout is drawn
+(useful if a custom plot is to be drawn)}
 
-\item{plot}{logical, if \code{FALSE}, the plot is not drawn (used by \code{summary})}
+\item{plot}{logical, if \code{FALSE}, the plot is not drawn
+(used by \code{summary})}
 
 \item{xaxis}{logical, whether or not to draw the x-axis}
 
@@ -88,8 +97,9 @@ custom plot is to be drawn)}
 
 \item{ylim}{specify the y limits of the plot}
 
-\item{zoombars}{numeric, length 2; when drawing a bar plot, if the number of bars is too large,
-the user can specify a subset. The first value is the starting point (1 is the first bar, etc),
+\item{zoombars}{numeric, length 2; when drawing a bar plot, if the number of
+bars is too large, the user can specify a subset.
+The first value is the starting point (1 is the first bar, etc),
 while the second number is the number of bars to show.}
 
 \item{hide.legend}{logical, if TRUE, the \code{legend} will not be drawn}
@@ -101,14 +111,14 @@ while the second number is the number of bars to show.}
 \item{...}{additional arguments, see \code{inzpar}}
 }
 \value{
-An \code{inzightplotoutput} object, which contains the information displayed
-in the plot
+An \code{inzightplotoutput} object, which contains the information
+        displayed in the plot
 }
 \description{
-A general plotting function that automatically detects variable type and draws the
-appropriate plot.
-It also provides facilities to add inference information to plots, colour- and
-size-by variables, and can handle survey data.
+A general plotting function that automatically detects variable type and
+draws the appropriate plot.
+It also provides facilities to add inference information to plots, colour-
+and size-by variables, and can handle survey data.
 }
 \details{
 Some details here ...
@@ -116,4 +126,3 @@ Some details here ...
 \author{
 Tom Elliott
 }
-

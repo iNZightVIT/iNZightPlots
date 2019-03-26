@@ -163,7 +163,7 @@ plot.inzscatter <- function(obj, gen) {
                      cex = obj$propsize,
                      lwd = opts$lwd.pt, alpha = opts$alpha,
                      fill = if (obj$fill.pt == "fill") ptCols else obj$fill.pt),
-                name = "SCATTERPOINTS")
+                name = paste("inz-SCATTERPOINTS", opts$rowNum, opts$colNum, sep = "."))
 
     ## Highlighting:
     if (!is.null(obj$highlight) & length(ptCols) > 1) {
@@ -242,7 +242,8 @@ plot.inzscatter <- function(obj, gen) {
     if (opts$LOE) {
         xx <- c(min(xlim, ylim), max(xlim, ylim))
         grid.lines(xx, xx, default.units = "native",
-                   gp = gpar(col = opts$col.LOE, lty = opts$lty.LOE))
+                   gp = gpar(col = opts$col.LOE, lty = opts$lty.LOE),
+                   name = paste("inz-line-LOE", opts$rowNum, opts$colNum, sep = "."))
     }
 
     if (opts$trend.by)

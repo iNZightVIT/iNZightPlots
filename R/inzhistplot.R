@@ -33,7 +33,7 @@ plot.inzhist <- function(obj, gen) {
         pushViewport(viewport(layout = dpLayout))
         
         pushViewport(viewport(layout.pos.row = 2, xscale = xlim))
-        if (boxplot) addBoxplot(boxinfo[[i]])
+        if (boxplot) addBoxplot(boxinfo[[i]], opts, i)
         if (!is.null(inflist)) addUnivarInference(inflist, i, opts)
         upViewport()
         
@@ -50,7 +50,8 @@ plot.inzhist <- function(obj, gen) {
             grid.polygon(bar.x, bar.y, bar.id, default.units = "native",
                          gp =
                          gpar(fill = opts$bar.fill, col = opts$bar.col,
-                              lwd = opts$bar.lwd))
+                              lwd = opts$bar.lwd),
+                         name = paste("inz-HISTBAR", opts$rowNum, opts$colNum, i, sep = "."))
         }
 
         ## Label group
