@@ -26,8 +26,6 @@ env:
 repos:
   docker: https://r.docker.stat.auckland.ac.nz
 
-r_github_packages: iNZightVIT/iNZightTools@feature/datetimes
-
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo chown -R $(whoami) /usr/local/share; fi
 
@@ -35,8 +33,8 @@ after_success:
   - Rscript -e 'covr::codecov()'
 
 before_deploy:
-  - if [[ "${TRAVIS_OS_NAME}" = "osx" ]]; then 
-      rm -f *.tar.gz; 
+  - if [[ "${TRAVIS_OS_NAME}" = "osx" ]]; then
+      rm -f *.tar.gz;
     fi
 
 deploy:
