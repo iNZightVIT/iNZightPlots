@@ -17,13 +17,16 @@ matrix:
   - os: osx
     r: 3.3
     brew_packages: libgit2
+  allow_failures:
+    - os: osx
 
 r_check_args: "--as-cran --install-args=--build"
 
 env:
   global:
     - R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
-    - _R_CHECK_FORCE_SUGGESTS_: false
+    - _R_CHECK_SYSTEM_CLOCK_=FALSE
+    - _R_CHECK_FORCE_SUGGESTS_=FALSE
 
 repos:
   docker: https://r.docker.stat.auckland.ac.nz
