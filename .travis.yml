@@ -21,8 +21,9 @@ matrix:
 r_check_args: "--as-cran --install-args=--build"
 
 env:
-  - R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
-  - _R_CHECK_FORCE_SUGGESTS_: false
+  global:
+    - R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+    - _R_CHECK_FORCE_SUGGESTS_: false
 
 repos:
   docker: https://r.docker.stat.auckland.ac.nz
