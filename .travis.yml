@@ -31,6 +31,8 @@ env:
 repos:
   docker: https://r.docker.stat.auckland.ac.nz
 
+r_github_packages: iNZightVIT/iNZightTools@dev
+
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo chown -R $(whoami) /usr/local/share; fi
 
