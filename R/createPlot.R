@@ -73,12 +73,12 @@ createPlot <- function(df, opts, xattr) {
 }
 
 
-##' Create a Plot Object
-##'
-##' @title Method for creating plots for iNZight
-##' @param obj an object
-##' @return a plotable object
-##' @author Tom Elliott
-##' @export
+#' Create a Plot Object
+#'
+#' @title Method for creating plots for iNZight
+#' @param obj an object
+#' @return a plotable object
+#' @author Tom Elliott
+#' @export
 create <- function(obj)
     UseMethod("create")

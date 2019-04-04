@@ -1,42 +1,42 @@
-##' Generate summary or inference information for an iNZight plot
-##'
-##' Works much the same as \code{iNZightPlot}
-##' @title iNZight Plot Summary and Inference
-##' @param x a vector (numeric or factor), or the name of a column in the supplied
-##' \code{data} or \code{design} object
-##' @param y a vector (numeric or factor), or the name of a column in the supplied
-##' \code{data} or \code{design} object
-##' @param g1 a vector (numeric or factor), or the name of a column in the supplied
-##' \code{data} or \code{design} object. This variable acts as a subsetting variable.
-##' @param g1.level the name (or numeric position) of the level of \code{g1} that will be
-##' used instead of the entire data set
-##' @param g2 a vector (numeric or factor), or the name of a column in the supplied
-##' \code{data} or \code{design} object. This variable acts as a subsetting variable, similar to
-##' \code{g1}
-##' @param g2.level same as \code{g1.level}, however takes the additional value \code{"_MULTI"},
-##' which produces a matrix of \code{g1} by \code{g2}
-##' @param varnames a list of variable names, with the list named using the appropriate arguments
-##' (i.e., \code{list(x = "height", g1 = "gender")})
-##' @param colby the name of a variable (numeric or factor) to colour points by. In the
-##' case of a numeric variable, a continuous colour scale is used, otherwise each level of
-##' the factor is assigned a colour
-##' @param sizeby the name of a (numeric) variable, which controls the size of points
-##' @param data the name of a data set
-##' @param design the name of a survey object, obtained from the \code{survey} package
-##' @param freq the name of a frequency variable if the data are frequencies
-##' @param missing.info logical, if \code{TRUE}, information regarding missingness is
-##' displayed in the plot
-##' @param inzpars allows specification of iNZight plotting parameters over multiple plots
-##' @param summary.type one of \code{"summary"} or \code{"inference"}
-##' @param hypothesis.value H0 value for hypothesis test
-##' @param hypothesis.alt alternative hypothesis (!=, <, >)
-##' @param hypothesis.var.equal use equal variance assumption for t-test?
-##' @param hypothesis.test in some cases (currently just two-samples) can perform multiple tests (t-test or ANOVA)
-##' @param hypothesis either NULL for no test, or missing (in which case above arguments are used)
-##' @param ... additional arguments, see \code{inzpar}
-##' @return an \code{inzight.plotsummary} object with a print method
-##' @author tell029
-##' @export
+#' Generate summary or inference information for an iNZight plot
+#'
+#' Works much the same as \code{iNZightPlot}
+#' @title iNZight Plot Summary and Inference
+#' @param x a vector (numeric or factor), or the name of a column in the supplied
+#' \code{data} or \code{design} object
+#' @param y a vector (numeric or factor), or the name of a column in the supplied
+#' \code{data} or \code{design} object
+#' @param g1 a vector (numeric or factor), or the name of a column in the supplied
+#' \code{data} or \code{design} object. This variable acts as a subsetting variable.
+#' @param g1.level the name (or numeric position) of the level of \code{g1} that will be
+#' used instead of the entire data set
+#' @param g2 a vector (numeric or factor), or the name of a column in the supplied
+#' \code{data} or \code{design} object. This variable acts as a subsetting variable, similar to
+#' \code{g1}
+#' @param g2.level same as \code{g1.level}, however takes the additional value \code{"_MULTI"},
+#' which produces a matrix of \code{g1} by \code{g2}
+#' @param varnames a list of variable names, with the list named using the appropriate arguments
+#' (i.e., \code{list(x = "height", g1 = "gender")})
+#' @param colby the name of a variable (numeric or factor) to colour points by. In the
+#' case of a numeric variable, a continuous colour scale is used, otherwise each level of
+#' the factor is assigned a colour
+#' @param sizeby the name of a (numeric) variable, which controls the size of points
+#' @param data the name of a data set
+#' @param design the name of a survey object, obtained from the \code{survey} package
+#' @param freq the name of a frequency variable if the data are frequencies
+#' @param missing.info logical, if \code{TRUE}, information regarding missingness is
+#' displayed in the plot
+#' @param inzpars allows specification of iNZight plotting parameters over multiple plots
+#' @param summary.type one of \code{"summary"} or \code{"inference"}
+#' @param hypothesis.value H0 value for hypothesis test
+#' @param hypothesis.alt alternative hypothesis (!=, <, >)
+#' @param hypothesis.var.equal use equal variance assumption for t-test?
+#' @param hypothesis.test in some cases (currently just two-samples) can perform multiple tests (t-test or ANOVA)
+#' @param hypothesis either NULL for no test, or missing (in which case above arguments are used)
+#' @param ... additional arguments, see \code{inzpar}
+#' @return an \code{inzight.plotsummary} object with a print method
+#' @author tell029
+#' @export
 getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            g2 = NULL, g2.level = NULL, varnames = list(),
                            colby = NULL, sizeby = NULL,
@@ -457,7 +457,7 @@ summary.inzdata <- function(object, des, width = 100, ...) {
 }
 
 
-##' @export
+#' @export
 print.inzight.plotsummary <- function(x, ...) {
     cat(x, sep = "\n")
 }

@@ -70,11 +70,25 @@ drawContLegend <- function(var, title = "", height = NULL, cex.mult = 1,
     if (opts$col.method == "rank") {
         at <- seq(0, 100, by = 20)
         label <- paste0(at, "%")
+    } else if (!is.null(opts$transform$colby)) {
+        if (opts$transform$colby == "datetime") {
+            ## format labels for datetime
+            xt <- as.POSIXct(var, origin = "1970-01-01")
+        } else if (opts$transform$colby == "date") {
+            xt <- as.Date(var, origin = "1970-01-01")
+        } else if (opts$transform$colby == "time") {
+            xt <- chron::chron(times. = var)
+        }
+        breaks <- scales::pretty_breaks()(xt)
+        l <- range(var, na.rm = TRUE)
+        breaks <- breaks[breaks > l[1] & breaks < l[2]]
+        at <- as.numeric(breaks)
+        labs <- names(breaks)
     } else {
         at <- NULL
-        label <- TRUE
+        labs <- TRUE
     }
-    yax <- yaxisGrob(at = at, label = label, main = FALSE, vp = vp, gp = gpar(cex = legcex * opts$cex.axis))
+    yax <- yaxisGrob(at = at, label = labs, main = FALSE, vp = vp, gp = gpar(cex = legcex * opts$cex.axis))
 
     ## need legend to fit the longest label
     var2 <- if (any.missing) c(var, "missing") else  var

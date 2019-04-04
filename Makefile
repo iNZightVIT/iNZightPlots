@@ -20,3 +20,6 @@ install:
 
 clean:
 	@rm -rf *.tar.gz *.Rcheck revdep
+
+test:
+	@$(RCMD) -e "devtools::test()"
