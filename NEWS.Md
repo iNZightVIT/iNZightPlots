@@ -1,3 +1,9 @@
+## iNZightPlots 2.7.13
+__Release date__: 05 April 019
+
+- fix bug in `getPlotSummary` when passing variables names
+  
+
 # Version 2.7
 __Release date__: 23 March 2017
 
