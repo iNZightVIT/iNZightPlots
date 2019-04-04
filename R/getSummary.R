@@ -53,7 +53,9 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                                              test = match.arg(hypothesis.test)),
                            ...) {
 
-    if (inherits(x, "data.frame")) {
+    # if (inherits(x, "data.frame")) {
+    if (missing(x)) {
+        x <- data
         class(x) <- c("inzdata", class(x))
         return(summary(x, design))
     }

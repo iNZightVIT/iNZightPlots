@@ -1,4 +1,4 @@
-# Version 2.7.12.9000
+# Version 2.7.13.9000
 __Release date:__ TBA
 
 - fix a small bug where new device was created for dotplots even when `plot = FALSE`
@@ -6,6 +6,12 @@ __Release date:__ TBA
 - allow plotting of bar plots with counts (instead of %) (removes inference)
 - allow transformations using the `transform` argument (a named list)
 
+
+## iNZightPlots 2.7.13
+__Release date__: 05 April 019
+
+- fix bug in `getPlotSummary` when passing variables names
+  
 
 # Version 2.7
 __Release date__: 23 March 2017
