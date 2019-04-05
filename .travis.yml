@@ -8,15 +8,17 @@ pandoc: false
 
 matrix:
   include:
-  - os: linux
-    r: oldrel
-  - os: linux
-    r: release
-  - os: linux
-    r: devel
-  - os: osx
-    r: 3.3
-    brew_packages: libgit2
+    - os: linux
+      r: oldrel
+    - os: linux
+      r: release
+    - os: linux
+      r: devel
+    - os: osx
+      r: release
+      brew_packages: libgit2
+  allowed_failures:
+    - os: osx
 
 r_check_args: "--as-cran --install-args=--build"
 
