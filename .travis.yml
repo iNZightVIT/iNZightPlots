@@ -17,7 +17,7 @@ matrix:
     - os: osx
       r: release
       brew_packages: libgit2
-  allowed_failures:
+  allow_failures:
     - os: osx
 
 r_check_args: "--as-cran --install-args=--build"
