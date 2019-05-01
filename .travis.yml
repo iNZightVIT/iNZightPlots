@@ -33,6 +33,9 @@ repos:
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo chown -R $(whoami) /usr/local/share; fi
 
+before_script:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then Rscript -e 'if (getRversion() < numeric_version("3.6")) remotes::install_version("gridSVG", version = "1.6-0")'; fi
+
 after_success:
   - Rscript -e 'covr::codecov()'
 
