@@ -280,16 +280,16 @@ createHTML <- function(tbl, js, file = "index.html", local = FALSE) {
 }
 
 
-##' Print method for `inzHTML` object
-##'
-##' The default action is for the URL to be 'printed' (opened) in the browser,
-##' unless `viewer` is specified as something else.
-##' If `viewer = NULL`, then the URL is printed as a character string.
-##' @param x      a URL that will be printed
-##' @param viewer the viewing function to use to display the URL
-##' @param ... additional arguments
-##' @return NULL (it's a print function, after all)
-##' @export
+#' Print method for `inzHTML` object
+#'
+#' The default action is for the URL to be 'printed' (opened) in the browser,
+#' unless `viewer` is specified as something else.
+#' If `viewer = NULL`, then the URL is printed as a character string.
+#' @param x      a URL that will be printed
+#' @param viewer the viewing function to use to display the URL
+#' @param ... additional arguments
+#' @return NULL (it's a print function, after all)
+#' @export
 print.inzHTML <- function(x, viewer = getOption("viewer", utils::browseURL), ...) {
 
   if (!is.null(viewer))
@@ -680,10 +680,10 @@ varSelect = function(varNames, pl, order, extra.vars, data, levels = FALSE) {
 }
 
 
-##' Identify if a plot can be interactive
-##' @param x the plot object (either from iNZightPlots or iNZightMaps)
-##' @return Logical to identify if there is an interactive version
-##' @export
+#' Identify if a plot can be interactive
+#' @param x the plot object (either from iNZightPlots or iNZightMaps)
+#' @return Logical to identify if there is an interactive version
+#' @export
 can.interact <- function(x) {
   # could be written in S3
   if (inherits(x, "inzplotoutput")) {
