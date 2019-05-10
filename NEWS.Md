@@ -1,5 +1,10 @@
-# Version 2.7.13.9000
-__Release date:__ TBA
+## Version 2.8.0.9000
+__Release date__: TBA
+
+
+
+# Version 2.8
+__Release date:__ 30 April 2019
 
 - fix a small bug where new device was created for dotplots even when `plot = FALSE`
 - begin adding unit tests
