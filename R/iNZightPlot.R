@@ -83,6 +83,7 @@ iNZightPlot <-
             data = NULL, design = NULL, freq = NULL,
             missing.info = TRUE,
             xlab = varnames$x, ylab = varnames$y,
+            type = "",
             new = TRUE,  # compatibility arguments
             inzpars = inzpar(), layout.only = FALSE, plot = TRUE,
             xaxis = TRUE, yaxis = TRUE, xlim = NULL, ylim = NULL,
@@ -143,7 +144,37 @@ iNZightPlot <-
             m, data = md, names = varnames, g1.level, g2.level, env = env
         )
     }
-
+    
+    if (isTRUE(grepl("^gg_", list(...)$plottype))) {
+      if (isTRUE(list(...)$plottype %in% c("gg_pie", "gg_donut", "gg_stackedcolumn", "gg_stackedbar"))) {
+        ret.plot <- iNZightPlotGG(
+          setNames(df$data, df$varnames), 
+          type = list(...)$plottype, 
+          data_name = list(...)$data.name,
+          fill = varnames$x
+        )
+        return(ret.plot)
+      } else if (isTRUE(list(...)$plottype %in% c("gg_bar", "gg_column"))) {
+        ret.plot <- iNZightPlotGG(
+          setNames(df$data, df$varnames), 
+          type = list(...)$plottype, 
+          data_name = list(...)$data.name,
+          x = varnames$x
+        )
+        return(ret.plot)
+      } else if (isTRUE(list(...)$plottype %in% c("gg_violin", "gg_barcode"))) {
+        ret.plot <- iNZightPlotGG(
+          setNames(df$data, df$varnames), 
+          type = list(...)$plottype, 
+          data_name = list(...)$data.name,
+          y = varnames$x
+        )
+        return(ret.plot)
+      }
+    }
+    
+    
+    
     total.missing <- sum(apply(df$data, 1, function(x) any(is.na(x))))
     total.obs <- nrow(df$data)
 
