@@ -146,31 +146,48 @@ iNZightPlot <-
     }
     
     if (isTRUE(grepl("^gg_", list(...)$plottype))) {
-      if (isTRUE(list(...)$plottype %in% c("gg_pie", "gg_donut", "gg_stackedcolumn", "gg_stackedbar"))) {
-        ret.plot <- iNZightPlotGG(
+      ret.plot <- do.call(
+        iNZightPlotGG, 
+        c(list(
           setNames(df$data, df$varnames), 
-          type = list(...)$plottype, 
+          type = list(...)$plottype,
           data_name = list(...)$data.name,
-          fill = varnames$x
+          main = list(...)$main,
+          xlab = xlab,
+          ylab = ylab,
+          extra_args = list(...)
+          ),
+          varnames
         )
-        return(ret.plot)
-      } else if (isTRUE(list(...)$plottype %in% c("gg_bar", "gg_column"))) {
-        ret.plot <- iNZightPlotGG(
-          setNames(df$data, df$varnames), 
-          type = list(...)$plottype, 
-          data_name = list(...)$data.name,
-          x = varnames$x
-        )
-        return(ret.plot)
-      } else if (isTRUE(list(...)$plottype %in% c("gg_violin", "gg_barcode"))) {
-        ret.plot <- iNZightPlotGG(
-          setNames(df$data, df$varnames), 
-          type = list(...)$plottype, 
-          data_name = list(...)$data.name,
-          y = varnames$x
-        )
-        return(ret.plot)
-      }
+      )
+      
+      return(ret.plot)
+      
+      # if (isTRUE(list(...)$plottype %in% c("gg_pie", "gg_donut", "gg_stackedcolumn", "gg_stackedbar"))) {
+      #   ret.plot <- iNZightPlotGG(
+      #     setNames(df$data, df$varnames), 
+      #     type = list(...)$plottype, 
+      #     data_name = list(...)$data.name,
+      #     fill = varnames$x
+      #   )
+      #   return(ret.plot)
+      # } else if (isTRUE(list(...)$plottype %in% c("gg_bar", "gg_column"))) {
+      #   ret.plot <- iNZightPlotGG(
+      #     setNames(df$data, df$varnames), 
+      #     type = list(...)$plottype, 
+      #     data_name = list(...)$data.name,
+      #     x = varnames$x
+      #   )
+      #   return(ret.plot)
+      # } else if (isTRUE(list(...)$plottype %in% c("gg_violin", "gg_barcode"))) {
+      #   ret.plot <- iNZightPlotGG(
+      #     setNames(df$data, df$varnames), 
+      #     type = list(...)$plottype, 
+      #     data_name = list(...)$data.name,
+      #     y = varnames$x
+      #   )
+      #   return(ret.plot)
+      # }
     }
     
     
