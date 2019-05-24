@@ -53,10 +53,11 @@ inzDataframe <- function(m, data = NULL, names = list(),
     # etc, and then simply add the appropriate class)
     # e.g., in future we might want to add a TimeSeries data type ...
 
-    if (inherits(data, "survey.design")) {
+    if (iNZightTools::is_survey(data)) {
         df$data <- as.data.frame(lapply(m[mw], eval, data$variables, env))
         newDat <- cbind(data$variables, df$data)
-        df$design <- eval(parse(text = modifyCall(data$call, "data", "newDat")))
+        newcall <- modifyCall(data$call, "data", "newDat")
+        df$design <- eval(parse(text = newcall))
         class(df) <- "inz.survey"
     } else if ("freq" %in% names(m)) {
         df$data <- as.data.frame(
@@ -236,7 +237,7 @@ inzDataframe <- function(m, data = NULL, names = list(),
         if ("g1" %in% colnames(df$data))
             df$design <- update(df$design, g1 = df$data$g1)
         if ("g2" %in% colnames(df$data))
-            df$design <- update(df$design, g2 = df$data$g2)        
+            df$design <- update(df$design, g2 = df$data$g2)
     }
     df
 }

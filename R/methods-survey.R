@@ -4,17 +4,17 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
 
     dd <- df$design$variables
     dd <- cbind(dd, df$data)
-    
+
     vn <- as.list(df$varnames)
 
     des <- df$design
-    
-    
+
+
     matrix.plot <- FALSE
     g1 <- g2 <- NULL
     if ("g2" %in% names(df$varnames)) {
         g2 <- df$varnames["g2"]
-        
+
         if (is.null(g2.level)) g2.level <- "_ALL"
         ng2 <- length(g2l <- if (is.null(g2.level)) "all" else levels(dd$g2))
 
@@ -23,7 +23,7 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
         if (is.numeric(g2.level)) {
             if (as.integer(g2.level) != g2.level)
                 warning(paste0("g2.level truncated to ", g2.level, "."))
-            
+
             if (g2.level == 0) {
                 g2.level <- "_ALL"
             } else if (g2.level == ng2 + 1) {
@@ -42,8 +42,8 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
         } else {
             if (g2.level == "_MULTI") {
                 matrix.plot <- TRUE
-            }                
-            
+            }
+
             missing$g2 <- sum(is.na(dd[, g2]))
             df1 <- lapply(g2l,
                           function(l) {
@@ -74,14 +74,14 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
 
         if (any(g1.level == "_MULTI"))
             g1.level <- levels(df$data$g1)
-        
+
         # track missing values due to missingness in g1
         missing$g1 <- sum(is.na(df$data$g1))
     } else {
         g1l <- "all"
         g1.level <- "all"
     }
-    
+
     # this converts each data.frame in the list to a list of data
     # frames for all levels of g1
 
@@ -89,7 +89,7 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
         df$design <- eval(parse(text = modifyCall(df$design$call, "ids", "~1")))
     oldcall <- df$design$call
 
-    
+
     df.list <- lapply(df1, function(df2) {
         df3 <- lapply(g1l, function(x) {
             if (x == "all") dfo <- df2
@@ -135,10 +135,13 @@ modifyData <- function(oldcall, data) {
 }
 
 modifyCall <- function(oldcall, arg, val) {
-    args <- names(oldcall)
-    vals <- as.character(oldcall)
-    vals[args == arg] <- val
-    newcall <- paste0(vals[1], "(", paste(args[-1], vals[-1],
-                                          sep = " = ", collapse = ", "), ")", sep = "")
-    newcall
+    call <- as.list(oldcall)
+    call[[arg]] <- as.name(val)
+
+    ## fix namespacing of some survey packages
+    if (!exists(as.character(call[[1]])) &&
+        exists(as.character(call[[1]]), asNamespace("survey")))
+        call[[1]] <- as.name(paste0("survey:::", call[[1]]))
+
+    gsub("`", "", as.character(as.expression(as.call(call))))
 }

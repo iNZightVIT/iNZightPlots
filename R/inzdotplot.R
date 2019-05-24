@@ -117,7 +117,8 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         bin.max <- cuts[-1]
 
         ## Cut the data and calculate counts:
-        if (inherits(d, "survey.design")) {
+        # if (inherits(d, "survey.design")) {
+        if (iNZightTools::is_survey(d)) {
             ## To do this, we will pretty much grab stuff from the `survey` package, however it
             ## cannot be used separately to produce the bins etc without plotting it; so copyright
             ## for the next few lines goes to Thomas Lumley.
@@ -436,7 +437,7 @@ addBoxplot <- function(x, opts, i) {
     r <- opts$rowNum
     c <- opts$colNum
     opts <- x$opts
-    
+
     if (is.null(x))
         return()
 
@@ -444,11 +445,11 @@ addBoxplot <- function(x, opts, i) {
     yy <- rep(c(0.2, 0.8, 0.8, 0.2), 2)
     id <- rep(1:2, each = 4)
     grid.polygon(unit(xx, "native"), unit(yy, "npc"), id = id,
-                 gp = gpar(lwd = opts$box.lwd[1], fill = opts$box.fill), 
+                 gp = gpar(lwd = opts$box.lwd[1], fill = opts$box.fill),
                  name = paste("inz-box", r, c, i, sep = "."))
     grid.polyline(unit(c(x$min, x$quantiles[1], x$quantiles[3], x$max), "native"),
                   rep(0.5, 4), id = rep(1:2, each = 2),
-                  gp = gpar(lwd = opts$box.lwd[2]), 
+                  gp = gpar(lwd = opts$box.lwd[2]),
                   name = paste("inz-box-line", r, c, i, sep = "."))
 
 }
