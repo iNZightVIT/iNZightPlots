@@ -8,19 +8,21 @@ pandoc: false
 
 matrix:
   include:
-  - os: linux
-    r: oldrel
-  - os: linux
-    r: release
-  - os: linux
-    r: devel
-  - os: osx
-    r: 3.3
-    brew_packages: libgit2
+    - os: linux
+      r: oldrel
+    - os: linux
+      r: release
+    - os: linux
+      r: devel
+    - os: osx
+      r: release
+      brew_packages: libgit2
   allow_failures:
     - os: osx
 
 r_check_args: "--as-cran --install-args=--build"
+
+# r_github_packages: iNZightVIT/iNZightTools@dev
 
 env:
   global:
@@ -31,10 +33,12 @@ env:
 repos:
   docker: https://r.docker.stat.auckland.ac.nz
 
-r_github_packages: iNZightVIT/iNZightTools@dev
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo chown -R $(whoami) /usr/local/share; fi
+
+before_script:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then Rscript -e 'if (getRversion() < numeric_version("3.6")) remotes::install_version("gridSVG", version = "1.6-0")'; fi
 
 after_success:
   - Rscript -e 'covr::codecov()'
