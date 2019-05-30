@@ -4,14 +4,109 @@ required_arguments <- list(
   column = c("x")
 )
 
+replace_data_name <- function(expr, new_name) {
+  if (is.name(expr[[2]])) {
+    expr[[2]] <- rlang::sym(new_name)
+  } else {
+    expr[[2]] <- replace_data_name(expr[[2]], new_name)
+  }
+  
+  expr
+}
+
+insert_into_first_place <- function(expr, insert_expr) {
+  if (is.name(expr[[2]])) {
+    expr[[2]] <- rlang::expr(!!expr[[2]] %>% !!insert_expr)
+  } else {
+    expr[[2]] <- insert_into_first_place(expr[[2]], insert_expr)
+  }
+  
+  expr
+}
+
+add_to_group <- function(expr, vars) {
+  if (expr[[3]][[1]] == "dplyr::group_by") {
+    expr[[3]] <- as.call(c(as.list(expr[[3]]), vars))
+  } else if (expr[[3]][[1]] == "dplyr::ungroup") {
+    expr[[3]] <- as.call(list(rlang::expr(dplyr::group_by), vars))
+  }
+  
+  if (is.name(expr[[2]])) {
+    expr
+  } else {
+    expr[[2]] <- add_to_group(expr[[2]], vars)
+    expr
+  }
+}
+
+
+iNZightPlotGG_facet <- function(data, data_name, exprs, g1, g2, g1.level, g2.level) {
+  if (!is.null(g1)) {
+    if (g1.level != "_MULTI") {
+      if (is.null(exprs$data)) {
+        exprs <- list(
+          data = rlang::expr(plot_data <- !!rlang::sym(data_name) %>% dplyr::filter(!!rlang::sym(g1) == !!g1.level)),
+          plot = replace_data_name(exprs$plot, "plot_data")
+        )
+      } else {
+        exprs$data[[3]] <- insert_into_first_place(exprs$data[[3]], rlang::expr(dplyr::filter(!!rlang::sym(g1) == !!g1.level)))
+        exprs$data[[3]] <- add_to_group(exprs$data[[3]], rlang::sym(g1))
+      }
+    } else {
+      if (!is.null(exprs$data)) {
+        exprs$data[[3]] <- add_to_group(exprs$data[[3]], rlang::sym(g1))
+      }
+    }
+  }
+  
+  if (!is.null(g2)) {
+    if (g2.level != "_MULTI" && g2.level != "_ALL") {
+      if (is.null(exprs$data)) {
+        exprs <- list(
+          data = rlang::expr(plot_data <- !!rlang::sym(data_name) %>% dplyr::filter(!!rlang::sym(g2) == !!g2.level)),
+          plot = replace_data_name(exprs$plot, "plot_data")
+        )
+        
+        exprs$data[[3]] <- add_to_group(exprs$data[[3]], rlang::sym(g2))
+      } else {
+        exprs$data[[3]] <- insert_into_first_place(exprs$data[[3]], rlang::expr(dplyr::filter(!!rlang::sym(g2) == !!g2.level)))
+        exprs$data[[3]] <- add_to_group(exprs$data[[3]], rlang::sym(g2))
+        
+      }
+      
+    } else {
+      if (!is.null(exprs$data)) {
+        exprs$data[[3]] <- add_to_group(exprs$data[[3]], rlang::sym(g2))
+      }
+    }
+    
+  }
+  
+  if (isTRUE(is.null(g2))) {
+    exprs$plot <- rlang::expr(!!exprs$plot + ggplot2::facet_grid(rows = ggplot2::vars(!!rlang::sym(g1))))
+  } else {
+    exprs$plot <- rlang::expr(!!exprs$plot + ggplot2::facet_grid(rows = ggplot2::vars(!!rlang::sym(g1)), cols = ggplot2::vars(!!rlang::sym(g2))))
+  }
+  
+  # print(exprs)
+  
+  exprs
+}
+
 iNZightPlotGG_decide <- function(data, varnames, type) {
+  print(varnames)
+  varnames <- varnames[grep("\\.level$", names(varnames), invert = TRUE)]
+  varnames <- varnames[grep("g1", names(varnames), invert = TRUE)]
+  varnames <- varnames[grep("g2", names(varnames), invert = TRUE)]
+  print(varnames)
+  print(colnames(data))
   nullVars <- vapply(data[, varnames, drop = FALSE], is.null, FUN.VALUE = logical(1))
   varnames[which(nullVars)] <- NULL
   varnames[!varnames %in% colnames(data)] <- NULL
   
   if (type %in% c("gg_pie", "gg_donut")) {
     names(varnames) <- replace(names(varnames), names(varnames) == "x", "fill")
-  } else if (type %in% c("gg_violin", "gg_barcode")) {
+  } else if (type %in% c("gg_violin", "gg_barcode", "gg_boxplot", "gg_cumcurve", "gg_column2", "gg_lollipop")) {
     if (!("y" %in% names(varnames))) {
       names(varnames) <- replace(names(varnames), names(varnames) == "x", "y")
     } else if (is.numeric(data[[varnames["x"]]])) {
@@ -25,8 +120,6 @@ iNZightPlotGG_decide <- function(data, varnames, type) {
       names(varnames) <- replace(names(varnames), names(varnames) == "y", "x")
     }
   }
-  
-  print(varnames)
   
   varnames
 }
@@ -44,9 +137,24 @@ iNZightPlotGG_extraargs <- function(extra_args) {
 }
 
 ##' @importFrom magrittr "%>%"
-iNZightPlotGG <- function(data, type, data_name = "data", main, xlab, ylab, extra_args = c(), ...) {
-  extra_args <- iNZightPlotGG_extraargs(extra_args)
-  plot_args <- iNZightPlotGG_decide(data, unlist(list(...)), type)
+iNZightPlotGG <- function(
+  data, 
+  type, 
+  data_name = "data", 
+  main, 
+  xlab, 
+  ylab, 
+  extra_args = c(), 
+  ...
+) {
+  dots <- list(...)
+
+  if (length(extra_args) > 0) {
+    rotate <- extra_args$rotation
+    extra_args <- iNZightPlotGG_extraargs(extra_args)
+  }
+  
+  plot_args <- iNZightPlotGG_decide(data, unlist(dots), type)
   plot_exprs <- do.call(
     sprintf("iNZightPlotGG_%s", gsub("^gg_", "", type)), 
     c(rlang::sym(data_name), main = main, xlab = xlab, ylab = ylab, plot_args)
@@ -60,13 +168,23 @@ iNZightPlotGG <- function(data, type, data_name = "data", main, xlab, ylab, extr
     plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::theme(panel.background = ggplot2::element_rect(fill = !!extra_args$bg)))
   }
   
+  if (isTRUE(!is.null(dots$g1))) {
+    plot_exprs <- iNZightPlotGG_facet(data, data_name, plot_exprs, dots$g1, dots$g2, dots$g1.level, dots$g2.level)
+  }
+  
+  if (isTRUE(rotate)) {
+    plot_exprs$plot <- rotate(plot_exprs$plot)
+  }
+  
   eval_env <- rlang::env(!!rlang::sym(data_name) := data)
 
   eval_results <- lapply(plot_exprs, eval, envir = eval_env)
   
   plot_object <- eval_results[[length(eval_results)]]
   
+  dev.hold()
   print(plot_object)
+  dev.flush()
   
   attr(plot_object, "code") <- unname(unlist(lapply(plot_exprs, rlang::expr_text)))
   attr(plot_object, "plottype") <- c(type)
@@ -77,11 +195,11 @@ iNZightPlotGG <- function(data, type, data_name = "data", main, xlab, ylab, extr
 }
 
 iNZightPlotGG_pie <- function(data, fill, main = "Pie Chart", ...) {
-  fill = rlang::sym(fill)
+  fill <- rlang::sym(fill)
 
   plot_expr <- rlang::expr(
     ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = factor(1), fill = !!fill)) + 
-      ggplot2::geom_bar(ggplot2::aes(y = ..count../sum(..count..))) +
+      ggplot2::geom_bar(ggplot2::aes(y = ..count../sum(..count..)), position = "fill") +
       ggplot2::coord_polar(theta = "y") + 
       ggplot2::xlab("") + 
       ggplot2::ylab("") + 
@@ -126,7 +244,7 @@ iNZightPlotGG_donut <- function(data, fill, main = "Donut Chart", ...) {
   )
 }
 
-iNZightPlotGG_column <- function(data, x, main = "Column chart", xlab = as.character(x), ylab = "Percent", ...) {
+iNZightPlotGG_column <- function(data, x, main = "Column chart", xlab = as.character(x), ylab = "Count", ...) {
   x <- rlang::sym(x)
   
   plot_expr <- rlang::expr(
@@ -247,14 +365,16 @@ iNZightPlotGG_violin <- function(data, x, y, main = "Violin chart", xlab = as.ch
 iNZightPlotGG_barcode <- function(data, x, y, main = "Barcode chart", ...) {
   if (missing(x)) {
     x <- rlang::expr(factor(1))
+    colour <- NULL
   } else {
     x <- rlang::sym(x)
+    colour <- rlang::sym(x)
   }
   
   y <- rlang::sym(y)
   
   plot_expr <- rlang::expr(
-    ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y)) + 
+    ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, colour = !!colour)) + 
       ggplot2::geom_point(shape = "|", size = 16, alpha = 0.2) + 
       ggplot2::coord_flip()
   )
@@ -265,11 +385,18 @@ iNZightPlotGG_barcode <- function(data, x, y, main = "Barcode chart", ...) {
 }
 
 iNZightPlotGG_boxplot <- function(data, x, y, main = "Barchart", ...) {
-  x <- rlang::sym(x)
+  if (missing(x)) {
+    x <- rlang::expr(factor(1))
+    fill <- NULL
+  } else {
+    x <- rlang::sym(x)
+    fill <- rlang::sym(x)
+  }
+  
   y <- rlang::sym(y)
   
   plot_expr <- rlang::expr(
-    ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y)) +
+    ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, fill = !!fill)) +
       ggplot2::geom_boxplot()
   )
   
@@ -277,3 +404,94 @@ iNZightPlotGG_boxplot <- function(data, x, y, main = "Barchart", ...) {
     plot = plot_expr
   )
 }
+
+iNZightPlotGG_column2 <- function(data, x, y, main = "Column Chart 2", ...) {
+  if (missing(x)) {
+    x <- rlang::expr(1:nrow(!!rlang::enexpr(data)))
+  } else {
+    x <- rlang::sym(x)
+  }
+  
+  y <- rlang::sym(y)
+  
+  data_expr <- rlang::expr(
+    plot_data <- !!rlang::enexpr(data) %>% 
+      dplyr::arrange(!!y)
+  )
+  
+  plot_expr <- rlang::expr(
+    ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, y = !!y)) + 
+      ggplot2::geom_col()
+  )
+  
+  list(
+    data = data_expr,
+    plot = plot_expr
+  )
+}
+
+
+iNZightPlotGG_lollipop <- function(data, x, y, main = "Lollipop chart", ...) {
+  if (missing(x)) {
+    x <- rlang::expr(1:nrow(!!rlang::enexpr(data)))
+  } else {
+    x <- rlang::sym(x)
+  }
+  
+  y <- rlang::sym(y)
+  
+  data_expr <- rlang::expr(
+    plot_data <- !!rlang::enexpr(data) %>% 
+      dplyr::arrange(!!y)
+  )
+  
+  plot_expr <- rlang::expr(
+    ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, y = !!y)) + 
+      ggplot2::geom_segment(ggplot2::aes(xend = !!x, yend = 0)) + 
+      ggplot2::geom_point()
+  )
+
+  list(
+    data = data_expr,
+    plot = plot_expr
+  )
+}
+
+iNZightPlotGG_cumcurve <- function(data, x, y, main = "Cumulative curve", ...) {
+  y <- rlang::sym(y)
+  
+  data_expr <- rlang::expr(
+    plot_data <- !!rlang::enexpr(data) %>% 
+      dplyr::arrange(!!y)
+  )
+  
+  plot_expr <- rlang::expr(
+    ggplot2::ggplot(plot_data, ggplot2::aes(x = !!y, y = cummax(1:nrow(plot_data)))) + 
+      ggplot2::geom_step() + 
+      ggplot2::ylab("Cumulative Frequency")
+  )
+  
+  list(
+    data = data_expr,
+    plot = plot_expr
+  )
+  
+}
+
+iNZightPlotGG_poppyramid <- function(data, x, fill, main = "Population Pyramid", ...) {
+  x <- rlang::sym(x)
+  fill <- rlang::sym(fill)
+  
+  plot_expr <- rlang::expr(
+    ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, fill = !!fill)) + 
+      ggplot2::geom_bar(data = subset(!!rlang::enexpr(data), !!fill == levels(!!fill)[1])) + 
+      ggplot2::geom_bar(data = subset(!!rlang::enexpr(data), !!fill == levels(!!fill)[2]), ggplot2::aes(y = stat(count * -1))) + 
+      coord_flip()
+  )
+  
+  list(
+    plot = plot_expr
+  )
+  
+}
+

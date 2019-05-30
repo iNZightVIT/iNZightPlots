@@ -157,7 +157,8 @@ iNZightPlot <-
           ylab = ylab,
           extra_args = list(...)
           ),
-          varnames
+          varnames,
+          list(g1.level = g1.level, g2.level = g2.level)
         )
       )
       
