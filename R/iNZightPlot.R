@@ -131,6 +131,8 @@ iNZightPlot <-
     ## getSummary and other wrappers will pass an inz.data object
     if (missing(df)) {
         if (!is.null(design)) {
+            if (grepl("as.svrepdesign", design$call[[1]]))
+                stop("Objects created with `as.svrepdesign` not yet supported.")
             md <- eval(m$design, env)
         } else {
             md <- eval(m$data, env)
@@ -308,7 +310,7 @@ iNZightPlot <-
                 c,
                 lapply(df.list, function(df)
                     sapply(df, function(a) {
-                        if (inherits(a, "survey.design")) {
+                        if (is_survey(a)) {
                             o <- nrow(a$variables)
                         } else {
                             o <- nrow(a)

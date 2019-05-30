@@ -19,10 +19,20 @@ dclus2<-svydesign(id=~dnum+snum, fpc=~fpc1+fpc2, data=apiclus2)
 
 r2 <- suppressWarnings(as.svrepdesign(dclus2))
 
+# load_all()
+# iNZightPlot(api00, api99, data = apiclus2)
 # iNZightPlot(api00, api99, design = dclus2)
-# iNZightPlot(api00, api99, design = r2)
 
+test_that("Replicate weight designed supported", {
+    expect_is(
+        iNZightPlot(alive, design = scdrep),
+        "inzplotoutput"
+    )
+})
 
-test_that("a thing", {
-    # iNZightPlot(alive, design = scdrep)
+test_that("Surveys converted to replicate designs fail", {
+    expect_error(
+        iNZightPlot(api00, api99, design = r2),
+        "not yet supported"
+    )
 })

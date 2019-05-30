@@ -117,8 +117,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         bin.max <- cuts[-1]
 
         ## Cut the data and calculate counts:
-        # if (inherits(d, "survey.design")) {
-        if (iNZightTools::is_survey(d)) {
+        if (is_survey(d)) {
             ## To do this, we will pretty much grab stuff from the `survey` package, however it
             ## cannot be used separately to produce the bins etc without plotting it; so copyright
             ## for the next few lines goes to Thomas Lumley.
@@ -415,16 +414,16 @@ boxSummary <- function(obj, opts) {
         if (is.null(o))
             return(NULL)
 
-        if (!inherits(o, "survey.design")) {
-            quant <- quantile(o$x, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
-            min <- min(o$x, na.rm = TRUE)
-            max <- max(o$x, na.rm = TRUE)
-        } else {
+        if (is_survey(o)) {
             if (nrow(o$variables) < 5) return(NULL)
             svyobj <- o
             quant <- svyquantile(~x, svyobj, quantiles = c(0.25, 0.5, 0.75))
             min <- min(svyobj$variables$x, na.rm = TRUE)
             max <- max(svyobj$variables$x, na.rm = TRUE)
+        } else{
+            quant <- quantile(o$x, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+            min <- min(o$x, na.rm = TRUE)
+            max <- max(o$x, na.rm = TRUE)
         }
 
         list(quantiles = quant, min = min, max = max, inference = FALSE, opts = opts)
