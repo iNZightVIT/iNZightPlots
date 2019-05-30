@@ -1,7 +1,7 @@
 addXYsmoother <- function(obj, opts, col.args, xlim, ylim) {
     ## decide what x and y are:
     if ("svy" %in% names(obj)) {
-        if (inherits(obj$svy, "survey.design")) {
+        if (is_suervey(obj$svy)) {
             x <- obj$svy
             y <- NULL
         } else {
@@ -22,13 +22,13 @@ addXYsmoother <- function(obj, opts, col.args, xlim, ylim) {
         x <- obj$x
         y <- obj$y
     }
-    
+
     if (length(opts$quant.smooth) > 0) {
-        if (inherits(x, "survey.design"))
+        if (is_survey(x))
             X <- x
         else
             X <- cbind(x, y)
-        
+
         qs <- try(calcQSmooth(X, opts$quant.smooth, opts), TRUE)
         if (!inherits(qs, "try-error")) {
             qp <- qs$qp
@@ -54,7 +54,7 @@ addXYsmoother <- function(obj, opts, col.args, xlim, ylim) {
                     byy <- as.factor(obj$col)  # pseudo-by-variable
                     xtmp <- lapply(levels(byy), function(c) subset(x, obj$col == c))
                     ytmp <- lapply(levels(byy), function(c) subset(y, obj$col == c))
-                    
+
                     for (b in 1:length(levels(byy)))
                         try(addSmoother(xtmp[[b]], ytmp[[b]],
                                         f = opts$smooth,
@@ -69,7 +69,7 @@ addXYsmoother <- function(obj, opts, col.args, xlim, ylim) {
 
 addSmoother <-
 function(x, y = NULL, f, col, bs, lty = 1, opts) {
-    if (is.null(y) & inherits(x, "survey.design")) {
+    if (is.null(y) & is_survey(x)) {
         sm <- svysmooth(y ~ x, design = x, method = "locpoly")[[1]]
     } else {
         sm <- loess.smooth(x, y, span = f, family = "gaussian")
@@ -95,18 +95,18 @@ function(x, y = NULL, f, col, bs, lty = 1, opts) {
 }
 
 addQuantileSmoother <-
-function(x, y = NULL, quantile, col, lty, lwd, opts) {    
+function(x, y = NULL, quantile, col, lty, lwd, opts) {
   # Draws quantiles on a plot.
     if (quantile < 0.5)  # symmetry
         quantile <- c(quantile, 1 - quantile)
 
   # Because we are using the `svysmooth()` function from the `survey` package,
   # we need to supply a design (here, everything is IID)
-    if (is.null(y) & inherits(x, "survey.design"))
+    if (is.null(y) & is_survey(x))
         des <- x
     else
         des <- suppressWarnings(svydesign(ids = ~1, data = data.frame(x = x, y = y)))
-    
+
     invisible(sapply(quantile,
                      function(a) {
                          s <- svysmooth(y ~ x, design = des,
@@ -119,13 +119,13 @@ function(x, y = NULL, quantile, col, lty, lwd, opts) {
 
 
 calcQSmooth <- function(xy, q, opts) {
-    if (inherits(xy, "survey.design")) {
+    if (is_survey(xy)) {
         x <- xy$variables[, c("x", "y")]
         x <- x[!apply(x, 1, function(y) any(is.na(y))), ]
     } else {
         x <- xy[!apply(xy, 1, function(y) any(is.na(y))), ]
     }
-    
+
   # check quantiles are correct:
     if (q[1] == "default") {
         qp <- 0.5
@@ -137,11 +137,11 @@ calcQSmooth <- function(xy, q, opts) {
 
     if (any(qp < 1 & qp > 0)) {
         qp <- qp[qp > 0 & qp < 1]  # remove invalid quantiles
-        
+
         qp[qp > 0.5] <- qp[qp > 0.5] - 0.5  # symmetry!
       # incase user gives c(0.25, 0.75), remove duplicates
         qp <- sort(unique(qp), decreasing = TRUE)
-        
+
       # Sort out the line type and width:
         nn <- length(qp)
       # bb: the base number of repeats for each unit
@@ -156,7 +156,7 @@ calcQSmooth <- function(xy, q, opts) {
         lwd[1] <- 2
         if (length(x) > opts$large.sample.size)
             lwd <- lwd + 1
-        
+
         qs <- list(qp = qp,
                    lty = lty,
                    lwd = lwd)
