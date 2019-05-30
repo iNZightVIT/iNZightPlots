@@ -41,3 +41,16 @@ test_that("Two way tables give the same results", {
     )
 })
 
+test_that("Segmented bar charts are correct", {
+    expect_silent(
+        p0 <- iNZightPlot(travel, colby = gender, data = cas)
+    )
+    expect_silent(
+        p1 <- iNZightPlot(travel, colby = gender, data = cas_freq, freq = count)
+    )
+
+    expect_equivalent(
+        p0$all$all$p.colby,
+        p1$all$all$p.colby
+    )
+})

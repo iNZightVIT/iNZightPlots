@@ -62,10 +62,12 @@ create.inz.barplot <- function(obj) {
 
         if (SEG) {
             tab2 <-
-                if (is.null(svy))
-                    table(df$colby, df$x)
-                else
+                if (!is.null(svy))
                     svytable(~colby + x, design = svy)
+                else if (!is.null(df$freq))
+                    xtabs(df$freq ~ df$colby + df$x)
+                else
+                    table(df$colby, df$x)
             p2 <- sweep(tab2, 2, colSums(tab2), "/")
         }
     } else {
