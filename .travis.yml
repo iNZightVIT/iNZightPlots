@@ -22,7 +22,8 @@ matrix:
 
 r_check_args: "--as-cran --install-args=--build"
 
-# r_github_packages: iNZightVIT/iNZightTools@dev
+r_github_packages:
+  - iNZightVIT/iNZightTools@dev
 
 env:
   global:
