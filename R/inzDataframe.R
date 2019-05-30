@@ -9,7 +9,7 @@ inzDataframe <- function(m, data = NULL, names = list(),
 
     if ("g2" %in% names(m) & (!("g1" %in% names(m)) | is.null(m$g1))) {
         if (!is.null(m$g2)) {
-            if (g2.level == "_ALL") {
+            if (is.null(g2.level) || g2.level == "_ALL") {
                 m$g1 <- NULL
                 m$g2 <- NULL
 
@@ -53,9 +53,11 @@ inzDataframe <- function(m, data = NULL, names = list(),
     # etc, and then simply add the appropriate class)
     # e.g., in future we might want to add a TimeSeries data type ...
 
-    if (inherits(data, "survey.design")) {
+    if (is_survey(data)) {
         df$data <- as.data.frame(lapply(m[mw], eval, data$variables, env))
-        df$design <- eval(data, env)
+        newDat <- cbind(data$variables, df$data)
+        newcall <- modifyCall(data$call, "data", "newDat")
+        df$design <- suppressWarnings(eval(parse(text = newcall)))
         class(df) <- "inz.survey"
     } else if ("freq" %in% names(m)) {
         df$data <- as.data.frame(
@@ -230,6 +232,13 @@ inzDataframe <- function(m, data = NULL, names = list(),
             function(x) ifelse(!is.character(x), deparse(x), x)
         )
     df$glevels <- list(g1.level = g1.level, g2.level = g2.level)
+
+    if (!is.null(df$design)) {
+        if ("g1" %in% colnames(df$data))
+            df$design <- update(df$design, g1 = df$data$g1)
+        if ("g2" %in% colnames(df$data))
+            df$design <- update(df$design, g2 = df$data$g2)
+    }
 
     df
 }
