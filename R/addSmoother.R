@@ -1,7 +1,7 @@
 addXYsmoother <- function(obj, opts, col.args, xlim, ylim) {
     ## decide what x and y are:
     if ("svy" %in% names(obj)) {
-        if (is_suervey(obj$svy)) {
+        if (is_survey(obj$svy)) {
             x <- obj$svy
             y <- NULL
         } else {

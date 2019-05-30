@@ -2,16 +2,17 @@ context("Replicate weights")
 
 data(scd, package = "survey")
 repweights <- 2 *
-    cbind(
-        c(1,0,1,0,1,0),
-        c(1,0,0,1,0,1),
-        c(0,1,1,0,0,1),
-        c(0,1,0,1,1,0)
+    data.frame(
+        weights.1 = c(1,0,1,0,1,0),
+        weights.2 = c(1,0,0,1,0,1),
+        weights.3 = c(0,1,1,0,0,1),
+        weights.4 = c(0,1,0,1,1,0)
     )
 scd$ESAcat <- as.factor(scd$ESA)
 scd$ambulancecat <- as.factor(scd$ambulance)
+scd <- cbind(scd, repweights)
 scdrep <- suppressWarnings(
-    survey::svrepdesign(data = scd, type = "BRR", repweights = repweights,
+    survey::svrepdesign(data = scd, type = "BRR", repweights = "weights.*",
         combined.weights = FALSE)
 )
 

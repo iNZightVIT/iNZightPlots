@@ -85,8 +85,10 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
     # this converts each data.frame in the list to a list of data
     # frames for all levels of g1
 
-    if (any(c(g1, g2) %in% colnames(df$design$cluster)))
-        df$design <- eval(parse(text = modifyCall(df$design$call, "ids", "~1")))
+    if (any(c(g1, g2) %in% colnames(df$design$cluster))) {
+        newcall <- modifyCall(df$design$call, "ids", "~1")
+        df$design <- eval(parse(text = newcall))
+    }
     oldcall <- df$design$call
 
 
