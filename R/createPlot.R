@@ -5,8 +5,11 @@ createPlot <- function(df, opts, xattr) {
     if (is.null(df))
         return(nullPlot(opts, xattr))
 
-    large <- ifelse(is.null(lg <- opts$largesample),
-    (if (inherits(df, "survey.design")) nrow(df$variables) else nrow(df)) > opts$large.sample.size, lg)
+    large <- ifelse(
+        is.null(lg <- opts$largesample),
+        (if (is_survey(df)) nrow(df$variables) else nrow(df)) > opts$large.sample.size,
+        lg
+    )
     wts <- xattr$class != "inz.simple"
 
     v <- xattr$v
@@ -22,13 +25,14 @@ createPlot <- function(df, opts, xattr) {
     ## and if they aren't, just uses the default
     plottype <- gsub("plot", "", opts$plottype)  # remove `plot` from type, if specified
     type <- switch(plottype,
-                   "bar" = ifelse(xfact & (ynull | yfact), plottype, "default"),
-                   "hist" = ,
-                   "dot" = ifelse((xnum & !ynum) | (!xnum & ynum), plottype, "default"),
-                   "scatter" = ,
-                   "grid" = ,
-                   "hex" = ifelse(xnum & ynum, plottype, "default"),
-                   "other")
+        "bar" = ifelse(xfact & (ynull | yfact), plottype, "default"),
+        "hist" = ,
+        "dot" = ifelse((xnum & !ynum) | (!xnum & ynum), plottype, "default"),
+        "scatter" = ,
+        "grid" = ,
+        "hex" = ifelse(xnum & ynum, plottype, "default"),
+        "other"
+    )
 
     ## throw a warning if they give an invalid type
     if (type != plottype & type != "other")
@@ -36,17 +40,24 @@ createPlot <- function(df, opts, xattr) {
 
     if (type %in% c("default", "other")) {
         if (ynull) {
-            newtype <- ifelse(xfact, "barplot",
-                              ifelse(large | wts, "histplot", "dotplot"))
+            newtype <- ifelse(xfact,
+                "barplot",
+                ifelse(large | wts, "histplot", "dotplot")
+            )
         } else {
             newtype <- ifelse(xfact,
-                              ifelse(yfact, "barplot",
-                                     ifelse(large | wts, "histplot", "dotplot")),
-                              ifelse(yfact,
-                                     ifelse(large, "histplot", "dotplot"),
-                                     ifelse(large,
-                                            "hexplot", ## ifelse(wts, "hexplot", "gridplot"),
-                                            "scatterplot")))
+                ifelse(yfact,
+                    "barplot",
+                    ifelse(large | wts, "histplot", "dotplot")
+                ),
+                ifelse(yfact,
+                    ifelse(large, "histplot", "dotplot"),
+                    ifelse(large,
+                        "hexplot", ## ifelse(wts, "hexplot", "gridplot"),
+                        "scatterplot"
+                    )
+                )
+            )
         }
 
         type <- if (type == "other") c(paste0(plottype, "plot"), newtype)
@@ -57,7 +68,7 @@ createPlot <- function(df, opts, xattr) {
 
     # Here, we create a class for the object to be plotted, then we use a generic function `create`
     # which will use the correct method, and create the required plot.
-    
+
     pclass <- paste("inz", type, sep = ".")
     obj <- structure(.Data = list(df = df, opts = opts, xattr = xattr),
                      class = pclass)

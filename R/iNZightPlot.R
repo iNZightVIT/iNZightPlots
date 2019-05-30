@@ -71,7 +71,7 @@
 #' @import stats grid grDevices boot survey quantreg survey hexbin iNZightMR
 #'         colorspace dichromat
 #' @importFrom utils capture.output browseURL capture.output
-#' @importFrom iNZightTools is_num is_cat is_dt
+#' @importFrom iNZightTools is_num is_cat is_dt is_survey is_svydesign is_svyrep
 #' @author Tom Elliott
 #' @export
 iNZightPlot <-
