@@ -34,22 +34,22 @@ create.inz.barplot <- function(obj) {
     df <- df[!missing, , drop = FALSE]
 
     svy <- switch(xattr$class,
-                  "inz.survey" = {
-                      des
-                  }, "inz.freq" = {
-                      svydesign(ids=~1, weights = ~freq, data = df)
-                  }, "inz.simple" = {
-                      NULL
-                  })
+        "inz.survey" = des,
+        "inz.freq" = ,
+        "inz.simple" = NULL
+    )
 
     SEG <- FALSE
     if (ynull) {
-        if (is.null(svy)) {
-            tab <- table(df$x)
-            phat <- matrix(tab / sum(tab), nrow = 1)
-        } else {
+        if (!is.null(svy)) {
             tab <- svytable(~x, design = svy)
             phat <- matrix(svymean(~x, design = svy), nrow = 1)
+        } else if (!is.null(df$freq)) {
+            tab <- xtabs(df$freq ~ df$x)
+            phat <- matrix(tab / sum(tab), nrow = 1)
+        } else {
+            tab <- table(df$x)
+            phat <- matrix(tab / sum(tab), nrow = 1)
         }
 
         widths <- rep(1, length(tab))
@@ -62,23 +62,27 @@ create.inz.barplot <- function(obj) {
 
         if (SEG) {
             tab2 <-
-                if (is.null(svy))
-                    table(df$colby, df$x)
-                else
+                if (!is.null(svy))
                     svytable(~colby + x, design = svy)
+                else if (!is.null(df$freq))
+                    xtabs(df$freq ~ df$colby + df$x)
+                else
+                    table(df$colby, df$x)
             p2 <- sweep(tab2, 2, colSums(tab2), "/")
         }
     } else {
-        if (is.null(svy)) {
-            tab <- table(df$y, df$x)
-            nn <- rowSums(tab)
-            phat <- sweep(tab, 1, nn, "/")
-                # if (opts$bar.counts) tab / sum(tab)
-                # else sweep(tab, 1, nn, "/")
-        } else {
+        if (!is.null(svy)) {
             tab <- svytable(~y + x, design = svy)
             phat <- svyby(~x, by = ~y, svy, FUN = svymean, drop.empty.groups = FALSE)[, 1 + 1:ncol(tab)]
             nn <- rowSums(tab)
+        } else if (!is.null(df$freq)) {
+            tab <- xtabs(df$freq ~ df$y + df$x)
+            nn <- rowSums(tab)
+            phat <- sweep(tab, 1, nn, "/")
+        } else {
+            tab <- table(df$y, df$x)
+            nn <- rowSums(tab)
+            phat <- sweep(tab, 1, nn, "/")
         }
 
         widths <-
@@ -248,7 +252,7 @@ barinference <- function(obj, tab, phat, counts) {
     }
 
     twoway <- length(dim(tab)) == 2  # two way comparison (two factors ...)
-    svy <- obj$xattr$class != "inz.simple"
+    svy <- obj$xattr$class == "inz.survey"
 
     if (length(dim(tab)) == 1) {
         twoway <- FALSE

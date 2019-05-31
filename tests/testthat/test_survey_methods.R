@@ -28,5 +28,3 @@ test_that("Survey calls are correctly modified", {
     )
 })
 
-
-args <- names(scdrep$call)
