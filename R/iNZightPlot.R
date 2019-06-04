@@ -151,7 +151,7 @@ iNZightPlot <-
         c(list(
           setNames(df$data, df$varnames), 
           type = list(...)$plottype,
-          data_name = list(...)$data.name,
+          data_name = list(...)$data_name,
           main = list(...)$main,
           xlab = xlab,
           ylab = ylab,
