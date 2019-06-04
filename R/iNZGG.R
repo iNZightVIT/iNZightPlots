@@ -83,9 +83,9 @@ iNZightPlotGG_facet <- function(data, data_name, exprs, g1, g2, g1.level, g2.lev
   }
   
   if (isTRUE(is.null(g2))) {
-    exprs$plot <- rlang::expr(!!exprs$plot + ggplot2::facet_grid(rows = ggplot2::vars(!!rlang::sym(g1))))
+    exprs$plot <- rlang::expr(!!exprs$plot + ggplot2::facet_grid(rows = ggplot2::vars(!!rlang::sym(g1)), labeller = ggplot2::label_both))
   } else {
-    exprs$plot <- rlang::expr(!!exprs$plot + ggplot2::facet_grid(rows = ggplot2::vars(!!rlang::sym(g1)), cols = ggplot2::vars(!!rlang::sym(g2))))
+    exprs$plot <- rlang::expr(!!exprs$plot + ggplot2::facet_grid(rows = ggplot2::vars(!!rlang::sym(g1)), cols = ggplot2::vars(!!rlang::sym(g2)), labeller = ggplot2::label_both))
   }
   
   # print(exprs)
@@ -114,9 +114,21 @@ iNZightPlotGG_decide <- function(data, varnames, type) {
       varnames["x"] <- varnames["y"]
       varnames["y"] <- orig_x
     }
+    
+    # if (type == "gg_poppyramid") {
+    #   names(varnames) <- replace(names(varnames), names(varnames) == "y", "fill")
+    # }
+    
   } else if (type %in% c("gg_stackedbar", "gg_stackedcolumn")) {
     names(varnames) <- replace(names(varnames), names(varnames) == "x", "fill")
     if ("y" %in% names(varnames)) {
+      names(varnames) <- replace(names(varnames), names(varnames) == "y", "x")
+    }
+  } else if (type == "gg_poppyramid") {
+    if (is.numeric(data[[varnames["x"]]])) {
+      names(varnames) <- replace(names(varnames), names(varnames) == "y", "fill")
+    } else {
+      names(varnames) <- replace(names(varnames), names(varnames) == "x", "fill")
       names(varnames) <- replace(names(varnames), names(varnames) == "y", "x")
     }
   }
@@ -188,6 +200,7 @@ iNZightPlotGG <- function(
   
   attr(plot_object, "code") <- unname(unlist(lapply(plot_exprs, rlang::expr_text)))
   attr(plot_object, "plottype") <- c(type)
+  attr(plot_object, "varnames") <- unlist(dots)
   
   cat(attr(plot_object, "code"), sep = "\n\n")
   
@@ -460,17 +473,35 @@ iNZightPlotGG_lollipop <- function(data, x, y, main = "Lollipop chart", ...) {
 iNZightPlotGG_cumcurve <- function(data, x, y, main = "Cumulative curve", ...) {
   y <- rlang::sym(y)
   
-  data_expr <- rlang::expr(
-    plot_data <- !!rlang::enexpr(data) %>% 
-      dplyr::arrange(!!y)
-  )
-  
-  plot_expr <- rlang::expr(
-    ggplot2::ggplot(plot_data, ggplot2::aes(x = !!y, y = cummax(1:nrow(plot_data)))) + 
-      ggplot2::geom_step() + 
-      ggplot2::ylab("Cumulative Frequency")
-  )
-  
+  if (missing(x)) {
+    data_expr <- rlang::expr(
+      plot_data <- !!rlang::enexpr(data) %>% 
+        dplyr::arrange(!!y) %>% 
+        dplyr::mutate(Observation = 1:dplyr::n())
+    )
+    
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(plot_data, ggplot2::aes(x = !!y, y = Observation)) + 
+        ggplot2::geom_step() + 
+        ggplot2::ylab("Cumulative Frequency")
+    )
+  } else {
+    x <- rlang::sym(x)
+    
+    data_expr <- rlang::expr(
+      plot_data <- !!rlang::enexpr(data) %>% 
+        dplyr::group_by(!!x) %>% 
+        dplyr::arrange(!!x, !!y) %>% 
+        dplyr::mutate(Observation = 1:dplyr::n())
+    )
+    
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(plot_data, ggplot2::aes(x = !!y, y = Observation, colour = !!x)) + 
+        ggplot2::geom_step() + 
+        ggplot2::ylab("Cumulative Frequency")
+    )
+  }
+
   list(
     data = data_expr,
     plot = plot_expr
@@ -486,7 +517,7 @@ iNZightPlotGG_poppyramid <- function(data, x, fill, main = "Population Pyramid",
     ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, fill = !!fill)) + 
       ggplot2::geom_bar(data = subset(!!rlang::enexpr(data), !!fill == levels(!!fill)[1])) + 
       ggplot2::geom_bar(data = subset(!!rlang::enexpr(data), !!fill == levels(!!fill)[2]), ggplot2::aes(y = stat(count * -1))) + 
-      coord_flip()
+      ggplot2::coord_flip()
   )
   
   list(
