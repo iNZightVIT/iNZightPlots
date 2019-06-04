@@ -146,7 +146,7 @@ modifyCall <- function(oldcall, arg, val) {
         call[[1]] <- as.name(paste0("survey:::", call[[1]]))
 
     ## if it is an "as.svrepdesign" call, need to adjust data on the inner argument ...
-
+    
 
     gsub("`", "", as.character(as.expression(as.call(call))))
 }
