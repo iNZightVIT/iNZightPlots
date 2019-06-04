@@ -39,6 +39,32 @@ add_to_group <- function(expr, vars) {
   }
 }
 
+apply_palette <- function(expr, palette, type) {
+  viridis_names <- unname(unlist(viridis_palette_names()))
+  colour_plots <- c("gg_cumcurve", "gg_lollipop", "gg_freqpolygon", "gg_barcode")
+  
+  if (palette %in% viridis_names) {
+    if (type %in% colour_plots) {
+      rlang::expr(!!expr + ggplot2::scale_colour_viridis_d(option = !!palette))
+    } else {
+      if (type != "gg_heatmap") {
+        rlang::expr(!!expr + ggplot2::scale_fill_viridis_d(option = !!palette))
+      } else {
+        rlang::expr(!!expr + ggplot2::scale_fill_viridis_c(option = !!palette))
+      }
+    }
+  } else {
+    if (type %in% colour_plots) {
+      rlang::expr(!!expr + ggplot2::scale_colour_brewer(palette = !!palette))
+    } else {
+      if (type != "gg_heatmap") {
+        rlang::expr(!!expr + ggplot2::scale_fill_brewer(palette = !!palette))
+      } else {
+        rlang::expr(!!expr + ggplot2::scale_fill_distiller(palette = !!palette))
+      }
+    }
+  }
+}
 
 iNZightPlotGG_facet <- function(data, data_name, exprs, g1, g2, g1.level, g2.level) {
   if (!is.null(g1)) {
@@ -114,11 +140,6 @@ iNZightPlotGG_decide <- function(data, varnames, type) {
       varnames["x"] <- varnames["y"]
       varnames["y"] <- orig_x
     }
-    
-    # if (type == "gg_poppyramid") {
-    #   names(varnames) <- replace(names(varnames), names(varnames) == "y", "fill")
-    # }
-    
   } else if (type %in% c("gg_stackedbar", "gg_stackedcolumn")) {
     names(varnames) <- replace(names(varnames), names(varnames) == "x", "fill")
     if ("y" %in% names(varnames)) {
@@ -131,6 +152,8 @@ iNZightPlotGG_decide <- function(data, varnames, type) {
       names(varnames) <- replace(names(varnames), names(varnames) == "x", "fill")
       names(varnames) <- replace(names(varnames), names(varnames) == "y", "x")
     }
+  } else if (type == "gg_freqpolygon") {
+    names(varnames) <- replace(names(varnames), names(varnames) == "y", "colour")
   }
   
   varnames
@@ -157,6 +180,7 @@ iNZightPlotGG <- function(
   xlab, 
   ylab, 
   extra_args = c(), 
+  palette = "default",
   ...
 ) {
   dots <- list(...)
@@ -186,6 +210,10 @@ iNZightPlotGG <- function(
   
   if (isTRUE(rotate)) {
     plot_exprs$plot <- rotate(plot_exprs$plot)
+  }
+  
+  if (isTRUE(!missing(palette) && !is.null(palette) && palette != "default")) {
+    plot_exprs$plot <- apply_palette(plot_exprs$plot, palette, type)
   }
   
   eval_env <- rlang::env(!!rlang::sym(data_name) := data)
@@ -526,3 +554,17 @@ iNZightPlotGG_poppyramid <- function(data, x, fill, main = "Population Pyramid",
   
 }
 
+iNZightPlotGG_freqpolygon <- function(data, x, colour, main = "Frequency polygons", ...) {
+  x <- rlang::sym(x)
+  colour <- rlang::sym(colour)
+  
+  plot_expr <- rlang::expr(
+    ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, colour = !!colour, group = !!colour)) + 
+      ggplot2::geom_line(stat = "count") + 
+      ggplot2::geom_point(stat = "count")
+  )
+  
+  list(
+    plot = plot_expr
+  )
+}

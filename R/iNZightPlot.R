@@ -155,7 +155,8 @@ iNZightPlot <-
           main = list(...)$main,
           xlab = xlab,
           ylab = ylab,
-          extra_args = list(...)
+          extra_args = list(...),
+          palette = list(...)$palette
           ),
           varnames,
           list(g1.level = g1.level, g2.level = g2.level)
