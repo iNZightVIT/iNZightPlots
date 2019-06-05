@@ -321,7 +321,7 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
         pushViewport(viewport(layout = dpLayout))
 
         pushViewport(viewport(layout.pos.row = 2, xscale = xlim, clip = "on"))
-        if (boxplot) addBoxplot(boxinfo[[i]], opts, i)
+        if (boxplot) addMean(boxinfo[[i]], opts, i)
         if (!is.null(inflist)) addUnivarInference(inflist, i, opts)
         upViewport()
 
@@ -451,6 +451,19 @@ addBoxplot <- function(x, opts, i) {
                   gp = gpar(lwd = opts$box.lwd[2]),
                   name = paste("inz-box-line", r, c, i, sep = "."))
 
+}
+
+addMean <- function(x, opts, i) {
+  r <- opts$rowNum
+  c <- opts$colNum
+  opts <- x$opts
+  
+  if (is.null(x))
+    return()
+
+  grid.points(unit(x$quantiles[2], "native"), unit(0.6, "npc"), 
+               gp = gpar(lwd = opts$box.lwd[1], fill = "black", cex = opts$cex.dotpt * 1.5), pch = 24,
+               name = paste("inz-mean", r, c, i, sep = "."))
 }
 
 
