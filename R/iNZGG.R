@@ -41,7 +41,7 @@ add_to_group <- function(expr, vars) {
 
 apply_palette <- function(expr, palette, type) {
   viridis_names <- unname(unlist(viridis_palette_names()))
-  colour_plots <- c("gg_cumcurve", "gg_lollipop", "gg_freqpolygon", "gg_barcode")
+  colour_plots <- c("gg_cumcurve", "gg_lollipop", "gg_freqpolygon", "gg_barcode", "gg_dotstrip")
   
   if (palette %in% viridis_names) {
     if (type %in% colour_plots) {
@@ -132,7 +132,7 @@ iNZightPlotGG_decide <- function(data, varnames, type) {
   
   if (type %in% c("gg_pie", "gg_donut")) {
     names(varnames) <- replace(names(varnames), names(varnames) == "x", "fill")
-  } else if (type %in% c("gg_violin", "gg_barcode", "gg_boxplot", "gg_cumcurve", "gg_column2", "gg_lollipop")) {
+  } else if (type %in% c("gg_violin", "gg_barcode", "gg_boxplot", "gg_cumcurve", "gg_column2", "gg_lollipop", "gg_dotstrip")) {
     if (!("y" %in% names(varnames))) {
       names(varnames) <- replace(names(varnames), names(varnames) == "x", "y")
     } else if (is.numeric(data[[varnames["x"]]])) {
@@ -381,23 +381,29 @@ iNZightPlotGG_stackedbar <- function(data, fill, main = "Stacked bar", x, ...) {
 }
 
 iNZightPlotGG_violin <- function(data, x, y, main = "Violin chart", xlab = as.character(x), ylab = as.character(y), ...) {
+  y <- rlang::sym(y)
+  
   if (missing(x)) {
     x <- rlang::expr(factor(1))
-    fill <- NULL
+    
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y)) + 
+        ggplot2::geom_violin(fill = "darkgreen") + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
+    )
   } else {
     x <- rlang::sym(x)
     fill <- rlang::sym(x)
+    
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, fill = !!fill)) + 
+        ggplot2::geom_violin() + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
+    )
   }
-  
-  y <- rlang::sym(y)
-  
-  plot_expr <- rlang::expr(
-    ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, fill = !!fill)) + 
-      ggplot2::geom_violin() + 
-      ggplot2::xlab(!!xlab) + 
-      ggplot2::ylab(!!ylab)
-  )
-  
+
   list(
     plot = plot_expr
   )
@@ -426,21 +432,25 @@ iNZightPlotGG_barcode <- function(data, x, y, main = "Barcode chart", ...) {
 }
 
 iNZightPlotGG_boxplot <- function(data, x, y, main = "Barchart", ...) {
+  y <- rlang::sym(y)
+  
   if (missing(x)) {
     x <- rlang::expr(factor(1))
-    fill <- NULL
+    
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y)) +
+        ggplot2::geom_boxplot(fill = "darkgreen")
+    )
   } else {
     x <- rlang::sym(x)
     fill <- rlang::sym(x)
+    
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, fill = !!fill)) +
+        ggplot2::geom_boxplot()
+    )
   }
-  
-  y <- rlang::sym(y)
-  
-  plot_expr <- rlang::expr(
-    ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, fill = !!fill)) +
-      ggplot2::geom_boxplot()
-  )
-  
+
   list(
     plot = plot_expr
   )
@@ -564,6 +574,50 @@ iNZightPlotGG_freqpolygon <- function(data, x, colour, main = "Frequency polygon
       ggplot2::geom_point(stat = "count")
   )
   
+  list(
+    plot = plot_expr
+  )
+}
+
+iNZightPlotGG_dotstrip <- function(data, x, y, main = "Dot strip chart", ...) {
+  if (missing(x)) {
+    x <- rlang::expr(factor(1))
+    colour <- NULL
+  } else {
+    x <- rlang::sym(x)
+    colour <- rlang::sym(x)
+  }
+  
+  y <- rlang::sym(y)
+  
+  plot_expr <- rlang::expr(
+    ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, colour = !!colour)) + 
+      ggplot2::geom_point(alpha = 0.2) + 
+      ggplot2::coord_flip()
+  )
+  
+  list(
+    plot = plot_expr
+  )
+}
+
+iNZightPlotGG_density <- function(data, x, y, main = "Density chart", ...) {
+  x <- rlang::sym(x)
+  
+  if (missing(y)) {
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x)) + 
+        ggplot2::geom_density(fill = "darkgreen", alpha = 0.2)
+    )
+  } else {
+    fill <- rlang::sym(y)
+    
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, fill = !!fill)) + 
+        ggplot2::geom_density(alpha = 0.4)
+    )
+  }
+
   list(
     plot = plot_expr
   )
