@@ -407,7 +407,7 @@ iNZightPlotGG_stackedcolumn <- function(data, fill, main = sprintf("Stacked colu
   } else {
     plot_expr <- rlang::expr(
       !!plot_expr +
-        ggplot2::xlab(!!as.character(x))
+        ggplot2::xlab(!!xlab)
     )
   }
   
