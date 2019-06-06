@@ -254,7 +254,7 @@ iNZightPlotGG <- function(
   plot_object
 }
 
-iNZightPlotGG_pie <- function(data, fill, main = "Pie Chart", ...) {
+iNZightPlotGG_pie <- function(data, fill, main = sprintf("Pie Chart of %s", as.character(fill)), ...) {
   fill <- rlang::sym(fill)
 
   plot_expr <- rlang::expr(
@@ -265,7 +265,12 @@ iNZightPlotGG_pie <- function(data, fill, main = "Pie Chart", ...) {
       ggplot2::ylab("") + 
       ggplot2::scale_y_continuous(labels = scales::percent) + 
       ggplot2::scale_x_discrete(breaks = NULL) + 
-      ggplot2::ggtitle(!!main)
+      ggplot2::ggtitle(!!main)  +
+      ggplot2::theme(
+        panel.grid.major = ggplot2::element_blank(),
+        panel.grid.minor = ggplot2::element_blank(),
+        axis.text.x      = ggplot2::element_blank()
+      )
   )
 
   list(
@@ -273,7 +278,7 @@ iNZightPlotGG_pie <- function(data, fill, main = "Pie Chart", ...) {
   )
 }
 
-iNZightPlotGG_donut <- function(data, fill, main = "Donut Chart", ...) {
+iNZightPlotGG_donut <- function(data, fill, main = sprintf("Donut Chart of %s", as.character(fill)), ...) {
   fill <- rlang::sym(fill)
 
   data_expr <- rlang::expr(
@@ -295,7 +300,12 @@ iNZightPlotGG_donut <- function(data, fill, main = "Donut Chart", ...) {
       ggplot2::ylab("") + 
       ggplot2::scale_x_continuous(breaks = NULL, limits = c(0, 4)) +
       ggplot2::scale_y_continuous(labels = scales::percent) + 
-      ggplot2::ggtitle(!!main)
+      ggplot2::ggtitle(!!main)  +
+      ggplot2::theme(
+        panel.grid.major = ggplot2::element_blank(),
+        panel.grid.minor = ggplot2::element_blank(),
+        axis.text.x      = ggplot2::element_blank()
+      )
   )
 
   list(
@@ -304,7 +314,7 @@ iNZightPlotGG_donut <- function(data, fill, main = "Donut Chart", ...) {
   )
 }
 
-iNZightPlotGG_column <- function(data, x, main = "Column chart", xlab = as.character(x), ylab = "Count", ...) {
+iNZightPlotGG_column <- function(data, x, main = sprintf("Column chart of %s", as.character(x)), xlab = as.character(x), ylab = "Count", ...) {
   x <- rlang::sym(x)
   
   plot_expr <- rlang::expr(
@@ -332,7 +342,7 @@ iNZightPlotGG_bar <- function(data, x, main = "Bar chart", ...) {
   column_plot
 }
 
-iNZightPlotGG_heatmap <- function(data, x, y, main = "XY Heatmap", xlab = as.character(x), ylab = as.character(y), ...) {
+iNZightPlotGG_heatmap <- function(data, x, y, main = sprintf("Heatmap of %s and %s", as.character(x), as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
   x <- rlang::sym(x)
   y <- rlang::sym(y)
   
@@ -356,7 +366,7 @@ iNZightPlotGG_heatmap <- function(data, x, y, main = "XY Heatmap", xlab = as.cha
   )
 }
 
-iNZightPlotGG_stackedcolumn <- function(data, fill, main = "Stacked column", x, xlab = as.character(x), ylab = "Percent", ...) {
+iNZightPlotGG_stackedcolumn <- function(data, fill, main = sprintf("Stacked column of %s", as.character(fill)), x, xlab = as.character(x), ylab = "Percent", ...) {
   fill = rlang::sym(fill)
   
   if (missing(x)) {
@@ -402,7 +412,7 @@ iNZightPlotGG_stackedbar <- function(data, fill, main = "Stacked bar", x, ...) {
   column_plot
 }
 
-iNZightPlotGG_violin <- function(data, x, y, main = "Violin chart", xlab = as.character(x), ylab = as.character(y), ...) {
+iNZightPlotGG_violin <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
   y <- rlang::sym(y)
   
   if (missing(x)) {
@@ -433,7 +443,7 @@ iNZightPlotGG_violin <- function(data, x, y, main = "Violin chart", xlab = as.ch
   )
 }
 
-iNZightPlotGG_barcode <- function(data, x, y, main = "Barcode chart", xlab = as.character(x), ylab = as.character(y), ...) {
+iNZightPlotGG_barcode <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
   if (missing(x)) {
     x <- rlang::expr(factor(1))
     colour <- NULL
@@ -458,7 +468,7 @@ iNZightPlotGG_barcode <- function(data, x, y, main = "Barcode chart", xlab = as.
   )
 }
 
-iNZightPlotGG_boxplot <- function(data, x, y, main = "Barchart", xlab = as.character(x), ylab = as.character(y), ...) {
+iNZightPlotGG_boxplot <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
   y <- rlang::sym(y)
   
   if (missing(x)) {
@@ -489,7 +499,7 @@ iNZightPlotGG_boxplot <- function(data, x, y, main = "Barchart", xlab = as.chara
   )
 }
 
-iNZightPlotGG_column2 <- function(data, x, y, main = "Column Chart 2", xlab = "Index", ylab = as.character(y), desc = FALSE, labels, ...) {
+iNZightPlotGG_column2 <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = "Index", ylab = as.character(y), desc = FALSE, labels, ...) {
   if (missing(x)) {
     x <- rlang::expr(1:nrow(!!rlang::enexpr(data)))
   } else {
@@ -524,7 +534,7 @@ iNZightPlotGG_column2 <- function(data, x, y, main = "Column Chart 2", xlab = "I
   )
 }
 
-iNZightPlotGG_lollipop <- function(data, x, y, main = "Lollipop chart", xlab = "Index", ylab = as.character(y), desc = FALSE, labels, ...) {
+iNZightPlotGG_lollipop <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = "Index", ylab = as.character(y), desc = FALSE, labels, ...) {
   if (missing(x)) {
     if (missing(labels) || labels == "") {
       x <- rlang::expr(1:nrow(!!rlang::enexpr(data)))
@@ -566,7 +576,7 @@ iNZightPlotGG_lollipop <- function(data, x, y, main = "Lollipop chart", xlab = "
   )
 }
 
-iNZightPlotGG_cumcurve <- function(data, x, y, main = "Cumulative curve", xlab = as.character(y), ylab = "Cumulative Frequency", ...) {
+iNZightPlotGG_cumcurve <- function(data, x, y, main = sprintf("Cumulative Count of %s", as.character(y)), xlab = as.character(y), ylab = "Cumulative Frequency", ...) {
   y <- rlang::sym(y)
   
   if (missing(x)) {
@@ -609,7 +619,7 @@ iNZightPlotGG_cumcurve <- function(data, x, y, main = "Cumulative curve", xlab =
   
 }
 
-iNZightPlotGG_poppyramid <- function(data, x, fill, main = "Population Pyramid", xlab = as.character(x), ylab = "Count", ...) {
+iNZightPlotGG_poppyramid <- function(data, x, fill, main = sprintf("Count of %s by %s", as.character(x), as.character(fill)), xlab = as.character(x), ylab = "Count", ...) {
   x <- rlang::sym(x)
   fill <- rlang::sym(fill)
   
@@ -631,7 +641,7 @@ iNZightPlotGG_poppyramid <- function(data, x, fill, main = "Population Pyramid",
 
 iNZightPlotGG_spine <- iNZightPlotGG_poppyramid
 
-iNZightPlotGG_freqpolygon <- function(data, x, colour, main = "Frequency polygons", xlab = as.character(x), ylab = "Count", ...) {
+iNZightPlotGG_freqpolygon <- function(data, x, colour, main = sprintf("Count of %s by %s", as.character(x), as.character(colour)), xlab = as.character(x), ylab = "Count", ...) {
   x <- rlang::sym(x)
   colour <- rlang::sym(colour)
   
@@ -649,7 +659,7 @@ iNZightPlotGG_freqpolygon <- function(data, x, colour, main = "Frequency polygon
   )
 }
 
-iNZightPlotGG_dotstrip <- function(data, x, y, main = "Dot strip chart", xlab = as.character(x), ylab = as.character(y), ...) {
+iNZightPlotGG_dotstrip <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
   if (missing(x)) {
     x <- rlang::expr(factor(1))
     colour <- NULL
@@ -674,7 +684,7 @@ iNZightPlotGG_dotstrip <- function(data, x, y, main = "Dot strip chart", xlab = 
   )
 }
 
-iNZightPlotGG_density <- function(data, x, y, main = "Density chart", xlab = as.character(x), ylab = "Density", ...) {
+iNZightPlotGG_density <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(y), ylab = "Density", ...) {
   y <- rlang::sym(y)
   
   if (missing(x)) {
