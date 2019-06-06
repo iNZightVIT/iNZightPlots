@@ -129,7 +129,7 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
   
   if (type %in% c("gg_pie", "gg_donut")) {
     names(varnames) <- replace(names(varnames), names(varnames) == "x", "fill")
-  } else if (type %in% c("gg_violin", "gg_barcode", "gg_boxplot", "gg_cumcurve", "gg_column2", "gg_lollipop", "gg_dotstrip")) {
+  } else if (type %in% c("gg_violin", "gg_barcode", "gg_boxplot", "gg_cumcurve", "gg_column2", "gg_lollipop", "gg_dotstrip", "gg_density")) {
     if (!("y" %in% names(varnames))) {
       names(varnames) <- replace(names(varnames), names(varnames) == "x", "y")
     } else if (is.numeric(data[[varnames["x"]]])) {
@@ -310,6 +310,7 @@ iNZightPlotGG_column <- function(data, x, main = "Column chart", xlab = as.chara
   plot_expr <- rlang::expr(
     ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, fill = !!x)) + 
       ggplot2::geom_bar() + 
+      ggplot2::labs(title = !!main) + 
       ggplot2::xlab(!!xlab) + 
       ggplot2::ylab(!!ylab)
   )
@@ -331,7 +332,7 @@ iNZightPlotGG_bar <- function(data, x, main = "Bar chart", ...) {
   column_plot
 }
 
-iNZightPlotGG_heatmap <- function(data, x, y, main = "XY Heatmap", ...) {
+iNZightPlotGG_heatmap <- function(data, x, y, main = "XY Heatmap", xlab = as.character(x), ylab = as.character(y), ...) {
   x <- rlang::sym(x)
   y <- rlang::sym(y)
   
@@ -343,8 +344,10 @@ iNZightPlotGG_heatmap <- function(data, x, y, main = "XY Heatmap", ...) {
   
   plot_expr <- rlang::expr(
     ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, y = !!y)) +
-      ggplot2::geom_tile(ggplot2::aes(fill = Count)) +
-      ggplot2::ggtitle(!!main)
+      ggplot2::geom_tile(ggplot2::aes(fill = Count)) + 
+      ggplot2::labs(title = !!main) + 
+      ggplot2::xlab(!!xlab) + 
+      ggplot2::ylab(!!ylab)
   )
 
   list(
@@ -367,10 +370,10 @@ iNZightPlotGG_stackedcolumn <- function(data, fill, main = "Stacked column", x, 
   plot_expr <- rlang::expr(
     ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, fill = !!fill)) + 
       ggplot2::geom_bar(ggplot2::aes(y = ..count../sum(..count..)), position = "fill") +
-      ggplot2::xlab(!!xlab) + 
-      ggplot2::ylab(!!ylab) + 
       ggplot2::scale_y_continuous(labels = scales::percent) + 
-      ggplot2::ggtitle(!!main)
+      ggplot2::labs(title = !!main) + 
+      ggplot2::xlab(!!xlab) + 
+      ggplot2::ylab(!!ylab)
   )
   
   if (isTRUE(was_missing)) {
@@ -408,6 +411,7 @@ iNZightPlotGG_violin <- function(data, x, y, main = "Violin chart", xlab = as.ch
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y)) + 
         ggplot2::geom_violin(fill = "darkgreen") + 
+        ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
     )
@@ -418,6 +422,7 @@ iNZightPlotGG_violin <- function(data, x, y, main = "Violin chart", xlab = as.ch
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, fill = !!fill)) + 
         ggplot2::geom_violin() + 
+        ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
     )
@@ -428,7 +433,7 @@ iNZightPlotGG_violin <- function(data, x, y, main = "Violin chart", xlab = as.ch
   )
 }
 
-iNZightPlotGG_barcode <- function(data, x, y, main = "Barcode chart", ...) {
+iNZightPlotGG_barcode <- function(data, x, y, main = "Barcode chart", xlab = as.character(x), ylab = as.character(y), ...) {
   if (missing(x)) {
     x <- rlang::expr(factor(1))
     colour <- NULL
@@ -442,7 +447,10 @@ iNZightPlotGG_barcode <- function(data, x, y, main = "Barcode chart", ...) {
   plot_expr <- rlang::expr(
     ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, colour = !!colour)) + 
       ggplot2::geom_point(shape = "|", size = 16, alpha = 0.2) + 
-      ggplot2::coord_flip()
+      ggplot2::coord_flip() + 
+      ggplot2::labs(title = !!main) + 
+      ggplot2::xlab(!!xlab) + 
+      ggplot2::ylab(!!ylab)
   )
   
   list(
@@ -450,7 +458,7 @@ iNZightPlotGG_barcode <- function(data, x, y, main = "Barcode chart", ...) {
   )
 }
 
-iNZightPlotGG_boxplot <- function(data, x, y, main = "Barchart", ...) {
+iNZightPlotGG_boxplot <- function(data, x, y, main = "Barchart", xlab = as.character(x), ylab = as.character(y), ...) {
   y <- rlang::sym(y)
   
   if (missing(x)) {
@@ -458,7 +466,10 @@ iNZightPlotGG_boxplot <- function(data, x, y, main = "Barchart", ...) {
     
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y)) +
-        ggplot2::geom_boxplot(fill = "darkgreen")
+        ggplot2::geom_boxplot(fill = "darkgreen") + 
+        ggplot2::labs(title = !!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
     )
   } else {
     x <- rlang::sym(x)
@@ -466,7 +477,10 @@ iNZightPlotGG_boxplot <- function(data, x, y, main = "Barchart", ...) {
     
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, fill = !!fill)) +
-        ggplot2::geom_boxplot()
+        ggplot2::geom_boxplot() + 
+        ggplot2::labs(title = !!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
     )
   }
 
@@ -475,7 +489,7 @@ iNZightPlotGG_boxplot <- function(data, x, y, main = "Barchart", ...) {
   )
 }
 
-iNZightPlotGG_column2 <- function(data, x, y, main = "Column Chart 2", desc = FALSE, labels, ...) {
+iNZightPlotGG_column2 <- function(data, x, y, main = "Column Chart 2", xlab = "Index", ylab = as.character(y), desc = FALSE, labels, ...) {
   if (missing(x)) {
     x <- rlang::expr(1:nrow(!!rlang::enexpr(data)))
   } else {
@@ -498,7 +512,10 @@ iNZightPlotGG_column2 <- function(data, x, y, main = "Column Chart 2", desc = FA
   
   plot_expr <- rlang::expr(
     ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, y = !!y)) + 
-      ggplot2::geom_col()
+      ggplot2::geom_col() + 
+      ggplot2::labs(title = !!main) + 
+      ggplot2::xlab(!!xlab) + 
+      ggplot2::ylab(!!ylab)
   )
   
   list(
@@ -549,7 +566,7 @@ iNZightPlotGG_lollipop <- function(data, x, y, main = "Lollipop chart", xlab = "
   )
 }
 
-iNZightPlotGG_cumcurve <- function(data, x, y, main = "Cumulative curve", ...) {
+iNZightPlotGG_cumcurve <- function(data, x, y, main = "Cumulative curve", xlab = as.character(y), ylab = "Cumulative Frequency", ...) {
   y <- rlang::sym(y)
   
   if (missing(x)) {
@@ -562,7 +579,9 @@ iNZightPlotGG_cumcurve <- function(data, x, y, main = "Cumulative curve", ...) {
     plot_expr <- rlang::expr(
       ggplot2::ggplot(plot_data, ggplot2::aes(x = !!y, y = Observation)) + 
         ggplot2::geom_step() + 
-        ggplot2::ylab("Cumulative Frequency")
+        ggplot2::labs(title = !!main) +
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
     )
   } else {
     x <- rlang::sym(x)
@@ -577,7 +596,9 @@ iNZightPlotGG_cumcurve <- function(data, x, y, main = "Cumulative curve", ...) {
     plot_expr <- rlang::expr(
       ggplot2::ggplot(plot_data, ggplot2::aes(x = !!y, y = Observation, colour = !!x)) + 
         ggplot2::geom_step() + 
-        ggplot2::ylab("Cumulative Frequency")
+        ggplot2::labs(title = !!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
     )
   }
 
@@ -588,7 +609,7 @@ iNZightPlotGG_cumcurve <- function(data, x, y, main = "Cumulative curve", ...) {
   
 }
 
-iNZightPlotGG_poppyramid <- function(data, x, fill, main = "Population Pyramid", ...) {
+iNZightPlotGG_poppyramid <- function(data, x, fill, main = "Population Pyramid", xlab = as.character(x), ylab = "Count", ...) {
   x <- rlang::sym(x)
   fill <- rlang::sym(fill)
   
@@ -596,7 +617,10 @@ iNZightPlotGG_poppyramid <- function(data, x, fill, main = "Population Pyramid",
     ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, fill = !!fill)) + 
       ggplot2::geom_bar(data = subset(!!rlang::enexpr(data), !!fill == levels(!!fill)[1])) + 
       ggplot2::geom_bar(data = subset(!!rlang::enexpr(data), !!fill == levels(!!fill)[2]), ggplot2::aes(y = stat(count * -1))) + 
-      ggplot2::coord_flip()
+      ggplot2::coord_flip() + 
+      ggplot2::labs(title = !!main) + 
+      ggplot2::xlab(!!xlab) + 
+      ggplot2::ylab(!!ylab)
   )
   
   list(
@@ -607,14 +631,17 @@ iNZightPlotGG_poppyramid <- function(data, x, fill, main = "Population Pyramid",
 
 iNZightPlotGG_spine <- iNZightPlotGG_poppyramid
 
-iNZightPlotGG_freqpolygon <- function(data, x, colour, main = "Frequency polygons", ...) {
+iNZightPlotGG_freqpolygon <- function(data, x, colour, main = "Frequency polygons", xlab = as.character(x), ylab = "Count", ...) {
   x <- rlang::sym(x)
   colour <- rlang::sym(colour)
   
   plot_expr <- rlang::expr(
     ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, colour = !!colour, group = !!colour)) + 
       ggplot2::geom_line(stat = "count") + 
-      ggplot2::geom_point(stat = "count", size = 4)
+      ggplot2::geom_point(stat = "count", size = 4) + 
+      ggplot2::labs(title = !!main) + 
+      ggplot2::xlab(!!xlab) + 
+      ggplot2::ylab(!!ylab)
   )
   
   list(
@@ -622,7 +649,7 @@ iNZightPlotGG_freqpolygon <- function(data, x, colour, main = "Frequency polygon
   )
 }
 
-iNZightPlotGG_dotstrip <- function(data, x, y, main = "Dot strip chart", ...) {
+iNZightPlotGG_dotstrip <- function(data, x, y, main = "Dot strip chart", xlab = as.character(x), ylab = as.character(y), ...) {
   if (missing(x)) {
     x <- rlang::expr(factor(1))
     colour <- NULL
@@ -636,7 +663,10 @@ iNZightPlotGG_dotstrip <- function(data, x, y, main = "Dot strip chart", ...) {
   plot_expr <- rlang::expr(
     ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, colour = !!colour)) + 
       ggplot2::geom_point(alpha = 0.2) + 
-      ggplot2::coord_flip()
+      ggplot2::coord_flip() + 
+      ggplot2::labs(title = !!main) + 
+      ggplot2::xlab(!!xlab) + 
+      ggplot2::ylab(!!ylab)
   )
   
   list(
@@ -644,20 +674,26 @@ iNZightPlotGG_dotstrip <- function(data, x, y, main = "Dot strip chart", ...) {
   )
 }
 
-iNZightPlotGG_density <- function(data, x, y, main = "Density chart", ...) {
-  x <- rlang::sym(x)
+iNZightPlotGG_density <- function(data, x, y, main = "Density chart", xlab = as.character(x), ylab = "Density", ...) {
+  y <- rlang::sym(y)
   
-  if (missing(y)) {
+  if (missing(x)) {
     plot_expr <- rlang::expr(
-      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x)) + 
-        ggplot2::geom_density(fill = "darkgreen", alpha = 0.2)
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y)) + 
+        ggplot2::geom_density(fill = "darkgreen", alpha = 0.2) + 
+        ggplot2::labs(title = !!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
     )
   } else {
-    fill <- rlang::sym(y)
+    fill <- rlang::sym(x)
     
     plot_expr <- rlang::expr(
-      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, fill = !!fill)) + 
-        ggplot2::geom_density(alpha = 0.4)
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, fill = !!fill)) + 
+        ggplot2::geom_density(alpha = 0.4) + 
+        ggplot2::labs(title = !!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
     )
   }
 
