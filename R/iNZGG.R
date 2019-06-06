@@ -119,13 +119,10 @@ iNZightPlotGG_facet <- function(data, data_name, exprs, g1, g2, g1.level, g2.lev
   exprs
 }
 
-iNZightPlotGG_decide <- function(data, varnames, type) {
-  print(varnames)
+iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
   varnames <- varnames[grep("\\.level$", names(varnames), invert = TRUE)]
   varnames <- varnames[grep("g1", names(varnames), invert = TRUE)]
   varnames <- varnames[grep("g2", names(varnames), invert = TRUE)]
-  print(varnames)
-  print(colnames(data))
   nullVars <- vapply(data[, varnames, drop = FALSE], is.null, FUN.VALUE = logical(1))
   varnames[which(nullVars)] <- NULL
   varnames[!varnames %in% colnames(data)] <- NULL
@@ -152,10 +149,24 @@ iNZightPlotGG_decide <- function(data, varnames, type) {
       names(varnames) <- replace(names(varnames), names(varnames) == "x", "fill")
       names(varnames) <- replace(names(varnames), names(varnames) == "y", "x")
     }
+  } else if (type == "gg_spine") {
+    names(varnames) <- replace(names(varnames), names(varnames) == "y", "fill")
   } else if (type == "gg_freqpolygon") {
     names(varnames) <- replace(names(varnames), names(varnames) == "y", "colour")
   }
   
+  print("extra_vars 2:")
+  print(extra_vars)
+  if (type %in% c("gg_lollipop", "gg_column2") && !is.null(extra_vars$desc)) {
+    varnames <- c(as.list(varnames), desc = extra_vars$desc)
+  }
+  
+  if (type %in% c("gg_lollipop", "gg_column2") && !is.null(extra_vars$labels)) {
+    varnames <- c(as.list(varnames), labels = extra_vars$labels)
+  }
+  
+  print("varnames")
+  print(varnames)
   varnames
 }
 
@@ -176,21 +187,27 @@ iNZightPlotGG <- function(
   data, 
   type, 
   data_name = "data", 
-  main, 
-  xlab, 
-  ylab, 
+  ...,
+  main = NULL, 
+  xlab = NULL, 
+  ylab = NULL, 
   extra_args = c(), 
-  palette = "default",
-  ...
+  palette = "default"
 ) {
   dots <- list(...)
 
   if (length(extra_args) > 0) {
     rotate <- extra_args$rotation
-    extra_args <- iNZightPlotGG_extraargs(extra_args)
+    desc <- extra_args$desc
+    extra_args <- c(iNZightPlotGG_extraargs(extra_args), desc = desc, labels = extra_args$labelVar)
+    print("extra args")
+    print(extra_args)
   }
   
-  plot_args <- iNZightPlotGG_decide(data, unlist(dots), type)
+  plot_args <- iNZightPlotGG_decide(data, unlist(dots), type, extra_args)
+  print("call")
+  print(call(    sprintf("iNZightPlotGG_%s", gsub("^gg_", "", type)), 
+                 c(rlang::sym(data_name), main = main, xlab = xlab, ylab = ylab, plot_args)))
   plot_exprs <- do.call(
     sprintf("iNZightPlotGG_%s", gsub("^gg_", "", type)), 
     c(rlang::sym(data_name), main = main, xlab = xlab, ylab = ylab, plot_args)
@@ -216,6 +233,8 @@ iNZightPlotGG <- function(
     plot_exprs$plot <- apply_palette(plot_exprs$plot, palette, type)
   }
   
+  cat(unname(unlist(lapply(plot_exprs, rlang::expr_text))), sep = "\n\n")
+  
   eval_env <- rlang::env(!!rlang::sym(data_name) := data)
 
   eval_results <- lapply(plot_exprs, eval, envir = eval_env)
@@ -230,7 +249,7 @@ iNZightPlotGG <- function(
   attr(plot_object, "plottype") <- c(type)
   attr(plot_object, "varnames") <- unlist(dots)
   
-  cat(attr(plot_object, "code"), sep = "\n\n")
+  # cat(attr(plot_object, "code"), sep = "\n\n")
   
   plot_object
 }
@@ -456,7 +475,7 @@ iNZightPlotGG_boxplot <- function(data, x, y, main = "Barchart", ...) {
   )
 }
 
-iNZightPlotGG_column2 <- function(data, x, y, main = "Column Chart 2", ...) {
+iNZightPlotGG_column2 <- function(data, x, y, main = "Column Chart 2", desc = FALSE, labels, ...) {
   if (missing(x)) {
     x <- rlang::expr(1:nrow(!!rlang::enexpr(data)))
   } else {
@@ -465,10 +484,17 @@ iNZightPlotGG_column2 <- function(data, x, y, main = "Column Chart 2", ...) {
   
   y <- rlang::sym(y)
   
-  data_expr <- rlang::expr(
-    plot_data <- !!rlang::enexpr(data) %>% 
-      dplyr::arrange(!!y)
-  )
+  if (desc) {
+    data_expr <- rlang::expr(
+      plot_data <- !!rlang::enexpr(data) %>% 
+        dplyr::arrange(dplyr::desc(!!y))
+    )
+  } else {
+    data_expr <- rlang::expr(
+      plot_data <- !!rlang::enexpr(data) %>% 
+        dplyr::arrange(!!y)
+    )
+  }
   
   plot_expr <- rlang::expr(
     ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, y = !!y)) + 
@@ -481,25 +507,40 @@ iNZightPlotGG_column2 <- function(data, x, y, main = "Column Chart 2", ...) {
   )
 }
 
-
-iNZightPlotGG_lollipop <- function(data, x, y, main = "Lollipop chart", ...) {
+iNZightPlotGG_lollipop <- function(data, x, y, main = "Lollipop chart", xlab = "Index", ylab = as.character(y), desc = FALSE, labels, ...) {
   if (missing(x)) {
-    x <- rlang::expr(1:nrow(!!rlang::enexpr(data)))
+    if (missing(labels) || labels == "") {
+      x <- rlang::expr(1:nrow(!!rlang::enexpr(data)))
+    } else {
+      x <- rlang::sym(labels)
+    }
+    
   } else {
     x <- rlang::sym(x)
   }
   
   y <- rlang::sym(y)
   
-  data_expr <- rlang::expr(
-    plot_data <- !!rlang::enexpr(data) %>% 
-      dplyr::arrange(!!y)
-  )
+  if (desc) {
+    data_expr <- rlang::expr(
+      plot_data <- !!rlang::enexpr(data) %>% 
+        dplyr::arrange(dplyr::desc(!!y))
+    )
+  } else {
+    data_expr <- rlang::expr(
+      plot_data <- !!rlang::enexpr(data) %>% 
+        dplyr::arrange(!!y)
+    )
+  }
+
   
   plot_expr <- rlang::expr(
     ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, y = !!y)) + 
       ggplot2::geom_segment(ggplot2::aes(xend = !!x, yend = 0)) + 
-      ggplot2::geom_point()
+      ggplot2::geom_point() + 
+      ggplot2::labs(title = !!main) +
+      ggplot2::xlab(!!xlab) + 
+      ggplot2::ylab(!!ylab)
   )
 
   list(
@@ -564,6 +605,8 @@ iNZightPlotGG_poppyramid <- function(data, x, fill, main = "Population Pyramid",
   
 }
 
+iNZightPlotGG_spine <- iNZightPlotGG_poppyramid
+
 iNZightPlotGG_freqpolygon <- function(data, x, colour, main = "Frequency polygons", ...) {
   x <- rlang::sym(x)
   colour <- rlang::sym(colour)
@@ -571,7 +614,7 @@ iNZightPlotGG_freqpolygon <- function(data, x, colour, main = "Frequency polygon
   plot_expr <- rlang::expr(
     ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, colour = !!colour, group = !!colour)) + 
       ggplot2::geom_line(stat = "count") + 
-      ggplot2::geom_point(stat = "count")
+      ggplot2::geom_point(stat = "count", size = 4)
   )
   
   list(
