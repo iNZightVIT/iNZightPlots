@@ -126,7 +126,7 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
   nullVars <- vapply(data[, varnames, drop = FALSE], is.null, FUN.VALUE = logical(1))
   varnames[which(nullVars)] <- NULL
   varnames[!varnames %in% colnames(data)] <- NULL
-  
+
   if (type %in% c("gg_pie", "gg_donut")) {
     names(varnames) <- replace(names(varnames), names(varnames) == "x", "fill")
   } else if (type %in% c("gg_violin", "gg_barcode", "gg_boxplot", "gg_cumcurve", "gg_column2", "gg_lollipop", "gg_dotstrip", "gg_density")) {
@@ -153,10 +153,12 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
     names(varnames) <- replace(names(varnames), names(varnames) == "y", "fill")
   } else if (type == "gg_freqpolygon") {
     names(varnames) <- replace(names(varnames), names(varnames) == "y", "colour")
+  } else if (type == "gg_column") {
+    if ("y" %in% names(varnames)) {
+      names(varnames) <- replace(names(varnames), names(varnames) == "y", "group")
+    }
   }
   
-  print("extra_vars 2:")
-  print(extra_vars)
   if (type %in% c("gg_lollipop", "gg_column2") && !is.null(extra_vars$desc)) {
     varnames <- c(as.list(varnames), desc = extra_vars$desc)
   }
@@ -164,9 +166,7 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
   if (type %in% c("gg_lollipop", "gg_column2") && !is.null(extra_vars$labels)) {
     varnames <- c(as.list(varnames), labels = extra_vars$labels)
   }
-  
-  print("varnames")
-  print(varnames)
+
   varnames
 }
 
@@ -205,9 +205,7 @@ iNZightPlotGG <- function(
   }
   
   plot_args <- iNZightPlotGG_decide(data, unlist(dots), type, extra_args)
-  print("call")
-  print(call(    sprintf("iNZightPlotGG_%s", gsub("^gg_", "", type)), 
-                 c(rlang::sym(data_name), main = main, xlab = xlab, ylab = ylab, plot_args)))
+
   plot_exprs <- do.call(
     sprintf("iNZightPlotGG_%s", gsub("^gg_", "", type)), 
     c(rlang::sym(data_name), main = main, xlab = xlab, ylab = ylab, plot_args)
@@ -314,16 +312,30 @@ iNZightPlotGG_donut <- function(data, fill, main = sprintf("Donut Chart of %s", 
   )
 }
 
-iNZightPlotGG_column <- function(data, x, main = sprintf("Column chart of %s", as.character(x)), xlab = as.character(x), ylab = "Count", ...) {
+iNZightPlotGG_column <- function(data, x, group, main = sprintf("Column chart of %s", as.character(x)), xlab = as.character(x), ylab = "Count", ...) {
   x <- rlang::sym(x)
   
-  plot_expr <- rlang::expr(
-    ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, fill = !!x)) + 
-      ggplot2::geom_bar() + 
-      ggplot2::labs(title = !!main) + 
-      ggplot2::xlab(!!xlab) + 
-      ggplot2::ylab(!!ylab)
-  )
+  if (missing(group)) {
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, fill = !!x)) + 
+        ggplot2::geom_bar() + 
+        ggplot2::labs(title = !!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
+    )
+  } else {
+    group <- rlang::sym(group)
+    
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, fill = !!group)) + 
+        ggplot2::geom_bar(position = "dodge") + 
+        ggplot2::labs(title = !!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
+    )
+  }
+  
+
   
   list(
     plot = plot_expr
@@ -493,7 +505,7 @@ iNZightPlotGG_boxplot <- function(data, x, y, main = sprintf("Distribution of %s
         ggplot2::ylab(!!ylab)
     )
   }
-
+  
   list(
     plot = plot_expr
   )
