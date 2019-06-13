@@ -56,8 +56,9 @@ inzDataframe <- function(m, data = NULL, names = list(),
     if (is_survey(data)) {
         df$data <- as.data.frame(lapply(m[mw], eval, data$variables, env))
         newDat <- cbind(data$variables, df$data)
-        newcall <- modifyCall(data$call, "data", "newDat")
-        df$design <- suppressWarnings(eval(parse(text = newcall)))
+        # newcall <- modifyCall(data$call, "data", "newDat")
+        data$variables <- newDat
+        df$design <- data# (eval(parse(text = newcall)))
         class(df) <- "inz.survey"
     } else if ("freq" %in% names(m)) {
         df$data <- as.data.frame(
