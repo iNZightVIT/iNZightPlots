@@ -15,3 +15,5 @@ test_that("Post strat designs work", {
         "inzplotoutput"
     )
 })
+
+unlink("Rplots*.pdf")
