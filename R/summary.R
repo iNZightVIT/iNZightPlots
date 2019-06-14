@@ -27,7 +27,7 @@ summary.inzdot <- function(object, des, ...) {
             mat <- cbind(svyby(~x, ~y, des, svyquantile, quantiles = c(0.25, 0.5, 0.75),
                                keep.var = FALSE, drop.empty.groups = FALSE)[, -1],
                          coef(svyby(~x, ~y, des, svymean, drop.empty.groups = FALSE)),
-                         coef(svyby(~x, ~y, des, svyvar, drop.empty.groups = FALSE)),
+                         sqrt(coef(svyby(~x, ~y, des, svyvar, drop.empty.groups = FALSE))),
                          coef(svyby(~x, ~y, des, svytotal, drop.empty.groups = FALSE)),
                          coef(svytotal(~y, des)),
                          NaN, as.vector(table(dv$y)),
@@ -38,7 +38,7 @@ summary.inzdot <- function(object, des, ...) {
                                         ci = TRUE, se = TRUE, drop.empty.groups = FALSE))
                            ),
                            SE(svyby(~x, ~y, des, svymean, drop.empty.groups = FALSE)),
-                           SE(svyby(~x, ~y, des, svyvar, drop.empty.groups = FALSE)),
+                           NA, #SE(svyby(~x, ~y, des, svyvar, drop.empty.groups = FALSE)),
                            SE(svyby(~x, ~y, des, svytotal, drop.empty.groups = FALSE)),
                            NA,
                            NA, NA, NA, NA)
@@ -50,7 +50,7 @@ summary.inzdot <- function(object, des, ...) {
                          coef(svymean(~x, des)),
                          coef(svycontrast(svyvar(~x, des), quote(sqrt(`x`)))),
                          coef(svytotal(~x, des)),
-                         coef(svytotal(matrix(rep(1, nrow(des$variables)), ncol = 1), des)),
+                         sum(weights(des)),
                          NaN, nrow(dv), min(dv$x, na.rm = TRUE), max(dv$x, na.rm = TRUE))
 
             semat <- cbind(rbind(SE(svyquantile(~x, des, quantiles = c(0.25, 0.5, 0.75), se = TRUE))),

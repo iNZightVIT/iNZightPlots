@@ -33,5 +33,30 @@ test_that("Summary information is correct - dot plot", {
             max(apiclus1$enroll)
         ))
     )
+
+    ## standard errors ...
+    # ...
+
+    x <- getPlotSummary(enroll, stype, design = dclus1)
+    pe <- which(grepl("Population estimates", x)) + 3:5
+    xpe <- gsub("\\||[A-Z]", "", x[pe])
+    expect_equivalent(
+        round(do.call(
+            rbind,
+            lapply(xpe, function(z) round(scan(textConnection(z), quiet = TRUE)))
+        )),
+        round(cbind(
+            as.matrix(svyby(~enroll, ~stype, dclus1, svyquantile, keep.var = FALSE,
+                quantiles = c(0.25, 0.5, 0.75))[,-1]),
+            mean=coef(svyby(~enroll, ~stype, dclus1, svymean)),
+            sd=sqrt(coef(svyby(~enroll, ~stype, dclus1, svyvar))),
+            total=coef(svyby(~enroll, ~stype, dclus1, svytotal)),
+            pop=tapply(weights(dclus1), dclus1$variables$stype, sum),
+            n=table(dclus1$variables$stype),
+            min=tapply(dclus1$variables$enroll, dclus1$variables$stype, min),
+            max=tapply(dclus1$variables$enroll, dclus1$variables$stype, max)
+        ))
+    )
 })
+
 
