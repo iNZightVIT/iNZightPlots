@@ -167,7 +167,7 @@ summary.inzbar <- function(object, des, ...) {
         }
         return(out)
     } else {
-        mat <- rbind(c(names(tab), "Total"),
+        mat <- rbind(c(colnames(tab), "Total"),
                      c(tab, sum(tab)),
                      paste0(c(format(round(perc, 2), nsmall = 2), "100"), "%"))
 
