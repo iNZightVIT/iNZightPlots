@@ -18,3 +18,4 @@ test_that("One-way table summaries are correct", {
         c(table(cas$travel), nrow(cas)) / nrow(cas) * 100
     )
 })
+
