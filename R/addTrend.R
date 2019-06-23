@@ -1,7 +1,7 @@
 addXYtrend <- function(obj, opts, col.args, xlim, ylim) {
     # Trend lines:
     # ------------------------------------------------------------- #
-    # If the `by` variable has been set, then the points are        
+    # If the `by` variable has been set, then the points are
     # coloured by the levels of `by`. Thus, there is more than one
     # level of `unique(col)`. In this case, we need to add the
     # trend lines for each level of by (i.e., each colour). The
@@ -10,7 +10,7 @@ addXYtrend <- function(obj, opts, col.args, xlim, ylim) {
 
     ## decide what x and y are:
     if ("svy" %in% names(obj)) {
-        if (inherits(obj$svy, "survey.design")) {
+        if (is_survey(obj$svy)) {
             x <- obj$svy
             y <- NULL
         } else {
@@ -31,7 +31,7 @@ addXYtrend <- function(obj, opts, col.args, xlim, ylim) {
         x <- obj$x
         y <- obj$y
     }
-    
+
     if (!is.null(opts$trend)) {
         if (length(unique(obj$col)) == 1 | !opts$trend.by) {
             lapply(opts$trend, function(o) {
@@ -50,7 +50,7 @@ addXYtrend <- function(obj, opts, col.args, xlim, ylim) {
             byy <- as.factor(obj$col)  # pseudo-by-variable
             xtmp <- lapply(levels(byy), function(c) subset(x, obj$col == c))
             ytmp <- lapply(levels(byy), function(c) subset(y, obj$col == c))
-            
+
             for (b in 1:length(levels(byy)))
                 lapply(opts$trend, function(o) {
                     order = which(c("linear", "quadratic", "cubic") == o)
@@ -66,7 +66,7 @@ addXYtrend <- function(obj, opts, col.args, xlim, ylim) {
 addTrend <-
 function(x, y, order, xlim, col, bs, opts) {
     xx <- seq(xlim[1], xlim[2], length = 1001)
-    if (is.svy <- inherits(x, "survey.design")) {
+    if (is.svy <- is_survey(x)) {
       if(length(order)==1){
         svy <- x
         expr <- switch(order,
@@ -92,7 +92,7 @@ function(x, y, order, xlim, col, bs, opts) {
 
         if (bs) {
             bs.lines <- vector("list", 30)
-            
+
             if (is.svy) {
                 return(NULL)
             } else {
@@ -101,13 +101,13 @@ function(x, y, order, xlim, col, bs, opts) {
                     id <- sample(1:length(x), replace = TRUE)
                     x2 <- x[id]
                     y2 <- y[id]
-                    
+
                     yy <- try(predict(lm(y2 ~ poly(x2, order)), data.frame(x2 = xx)),
                               silent = TRUE)
 
                     ## Some bootstraps can have less than `order` unique points:
                     if (inherits(yy, "try-error")) next
-                    
+
                     bs.lines[[i]] <- cbind(xx, yy, rep(i, length(yy)))
                 }
             }
@@ -124,7 +124,7 @@ function(x, y, order, xlim, col, bs, opts) {
 addParTrend <- function(x, y, by, order, xlim, cols, opts) {
     xx <- rep(seq(xlim[1], xlim[2], length = 1001), length(lby <- levels(by)))
     byy <- rep(lby, each = 1001)
-    if (inherits(x, "survey.design")) {
+    if (is_survey(x)) {
       if(length(order)==1){
         svy <- x
         expr <- switch(order,
@@ -139,7 +139,7 @@ addParTrend <- function(x, y, by, order, xlim, cols, opts) {
                   silent = TRUE)
     }
     ord <- switch(order, "linear", "quadratic", "cubic")
-    
+
   # Sometimes, there might not be enough data points do run poly(),
   # so in this case simply don't draw.
     if (!inherits(yy, "try-error")) {
