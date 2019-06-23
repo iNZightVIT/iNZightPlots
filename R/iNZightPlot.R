@@ -83,7 +83,7 @@ iNZightPlot <-
             data = NULL, design = NULL, freq = NULL,
             missing.info = TRUE,
             xlab = varnames$x, ylab = varnames$y,
-            type = "",
+            # type = "",
             new = TRUE,  # compatibility arguments
             inzpars = inzpar(), layout.only = FALSE, plot = TRUE,
             xaxis = TRUE, yaxis = TRUE, xlim = NULL, ylim = NULL,

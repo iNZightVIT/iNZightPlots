@@ -23,7 +23,11 @@ Imports:
     chron,
     scales,
     iNZightMR,
-    iNZightTools
+    iNZightTools,
+    magrittr,
+    ggplot2,
+    rlang,
+    dplyr
 Suggests:
     viridis,
     RColorBrewer,
