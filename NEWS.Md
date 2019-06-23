@@ -1,7 +1,7 @@
 ## Version 2.8.0.9000
 __Release date__: TBA
 
-
+- add a suite of new plot types from Financial Times (implemented using `ggplot`) (#90, @daniel-barnett)
 
 # Version 2.8
 __Release date:__ 30 April 2019
