@@ -601,7 +601,7 @@ iNZightPlotGG_lollipop <- function(data, x, y, main = sprintf("Distribution of %
   plot_expr <- rlang::expr(
     ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, y = !!y)) + 
       ggplot2::geom_segment(ggplot2::aes(xend = !!x, yend = 0)) + 
-      ggplot2::geom_point() + 
+      ggplot2::geom_point(size = 3) + 
       ggplot2::labs(title = !!main) +
       ggplot2::xlab(!!xlab) + 
       ggplot2::ylab(!!ylab)
