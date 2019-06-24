@@ -23,6 +23,7 @@ summary.inzdot <- function(object, des, ...) {
         rns <- c("Min", "25%", "Median", "75%", "Max", "Mean", "SD", "Sample Size")
     } else {
         dv <- des$variables
+        ones <- cbind(rep(1, nrow(dv)))
         if ("y" %in% colnames(dv)) {
             mat <- cbind(
                 svyby(~x, ~y, des, svyquantile, 
@@ -46,9 +47,13 @@ summary.inzdot <- function(object, des, ...) {
                         ci = TRUE, se = TRUE, drop.empty.groups = FALSE))
                 ),
                 SE(svyby(~x, ~y, des, svymean, drop.empty.groups = FALSE)),
-                NA, #SE(svyby(~x, ~y, des, svyvar, drop.empty.groups = FALSE)),
+                {
+                    vv <- svyby(~x, ~y, des, svyvar, drop.empty.groups = FALSE)
+                    vc <- suppressWarnings(diag(vcov(vv)))
+                    sqrt(vc / 4 / coef(vv))
+                },
                 SE(svyby(~x, ~y, des, svytotal, drop.empty.groups = FALSE)),
-                NA,
+                SE(svytotal(~y, des)),
                 NA, 
                 NA, 
                 NA, 
@@ -69,7 +74,7 @@ summary.inzdot <- function(object, des, ...) {
                 coef(svymean(~x, des)),
                 sqrt(coef(svyvar(~x, des))),
                 coef(svytotal(~x, des)),
-                sum(get_weights(des)),
+                coef(svytotal(ones, des)),
                 NaN, 
                 nrow(dv), 
                 min(dv$x, na.rm = TRUE), 
@@ -93,9 +98,12 @@ summary.inzdot <- function(object, des, ...) {
                     ))
                 },
                 SE(svymean(~x, des)),
-                sqrt(SE(svyvar(~x, des))),
+                {
+                    vv <- svyvar(~x, des)
+                    sqrt(vcov(vv) / 4 / coef(vv))
+                },
                 SE(svytotal(~x, des)),
-                NA,
+                SE(svytotal(ones, des)),
                 NA, 
                 NA, 
                 NA, 

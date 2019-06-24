@@ -27,7 +27,7 @@ test_that("Summary information is correct - dot plot", {
             as.numeric(svymean(~enroll, design = dclus1)),
             sqrt(as.numeric(svyvar(~enroll, design = dclus1))),
             as.numeric(svytotal(~enroll, design = dclus1)),
-            sum(weights(dclus1)),
+            coef(svytotal(cbind(rep(1, nrow(dclus1$variables))), dclus1)),
             nrow(apiclus1),
             min(apiclus1$enroll),
             max(apiclus1$enroll)
@@ -36,7 +36,33 @@ test_that("Summary information is correct - dot plot", {
 
     ## standard errors ...
     # ...
+    se <- which(grepl("Standard error of estimates", x)) + 2
+    xse <- gsub("\\|", "", x[se])
+    expect_equivalent(
+        round(
+            scan(text = xse, quiet = TRUE), 
+            c(2, 2, 2, 2, 2, 0, 0)
+        ),
+        round(
+            c(
+                SE(svyquantile(~enroll, 
+                    design = dclus1, quantiles = c(0.25, 0.5, 0.75),
+                    se = TRUE
+                )),
+                SE(svymean(~enroll, design = dclus1)),
+                sqrt(
+                    vcov(svyvar(~enroll, dclus1)) / 
+                        4 / coef(svyvar(~enroll, dclus1))
+                ),
+                SE(svytotal(~enroll, design = dclus1)),
+                SE(svytotal(cbind(rep(1, nrow(dclus1$variables))), dclus1))
+            ), 
+            c(2, 2, 2, 2, 2, 0, 0)
+        )
+    )
+})
 
+test_that("Summary information is correct - dot plot (by factor)", {
     x <- getPlotSummary(enroll, stype, design = dclus1)
     pe <- which(grepl("Population estimates", x)) + 3:5
     xpe <- gsub("\\||[A-Z]", "", x[pe])
@@ -55,6 +81,35 @@ test_that("Summary information is correct - dot plot", {
             n=table(dclus1$variables$stype),
             min=tapply(dclus1$variables$enroll, dclus1$variables$stype, min),
             max=tapply(dclus1$variables$enroll, dclus1$variables$stype, max)
+        ))
+    )
+
+    ## standard errors
+    se <- which(grepl("Standard error of estimates", x)) + 2:4
+    xse <- gsub("\\||[A-Z]", "", x[se])
+    expect_equivalent(
+        do.call(rbind,
+            lapply(xse, function(z) 
+                round(
+                    scan(text = z, quiet = TRUE),
+                    c(2, 2, 2, 2, 2, 0, 1)
+                )
+            )
+        ),
+        as.matrix(cbind(
+            suppressWarnings(
+                round(SE(svyby(~enroll, ~stype, dclus1, svyquantile, 
+                    ci = TRUE, se = TRUE,
+                    quantiles = c(0.25, 0.5, 0.75))), 2)
+            ),
+            mean = round(SE(svyby(~enroll, ~stype, dclus1, svymean)), 2),
+            sd = {
+                vv <- svyby(~enroll, ~stype, dclus1, svyvar)
+                vc <- suppressWarnings(diag(vcov(vv)))
+                round(sqrt(vc / 4 / coef(vv)), 2)
+            },
+            total = round(SE(svyby(~enroll, ~stype, dclus1, svytotal))),
+            pop = round(SE(svytotal(~stype, dclus1)), 1)
         ))
     )
 })
