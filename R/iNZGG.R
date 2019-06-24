@@ -66,6 +66,10 @@ apply_palette <- function(expr, palette, type) {
   }
 }
 
+remove_nas <- function(exprs) {
+  
+}
+
 iNZightPlotGG_facet <- function(data, data_name, exprs, g1, g2, g1.level, g2.level) {
   if (!is.null(g1)) {
     if (g1.level != "_MULTI") {
@@ -132,6 +136,11 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
   } else if (type %in% c("gg_violin", "gg_barcode", "gg_boxplot", "gg_cumcurve", "gg_column2", "gg_lollipop", "gg_dotstrip", "gg_density")) {
     if (!("y" %in% names(varnames))) {
       names(varnames) <- replace(names(varnames), names(varnames) == "x", "y")
+      if (isTRUE(!is.null(extra_vars$fill_colour) && extra_vars$fill_colour != "")) {
+        varnames["fill"] <- extra_vars$fill_colour
+      } else {
+        varnames["fill"] <- "darkgreen"
+      }
     } else if (is.numeric(data[[varnames["x"]]])) {
       orig_x <- varnames["x"]
       varnames["x"] <- varnames["y"]
@@ -197,11 +206,18 @@ iNZightPlotGG <- function(
   dots <- list(...)
 
   if (length(extra_args) > 0) {
+    print(extra_args)
     rotate <- extra_args$rotation
     desc <- extra_args$desc
-    extra_args <- c(iNZightPlotGG_extraargs(extra_args), desc = desc, labels = extra_args$labelVar)
-    print("extra args")
-    print(extra_args)
+    # percent <- extra_args$percent
+    extra_args <- c(
+      iNZightPlotGG_extraargs(extra_args), 
+      desc = desc, 
+      labels = extra_args$labelVar,
+      fill_colour = extra_args$fill_colour
+    )
+    
+    
   }
   
   plot_args <- iNZightPlotGG_decide(data, unlist(dots), type, extra_args)
@@ -223,13 +239,17 @@ iNZightPlotGG <- function(
     plot_exprs <- iNZightPlotGG_facet(data, data_name, plot_exprs, dots$g1, dots$g2, dots$g1.level, dots$g2.level)
   }
   
-  if (isTRUE(rotate)) {
+  if (isTRUE(rotate) && !(type %in% c("gg_pie", "gg_donut"))) {
     plot_exprs$plot <- rotate(plot_exprs$plot)
   }
   
   if (isTRUE(!missing(palette) && !is.null(palette) && palette != "default")) {
     plot_exprs$plot <- apply_palette(plot_exprs$plot, palette, type)
   }
+
+  # if (isTRUE(percent) && type %in% c("gg_column")) {
+  #   plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::scale_y_continuous(labels = scales::percent))
+  # }
   
   cat(unname(unlist(lapply(plot_exprs, rlang::expr_text))), sep = "\n\n")
   
@@ -246,8 +266,6 @@ iNZightPlotGG <- function(
   attr(plot_object, "code") <- unname(unlist(lapply(plot_exprs, rlang::expr_text)))
   attr(plot_object, "plottype") <- c(type)
   attr(plot_object, "varnames") <- unlist(dots)
-  
-  # cat(attr(plot_object, "code"), sep = "\n\n")
   
   plot_object
 }
@@ -424,15 +442,16 @@ iNZightPlotGG_stackedbar <- function(data, fill, main = "Stacked bar", x, ...) {
   column_plot
 }
 
-iNZightPlotGG_violin <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
+iNZightPlotGG_violin <- function(data, x, y, fill = "darkgreen", main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
   y <- rlang::sym(y)
   
   if (missing(x)) {
     x <- rlang::expr(factor(1))
+    # fill <- rlang::expr(fill)
     
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y)) + 
-        ggplot2::geom_violin(fill = "darkgreen") + 
+        ggplot2::geom_violin(fill = !!fill) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -455,32 +474,40 @@ iNZightPlotGG_violin <- function(data, x, y, main = sprintf("Distribution of %s"
   )
 }
 
-iNZightPlotGG_barcode <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
+iNZightPlotGG_barcode <- function(data, x, y, fill = "darkgreen", main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
+  y <- rlang::sym(y)
+  
   if (missing(x)) {
     x <- rlang::expr(factor(1))
-    colour <- NULL
+
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y)) + 
+        ggplot2::geom_point(shape = "|", size = 16, alpha = 0.2, colour = !!fill) + 
+        ggplot2::coord_flip() + 
+        ggplot2::labs(title = !!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
+    )
   } else {
     x <- rlang::sym(x)
     colour <- rlang::sym(x)
+    
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, colour = !!colour)) + 
+        ggplot2::geom_point(shape = "|", size = 16, alpha = 0.2) + 
+        ggplot2::coord_flip() + 
+        ggplot2::labs(title = !!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
+    )
   }
-  
-  y <- rlang::sym(y)
-  
-  plot_expr <- rlang::expr(
-    ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, colour = !!colour)) + 
-      ggplot2::geom_point(shape = "|", size = 16, alpha = 0.2) + 
-      ggplot2::coord_flip() + 
-      ggplot2::labs(title = !!main) + 
-      ggplot2::xlab(!!xlab) + 
-      ggplot2::ylab(!!ylab)
-  )
   
   list(
     plot = plot_expr
   )
 }
 
-iNZightPlotGG_boxplot <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
+iNZightPlotGG_boxplot <- function(data, x, y, fill = "darkgreen", main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
   y <- rlang::sym(y)
   
   if (missing(x)) {
@@ -488,7 +515,7 @@ iNZightPlotGG_boxplot <- function(data, x, y, main = sprintf("Distribution of %s
     
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y)) +
-        ggplot2::geom_boxplot(fill = "darkgreen") + 
+        ggplot2::geom_boxplot(fill = !!fill) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -685,7 +712,6 @@ iNZightPlotGG_dotstrip <- function(data, x, y, main = sprintf("Distribution of %
   plot_expr <- rlang::expr(
     ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, colour = !!colour)) + 
       ggplot2::geom_point(alpha = 0.2) + 
-      ggplot2::coord_flip() + 
       ggplot2::labs(title = !!main) + 
       ggplot2::xlab(!!xlab) + 
       ggplot2::ylab(!!ylab)
@@ -696,13 +722,13 @@ iNZightPlotGG_dotstrip <- function(data, x, y, main = sprintf("Distribution of %
   )
 }
 
-iNZightPlotGG_density <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(y), ylab = "Density", ...) {
+iNZightPlotGG_density <- function(data, x, y, fill = "darkgreen", main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(y), ylab = "Density", ...) {
   y <- rlang::sym(y)
   
   if (missing(x)) {
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y)) + 
-        ggplot2::geom_density(fill = "darkgreen", alpha = 0.2) + 
+        ggplot2::geom_density(fill = !!fill, alpha = 0.2) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -723,3 +749,4 @@ iNZightPlotGG_density <- function(data, x, y, main = sprintf("Distribution of %s
     plot = plot_expr
   )
 }
+
