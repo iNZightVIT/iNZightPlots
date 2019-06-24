@@ -6,7 +6,7 @@ dclus1 <- svydesign(id = ~dnum, weights = ~pw,
 
 test_that("Survey designs work", {
     expect_is(
-        iNZightPlot(api00, api99, design = dclus1),
+        iNZightPlot(api00, api99, design = dclus1, plot = FALSE),
         "inzplotoutput"
     )
 })
