@@ -47,7 +47,7 @@ dchis <- suppressWarnings(svrepdesign(
 test_that("Survey replicate design summaries are correct", {
     expect_is(getPlotSummary(bmi_p, design = dchis), "inzight.plotsummary")
     expect_is(getPlotSummary(bmi_p, sex, design = dchis), "inzight.plotsummary")
-    expect_is(getPlotSummary(bmi_p, marit, design = dchis), 
+    expect_is(suppressWarnings(getPlotSummary(bmi_p, marit, design = dchis)), 
         "inzight.plotsummary")
     expect_is(getPlotSummary(sex, design = dchis), "inzight.plotsummary")
     expect_is(getPlotSummary(sex, smoke, design = dchis), "inzight.plotsummary")
