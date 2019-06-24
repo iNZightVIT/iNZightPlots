@@ -150,3 +150,13 @@ modifyCall <- function(oldcall, arg, val) {
 
     gsub("`", "", as.character(as.expression(as.call(call))))
 }
+
+get_weights <- function(obj) {
+    if (is_svyrep(obj)) 
+        return(weights(obj, type = "sampling")[[1]])
+    
+    if (is_survey(obj))
+        return(weights(obj))
+
+    return(NA)
+}

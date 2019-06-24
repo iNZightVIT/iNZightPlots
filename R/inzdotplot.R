@@ -131,7 +131,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
             options(survey.lonely.psu = oo)
 
             h$density <- probs / diff(h$breaks)
-            h$counts <- probs * sum(weights(d))
+            h$counts <- probs * sum(get_weights(d))
         } else {
             x <- d$x
             h <- hist(x, breaks = cuts, plot = FALSE)

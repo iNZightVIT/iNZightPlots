@@ -26,7 +26,7 @@ create.inz.hexplot <- function(obj) {
     ## now manipulate the counts with the weight variable
     W <- switch(xattr$class,
                 "inz.freq" = df$freq,
-                "inz.survey" = weights(obj$df, "sampling")[!missing],
+                "inz.survey" = get_weights(obj$df)[!missing],
                 "inz.simple" = rep(1, nrow(df)))
 
     hb@count <- as.vector(tapply(W, cellid, sum))
