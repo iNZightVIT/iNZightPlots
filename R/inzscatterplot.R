@@ -24,7 +24,7 @@ create.inz.scatterplot <- function(obj) {
     if (xattr$class == "inz.survey") {
         design <- df
         df <- as.data.frame(
-            cbind(df$variables, weights = weights(df))
+            cbind(df$variables, weights = get_weights(df))
         )
     }
 
