@@ -28,6 +28,7 @@ summary.inzdot <- function(object, des, ...) {
             mat <- cbind(
                 svyby(~x, ~y, des, svyquantile, 
                     quantiles = c(0.25, 0.5, 0.75),
+                    na.rm = TRUE,
                     keep.var = FALSE, 
                     drop.empty.groups = FALSE)[, -1],
                 coef(svyby(~x, ~y, des, svymean, na.rm = TRUE, drop.empty.groups = FALSE)),
