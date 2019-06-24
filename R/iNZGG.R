@@ -474,16 +474,15 @@ iNZightPlotGG_violin <- function(data, x, y, fill = "darkgreen", main = sprintf(
   )
 }
 
-iNZightPlotGG_barcode <- function(data, x, y, fill = "darkgreen", main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
+iNZightPlotGG_barcode <- function(data, x, y, fill = "darkgreen", main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(y), ylab = as.character(x), ...) {
   y <- rlang::sym(y)
   
   if (missing(x)) {
     x <- rlang::expr(factor(1))
 
     plot_expr <- rlang::expr(
-      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y)) + 
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x)) + 
         ggplot2::geom_point(shape = "|", size = 16, alpha = 0.2, colour = !!fill) + 
-        ggplot2::coord_flip() + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -493,9 +492,8 @@ iNZightPlotGG_barcode <- function(data, x, y, fill = "darkgreen", main = sprintf
     colour <- rlang::sym(x)
     
     plot_expr <- rlang::expr(
-      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, colour = !!colour)) + 
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x, colour = !!colour)) + 
         ggplot2::geom_point(shape = "|", size = 16, alpha = 0.2) + 
-        ggplot2::coord_flip() + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -698,25 +696,33 @@ iNZightPlotGG_freqpolygon <- function(data, x, colour, main = sprintf("Count of 
   )
 }
 
-iNZightPlotGG_dotstrip <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
+iNZightPlotGG_dotstrip <- function(data, x, y, fill = "darkgreen", main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(y), ylab = as.character(x), ...) {
+  y <- rlang::sym(y)
+  
   if (missing(x)) {
     x <- rlang::expr(factor(1))
-    colour <- NULL
+
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x)) + 
+        ggplot2::geom_point(alpha = 0.2, colour = !!fill) + 
+        ggplot2::labs(title = !!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
+    )
+    
   } else {
     x <- rlang::sym(x)
     colour <- rlang::sym(x)
+    
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x, colour = !!colour)) + 
+        ggplot2::geom_point(alpha = 0.2) + 
+        ggplot2::labs(title = !!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
+    )
   }
-  
-  y <- rlang::sym(y)
-  
-  plot_expr <- rlang::expr(
-    ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, colour = !!colour)) + 
-      ggplot2::geom_point(alpha = 0.2) + 
-      ggplot2::labs(title = !!main) + 
-      ggplot2::xlab(!!xlab) + 
-      ggplot2::ylab(!!ylab)
-  )
-  
+
   list(
     plot = plot_expr
   )
