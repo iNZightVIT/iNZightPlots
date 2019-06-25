@@ -759,3 +759,82 @@ iNZightPlotGG_density <- function(data, x, y, fill = "darkgreen", main = sprintf
   )
 }
 
+iNZightPlotGG_mosaic <- function(data, x, y, main = "Mosaic plot", xlab = as.character(x), ylab = as.character(y), ...) {
+  x <- rlang::sym(x)
+  y <- rlang::sym(y)
+  
+  plot_expr <- rlang::expr(
+    ggplot2::ggplot(!!rlang::enexpr(data)) + 
+      ggmosaic::geom_mosaic(ggplot2::aes(x = ggmosaic::product(factor(!!x)), fill = factor(!!y))) + 
+      ggplot2::labs(title = !!main) + 
+      ggplot2::xlab(!!xlab) + 
+      ggplot2::ylab(!!ylab)
+  )
+  
+  list(
+    plot = plot_expr
+  )
+}
+
+iNZightPlotGG_lollipop2 <- function(data, x, y, main = "Lollipop Categorical", xlab = as.character(x), ylab = "Count", ordered = FALSE, ...) {
+  x <- rlang::sym(x)
+  
+
+
+  if (missing(y)) {
+    if (ordered) {
+      data_expr <- rlang::expr(
+        plot_data <- !!rlang::enexpr(data) %>% 
+          dplyr::group_by(!!x) %>% 
+          dplyr::summarise(Count = dplyr::n()) %>% 
+          dplyr::mutate(!!x := forcats::fct_reorder(!!x, Count))
+      )
+    } else {
+      data_expr <- rlang::expr(
+        plot_data <- !!rlang::enexpr(data) %>% 
+          dplyr::group_by(!!x) %>% 
+          dplyr::summarise(Count = dplyr::n())
+      )
+    }
+    
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(plot_data, ggplot2::aes(!!x, Count)) + 
+        ggplot2::geom_point() + 
+        ggplot2::geom_segment(ggplot2::aes(xend = !!x, yend = 0)) + 
+        ggplot2::labs(title = !!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
+    )
+  } else {
+    y <- rlang::sym(y)
+    
+    if (ordered) {
+      data_expr <- rlang::expr(
+        plot_data <- !!rlang::enexpr(data) %>% 
+          dplyr::group_by(!!x, !!y) %>% 
+          dplyr::summarise(Count = dplyr::n()) %>% 
+          dplyr::mutate(!!x := forcats::fct_reorder(!!x, Count))
+      )
+    } else {
+      data_expr <- rlang::expr(
+        plot_data <- !!rlang::enexpr(data) %>% 
+          dplyr::group_by(!!x, !!y) %>% 
+          dplyr::summarise(Count = dplyr::n())
+      )
+    }
+    
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, colour = !!y, y = Count)) + 
+        ggplot2::geom_point(position = ggplot2::position_dodge(width = 0.5), size = 3) + 
+        ggplot2::geom_linerange(ggplot2::aes(ymin = 0, ymax = Count), position = ggplot2::position_dodge(width = 0.5)) + 
+        ggplot2::labs(title = !!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
+    )
+  }
+
+  list(
+    data = data_expr,
+    plot = plot_expr
+  )
+}
