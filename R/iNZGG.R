@@ -669,7 +669,8 @@ iNZightPlotGG_poppyramid <- function(data, x, fill, main = sprintf("Count of %s 
       ggplot2::coord_flip() + 
       ggplot2::labs(title = !!main) + 
       ggplot2::xlab(!!xlab) + 
-      ggplot2::ylab(!!ylab)
+      ggplot2::ylab(!!ylab) + 
+      ggplot2::scale_y_continuous(labels = abs)
   )
   
   list(
