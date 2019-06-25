@@ -484,7 +484,7 @@ iNZightPlotGG_barcode <- function(data, x, y, fill = "darkgreen", main = sprintf
 
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x)) + 
-        ggplot2::geom_point(shape = "|", size = 16, alpha = 0.2, colour = !!fill) + 
+        ggplot2::geom_point(shape = "|", size = 16, alpha = 0.5) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -494,8 +494,8 @@ iNZightPlotGG_barcode <- function(data, x, y, fill = "darkgreen", main = sprintf
     colour <- rlang::sym(x)
     
     plot_expr <- rlang::expr(
-      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x, colour = !!colour)) + 
-        ggplot2::geom_point(shape = "|", size = 16, alpha = 0.2) + 
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x)) + 
+        ggplot2::geom_point(shape = "|", size = 16, alpha = 0.5) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -706,7 +706,7 @@ iNZightPlotGG_dotstrip <- function(data, x, y, fill = "darkgreen", main = sprint
 
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x)) + 
-        ggplot2::geom_point(alpha = 0.2, colour = !!fill) + 
+        ggplot2::geom_point(alpha = 0.5) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -717,8 +717,8 @@ iNZightPlotGG_dotstrip <- function(data, x, y, fill = "darkgreen", main = sprint
     colour <- rlang::sym(x)
     
     plot_expr <- rlang::expr(
-      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x, colour = !!colour)) + 
-        ggplot2::geom_point(alpha = 0.2) + 
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x)) + 
+        ggplot2::geom_point(alpha = 0.5) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
