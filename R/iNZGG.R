@@ -127,6 +127,8 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
   varnames <- varnames[grep("\\.level$", names(varnames), invert = TRUE)]
   varnames <- varnames[grep("g1", names(varnames), invert = TRUE)]
   varnames <- varnames[grep("g2", names(varnames), invert = TRUE)]
+  non_mapped <- varnames[grep("x|y", names(varnames), invert = TRUE)]
+  varnames <- varnames[grep("x|y", names(varnames))]
   nullVars <- vapply(data[, varnames, drop = FALSE], is.null, FUN.VALUE = logical(1))
   varnames[which(nullVars)] <- NULL
   varnames[!varnames %in% colnames(data)] <- NULL
@@ -176,7 +178,7 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
     varnames <- c(as.list(varnames), labels = extra_vars$labels)
   }
 
-  varnames
+  c(varnames, non_mapped)
 }
 
 iNZightPlotGG_extraargs <- function(extra_args) {
@@ -220,7 +222,11 @@ iNZightPlotGG <- function(
     
   }
   
+  print(dots)
+  
   plot_args <- iNZightPlotGG_decide(data, unlist(dots), type, extra_args)
+  
+  print(plot_args)
 
   plot_exprs <- do.call(
     sprintf("iNZightPlotGG_%s", gsub("^gg_", "", type)), 
@@ -447,13 +453,15 @@ iNZightPlotGG_stackedbar <- function(data, fill, main = "Stacked bar", x, ...) {
 iNZightPlotGG_violin <- function(data, x, y, fill = "darkgreen", main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
   y <- rlang::sym(y)
   
+  dots <- list(...)
+  print(sprintf("%s: %s", names(dots), dots))
+  
   if (missing(x)) {
     x <- rlang::expr(factor(1))
-    # fill <- rlang::expr(fill)
-    
+
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y)) + 
-        ggplot2::geom_violin(fill = !!fill) + 
+        ggplot2::geom_violin(fill = !!fill, !!!dots) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -464,7 +472,7 @@ iNZightPlotGG_violin <- function(data, x, y, fill = "darkgreen", main = sprintf(
     
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, fill = !!fill)) + 
-        ggplot2::geom_violin() + 
+        ggplot2::geom_violin(!!!dots) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -779,8 +787,6 @@ iNZightPlotGG_mosaic <- function(data, x, y, main = "Mosaic plot", xlab = as.cha
 iNZightPlotGG_lollipop2 <- function(data, x, y, main = "Lollipop Categorical", xlab = as.character(x), ylab = "Count", ordered = FALSE, ...) {
   x <- rlang::sym(x)
   
-
-
   if (missing(y)) {
     if (ordered) {
       data_expr <- rlang::expr(
