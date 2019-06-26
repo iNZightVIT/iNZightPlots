@@ -4,6 +4,11 @@ required_arguments <- list(
   column = c("x")
 )
 
+optional_args <- list(
+  gg_violin = c("adjust", "alpha"),
+  gg_density = c("adjust", "alpha")
+)
+
 replace_data_name <- function(expr, new_name) {
   if (is.name(expr[[2]])) {
     expr[[2]] <- rlang::sym(new_name)
@@ -169,20 +174,22 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
       names(varnames) <- replace(names(varnames), names(varnames) == "y", "group")
     }
   }
-  
-  if (type %in% c("gg_lollipop", "gg_column2") && !is.null(extra_vars$desc)) {
-    varnames <- c(as.list(varnames), desc = extra_vars$desc)
-  }
-  
-  if (type %in% c("gg_lollipop", "gg_column2") && !is.null(extra_vars$labels)) {
-    varnames <- c(as.list(varnames), labels = extra_vars$labels)
-  }
 
+  extra_args <- Filter(Negate(is.null), extra_vars[optional_args[[type]]])
+  print(extra_args)
+  
+  if (!is.null(extra_args) && length(extra_args) > 0) {
+    varnames <- append(as.list(varnames), as.list(extra_args))
+  }
+  
+  print("varnames")
+  print(varnames)
+  
   c(varnames, non_mapped)
 }
 
 iNZightPlotGG_extraargs <- function(extra_args) {
-  to.keep <- c("shape" = "pch", "colour" = "col.pt", "size" = "cex", "alpha" = "alpha", "bg" = "bg")
+  to.keep <- c("shape" = "pch", "colour" = "col.pt", "size" = "cex", "alpha" = "alpha", "bg" = "bg", "adjust" = "adjust")
   extra_args <- extra_args[to.keep]
   
   changed_args <- Filter(function(x) extra_args[[x]] != inzpar()[[x]], names(extra_args))
@@ -208,7 +215,7 @@ iNZightPlotGG <- function(
   dots <- list(...)
 
   if (length(extra_args) > 0) {
-    print(extra_args)
+    print(names(extra_args))
     rotate <- extra_args$rotation
     desc <- extra_args$desc
     # percent <- extra_args$percent
@@ -216,13 +223,14 @@ iNZightPlotGG <- function(
       iNZightPlotGG_extraargs(extra_args), 
       desc = desc, 
       labels = extra_args$labelVar,
-      fill_colour = extra_args$fill_colour
+      fill_colour = extra_args$fill_colour,
+      adjust = extra_args$adjust
     )
     
     
   }
   
-  print(dots)
+  # print(dots)
   
   plot_args <- iNZightPlotGG_decide(data, unlist(dots), type, extra_args)
   
@@ -253,10 +261,6 @@ iNZightPlotGG <- function(
     plot_exprs$plot <- apply_palette(plot_exprs$plot, palette, type)
   }
 
-  # if (isTRUE(percent) && type %in% c("gg_column")) {
-  #   plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::scale_y_continuous(labels = scales::percent))
-  # }
-  
   cat(unname(unlist(lapply(plot_exprs, rlang::expr_text))), sep = "\n\n")
   
   eval_env <- rlang::env(!!rlang::sym(data_name) := data)
@@ -741,11 +745,12 @@ iNZightPlotGG_dotstrip <- function(data, x, y, fill = "darkgreen", main = sprint
 
 iNZightPlotGG_density <- function(data, x, y, fill = "darkgreen", main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(y), ylab = "Density", ...) {
   y <- rlang::sym(y)
+  dots <- list(...)
   
   if (missing(x)) {
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y)) + 
-        ggplot2::geom_density(fill = !!fill) + 
+        ggplot2::geom_density(fill = !!fill, !!!dots) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -755,7 +760,7 @@ iNZightPlotGG_density <- function(data, x, y, fill = "darkgreen", main = sprintf
     
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, fill = !!fill)) + 
-        ggplot2::geom_density(alpha = 0.4) + 
+        ggplot2::geom_density(alpha = 0.4, !!!dots) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
