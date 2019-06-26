@@ -343,7 +343,7 @@ iNZightPlot <-
     if (!is.null(zoombars)) xattr$zoom <- zoombars
 
     if (inherits(df.list, "inz.survey")) {
-        xattr$max.weight <- max(weights(df$design))
+        xattr$max.weight <- max(get_weights(df$design))
     }
 
 

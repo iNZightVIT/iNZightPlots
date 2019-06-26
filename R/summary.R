@@ -23,48 +23,101 @@ summary.inzdot <- function(object, des, ...) {
         rns <- c("Min", "25%", "Median", "75%", "Max", "Mean", "SD", "Sample Size")
     } else {
         dv <- des$variables
+        ones <- cbind(rep(1, nrow(dv)))
         if ("y" %in% colnames(dv)) {
-            mat <- cbind(svyby(~x, ~y, des, svyquantile, quantiles = c(0.25, 0.5, 0.75),
-                               keep.var = FALSE, drop.empty.groups = FALSE)[, -1],
-                         coef(svyby(~x, ~y, des, svymean, drop.empty.groups = FALSE)),
-                         sqrt(coef(svyby(~x, ~y, des, svyvar, drop.empty.groups = FALSE))),
-                         coef(svyby(~x, ~y, des, svytotal, drop.empty.groups = FALSE)),
-                         coef(svytotal(~y, des)),
-                         NaN, as.vector(table(dv$y)),
-                         tapply(dv$x, dv$y, min, na.rm = TRUE), tapply(dv$x, dv$y, max, na.rm = TRUE))
+            mat <- cbind(
+                svyby(~x, ~y, des, svyquantile, 
+                    quantiles = c(0.25, 0.5, 0.75),
+                    na.rm = TRUE,
+                    keep.var = FALSE, 
+                    drop.empty.groups = FALSE)[, -1],
+                coef(svyby(~x, ~y, des, svymean, na.rm = TRUE, drop.empty.groups = FALSE)),
+                sqrt(coef(svyby(~x, ~y, des, svyvar, na.rm = TRUE, drop.empty.groups = FALSE))),
+                coef(svyby(~x, ~y, des, svytotal, na.rm = TRUE, drop.empty.groups = FALSE)),
+                coef(svytotal(~y, des)),
+                NaN, 
+                as.vector(table(dv$y)),
+                tapply(dv$x, dv$y, min, na.rm = TRUE), 
+                tapply(dv$x, dv$y, max, na.rm = TRUE)
+            )
 
-            semat <- cbind(suppressWarnings(
-                               SE(svyby(~x, ~y, des, svyquantile, quantiles = c(0.25, 0.5, 0.75),
-                                        ci = TRUE, se = TRUE, drop.empty.groups = FALSE))
-                           ),
-                           SE(svyby(~x, ~y, des, svymean, drop.empty.groups = FALSE)),
-                           NA, #SE(svyby(~x, ~y, des, svyvar, drop.empty.groups = FALSE)),
-                           SE(svyby(~x, ~y, des, svytotal, drop.empty.groups = FALSE)),
-                           NA,
-                           NA, NA, NA, NA)
+            semat <- cbind(
+                suppressWarnings(
+                    SE(svyby(~x, ~y, des, svyquantile, 
+                        quantiles = c(0.25, 0.5, 0.75),
+                        ci = TRUE, se = TRUE, na.rm = TRUE, drop.empty.groups = FALSE))
+                ),
+                SE(svyby(~x, ~y, des, svymean, na.rm = TRUE, drop.empty.groups = FALSE)),
+                {
+                    vv <- svyby(~x, ~y, des, svyvar, na.rm = TRUE, drop.empty.groups = FALSE)
+                    vc <- suppressWarnings(diag(vcov(vv)))
+                    sqrt(vc / 4 / coef(vv))
+                },
+                SE(svyby(~x, ~y, des, svytotal, na.rm = TRUE, drop.empty.groups = FALSE)),
+                SE(svytotal(~y, des)),
+                NA, 
+                NA, 
+                NA, 
+                NA
+            )
 
             dimnames(semat) <- dimnames(mat)
             mat <- rbind(mat, semat)
         } else {
-            mat <- cbind(svyquantile(~x, des, quantiles = c(0.25, 0.5, 0.75)),
-                         coef(svymean(~x, des)),
-                         coef(svycontrast(svyvar(~x, des), quote(sqrt(`x`)))),
-                         coef(svytotal(~x, des)),
-                         sum(weights(des)),
-                         NaN, nrow(dv), min(dv$x, na.rm = TRUE), max(dv$x, na.rm = TRUE))
+            mat <- cbind(
+                if (is_svyrep(des)) {
+                    t(rbind(coef(
+                        svyquantile(~x, des,  na.rm = TRUE,quantiles = c(0.25, 0.5, 0.75))
+                    )))
+                } else {
+                        svyquantile(~x, des,  na.rm = TRUE,quantiles = c(0.25, 0.5, 0.75))
+                },
+                coef(svymean(~x, des, na.rm = TRUE)),
+                sqrt(coef(svyvar(~x, des, na.rm = TRUE))),
+                coef(svytotal(~x, des, na.rm = TRUE)),
+                coef(svytotal(ones, des, na.rm = TRUE)),
+                NaN, 
+                nrow(dv), 
+                min(dv$x, na.rm = TRUE), 
+                max(dv$x, na.rm = TRUE)
+            )
 
-            semat <- cbind(rbind(SE(svyquantile(~x, des, quantiles = c(0.25, 0.5, 0.75), se = TRUE))),
-                           SE(svymean(~x, des)),
-                           SE(svycontrast(svyvar(~x, des), quote(sqrt(`x`)))),
-                           SE(svytotal(~x, des)),
-                           NA,
-                           NA, NA, NA, NA)
+            semat <- cbind(
+                if (is_svyrep(des)) {
+                    t(rbind(SE(
+                        svyquantile(~x, des, 
+                            quantiles = c(0.25, 0.5, 0.75), 
+                             a.rm = TRUE,
+                            se = TRUE
+                        )
+                    )))
+                } else {
+                    rbind(SE(
+                        svyquantile(~x, des, 
+                            quantiles = c(0.25, 0.5, 0.75), 
+                            na.rm = TRUE,
+                            se = TRUE
+                        )
+                    ))
+                },
+                SE(svymean(~x, des, na.rm = TRUE)),
+                {
+                    vv <- svyvar(~x, des, na.rm = TRUE)
+                    sqrt(vcov(vv) / 4 / coef(vv))
+                },
+                SE(svytotal(~x, des, na.rm = TRUE)),
+                SE(svytotal(ones, des, na.rm = TRUE)),
+                NA, 
+                NA, 
+                NA, 
+                NA
+            )
 
             mat <- rbind(mat, semat)
         }
         rns <- c("25%", "Median", "75%", "Mean", "SD", "Total", "Est. Pop. Size",
                  "|", "Sample Size", "Min", "Max")
-        if (!all(weights(des) == 0 | weights(des) >= 1)) {
+        if (!all(get_weights(des) == 0 | get_weights(des) >= 1)) {
             mat <- mat[, -(6:7)]
             rns <- rns[-(6:7)]
         }
