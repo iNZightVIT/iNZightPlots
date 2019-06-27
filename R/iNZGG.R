@@ -4,6 +4,18 @@ required_arguments <- list(
   column = c("x")
 )
 
+optional_args <- list(
+  gg_violin = c("adjust", "alpha"),
+  gg_density = c("adjust", "alpha"),
+  gg_lollipop = c("gg_lwd", "labels"),
+  gg_boxplot = c("gg_lwd"),
+  gg_cumcurve = c("gg_lwd"),
+  gg_column = c("ordered"),
+  gg_lollipop2 = c("ordered"),
+  gg_pie = c("ordered"),
+  gg_column2 = c("labels")
+)
+
 replace_data_name <- function(expr, new_name) {
   if (is.name(expr[[2]])) {
     expr[[2]] <- rlang::sym(new_name)
@@ -66,6 +78,10 @@ apply_palette <- function(expr, palette, type) {
   }
 }
 
+remove_nas <- function(exprs) {
+  
+}
+
 iNZightPlotGG_facet <- function(data, data_name, exprs, g1, g2, g1.level, g2.level) {
   if (!is.null(g1)) {
     if (g1.level != "_MULTI") {
@@ -123,6 +139,8 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
   varnames <- varnames[grep("\\.level$", names(varnames), invert = TRUE)]
   varnames <- varnames[grep("g1", names(varnames), invert = TRUE)]
   varnames <- varnames[grep("g2", names(varnames), invert = TRUE)]
+  non_mapped <- varnames[grep("x|y", names(varnames), invert = TRUE)]
+  varnames <- varnames[grep("x|y", names(varnames))]
   nullVars <- vapply(data[, varnames, drop = FALSE], is.null, FUN.VALUE = logical(1))
   varnames[which(nullVars)] <- NULL
   varnames[!varnames %in% colnames(data)] <- NULL
@@ -132,6 +150,11 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
   } else if (type %in% c("gg_violin", "gg_barcode", "gg_boxplot", "gg_cumcurve", "gg_column2", "gg_lollipop", "gg_dotstrip", "gg_density")) {
     if (!("y" %in% names(varnames))) {
       names(varnames) <- replace(names(varnames), names(varnames) == "x", "y")
+      if (isTRUE(!is.null(extra_vars$fill_colour) && extra_vars$fill_colour != "")) {
+        varnames["fill"] <- extra_vars$fill_colour
+      } else {
+        varnames["fill"] <- "darkgreen"
+      }
     } else if (is.numeric(data[[varnames["x"]]])) {
       orig_x <- varnames["x"]
       varnames["x"] <- varnames["y"]
@@ -159,19 +182,39 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
     }
   }
   
-  if (type %in% c("gg_lollipop", "gg_column2") && !is.null(extra_vars$desc)) {
-    varnames <- c(as.list(varnames), desc = extra_vars$desc)
-  }
-  
-  if (type %in% c("gg_lollipop", "gg_column2") && !is.null(extra_vars$labels)) {
-    varnames <- c(as.list(varnames), labels = extra_vars$labels)
+  if (type %in% c("gg_column2", "gg_lollipop")) {
+    names(varnames) <- replace(names(varnames), names(varnames) == "labels", "x")
   }
 
-  varnames
+  message("Optional args")
+  print(optional_args[[type]])
+  extra_args <- Filter(Negate(is.null), extra_vars[optional_args[[type]]])
+  message("extra_args")
+  print(extra_args)
+  
+  if (!is.null(extra_args) && length(extra_args) > 0) {
+    varnames <- append(as.list(varnames), as.list(extra_args))
+    names(varnames) <- sub("^gg_", "", names(varnames))
+  }
+  
+  print("varnames")
+  print(varnames)
+  
+  c(varnames, non_mapped)
 }
 
 iNZightPlotGG_extraargs <- function(extra_args) {
-  to.keep <- c("shape" = "pch", "colour" = "col.pt", "size" = "cex", "alpha" = "alpha", "bg" = "bg")
+  to.keep <- c(
+    "shape" = "pch", 
+    "colour" = "col.pt", 
+    "size" = "cex", 
+    "alpha" = "alpha", 
+    "bg" = "bg", 
+    "adjust" = "adjust", 
+    "lwd" = "lwd", 
+    "gg_lwd" = "gg_lwd"
+  )
+  
   extra_args <- extra_args[to.keep]
   
   changed_args <- Filter(function(x) extra_args[[x]] != inzpar()[[x]], names(extra_args))
@@ -197,14 +240,25 @@ iNZightPlotGG <- function(
   dots <- list(...)
 
   if (length(extra_args) > 0) {
+    print(names(extra_args))
     rotate <- extra_args$rotation
     desc <- extra_args$desc
-    extra_args <- c(iNZightPlotGG_extraargs(extra_args), desc = desc, labels = extra_args$labelVar)
-    print("extra args")
-    print(extra_args)
+    # percent <- extra_args$percent
+    # extra_args <- c(
+    #   iNZightPlotGG_extraargs(extra_args), 
+    #   desc = desc, 
+    #   labels = extra_args$labelVar,
+    #   fill_colour = extra_args$fill_colour,
+    #   adjust = extra_args$adjust
+    # )
+    
+    extra_args$desc <- desc
+    extra_args$labels <- extra_args$labelVar
   }
   
   plot_args <- iNZightPlotGG_decide(data, unlist(dots), type, extra_args)
+  
+  print(plot_args)
 
   plot_exprs <- do.call(
     sprintf("iNZightPlotGG_%s", gsub("^gg_", "", type)), 
@@ -223,14 +277,14 @@ iNZightPlotGG <- function(
     plot_exprs <- iNZightPlotGG_facet(data, data_name, plot_exprs, dots$g1, dots$g2, dots$g1.level, dots$g2.level)
   }
   
-  if (isTRUE(rotate)) {
+  if (isTRUE(rotate) && !(type %in% c("gg_pie", "gg_donut"))) {
     plot_exprs$plot <- rotate(plot_exprs$plot)
   }
   
   if (isTRUE(!missing(palette) && !is.null(palette) && palette != "default")) {
     plot_exprs$plot <- apply_palette(plot_exprs$plot, palette, type)
   }
-  
+
   cat(unname(unlist(lapply(plot_exprs, rlang::expr_text))), sep = "\n\n")
   
   eval_env <- rlang::env(!!rlang::sym(data_name) := data)
@@ -240,20 +294,29 @@ iNZightPlotGG <- function(
   plot_object <- eval_results[[length(eval_results)]]
   
   dev.hold()
-  print(plot_object)
-  dev.flush()
-  
+  tryCatch(
+    print(plot_object),
+    finally = dev.flush()
+  )
+
   attr(plot_object, "code") <- unname(unlist(lapply(plot_exprs, rlang::expr_text)))
   attr(plot_object, "plottype") <- c(type)
   attr(plot_object, "varnames") <- unlist(dots)
   
-  # cat(attr(plot_object, "code"), sep = "\n\n")
-  
   plot_object
 }
 
-iNZightPlotGG_pie <- function(data, fill, main = sprintf("Pie Chart of %s", as.character(fill)), ...) {
+iNZightPlotGG_pie <- function(data, fill, main = sprintf("Pie Chart of %s", as.character(fill)), ordered = FALSE, ...) {
   fill <- rlang::sym(fill)
+  
+  if (ordered) {
+    data_expr <- rlang::expr(
+      plot_data <- !!rlang::enexpr(data) %>% 
+        dplyr::mutate(!!fill := forcats::fct_infreq(!!fill))
+    )
+    
+    data <- rlang::sym("plot_data")
+  }
 
   plot_expr <- rlang::expr(
     ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = factor(1), fill = !!fill)) + 
@@ -271,9 +334,16 @@ iNZightPlotGG_pie <- function(data, fill, main = sprintf("Pie Chart of %s", as.c
       )
   )
 
-  list(
-    plot = plot_expr
-  )
+  if (ordered) {
+    list(
+      data = data_expr,
+      plot = plot_expr
+    )
+  } else {
+    list(
+      plot = plot_expr
+    )
+  }
 }
 
 iNZightPlotGG_donut <- function(data, fill, main = sprintf("Donut Chart of %s", as.character(fill)), ...) {
@@ -312,8 +382,17 @@ iNZightPlotGG_donut <- function(data, fill, main = sprintf("Donut Chart of %s", 
   )
 }
 
-iNZightPlotGG_column <- function(data, x, group, main = sprintf("Column chart of %s", as.character(x)), xlab = as.character(x), ylab = "Count", ...) {
+iNZightPlotGG_column <- function(data, x, group, main = sprintf("Column chart of %s", as.character(x)), xlab = as.character(x), ylab = "Count", ordered = FALSE, ...) {
   x <- rlang::sym(x)
+  
+  if (ordered) {
+    data_expr <- rlang::expr(
+      plot_data <- !!rlang::enexpr(data) %>% 
+        dplyr::mutate(!!x := forcats::fct_infreq(!!x))
+    )
+    
+    data <- rlang::sym("plot_data")
+  }
   
   if (missing(group)) {
     plot_expr <- rlang::expr(
@@ -336,10 +415,17 @@ iNZightPlotGG_column <- function(data, x, group, main = sprintf("Column chart of
   }
   
 
-  
-  list(
-    plot = plot_expr
-  )
+  if (ordered) {
+    list(
+      data = data_expr,
+      plot = plot_expr
+    )
+  } else {
+    list(
+      plot = plot_expr
+    )
+  }
+
 }
 
 rotate <- function(plot_expr) {
@@ -424,15 +510,18 @@ iNZightPlotGG_stackedbar <- function(data, fill, main = "Stacked bar", x, ...) {
   column_plot
 }
 
-iNZightPlotGG_violin <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
+iNZightPlotGG_violin <- function(data, x, y, fill = "darkgreen", main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
   y <- rlang::sym(y)
+  
+  dots <- list(...)
+  print(sprintf("%s: %s", names(dots), dots))
   
   if (missing(x)) {
     x <- rlang::expr(factor(1))
-    
+
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y)) + 
-        ggplot2::geom_violin(fill = "darkgreen") + 
+        ggplot2::geom_violin(fill = !!fill, !!!dots) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -443,7 +532,7 @@ iNZightPlotGG_violin <- function(data, x, y, main = sprintf("Distribution of %s"
     
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, fill = !!fill)) + 
-        ggplot2::geom_violin() + 
+        ggplot2::geom_violin(!!!dots) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -455,40 +544,47 @@ iNZightPlotGG_violin <- function(data, x, y, main = sprintf("Distribution of %s"
   )
 }
 
-iNZightPlotGG_barcode <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
+iNZightPlotGG_barcode <- function(data, x, y, fill = "darkgreen", main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(y), ylab = as.character(x), ...) {
+  y <- rlang::sym(y)
+  
   if (missing(x)) {
     x <- rlang::expr(factor(1))
-    colour <- NULL
+
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x)) + 
+        ggplot2::geom_point(shape = "|", size = 16, alpha = 0.5) + 
+        ggplot2::labs(title = !!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
+    )
   } else {
     x <- rlang::sym(x)
     colour <- rlang::sym(x)
+    
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x)) + 
+        ggplot2::geom_point(shape = "|", size = 16, alpha = 0.5) + 
+        ggplot2::labs(title = !!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
+    )
   }
-  
-  y <- rlang::sym(y)
-  
-  plot_expr <- rlang::expr(
-    ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, colour = !!colour)) + 
-      ggplot2::geom_point(shape = "|", size = 16, alpha = 0.2) + 
-      ggplot2::coord_flip() + 
-      ggplot2::labs(title = !!main) + 
-      ggplot2::xlab(!!xlab) + 
-      ggplot2::ylab(!!ylab)
-  )
   
   list(
     plot = plot_expr
   )
 }
 
-iNZightPlotGG_boxplot <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
+iNZightPlotGG_boxplot <- function(data, x, y, fill = "darkgreen", main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
   y <- rlang::sym(y)
+  dots <- list(...)
   
   if (missing(x)) {
     x <- rlang::expr(factor(1))
     
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y)) +
-        ggplot2::geom_boxplot(fill = "darkgreen") + 
+        ggplot2::geom_boxplot(fill = !!fill, !!!dots) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -499,7 +595,7 @@ iNZightPlotGG_boxplot <- function(data, x, y, main = sprintf("Distribution of %s
     
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, fill = !!fill)) +
-        ggplot2::geom_boxplot() + 
+        ggplot2::geom_boxplot(!!!dots) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -559,6 +655,7 @@ iNZightPlotGG_lollipop <- function(data, x, y, main = sprintf("Distribution of %
   }
   
   y <- rlang::sym(y)
+  dots <- list(...)
   
   if (desc) {
     data_expr <- rlang::expr(
@@ -575,8 +672,8 @@ iNZightPlotGG_lollipop <- function(data, x, y, main = sprintf("Distribution of %
   
   plot_expr <- rlang::expr(
     ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, y = !!y)) + 
-      ggplot2::geom_segment(ggplot2::aes(xend = !!x, yend = 0)) + 
-      ggplot2::geom_point() + 
+      ggplot2::geom_segment(ggplot2::aes(xend = !!x, yend = 0), !!!dots) + 
+      ggplot2::geom_point(size = 3) + 
       ggplot2::labs(title = !!main) +
       ggplot2::xlab(!!xlab) + 
       ggplot2::ylab(!!ylab)
@@ -590,6 +687,7 @@ iNZightPlotGG_lollipop <- function(data, x, y, main = sprintf("Distribution of %
 
 iNZightPlotGG_cumcurve <- function(data, x, y, main = sprintf("Cumulative Count of %s", as.character(y)), xlab = as.character(y), ylab = "Cumulative Frequency", ...) {
   y <- rlang::sym(y)
+  dots <- list(...)
   
   if (missing(x)) {
     data_expr <- rlang::expr(
@@ -600,7 +698,7 @@ iNZightPlotGG_cumcurve <- function(data, x, y, main = sprintf("Cumulative Count 
     
     plot_expr <- rlang::expr(
       ggplot2::ggplot(plot_data, ggplot2::aes(x = !!y, y = Observation)) + 
-        ggplot2::geom_step() + 
+        ggplot2::geom_step(!!!dots) + 
         ggplot2::labs(title = !!main) +
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -617,7 +715,7 @@ iNZightPlotGG_cumcurve <- function(data, x, y, main = sprintf("Cumulative Count 
     
     plot_expr <- rlang::expr(
       ggplot2::ggplot(plot_data, ggplot2::aes(x = !!y, y = Observation, colour = !!x)) + 
-        ggplot2::geom_step() + 
+        ggplot2::geom_step(!!!dots) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -642,7 +740,8 @@ iNZightPlotGG_poppyramid <- function(data, x, fill, main = sprintf("Count of %s 
       ggplot2::coord_flip() + 
       ggplot2::labs(title = !!main) + 
       ggplot2::xlab(!!xlab) + 
-      ggplot2::ylab(!!ylab)
+      ggplot2::ylab(!!ylab) + 
+      ggplot2::scale_y_continuous(labels = abs)
   )
   
   list(
@@ -671,21 +770,74 @@ iNZightPlotGG_freqpolygon <- function(data, x, colour, main = sprintf("Count of 
   )
 }
 
-iNZightPlotGG_dotstrip <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
+iNZightPlotGG_dotstrip <- function(data, x, y, fill = "darkgreen", main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(y), ylab = as.character(x), ...) {
+  y <- rlang::sym(y)
+  
   if (missing(x)) {
     x <- rlang::expr(factor(1))
-    colour <- NULL
+
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x)) + 
+        ggplot2::geom_point(alpha = 0.5) + 
+        ggplot2::labs(title = !!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
+    )
+    
   } else {
     x <- rlang::sym(x)
     colour <- rlang::sym(x)
+    
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x)) + 
+        ggplot2::geom_point(alpha = 0.5) + 
+        ggplot2::labs(title = !!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
+    )
   }
+
+  list(
+    plot = plot_expr
+  )
+}
+
+iNZightPlotGG_density <- function(data, x, y, fill = "darkgreen", main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(y), ylab = "Density", ...) {
+  y <- rlang::sym(y)
+  dots <- list(...)
   
+  if (missing(x)) {
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y)) + 
+        ggplot2::geom_density(fill = !!fill, !!!dots) + 
+        ggplot2::labs(title = !!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
+    )
+  } else {
+    fill <- rlang::sym(x)
+    
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, fill = !!fill)) + 
+        ggplot2::geom_density(alpha = 0.4, !!!dots) + 
+        ggplot2::labs(title = !!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
+    )
+  }
+
+  list(
+    plot = plot_expr
+  )
+}
+
+iNZightPlotGG_mosaic <- function(data, x, y, main = "Mosaic plot", xlab = as.character(x), ylab = as.character(y), ...) {
+  x <- rlang::sym(x)
   y <- rlang::sym(y)
   
   plot_expr <- rlang::expr(
-    ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, colour = !!colour)) + 
-      ggplot2::geom_point(alpha = 0.2) + 
-      ggplot2::coord_flip() + 
+    ggplot2::ggplot(!!rlang::enexpr(data)) + 
+      ggmosaic::geom_mosaic(ggplot2::aes(x = ggmosaic::product(factor(!!x)), fill = factor(!!y))) + 
       ggplot2::labs(title = !!main) + 
       ggplot2::xlab(!!xlab) + 
       ggplot2::ylab(!!ylab)
@@ -696,23 +848,57 @@ iNZightPlotGG_dotstrip <- function(data, x, y, main = sprintf("Distribution of %
   )
 }
 
-iNZightPlotGG_density <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(y), ylab = "Density", ...) {
-  y <- rlang::sym(y)
+iNZightPlotGG_lollipop2 <- function(data, x, y, main = "Lollipop Categorical", xlab = as.character(x), ylab = "Count", ordered = FALSE, ...) {
+  x <- rlang::sym(x)
   
-  if (missing(x)) {
+  if (missing(y)) {
+    if (ordered) {
+      data_expr <- rlang::expr(
+        plot_data <- !!rlang::enexpr(data) %>% 
+          dplyr::group_by(!!x) %>% 
+          dplyr::summarise(Count = dplyr::n()) %>% 
+          dplyr::ungroup() %>% 
+          dplyr::mutate(!!x := forcats::fct_reorder(!!x, Count))
+      )
+    } else {
+      data_expr <- rlang::expr(
+        plot_data <- !!rlang::enexpr(data) %>% 
+          dplyr::group_by(!!x) %>% 
+          dplyr::summarise(Count = dplyr::n())
+      )
+    }
+    
     plot_expr <- rlang::expr(
-      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y)) + 
-        ggplot2::geom_density(fill = "darkgreen", alpha = 0.2) + 
+      ggplot2::ggplot(plot_data, ggplot2::aes(!!x, Count)) + 
+        ggplot2::geom_point() + 
+        ggplot2::geom_segment(ggplot2::aes(xend = !!x, yend = 0)) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
     )
   } else {
-    fill <- rlang::sym(x)
+    y <- rlang::sym(y)
+    
+    if (ordered) {
+      data_expr <- rlang::expr(
+        plot_data <- !!rlang::enexpr(data) %>% 
+          dplyr::group_by(!!x, !!y) %>% 
+          dplyr::summarise(Count = dplyr::n()) %>% 
+          dplyr::ungroup() %>% 
+          dplyr::mutate(!!x := forcats::fct_reorder(!!x, Count))
+      )
+    } else {
+      data_expr <- rlang::expr(
+        plot_data <- !!rlang::enexpr(data) %>% 
+          dplyr::group_by(!!x, !!y) %>% 
+          dplyr::summarise(Count = dplyr::n())
+      )
+    }
     
     plot_expr <- rlang::expr(
-      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, fill = !!fill)) + 
-        ggplot2::geom_density(alpha = 0.4) + 
+      ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, colour = !!y, y = Count)) + 
+        ggplot2::geom_point(position = ggplot2::position_dodge(width = 0.5), size = 3) + 
+        ggplot2::geom_linerange(ggplot2::aes(ymin = 0, ymax = Count), position = ggplot2::position_dodge(width = 0.5)) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -720,6 +906,7 @@ iNZightPlotGG_density <- function(data, x, y, main = sprintf("Distribution of %s
   }
 
   list(
+    data = data_expr,
     plot = plot_expr
   )
 }

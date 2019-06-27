@@ -28,7 +28,9 @@ Imports:
     magrittr,
     ggplot2,
     rlang,
-    dplyr
+    dplyr,
+    forcats,
+    ggmosaic
 Suggests:
     viridis,
     RColorBrewer,
