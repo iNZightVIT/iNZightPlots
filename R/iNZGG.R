@@ -243,6 +243,8 @@ iNZightPlotGG <- function(
     print(names(extra_args))
     rotate <- extra_args$rotation
     desc <- extra_args$desc
+    overall_size <- extra_args$cex
+    print(paste0("overall_size = ", overall_size))
     # percent <- extra_args$percent
     # extra_args <- c(
     #   iNZightPlotGG_extraargs(extra_args), 
@@ -265,8 +267,8 @@ iNZightPlotGG <- function(
     c(rlang::sym(data_name), main = main, xlab = xlab, ylab = ylab, plot_args)
   )
   
-  if (isTRUE(extra_args$size != 1)) {
-    plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::theme(text = ggplot2::element_text(size = !!(extra_args$size * 11))))
+  if (isTRUE(overall_size != 1)) {
+    plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::theme(text = ggplot2::element_text(size = !!(overall_size * 11))))
   }
   
   if (isTRUE(extra_args$bg != "lightgrey")) {
