@@ -151,7 +151,11 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
     if (!("y" %in% names(varnames))) {
       names(varnames) <- replace(names(varnames), names(varnames) == "x", "y")
       if (isTRUE(!is.null(extra_vars$fill_colour) && extra_vars$fill_colour != "")) {
-        varnames["fill"] <- extra_vars$fill_colour
+        if (type %in% c("gg_lollipop", "gg_cumcurve")) {
+          varnames["colour"] <- extra_vars$fill_colour
+        } else {
+          varnames["fill"] <- extra_vars$fill_colour
+        }
       } else {
         varnames["fill"] <- "darkgreen"
       }
@@ -243,6 +247,8 @@ iNZightPlotGG <- function(
     print(names(extra_args))
     rotate <- extra_args$rotation
     desc <- extra_args$desc
+    overall_size <- extra_args$cex
+    print(paste0("overall_size = ", overall_size))
     # percent <- extra_args$percent
     # extra_args <- c(
     #   iNZightPlotGG_extraargs(extra_args), 
@@ -253,7 +259,7 @@ iNZightPlotGG <- function(
     # )
     
     extra_args$desc <- desc
-    extra_args$labels <- extra_args$labelVar
+    # extra_args$labels <- extra_args$labelVar
   }
   
   plot_args <- iNZightPlotGG_decide(data, unlist(dots), type, extra_args)
@@ -265,8 +271,8 @@ iNZightPlotGG <- function(
     c(rlang::sym(data_name), main = main, xlab = xlab, ylab = ylab, plot_args)
   )
   
-  if (isTRUE(extra_args$size != 1)) {
-    plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::theme(text = ggplot2::element_text(size = !!(extra_args$size * 11))))
+  if (isTRUE(overall_size != 1)) {
+    plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::theme(text = ggplot2::element_text(size = !!(overall_size * 11))))
   }
   
   if (isTRUE(extra_args$bg != "lightgrey")) {
@@ -302,6 +308,10 @@ iNZightPlotGG <- function(
   attr(plot_object, "code") <- unname(unlist(lapply(plot_exprs, rlang::expr_text)))
   attr(plot_object, "plottype") <- c(type)
   attr(plot_object, "varnames") <- unlist(dots)
+  
+  if (type %in% c("gg_lollipop", "gg_column2")) {
+    attr(plot_object, "varnames") <- attr(plot_object, "varnames")[names(attr(plot_object, "varnames")) != "y"]
+  }
   
   plot_object
 }
@@ -608,29 +618,40 @@ iNZightPlotGG_boxplot <- function(data, x, y, fill = "darkgreen", main = sprintf
 }
 
 iNZightPlotGG_column2 <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = "Index", ylab = as.character(y), desc = FALSE, labels, ...) {
+  y <- rlang::sym(y)
+  dots <- list(...)
+  
   if (missing(x)) {
-    x <- rlang::expr(1:nrow(!!rlang::enexpr(data)))
+    if (missing(labels) || labels == "") {
+      x <- rlang::expr(1:nrow(!!rlang::enexpr(data)))
+      
+      data_expr <- rlang::expr(
+        plot_data <- !!rlang::enexpr(data) %>% 
+          dplyr::arrange(!!y)
+      )
+    } else {
+      x <- rlang::sym(labels)
+      
+      data_expr <- rlang::expr(
+        plot_data <- !!rlang::enexpr(data) %>% 
+          dplyr::arrange(!!y) %>% 
+          dplyr::mutate(!!x := forcats::fct_reorder(!!x, !!y))
+      )
+    }
+    
   } else {
     x <- rlang::sym(x)
-  }
-  
-  y <- rlang::sym(y)
-  
-  if (desc) {
+    
     data_expr <- rlang::expr(
       plot_data <- !!rlang::enexpr(data) %>% 
-        dplyr::arrange(dplyr::desc(!!y))
-    )
-  } else {
-    data_expr <- rlang::expr(
-      plot_data <- !!rlang::enexpr(data) %>% 
-        dplyr::arrange(!!y)
+        dplyr::arrange(!!y) %>% 
+        dplyr::mutate(!!x := forcats::fct_reorder(!!x, !!y))
     )
   }
   
   plot_expr <- rlang::expr(
     ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, y = !!y)) + 
-      ggplot2::geom_col() + 
+      ggplot2::geom_col(!!!dots) + 
       ggplot2::labs(title = !!main) + 
       ggplot2::xlab(!!xlab) + 
       ggplot2::ylab(!!ylab)
@@ -643,37 +664,41 @@ iNZightPlotGG_column2 <- function(data, x, y, main = sprintf("Distribution of %s
 }
 
 iNZightPlotGG_lollipop <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = "Index", ylab = as.character(y), desc = FALSE, labels, ...) {
+  y <- rlang::sym(y)
+  dots <- list(...)
+  
   if (missing(x)) {
     if (missing(labels) || labels == "") {
       x <- rlang::expr(1:nrow(!!rlang::enexpr(data)))
+      
+      data_expr <- rlang::expr(
+        plot_data <- !!rlang::enexpr(data) %>% 
+          dplyr::arrange(!!y)
+      )
     } else {
       x <- rlang::sym(labels)
+      
+      data_expr <- rlang::expr(
+        plot_data <- !!rlang::enexpr(data) %>% 
+          dplyr::arrange(!!y) %>% 
+          dplyr::mutate(!!x := forcats::fct_reorder(!!x, !!y))
+      )
     }
     
   } else {
     x <- rlang::sym(x)
-  }
-  
-  y <- rlang::sym(y)
-  dots <- list(...)
-  
-  if (desc) {
+    
     data_expr <- rlang::expr(
       plot_data <- !!rlang::enexpr(data) %>% 
-        dplyr::arrange(dplyr::desc(!!y))
-    )
-  } else {
-    data_expr <- rlang::expr(
-      plot_data <- !!rlang::enexpr(data) %>% 
-        dplyr::arrange(!!y)
+        dplyr::arrange(!!y) %>% 
+        dplyr::mutate(!!x := forcats::fct_reorder(!!x, !!y))
     )
   }
 
-  
   plot_expr <- rlang::expr(
     ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, y = !!y)) + 
       ggplot2::geom_segment(ggplot2::aes(xend = !!x, yend = 0), !!!dots) + 
-      ggplot2::geom_point(size = 3) + 
+      ggplot2::geom_point(size = 10, !!!dots) + 
       ggplot2::labs(title = !!main) +
       ggplot2::xlab(!!xlab) + 
       ggplot2::ylab(!!ylab)
@@ -870,8 +895,8 @@ iNZightPlotGG_lollipop2 <- function(data, x, y, main = "Lollipop Categorical", x
     
     plot_expr <- rlang::expr(
       ggplot2::ggplot(plot_data, ggplot2::aes(!!x, Count)) + 
-        ggplot2::geom_point() + 
-        ggplot2::geom_segment(ggplot2::aes(xend = !!x, yend = 0)) + 
+        ggplot2::geom_point(size = 10, !!!dots) + 
+        ggplot2::geom_segment(ggplot2::aes(xend = !!x, yend = 0), !!!dots) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -897,8 +922,8 @@ iNZightPlotGG_lollipop2 <- function(data, x, y, main = "Lollipop Categorical", x
     
     plot_expr <- rlang::expr(
       ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, colour = !!y, y = Count)) + 
-        ggplot2::geom_point(position = ggplot2::position_dodge(width = 0.5), size = 3) + 
-        ggplot2::geom_linerange(ggplot2::aes(ymin = 0, ymax = Count), position = ggplot2::position_dodge(width = 0.5)) + 
+        ggplot2::geom_point(position = ggplot2::position_dodge(width = 0.5), size = 10, !!!dots) + 
+        ggplot2::geom_linerange(ggplot2::aes(ymin = 0, ymax = Count), position = ggplot2::position_dodge(width = 0.5), !!!dots) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -910,3 +935,4 @@ iNZightPlotGG_lollipop2 <- function(data, x, y, main = "Lollipop Categorical", x
     plot = plot_expr
   )
 }
+
