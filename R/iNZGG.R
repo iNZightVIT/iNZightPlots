@@ -151,7 +151,11 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
     if (!("y" %in% names(varnames))) {
       names(varnames) <- replace(names(varnames), names(varnames) == "x", "y")
       if (isTRUE(!is.null(extra_vars$fill_colour) && extra_vars$fill_colour != "")) {
-        varnames["fill"] <- extra_vars$fill_colour
+        if (type %in% c("gg_lollipop", "gg_cumcurve")) {
+          varnames["colour"] <- extra_vars$fill_colour
+        } else {
+          varnames["fill"] <- extra_vars$fill_colour
+        }
       } else {
         varnames["fill"] <- "darkgreen"
       }
@@ -647,7 +651,7 @@ iNZightPlotGG_column2 <- function(data, x, y, main = sprintf("Distribution of %s
   
   plot_expr <- rlang::expr(
     ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, y = !!y)) + 
-      ggplot2::geom_col() + 
+      ggplot2::geom_col(!!!dots) + 
       ggplot2::labs(title = !!main) + 
       ggplot2::xlab(!!xlab) + 
       ggplot2::ylab(!!ylab)
@@ -694,7 +698,7 @@ iNZightPlotGG_lollipop <- function(data, x, y, main = sprintf("Distribution of %
   plot_expr <- rlang::expr(
     ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, y = !!y)) + 
       ggplot2::geom_segment(ggplot2::aes(xend = !!x, yend = 0), !!!dots) + 
-      ggplot2::geom_point(size = 10) + 
+      ggplot2::geom_point(size = 10, !!!dots) + 
       ggplot2::labs(title = !!main) +
       ggplot2::xlab(!!xlab) + 
       ggplot2::ylab(!!ylab)
@@ -891,8 +895,8 @@ iNZightPlotGG_lollipop2 <- function(data, x, y, main = "Lollipop Categorical", x
     
     plot_expr <- rlang::expr(
       ggplot2::ggplot(plot_data, ggplot2::aes(!!x, Count)) + 
-        ggplot2::geom_point(size = 10) + 
-        ggplot2::geom_segment(ggplot2::aes(xend = !!x, yend = 0)) + 
+        ggplot2::geom_point(size = 10, !!!dots) + 
+        ggplot2::geom_segment(ggplot2::aes(xend = !!x, yend = 0), !!!dots) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -918,8 +922,8 @@ iNZightPlotGG_lollipop2 <- function(data, x, y, main = "Lollipop Categorical", x
     
     plot_expr <- rlang::expr(
       ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, colour = !!y, y = Count)) + 
-        ggplot2::geom_point(position = ggplot2::position_dodge(width = 0.5), size = 10) + 
-        ggplot2::geom_linerange(ggplot2::aes(ymin = 0, ymax = Count), position = ggplot2::position_dodge(width = 0.5)) + 
+        ggplot2::geom_point(position = ggplot2::position_dodge(width = 0.5), size = 10, !!!dots) + 
+        ggplot2::geom_linerange(ggplot2::aes(ymin = 0, ymax = Count), position = ggplot2::position_dodge(width = 0.5), !!!dots) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -931,3 +935,4 @@ iNZightPlotGG_lollipop2 <- function(data, x, y, main = "Lollipop Categorical", x
     plot = plot_expr
   )
 }
+
