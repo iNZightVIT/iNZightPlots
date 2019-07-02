@@ -681,35 +681,58 @@ varSelect = function(varNames, pl, order, extra.vars, data, levels = FALSE) {
 
 
 #' Identify if a plot can be interactive
-#' @param x the plot object (either from iNZightPlots or iNZightMaps)
+#'
+#' Several iNZightPlots graphs have been enabled with custom interaction,
+#' while others make use of the automatic output of `plotly`.
+#' This function returns `TRUE` if the provided plot has interaction
+#' (as determined by iNZight), and `FALSE` otherwise.
+#'
+#' Not that, while most `ggplot2` graphs can be passed to `plotly`,
+#' and even though we are using plot.ly directly for some of our ggplot2
+#' graphs, we still only return `TRUE` if the graph was created
+#' by one of the packages in the iNZight collection.
+#'
+#' @param x a plot object returned from a plotting function
 #' @return Logical to identify if there is an interactive version
 #' @export
+#' @author Tom Elliott, Yu Han Soh
 can.interact <- function(x) {
-  # could be written in S3
-  if (inherits(x, "inzplotoutput")) {
+  UseMethod("can.interact")
+}
+
+#' @describeIn can.interact Default interaction helper (always returns `FALSE`)
+can.interact.default <- function(x) FALSE
+
+#' @describeIn can.interact Graphs from `iNZightPlot()`, many of which
+#'             have interaction enabled, but some do not (for example, hex plots)
+can.interact.inzplotoutput <- function(x) {
     pl <- x$all$all
     # if it's not single panelled/or of only 1 group
     if (is.null(pl) && (length(x$all) != 1)) {
-      return(FALSE)
+        return(FALSE)
     }
     ## singular groups
     if (length(x$all) == 1) {
-      pl <- x$all[[1]]
+        pl <- x$all[[1]]
     }
     # coloured hex-plots not available
     if(attributes(x)$plottype == "hex" && !is.null(pl$colby)) {
-      return(FALSE)
+        return(FALSE)
     }
-    return(TRUE)
-  } else if (inherits(x,"ggplot")) {
+    TRUE
+}
+
+#' @describeIn can.interact Those `iNZight*` plotting functions which return
+#'             a `ggplot2` object and have been tested to work with plotly
+#'             will be tagged as such; this is just a helper to check for
+#'             the necessary attribute.
+can.interact.ggplot <- function(x) {
     # only for iNZightMaps
     if (inherits(x$data, "sf") && !inherits(x, "gTable")) {
-      return(TRUE)
+        return(TRUE)
     } else {
-      return(FALSE)
+        ## some other ggplot functions can be interacted with,
+        ## based on the attribute `use.ploty`
+        !is.null(attr(x, "use.plotly")) && attr(x, "use.plotly")
     }
-  } else {
-    # all other plots
-    return(FALSE)
-  }
 }
