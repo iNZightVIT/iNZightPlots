@@ -934,7 +934,7 @@ iNZightPlotGG_density <- function(data, x, y, fill = "darkgreen", main = sprintf
     
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, fill = !!fill)) + 
-        ggplot2::geom_density(alpha = 0.4, !!!dots) + 
+        ggplot2::geom_density(!!!dots) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
