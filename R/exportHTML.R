@@ -697,10 +697,11 @@ varSelect = function(varNames, pl, order, extra.vars, data, levels = FALSE) {
 #' @export
 #' @author Tom Elliott, Yu Han Soh
 can.interact <- function(x) {
-  UseMethod("can.interact")
+    UseMethod("can.interact")
 }
 
 #' @describeIn can.interact Default interaction helper (always returns `FALSE`)
+#' @export
 can.interact.default <- function(x) FALSE
 
 #' @describeIn can.interact Graphs from `iNZightPlot()`, many of which
@@ -726,6 +727,7 @@ can.interact.inzplotoutput <- function(x) {
 #'             a `ggplot2` object and have been tested to work with plotly
 #'             will be tagged as such; this is just a helper to check for
 #'             the necessary attribute.
+#' @export
 can.interact.ggplot <- function(x) {
     # only for iNZightMaps
     if (inherits(x$data, "sf") && !inherits(x, "gTable")) {
