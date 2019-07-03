@@ -6,11 +6,11 @@ a <- factor(sample(LETTERS[1:4], 100, replace = TRUE), levels = LETTERS[1:4])
 b <- factor(sample(LETTERS[1:4], 100, replace = TRUE), levels = LETTERS[1:4])
 
 test_that("Supported iNZightPlots return TRUE", {
-    expect_true(can.interact(iNZightPlot(x, plot = FALSE)))
-    expect_true(can.interact(iNZightPlot(x, a, plot = FALSE)))
-    expect_true(can.interact(iNZightPlot(a, plot = FALSE)))
-    expect_true(can.interact(iNZightPlot(a, b, plot = FALSE)))
-    expect_true(can.interact(iNZightPlot(x, y, plot = FALSE)))
+    expect_true(can.interact(iNZightPlot(x)))
+    expect_true(can.interact(iNZightPlot(x, a)))
+    expect_true(can.interact(iNZightPlot(a)))
+    expect_true(can.interact(iNZightPlot(a, b)))
+    expect_true(can.interact(iNZightPlot(x, y)))
 })
 
 test_that("Unsupported plots return FALSE", {
@@ -33,4 +33,4 @@ test_that("FT plots return the correct response", {
     ))
 })
 
-try(unlink("Rplots.pdf"), silent = TRUE)
+try(unlink("Rplot.pdf"), silent = TRUE)
