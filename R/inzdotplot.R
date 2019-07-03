@@ -14,6 +14,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     }
 
     boxplot <- opts$boxplot
+    mean_indicator <- opts$mean_indicator
 
     v <- colnames(df)
     vn <- xattr$varnames
@@ -192,6 +193,10 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
 
     boxinfo <- if (boxplot & (!"mean" %in% opts$inference.par) & nrow(df) > 5)
         boxSummary(out, opts) else NULL
+    
+    meaninfo <- if (mean_indicator)
+        meanSummary(out, opts) else NULL
+      
 
     nbins <- bins <- NULL
     if (hist) {
@@ -262,7 +267,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     inflist <- dotinference(obj)
 
     out <- list(toplot = plist, n.missing = n.missing, boxinfo = boxinfo, inference.info = inflist,
-                fill.pt = opts$fill.pt,
+                fill.pt = opts$fill.pt, meaninfo = meaninfo,
                 nacol = if ("colby" %in% v) any(sapply(plist, function(T)
                     if (is.null(T$colby)) FALSE else any(is.na(T$colby)))) else FALSE,
                 xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
@@ -282,18 +287,20 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
     mcex <- gen$mcex
     col.args <- gen$col.args
     boxplot <- opts$boxplot
+    mean_indicator <- ifelse(!is.null(opts$mean_indicator), opts$mean_indicator, FALSE)
     expand.points <- 1# if (is.null(opts$expand.points)) 1 else opts$expand.points
 
     addGrid(x = TRUE, gen = gen, opts = opts)
 
     toplot <- obj$toplot
     boxinfo <- obj$boxinfo
+    meaninfo <- obj$meaninfo
     inflist <- obj$inference.info
 
     nlev <- length(toplot)
     pushViewport(viewport(layout = grid.layout(nrow = nlev),
                           name = "VP:dotplot-levels", clip = "on"))
-    Hgts <- if (boxplot) c(3, 1) else c(1, 0)
+    Hgts <- if (boxplot || mean_indicator) c(3, 1) else c(1, 0)
     dpLayout <- grid.layout(nrow = 2, heights = unit(Hgts, "null"))
 
     # we need to make the dots stack nicely, if they fit
@@ -321,7 +328,8 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
         pushViewport(viewport(layout = dpLayout))
 
         pushViewport(viewport(layout.pos.row = 2, xscale = xlim, clip = "on"))
-        if (boxplot) addMean(boxinfo[[i]], opts, i)
+        if (boxplot) addBoxplot(boxinfo[[i]], opts, i)
+        if (mean_indicator) addMean(meaninfo[[i]], opts, i)
         if (!is.null(inflist)) addUnivarInference(inflist, i, opts)
         upViewport()
 
@@ -453,6 +461,15 @@ addBoxplot <- function(x, opts, i) {
 
 }
 
+meanSummary <- function(obj, opts) {
+  lapply(obj, function(o) {
+    if (is.null(o))
+      return(NULL)
+
+    list(mean = mean(o$x, na.rm = TRUE), opts = opts)
+  })
+}
+
 addMean <- function(x, opts, i) {
   r <- opts$rowNum
   c <- opts$colNum
@@ -460,9 +477,9 @@ addMean <- function(x, opts, i) {
   
   if (is.null(x))
     return()
-
-  grid.points(unit(x$quantiles[2], "native"), unit(0.6, "npc"), 
-               gp = gpar(lwd = opts$box.lwd[1], fill = "black", cex = opts$cex.dotpt * 1.5), pch = 24,
+  
+  grid.points(unit(x$mean, "native"), unit(0.4, "npc"), 
+               gp = gpar(fill = "black", cex = opts$cex.dotpt * 1.5), pch = 24,
                name = paste("inz-mean", r, c, i, sep = "."))
 }
 

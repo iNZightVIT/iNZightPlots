@@ -9,17 +9,19 @@ plot.inzhist <- function(obj, gen) {
     opts <- gen$opts
     mcex <- gen$mcex
     boxplot <- opts$boxplot
+    mean_indicator <- ifelse(!is.null(opts$mean_indicator), opts$mean_indicator, FALSE)
 
     addGrid(x = TRUE, gen = gen, opts = opts)
 
     toplot <- obj$toplot
     boxinfo <- obj$boxinfo
+    meaninfo <- obj$meaninfo
     inflist <- obj$inference.info
 
     nlev <- length(toplot)
     pushViewport(viewport(layout = grid.layout(nrow = nlev),
                           name = "VP:histplot-levels"))
-    Hgts <- if (boxplot) c(3, 1) else c(1, 0)
+    Hgts <- if (boxplot || mean_indicator) c(3, 1) else c(1, 0)
     dpLayout <- grid.layout(nrow = 2, heights = unit(Hgts, "null"))
 
     ylim <- c(0, gen$maxcount * 1.05)
@@ -34,6 +36,7 @@ plot.inzhist <- function(obj, gen) {
         
         pushViewport(viewport(layout.pos.row = 2, xscale = xlim))
         if (boxplot) addBoxplot(boxinfo[[i]], opts, i)
+        if (mean_indicator) addMean(meaninfo[[i]], opts, i)
         if (!is.null(inflist)) addUnivarInference(inflist, i, opts)
         upViewport()
         
