@@ -309,7 +309,7 @@ iNZightPlotGG <- function(
     plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::theme(text = ggplot2::element_text(size = !!(overall_size * 11))))
   }
   
-  if (isTRUE(extra_args$bg != "lightgrey")) {
+  if (isTRUE(!extra_args$bg %in% c("lightgrey", "#eeeeee"))) {
     plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::theme(panel.background = ggplot2::element_rect(fill = !!extra_args$bg)))
   }
   
