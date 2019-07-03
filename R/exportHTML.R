@@ -710,6 +710,7 @@ can.interact.default <- function(x) FALSE
 
 #' @describeIn can.interact Graphs from `iNZightPlot()`, many of which
 #'             have interaction enabled, but some do not (for example, hex plots)
+#' @export
 can.interact.inzplotoutput <- function(x) {
     pl <- x$all$all
     # if it's not single panelled/or of only 1 group

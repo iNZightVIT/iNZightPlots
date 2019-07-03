@@ -2,6 +2,7 @@
 
 S3method(can.interact,default)
 S3method(can.interact,ggplot)
+S3method(can.interact,inzplotoutput)
 S3method(exportHTML,"function")
 S3method(exportHTML,ggplot)
 S3method(exportHTML,inzplotoutput)
