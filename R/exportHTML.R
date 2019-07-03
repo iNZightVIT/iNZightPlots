@@ -54,11 +54,15 @@ exportHTML.function <- function(x, file = 'index.html', data = NULL, local = FAL
   invisible(url)
 }
 
-## for the new maps model: assuming class ggplot + mapObj is there.
-#' @describeIn exportHTML method for iNZightMaps output (via new module)
+#' @describeIn exportHTML method for iNZightMaps or other supported ggplot graphs
 #' @export
 exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, local = FALSE, extra.vars = NULL, mapObj, ...) {
-
+  if (!is.null(attr(x, "use.plotly"))) {
+    if (attr(x, "use.plotly"))
+      return(plotly::ggplotly(x))
+    else stop("That plot cannot be exported to plotly")
+  }
+  
   if (!inherits(mapObj, "iNZightMapPlot")) {
     stop("mapObj is not an 'iNZightMapPlot' object. This is only available for iNZightMaps.
          Are you using the new iNZightMaps module?")
