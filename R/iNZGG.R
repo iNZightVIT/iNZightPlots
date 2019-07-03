@@ -1033,3 +1033,21 @@ iNZightPlotGG_lollipop2 <- function(data, x, y, main = "Lollipop Categorical", x
   )
 }
 
+iNZightPlotGG_gridplot <- function(data, x, main = sprintf("Gridplot of %s", as.character(x)), xlab = "1 observation/square", ...) {
+  x <- rlang::sym(x)
+  
+  data_expr <- rlang::expr(
+    plot_data <- !!rlang::enexpr(data) %>% 
+      dplyr::select(!!x) %>% 
+      table()
+  )
+  
+  plot_expr <- rlang::expr(
+    waffle::waffle(plot_data, title = !!main, xlab = !!xlab)
+  )
+  
+  list(
+    data = data_expr,
+    plot = plot_expr
+  )
+}
