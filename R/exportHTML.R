@@ -42,13 +42,12 @@ exportHTML.function <- function(x, file = 'index.html', data = NULL, local = FAL
   tdir <- tempdir()
   setwd(tdir)
   pdf(NULL, width = width, height = height, onefile = TRUE)
+  cdev <- dev.cur()
+  on.exit(dev.off(cdev), add = TRUE)
 
   #do exporting:
   obj <- x()
   url <- exportHTML(obj, file, data = data, extra.vars = extra.vars)
-
-  dev.off()
-  setwd(curdir)
 
   ## pass URL from exportHTML.inzplotoutput
   invisible(url)
@@ -57,10 +56,11 @@ exportHTML.function <- function(x, file = 'index.html', data = NULL, local = FAL
 #' @describeIn exportHTML method for iNZightMaps or other supported ggplot graphs
 #' @export
 exportHTML.ggplot <- function(x, file = 'index.html', data = NULL, local = FALSE, extra.vars = NULL, mapObj, ...) {
-  if (!is.null(attr(x, "use.plotly"))) {
-    if (attr(x, "use.plotly"))
+  if (missing(mapObj)) {
       return(plotly::ggplotly(x))
-    else stop("That plot cannot be exported to plotly")
+    # if (attr(x, "use.plotly")) {
+    # }
+    # else stop("That plot cannot be exported to plotly")
   }
   
   if (!inherits(mapObj, "iNZightMapPlot")) {
