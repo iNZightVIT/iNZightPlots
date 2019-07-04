@@ -947,18 +947,29 @@ iNZightPlotGG_density <- function(data, x, y, fill = "darkgreen", main = sprintf
 }
 
 iNZightPlotGG_mosaic <- function(data, x, y, main = "Mosaic plot", xlab = as.character(x), ylab = as.character(y), ...) {
+  # library("ggmosaic")
+  # mosaic plots don't work unless the package is attached
+  
   x <- rlang::sym(x)
   y <- rlang::sym(y)
   
+  data_expr <- rlang::expr(
+    plot_data <- !!rlang::enexpr(data) %>% 
+      dplyr::select(!!x, !!y) %>% 
+      dplyr::mutate(!!x := factor(!!x)) %>% 
+      dplyr::mutate(!!y := factor(!!y))
+  )
+  
   plot_expr <- rlang::expr(
-    ggplot2::ggplot(!!rlang::enexpr(data)) + 
-      ggmosaic::geom_mosaic(ggplot2::aes(x = ggmosaic::product(factor(!!x)), fill = factor(!!y))) + 
+    ggplot2::ggplot(plot_data) + 
+      ggmosaic::geom_mosaic(ggplot2::aes(x = ggmosaic::product(!!x), fill = !!y)) + 
       ggplot2::labs(title = !!main) + 
       ggplot2::xlab(!!xlab) + 
       ggplot2::ylab(!!ylab)
   )
   
   list(
+    data = data_expr,
     plot = plot_expr
   )
 }
