@@ -101,7 +101,8 @@ create.inz.barplot <- function(obj) {
     # false: use phat
     ymax <-
         if (counts) max(tab, na.rm = TRUE)
-        else max(c(0, phat), na.rm = TRUE)
+        else if (all(is.na(phat))) 0
+        else max(phat, na.rm = TRUE)
     if (!is.null(ZOOM)) {
         if (ZOOM[1] <= ncol(phat)) {
             ww <- ZOOM[1]:(sum(ZOOM) - 1)
