@@ -31,7 +31,8 @@ Imports:
     dplyr,
     forcats,
     ggmosaic,
-    waffle
+    waffle,
+    tidyr
 Suggests:
     viridis,
     RColorBrewer,
