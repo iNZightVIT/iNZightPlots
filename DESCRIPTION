@@ -30,7 +30,8 @@ Imports:
     rlang,
     dplyr,
     forcats,
-    ggmosaic
+    ggmosaic,
+    waffle
 Suggests:
     viridis,
     RColorBrewer,
