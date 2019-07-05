@@ -1062,3 +1062,31 @@ iNZightPlotGG_gridplot <- function(data, x, main = sprintf("Gridplot of %s", as.
     plot = plot_expr
   )
 }
+
+iNZightPlotGG_divergingstackedbar <- function(data, x, y, main = "Diverging stacked bar", xlab = as.character(x), ylab = "Count", ...) {
+  x <- rlang::sym(x)
+  y <- rlang::sym(y)
+  
+  data_expr <- rlang::expr(
+    plot_data <- !!rlang::enexpr(data) %>% 
+      dplyr::group_by(!!x, !!y) %>% 
+      dplyr::summarise(Count = dplyr::n())
+  )
+  
+  plot_expr <- rlang::expr(
+    ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, y = ifelse(!!y %in% levels(!!y)[1:floor(nlevels(!!y) / 2)], -Count, Count), fill = !!y)) + 
+      ggplot2::geom_col() +
+      ggplot2::geom_hline(yintercept = 0) + 
+      ggplot2::coord_flip() + 
+      ggplot2::labs(title = !!main) + 
+      ggplot2::xlab(!!xlab) + 
+      ggplot2::ylab(!!ylab) + 
+      ggplot2::scale_y_continuous(labels = abs)
+  )
+  
+  list(
+    data = data_expr,
+    print = rlang::expr(print(plot_data)),
+    plot = plot_expr
+  )
+}
