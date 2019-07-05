@@ -85,8 +85,7 @@ apply_palette <- function(expr, palette, type) {
 check_nas <- function(data, exprs, data_name) {
   if (any(vapply(data, anyNA, logical(1)))) {
     complete <- complete.cases(data)
-    print(paste0("Missing: ", sum(!complete)))
-    
+
     if (is.null(exprs$data)) {
       exprs <- list(
         data = rlang::expr(plot_data <- !!rlang::sym(data_name) %>% tidyr::drop_na()),
@@ -152,8 +151,6 @@ iNZightPlotGG_facet <- function(data, data_name, exprs, g1, g2, g1.level, g2.lev
     exprs$plot <- rlang::expr(!!exprs$plot + ggplot2::facet_grid(rows = ggplot2::vars(!!rlang::sym(g1)), cols = ggplot2::vars(!!rlang::sym(g2)), labeller = ggplot2::label_both))
   }
   
-  # print(exprs)
-  
   exprs
 }
 
@@ -216,11 +213,7 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
     names(varnames) <- replace(names(varnames), names(varnames) == "labels", "x")
   }
 
-  message("Optional args")
-  print(optional_args[[type]])
   extra_args <- Filter(Negate(is.null), extra_vars[optional_args[[type]]])
-  message("extra_args")
-  print(extra_args)
   
   if (!is.null(extra_args) && length(extra_args) > 0) {
     varnames <- append(as.list(varnames), as.list(extra_args))
@@ -234,10 +227,7 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
       }
     }
   }
-  
-  print("varnames")
-  print(varnames)
-  
+
   c(varnames, non_mapped)
 }
 
@@ -278,28 +268,15 @@ iNZightPlotGG <- function(
   dots <- list(...)
 
   if (length(extra_args) > 0) {
-    print(names(extra_args))
     rotate <- extra_args$rotation
     desc <- extra_args$desc
     overall_size <- extra_args$cex
-    print(paste0("overall_size = ", overall_size))
-    # percent <- extra_args$percent
-    # extra_args <- c(
-    #   iNZightPlotGG_extraargs(extra_args), 
-    #   desc = desc, 
-    #   labels = extra_args$labelVar,
-    #   fill_colour = extra_args$fill_colour,
-    #   adjust = extra_args$adjust
-    # )
-    
+
     extra_args$desc <- desc
-    # extra_args$labels <- extra_args$labelVar
   }
   
   plot_args <- iNZightPlotGG_decide(data, unlist(dots), type, extra_args)
   
-  print(plot_args)
-
   plot_exprs <- do.call(
     sprintf("iNZightPlotGG_%s", gsub("^gg_", "", type)), 
     c(rlang::sym(data_name), main = main, xlab = xlab, ylab = ylab, plot_args)
@@ -329,8 +306,6 @@ iNZightPlotGG <- function(
     plot_exprs <- check_nas(data, plot_exprs, data_name)
   }
 
-  cat(unname(unlist(lapply(plot_exprs, rlang::expr_text))), sep = "\n\n")
-  
   eval_env <- rlang::env(!!rlang::sym(data_name) := data)
 
   eval_results <- lapply(plot_exprs, eval, envir = eval_env)
@@ -578,8 +553,7 @@ iNZightPlotGG_violin <- function(data, x, y, fill = "darkgreen", main = sprintf(
   y <- rlang::sym(y)
   
   dots <- list(...)
-  print(sprintf("%s: %s", names(dots), dots))
-  
+
   if (missing(x)) {
     x <- rlang::expr(factor(1))
 
@@ -1086,7 +1060,6 @@ iNZightPlotGG_divergingstackedbar <- function(data, x, y, main = "Diverging stac
   
   list(
     data = data_expr,
-    print = rlang::expr(print(plot_data)),
     plot = plot_expr
   )
 }
