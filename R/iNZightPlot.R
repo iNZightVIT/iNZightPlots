@@ -1172,9 +1172,6 @@ iNZightPlot <-
                 opts$rowNum <- r
                 opts$colNum <- c
 
-                if (barplot)
-                    opts$bar.nmax <- BARPLOT.N[[r]][[c]]
-
                 if (g2id > NG2) next ()
                 C <- c * 2 - 1
 
@@ -1274,6 +1271,10 @@ iNZightPlot <-
                 ## and left and right of every row - also, must rotate
                 ## if too big!
                 ## ------------
+
+
+                if (barplot)
+                    opts$bar.nmax <- BARPLOT.N[[g2id]][[g1id]]
 
                 pushViewport(viewport(
                     layout.pos.row = 2, xscale = xlim,

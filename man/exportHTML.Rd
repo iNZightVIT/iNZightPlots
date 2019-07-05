@@ -50,7 +50,7 @@ Currently only handles single panel plots. Coloured hex plots are currently not 
 \itemize{
 \item \code{function}: method for an iNZightPlot-generating function
 
-\item \code{ggplot}: method for iNZightMaps output (via new module)
+\item \code{ggplot}: method for iNZightMaps or other supported ggplot graphs
 
 \item \code{inzplotoutput}: method for output from iNZightPlot
 }}

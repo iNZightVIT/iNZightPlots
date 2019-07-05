@@ -32,7 +32,8 @@ Imports:
     forcats,
     ggmosaic,
     waffle,
-    tidyr
+    tidyr,
+    plotly
 Suggests:
     viridis,
     RColorBrewer,
