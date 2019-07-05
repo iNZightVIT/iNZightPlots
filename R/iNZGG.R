@@ -212,7 +212,7 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
   if (type %in% c("gg_column2", "gg_lollipop")) {
     names(varnames) <- replace(names(varnames), names(varnames) == "labels", "x")
   }
-
+  
   extra_args <- Filter(Negate(is.null), extra_vars[optional_args[[type]]])
   
   if (!is.null(extra_args) && length(extra_args) > 0) {
@@ -1004,8 +1004,8 @@ iNZightPlotGG_lollipop2 <- function(data, x, y, main = "Lollipop Categorical", x
     
     plot_expr <- rlang::expr(
       ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, colour = !!y, y = Count)) + 
-        ggplot2::geom_point(position = ggplot2::position_dodge(width = 0.5), size = 10, !!!dots) + 
-        ggplot2::geom_linerange(ggplot2::aes(ymin = 0, ymax = Count), position = ggplot2::position_dodge(width = 0.5), !!!dots) + 
+        ggplot2::geom_point(position = ggplot2::position_dodge(width = 0.5), !!!point_dots) + 
+        ggplot2::geom_linerange(ggplot2::aes(ymin = 0, ymax = Count), position = ggplot2::position_dodge(width = 0.5), !!!line_dots) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
