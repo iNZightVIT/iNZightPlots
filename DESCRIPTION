@@ -31,6 +31,8 @@ Imports:
     dplyr,
     forcats,
     ggmosaic,
+    waffle,
+    tidyr,
     plotly
 Suggests:
     viridis,
