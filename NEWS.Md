@@ -1,9 +1,10 @@
-## Version 2.8.0.9000
-__Release date__: TBA
+# Version 2.9
+__Release date__: 8 July 2019
 
 - add a suite of new plot types from Financial Times (implemented using `ggplot`) (#90, @daniel-barnett)
 - improvements for survey plots and summaries
 - handle frequency variable
+
 
 # Version 2.8
 __Release date:__ 30 April 2019
