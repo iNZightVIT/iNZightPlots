@@ -1119,7 +1119,7 @@ iNZightPlotGG_gridplot <- function(data, x, main = sprintf("Gridplot of %s", as.
   )
 }
 
-iNZightPlotGG_divergingstackedbar <- function(data, x, y, main = sprintf("Diverging stacked bar of %s by %s", as.character(x), as.character(y)), xlab = as.character(x), ylab = "Count", ...) {
+iNZightPlotGG_divergingstackedbar <- function(data, x, y, main = sprintf("Diverging stacked bar of %s by %s", as.character(y), as.character(x)), xlab = as.character(x), ylab = "Count", ...) {
   orig_x <- x
   x <- rlang::sym(y)
   
