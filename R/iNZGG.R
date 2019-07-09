@@ -1132,14 +1132,16 @@ iNZightPlotGG_divergingstackedbar <- function(data, x, y, main = sprintf("Diverg
   )
   
   plot_expr <- rlang::expr(
-    ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, y = ifelse(!!y %in% levels(!!y)[1:floor(nlevels(!!y) / 2)], -Count, Count), fill = !!y)) + 
-      ggplot2::geom_col() +
+    ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, fill = !!y)) + 
+      ggplot2::geom_col(data = subset(plot_data, !!y %in% levels(!!y)[1:floor(nlevels(!!y) / 2)]), ggplot2::aes(y = -Count)) +
+      ggplot2::geom_col(data = subset(plot_data, !(!!y %in% levels(!!y)[1:floor(nlevels(!!y) / 2)])), ggplot2::aes(y = Count), position = ggplot2::position_stack(reverse = TRUE)) +
       ggplot2::geom_hline(yintercept = 0) + 
       ggplot2::coord_flip() + 
       ggplot2::labs(title = !!main) + 
       ggplot2::xlab(!!xlab) + 
       ggplot2::ylab(!!ylab) + 
-      ggplot2::scale_y_continuous(labels = abs)
+      ggplot2::scale_y_continuous(labels = abs) + 
+      ggplot2::scale_fill_discrete(breaks = levels(plot_data[[!!as.character(y)]]))
   )
   
   list(
