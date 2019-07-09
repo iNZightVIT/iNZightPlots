@@ -19,7 +19,7 @@ optional_args <- list(
   gg_dotstrip = c("alpha", "gg_size"),
   gg_poppyramid = c("gg_bins"),
   gg_freqpolygon = c("gg_lwd", "gg_size"),
-  gg_barcode2 = c("gg_height", "gg_width")
+  gg_barcode2 = c("gg_height", "gg_width", "alpha")
 )
 
 replace_data_name <- function(expr, new_name) {
