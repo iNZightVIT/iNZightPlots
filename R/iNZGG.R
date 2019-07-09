@@ -1002,7 +1002,7 @@ iNZightPlotGG_density <- function(data, x, y, fill = "darkgreen", main = sprintf
   )
 }
 
-iNZightPlotGG_mosaic <- function(data, x, y, main = "Mosaic plot", xlab = as.character(x), ylab = as.character(y), ...) {
+iNZightPlotGG_mosaic <- function(data, x, y, main = sprintf("Mosaic plot of %s and %s", as.character(x), as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
   # library("ggmosaic")
   # mosaic plots don't work unless the package is attached
   
@@ -1030,7 +1030,7 @@ iNZightPlotGG_mosaic <- function(data, x, y, main = "Mosaic plot", xlab = as.cha
   )
 }
 
-iNZightPlotGG_lollipop2 <- function(data, x, y, main = "Lollipop Categorical", xlab = as.character(x), ylab = "Count", ordered = FALSE, ...) {
+iNZightPlotGG_lollipop2 <- function(data, x, y, main = sprintf("Count of %s", as.character(x)), xlab = as.character(x), ylab = "Count", ordered = FALSE, ...) {
   x <- rlang::sym(x)
   dots <- list(...)
   
@@ -1120,8 +1120,10 @@ iNZightPlotGG_gridplot <- function(data, x, main = sprintf("Gridplot of %s", as.
 }
 
 iNZightPlotGG_divergingstackedbar <- function(data, x, y, main = sprintf("Diverging stacked bar of %s by %s", as.character(x), as.character(y)), xlab = as.character(x), ylab = "Count", ...) {
-  x <- rlang::sym(x)
-  y <- rlang::sym(y)
+  orig_x <- x
+  x <- rlang::sym(y)
+  
+  y <- rlang::sym(orig_x)
   
   data_expr <- rlang::expr(
     plot_data <- !!rlang::enexpr(data) %>% 
@@ -1130,7 +1132,7 @@ iNZightPlotGG_divergingstackedbar <- function(data, x, y, main = sprintf("Diverg
   )
   
   plot_expr <- rlang::expr(
-    ggplot2::ggplot(plot_data, ggplot2::aes(x = !!y, y = ifelse(!!x %in% levels(!!x)[1:floor(nlevels(!!x) / 2)], -Count, Count), fill = !!x)) + 
+    ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, y = ifelse(!!y %in% levels(!!y)[1:floor(nlevels(!!y) / 2)], -Count, Count), fill = !!y)) + 
       ggplot2::geom_col() +
       ggplot2::geom_hline(yintercept = 0) + 
       ggplot2::coord_flip() + 
