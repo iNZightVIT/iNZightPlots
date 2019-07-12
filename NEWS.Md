@@ -1,5 +1,5 @@
 # Version 2.9
-__Release date__: 8 July 2019
+__Release date__: 15 July 2019
 
 - add a suite of new plot types from Financial Times (implemented using `ggplot`) (#90, @daniel-barnett)
 - improvements for survey plots and summaries
