@@ -5,6 +5,7 @@ create.inz.scatterplot <- function(obj) {
     xattr <- obj$xattr
     features <- opts$plot.features
 
+
     if (opts$join) {
         df <- df
     } else if (!is.null(features$order.first)) {
@@ -18,11 +19,13 @@ create.inz.scatterplot <- function(obj) {
     } else {
         df <- df[sample(nrow(df)), ]
     }
-   
+
 
     if (xattr$class == "inz.survey") {
-        df <- as.data.frame(cbind(df$variables,
-                                  weights = weights(df)))
+        design <- df
+        df <- as.data.frame(
+            cbind(df$variables, weights = get_weights(df))
+        )
     }
 
     v <- colnames(df)
@@ -58,7 +61,7 @@ create.inz.scatterplot <- function(obj) {
             resize <- FALSE
             propsize <- opts$cex.pt
         } else
-            propsize <- df$weights
+            propsize <- df$weights / xattr$max.weight * 2 + 0.5
     } else if ("sizeby" %in% v) {
         propsize <- df$.cex
     } else {

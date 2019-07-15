@@ -14,6 +14,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     }
 
     boxplot <- opts$boxplot
+    mean_indicator <- opts$mean_indicator
 
     v <- colnames(df)
     vn <- xattr$varnames
@@ -85,14 +86,15 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     }
 
     for (i in unique(id)) {
-        dfi <- subset(df, id == i)
-        dfi$y <- NULL
-
         if (xattr$class == "inz.freq")
             di <- svydesign(ids=~1, weights = dfi$freq, data = dfi)
         else if (xattr$class == "inz.survey") {
-            di <- eval(parse(text = modifyData(obj$df$call, "dfi")))
+            if ("y" %in% colnames(obj$df$variables)) {
+                di <- subset(obj$df, y == i)
+            } else di <- obj$df
         } else {
+            dfi <- subset(df, id == i)
+            dfi$y <- NULL
             di <- dfi
         }
 
@@ -116,7 +118,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         bin.max <- cuts[-1]
 
         ## Cut the data and calculate counts:
-        if (inherits(d, "survey.design")) {
+        if (is_survey(d)) {
             ## To do this, we will pretty much grab stuff from the `survey` package, however it
             ## cannot be used separately to produce the bins etc without plotting it; so copyright
             ## for the next few lines goes to Thomas Lumley.
@@ -130,7 +132,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
             options(survey.lonely.psu = oo)
 
             h$density <- probs / diff(h$breaks)
-            h$counts <- probs * sum(weights(d))
+            h$counts <- probs * sum(get_weights(d))
         } else {
             x <- d$x
             h <- hist(x, breaks = cuts, plot = FALSE)
@@ -191,6 +193,10 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
 
     boxinfo <- if (boxplot & (!"mean" %in% opts$inference.par) & nrow(df) > 5)
         boxSummary(out, opts) else NULL
+    
+    meaninfo <- if (mean_indicator)
+        meanSummary(out, opts) else NULL
+      
 
     nbins <- bins <- NULL
     if (hist) {
@@ -261,7 +267,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     inflist <- dotinference(obj)
 
     out <- list(toplot = plist, n.missing = n.missing, boxinfo = boxinfo, inference.info = inflist,
-                fill.pt = opts$fill.pt,
+                fill.pt = opts$fill.pt, meaninfo = meaninfo,
                 nacol = if ("colby" %in% v) any(sapply(plist, function(T)
                     if (is.null(T$colby)) FALSE else any(is.na(T$colby)))) else FALSE,
                 xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
@@ -281,18 +287,20 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
     mcex <- gen$mcex
     col.args <- gen$col.args
     boxplot <- opts$boxplot
+    mean_indicator <- ifelse(!is.null(opts$mean_indicator), opts$mean_indicator, FALSE)
     expand.points <- 1# if (is.null(opts$expand.points)) 1 else opts$expand.points
 
     addGrid(x = TRUE, gen = gen, opts = opts)
 
     toplot <- obj$toplot
     boxinfo <- obj$boxinfo
+    meaninfo <- obj$meaninfo
     inflist <- obj$inference.info
 
     nlev <- length(toplot)
     pushViewport(viewport(layout = grid.layout(nrow = nlev),
                           name = "VP:dotplot-levels", clip = "on"))
-    Hgts <- if (boxplot) c(3, 1) else c(1, 0)
+    Hgts <- if (boxplot || mean_indicator) c(3, 1) else c(1, 0)
     dpLayout <- grid.layout(nrow = 2, heights = unit(Hgts, "null"))
 
     # we need to make the dots stack nicely, if they fit
@@ -321,6 +329,7 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
 
         pushViewport(viewport(layout.pos.row = 2, xscale = xlim, clip = "on"))
         if (boxplot) addBoxplot(boxinfo[[i]], opts, i)
+        if (mean_indicator) addMean(meaninfo[[i]], opts, i)
         if (!is.null(inflist)) addUnivarInference(inflist, i, opts)
         upViewport()
 
@@ -413,16 +422,16 @@ boxSummary <- function(obj, opts) {
         if (is.null(o))
             return(NULL)
 
-        if (!inherits(o, "survey.design")) {
-            quant <- quantile(o$x, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
-            min <- min(o$x, na.rm = TRUE)
-            max <- max(o$x, na.rm = TRUE)
-        } else {
+        if (is_survey(o)) {
             if (nrow(o$variables) < 5) return(NULL)
             svyobj <- o
             quant <- svyquantile(~x, svyobj, quantiles = c(0.25, 0.5, 0.75))
             min <- min(svyobj$variables$x, na.rm = TRUE)
             max <- max(svyobj$variables$x, na.rm = TRUE)
+        } else{
+            quant <- quantile(o$x, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+            min <- min(o$x, na.rm = TRUE)
+            max <- max(o$x, na.rm = TRUE)
         }
 
         list(quantiles = quant, min = min, max = max, inference = FALSE, opts = opts)
@@ -435,7 +444,7 @@ addBoxplot <- function(x, opts, i) {
     r <- opts$rowNum
     c <- opts$colNum
     opts <- x$opts
-    
+
     if (is.null(x))
         return()
 
@@ -443,13 +452,35 @@ addBoxplot <- function(x, opts, i) {
     yy <- rep(c(0.2, 0.8, 0.8, 0.2), 2)
     id <- rep(1:2, each = 4)
     grid.polygon(unit(xx, "native"), unit(yy, "npc"), id = id,
-                 gp = gpar(lwd = opts$box.lwd[1], fill = opts$box.fill), 
+                 gp = gpar(lwd = opts$box.lwd[1], fill = opts$box.fill),
                  name = paste("inz-box", r, c, i, sep = "."))
     grid.polyline(unit(c(x$min, x$quantiles[1], x$quantiles[3], x$max), "native"),
                   rep(0.5, 4), id = rep(1:2, each = 2),
-                  gp = gpar(lwd = opts$box.lwd[2]), 
+                  gp = gpar(lwd = opts$box.lwd[2]),
                   name = paste("inz-box-line", r, c, i, sep = "."))
 
+}
+
+meanSummary <- function(obj, opts) {
+  lapply(obj, function(o) {
+    if (is.null(o))
+      return(NULL)
+
+    list(mean = mean(o$x, na.rm = TRUE), opts = opts)
+  })
+}
+
+addMean <- function(x, opts, i) {
+  r <- opts$rowNum
+  c <- opts$colNum
+  opts <- x$opts
+  
+  if (is.null(x))
+    return()
+  
+  grid.points(unit(x$mean, "native"), unit(0.4, "npc"), 
+               gp = gpar(fill = "black", cex = opts$cex.dotpt * 1.5), pch = 24,
+               name = paste("inz-mean", r, c, i, sep = "."))
 }
 
 
@@ -524,14 +555,14 @@ dotinference <- function(obj) {
                                     ## 95% confidence interval (normal theory)
                                     if (svy) {
                                         if ("y" %in% colnames(dat$variables)) {
-                                            fit <- svyglm(x ~ y, design = dat)
-                                            ci <- confint(predict(fit, newdata = data.frame(y = levels(dat$variables$y))))
+                                            ci <- svyby(~x, ~y, design = dat, svymean, vartype = "ci",
+                                                        drop.empty.groups = FALSE)[, 2:4]
                                             dimnames(ci) <- list(levels(dat$variables$y),
-                                                                 c("lower", "upper"))
+                                                                 c("mean", "lower", "upper"))
                                         } else {
-                                            fit <- svyglm(x ~ 1, design = dat)
-                                            ci <- confint(fit)
-                                            dimnames(ci) <- list("all", c("lower", "upper"))
+                                            fit <- svymean(~x, dat)
+                                            ci <- rbind(c(fit[1], confint(fit)))
+                                            dimnames(ci) <- list("all", c("mean", "lower", "upper"))
                                         }
                                         ci
                                     } else {

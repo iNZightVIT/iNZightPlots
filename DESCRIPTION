@@ -1,10 +1,11 @@
 Package: iNZightPlots
 Type: Package
 Title: iNZightPlots
-Version: 2.8
+Version: 2.9.0
 Authors@R: c(person("Tom", "Elliott", role = c("aut", "cre"),
                     email = "tom.elliott@auckland.ac.nz"),
-             person("Yu Han", "Soh", role = "ctb"))
+             person("Yu Han", "Soh", role = "ctb"),
+             person("Daniel Barnett", role = "ctb"))
 Depends:
     R(>= 3.0)
 Imports:
@@ -23,7 +24,16 @@ Imports:
     chron,
     scales,
     iNZightMR,
-    iNZightTools
+    iNZightTools,
+    magrittr,
+    ggplot2,
+    rlang,
+    dplyr,
+    forcats,
+    ggmosaic,
+    waffle,
+    tidyr,
+    plotly
 Suggests:
     viridis,
     RColorBrewer,

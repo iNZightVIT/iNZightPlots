@@ -71,7 +71,7 @@
 #' @import stats grid grDevices boot survey quantreg survey hexbin iNZightMR
 #'         colorspace dichromat
 #' @importFrom utils capture.output browseURL capture.output
-#' @importFrom iNZightTools is_num is_cat is_dt
+#' @importFrom iNZightTools is_num is_cat is_dt is_survey is_svydesign is_svyrep
 #' @author Tom Elliott
 #' @export
 iNZightPlot <-
@@ -83,6 +83,7 @@ iNZightPlot <-
             data = NULL, design = NULL, freq = NULL,
             missing.info = TRUE,
             xlab = varnames$x, ylab = varnames$y,
+            # type = "",
             new = TRUE,  # compatibility arguments
             inzpars = inzpar(), layout.only = FALSE, plot = TRUE,
             xaxis = TRUE, yaxis = TRUE, xlim = NULL, ylim = NULL,
@@ -131,6 +132,8 @@ iNZightPlot <-
     ## getSummary and other wrappers will pass an inz.data object
     if (missing(df)) {
         if (!is.null(design)) {
+            if (grepl("as.svrepdesign", design$call[[1]]))
+                stop("Objects created with `as.svrepdesign` not yet supported.")
             md <- eval(m$design, env)
         } else {
             md <- eval(m$data, env)
@@ -143,7 +146,55 @@ iNZightPlot <-
             m, data = md, names = varnames, g1.level, g2.level, env = env
         )
     }
-
+    
+    if (isTRUE(grepl("^gg_", list(...)$plottype))) {
+      ret.plot <- do.call(
+        iNZightPlotGG, 
+        c(list(
+          setNames(df$data, df$varnames), 
+          type = list(...)$plottype,
+          data_name = list(...)$data_name,
+          main = list(...)$main,
+          xlab = xlab,
+          ylab = ylab,
+          extra_args = list(...),
+          palette = list(...)$palette
+          ),
+          varnames,
+          list(g1.level = g1.level, g2.level = g2.level)
+        )
+      )
+      
+      return(ret.plot)
+      
+      # if (isTRUE(list(...)$plottype %in% c("gg_pie", "gg_donut", "gg_stackedcolumn", "gg_stackedbar"))) {
+      #   ret.plot <- iNZightPlotGG(
+      #     setNames(df$data, df$varnames), 
+      #     type = list(...)$plottype, 
+      #     data_name = list(...)$data.name,
+      #     fill = varnames$x
+      #   )
+      #   return(ret.plot)
+      # } else if (isTRUE(list(...)$plottype %in% c("gg_bar", "gg_column"))) {
+      #   ret.plot <- iNZightPlotGG(
+      #     setNames(df$data, df$varnames), 
+      #     type = list(...)$plottype, 
+      #     data_name = list(...)$data.name,
+      #     x = varnames$x
+      #   )
+      #   return(ret.plot)
+      # } else if (isTRUE(list(...)$plottype %in% c("gg_violin", "gg_barcode"))) {
+      #   ret.plot <- iNZightPlotGG(
+      #     setNames(df$data, df$varnames), 
+      #     type = list(...)$plottype, 
+      #     data_name = list(...)$data.name,
+      #     y = varnames$x
+      #   )
+      #   return(ret.plot)
+      # }
+    }
+    
+    
     total.missing <- sum(apply(df$data, 1, function(x) any(is.na(x))))
     total.obs <- nrow(df$data)
 
@@ -291,6 +342,11 @@ iNZightPlot <-
     if (!is.null(locate.extreme)) xattr$nextreme <- locate.extreme
     if (!is.null(zoombars)) xattr$zoom <- zoombars
 
+    if (inherits(df.list, "inz.survey")) {
+        xattr$max.weight <- max(get_weights(df$design))
+    }
+
+
     if (opts$matchplots) {
         # this is the case where the data is subset by g1/g2, but we want the
         # plots to be the same across all levels
@@ -299,9 +355,14 @@ iNZightPlot <-
         # LARGESAMPLE or not:
         if (is.null(opts$largesample)) {
             sample.sizes <- do.call(
-                c, lapply(df.list, function(df)
+                c,
+                lapply(df.list, function(df)
                     sapply(df, function(a) {
-                        o <- nrow(a)
+                        if (is_survey(a)) {
+                            o <- nrow(a$variables)
+                        } else {
+                            o <- nrow(a)
+                        }
                         if (is.null(o)) 0 else o
                     })
                 )
@@ -1111,9 +1172,6 @@ iNZightPlot <-
                 opts$rowNum <- r
                 opts$colNum <- c
 
-                if (barplot)
-                    opts$bar.nmax <- BARPLOT.N[[r]][[c]]
-
                 if (g2id > NG2) next ()
                 C <- c * 2 - 1
 
@@ -1213,6 +1271,10 @@ iNZightPlot <-
                 ## and left and right of every row - also, must rotate
                 ## if too big!
                 ## ------------
+
+
+                if (barplot)
+                    opts$bar.nmax <- BARPLOT.N[[g2id]][[g1id]]
 
                 pushViewport(viewport(
                     layout.pos.row = 2, xscale = xlim,
