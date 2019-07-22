@@ -13,6 +13,15 @@ test_that("Datetimes plot OK", {
 
     expect_is(iNZightPlot(magnitude, g1 = origintime, data = quakes),
         "inzplotoutput")
+    expect_is(
+        iNZightPlot(magnitude, 
+            g1 = felt,
+            g2 = origintime, 
+            g2.level = "_MULTI", 
+            data = quakes
+        ),
+        "inzplotoutput"
+    )
 })
 
 quakes <- iNZightTools::extract_part(quakes, "origintime", "Date only", "date")
@@ -25,6 +34,15 @@ test_that("Dates plot OK", {
 
     expect_is(iNZightPlot(magnitude, g1 = date, data = quakes),
         "inzplotoutput")
+    expect_is(
+        iNZightPlot(magnitude, 
+            g1 = felt,
+            g2 = date, 
+            g2.level = "_MULTI", 
+            data = quakes
+        ),
+        "inzplotoutput"
+    )
 })
 
 quakes <- iNZightTools::extract_part(quakes, "origintime", "Time only", "time")
@@ -37,4 +55,13 @@ test_that("Times plot OK", {
 
     expect_is(iNZightPlot(magnitude, g1 = time, data = quakes),
         "inzplotoutput")
+    expect_is(
+        iNZightPlot(magnitude, 
+            g1 = felt,
+            g2 = time, 
+            g2.level = "_MULTI", 
+            data = quakes
+        ),
+        "inzplotoutput"
+    )
 })
