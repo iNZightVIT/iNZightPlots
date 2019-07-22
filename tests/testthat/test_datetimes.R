@@ -65,3 +65,9 @@ test_that("Times plot OK", {
         "inzplotoutput"
     )
 })
+
+test_that("Summaries work", {
+    expect_is(getPlotSummary(origintime, data = quakes), "inzight.plotsummary")
+    expect_is(getPlotSummary(date, data = quakes), "inzight.plotsummary")
+    expect_is(getPlotSummary(time, data = quakes), "inzight.plotsummary")
+})
