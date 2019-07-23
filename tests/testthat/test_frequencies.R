@@ -2,6 +2,8 @@ context("Frequency counts (one- and two-way tables)")
 
 cas <- suppressMessages(iNZightTools::smart_read("cas.csv"))
 cas_freq <- suppressMessages(iNZightTools::smart_read("cas_freq.csv"))
+# cas <- suppressMessages(iNZightTools::smart_read("tests/testthat/cas.csv"))
+# cas_freq <- suppressMessages(iNZightTools::smart_read("tests/testthat/cas_freq.csv"))
 
 test_that("One way tables give the same results", {
     expect_silent(
@@ -52,5 +54,16 @@ test_that("Segmented bar charts are correct", {
     expect_equivalent(
         p0$all$all$p.colby,
         p1$all$all$p.colby
+    )
+})
+
+test_that("Inference information works", {
+    expect_is(
+        getPlotSummary(cas_freq$travel, 
+            freq = cas_freq$count, 
+            summary.type = "inference",
+            inference.type = "conf"
+        ),
+        "inzight.plotsummary"
     )
 })
