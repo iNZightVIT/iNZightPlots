@@ -1,5 +1,6 @@
 # iNZightPlots 2.9.9.9000
 
+- fixes small bug where CIs for two-sample equal var didn't match the p-value
 
 
 # iNZightPlots 2.9

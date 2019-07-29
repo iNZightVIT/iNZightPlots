@@ -133,7 +133,8 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
                     colnames(mat) <- NULL
                 }
             } else {
-                ttest <- t.test(toplot[[1]]$x, toplot[[2]]$x)
+                ttest <- t.test(toplot[[1]]$x, toplot[[2]]$x,
+                    var.equal = hypothesis$var.equal)
                 mat <- rbind(c("Lower", "Mean", "Upper"),
                          format(c(ttest$conf.int[1],
                                   diff(rev(ttest$estimate)),
