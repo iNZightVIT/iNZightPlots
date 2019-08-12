@@ -71,6 +71,12 @@ apply_palette <- function(expr, palette, type) {
         rlang::expr(!!expr + ggplot2::scale_fill_viridis_c(option = !!palette))
       }
     }
+  } else if (palette == "greyscale") {
+    if (type %in% colour_plots) {
+      rlang::expr(!!expr + ggplot2::scale_colour_grey())
+    } else {
+      rlang::expr(!!expr + ggplot2::scale_fill_grey())
+    }
   } else {
     if (type %in% colour_plots) {
       rlang::expr(!!expr + ggplot2::scale_colour_brewer(palette = !!palette))
