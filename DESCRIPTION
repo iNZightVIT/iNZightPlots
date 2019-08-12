@@ -33,7 +33,8 @@ Imports:
     ggmosaic,
     waffle,
     tidyr,
-    plotly
+    plotly,
+    ggbeeswarm
 Suggests:
     viridis,
     RColorBrewer,
