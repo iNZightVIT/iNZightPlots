@@ -19,7 +19,8 @@ optional_args <- list(
   gg_dotstrip = c("alpha", "gg_size"),
   gg_poppyramid = c("gg_bins"),
   gg_freqpolygon = c("gg_lwd", "gg_size"),
-  gg_barcode2 = c("gg_height", "gg_width", "alpha")
+  gg_barcode2 = c("gg_height", "gg_width", "alpha"),
+  gg_beeswarm = c("gg_size")
 )
 
 replace_data_name <- function(expr, new_name) {
@@ -255,11 +256,13 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
         }
       }
       
-      varnames[["alpha"]] <- as.numeric(varnames[["alpha"]])
+      if (!is.null(varnames[["alpha"]])) {
+        varnames[["alpha"]] <- as.numeric(varnames[["alpha"]])
+      }
     }
   }
   
-  if (type %in% c("gg_lollipop", "gg_lollipop2", "gg_freqpolygon", "gg_dotstrip")) {
+  if (type %in% c("gg_lollipop", "gg_lollipop2", "gg_freqpolygon", "gg_dotstrip", "gg_beeswarm")) {
     if (!("size" %in% names(varnames))) {
       varnames[['size']] <- 6
     }
