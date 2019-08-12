@@ -1,6 +1,7 @@
 # iNZightPlots 2.9.9.9000
 
 - fixes small bug where CIs for two-sample equal var didn't match the p-value
+- add option to change ggplot theme of Financial Times plots
 
 
 # iNZightPlots 2.9
