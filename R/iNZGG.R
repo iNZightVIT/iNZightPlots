@@ -299,6 +299,7 @@ iNZightPlotGG <- function(
   main = NULL, 
   xlab = NULL, 
   ylab = NULL, 
+  caption = NULL,
   extra_args = c(), 
   palette = "default"
 ) {
@@ -341,6 +342,10 @@ iNZightPlotGG <- function(
   
   if (!(type %in% c("gg_lollipop", "gg_column2"))) {
     plot_exprs <- check_nas(data, plot_exprs, data_name)
+  }
+  
+  if (isTRUE(!is.null(caption) && caption != "")) {
+    plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::labs(caption = caption))
   }
   
   eval_env <- rlang::env(!!rlang::sym(data_name) := data)
