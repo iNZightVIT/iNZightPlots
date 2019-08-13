@@ -1,4 +1,13 @@
-# Version 2.9
+# iNZightPlots 2.10
+__Release date__: 13 August 2019
+
+- fixes small bug where CIs for two-sample equal var didn't match the p-value
+- add option to change ggplot theme of Financial Times plots
+- add ability to include captions for sources in Financial Times plots
+- add beeswarm option for plotting (using ggbeeswarm)
+
+
+# iNZightPlots 2.9
 __Release date__: 15 July 2019
 
 - add a suite of new plot types from Financial Times (implemented using `ggplot`) (#90, @daniel-barnett)
@@ -6,7 +15,7 @@ __Release date__: 15 July 2019
 - handle frequency variable
 
 
-# Version 2.8
+# iNZightPlots 2.8
 __Release date:__ 30 April 2019
 
 - fix a small bug where new device was created for dotplots even when `plot = FALSE`
@@ -21,7 +30,7 @@ __Release date__: 05 April 019
 - fix bug in `getPlotSummary` when passing variables names
   
 
-# Version 2.7
+# iNZightPlots 2.7
 __Release date__: 23 March 2017
 
 ## Major Changes
