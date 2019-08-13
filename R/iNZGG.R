@@ -72,6 +72,12 @@ apply_palette <- function(expr, palette, type) {
         rlang::expr(!!expr + ggplot2::scale_fill_viridis_c(option = !!palette))
       }
     }
+  } else if (palette == "greyscale") {
+    if (type %in% colour_plots) {
+      rlang::expr(!!expr + ggplot2::scale_colour_grey())
+    } else {
+      rlang::expr(!!expr + ggplot2::scale_fill_grey())
+    }
   } else {
     if (type %in% colour_plots) {
       rlang::expr(!!expr + ggplot2::scale_colour_brewer(palette = !!palette))
@@ -304,7 +310,8 @@ iNZightPlotGG <- function(
   ylab = NULL, 
   caption = NULL,
   extra_args = c(), 
-  palette = "default"
+  palette = "default",
+  gg_theme = "grey"
 ) {
   dots <- list(...)
   
@@ -322,6 +329,26 @@ iNZightPlotGG <- function(
     sprintf("iNZightPlotGG_%s", gsub("^gg_", "", type)), 
     c(rlang::sym(data_name), main = main, xlab = xlab, ylab = ylab, plot_args)
   )
+  
+  if (length(gg_theme) > 0 && gg_theme != "grey") {
+    theme_fun <- list(
+      "bw"      = rlang::expr(ggplot2::theme_bw()),
+      "light"   = rlang::expr(ggplot2::theme_light()),
+      "dark"    = rlang::expr(ggplot2::theme_dark()),
+      "minimal" = rlang::expr(ggplot2::theme_minimal()),
+      "classic" = rlang::expr(ggplot2::theme_classic()),
+      "void"    = rlang::expr(ggplot2::theme_void()),
+      "stata"   = rlang::expr(ggthemes::theme_stata()),
+      "wsj"     = rlang::expr(ggthemes::theme_wsj()),
+      "tufte"   = rlang::expr(ggthemes::theme_tufte()),
+      "gdocs"   = rlang::expr(ggthemes::theme_gdocs()),
+      "fivethirtyeight" = rlang::expr(ggthemes::theme_fivethirtyeight()),
+      "excel"     = rlang::expr(ggthemes::theme_excel()),
+      "economist" = rlang::expr(ggthemes::theme_economist())
+    )[[gg_theme]]
+    
+    plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + !!theme_fun)
+  }
   
   if (exists("overall_size") && !is.null(overall_size) && isTRUE(overall_size != 1)) {
     plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::theme(text = ggplot2::element_text(size = !!(as.numeric(overall_size) * 11))))

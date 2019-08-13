@@ -1,6 +1,7 @@
 # iNZightPlots 2.9.9.9000
 
 - fixes small bug where CIs for two-sample equal var didn't match the p-value
+- add option to change ggplot theme of Financial Times plots
 - add ability to include captions for sources in Financial Times plots
 - add beeswarm option for plotting (using ggbeeswarm)
 

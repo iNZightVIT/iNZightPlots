@@ -159,6 +159,7 @@ iNZightPlot <-
           ylab = ylab,
           extra_args = list(...),
           palette = list(...)$palette,
+          gg_theme = list(...)$gg_theme,
           caption = list(...)$caption
           ),
           varnames,
