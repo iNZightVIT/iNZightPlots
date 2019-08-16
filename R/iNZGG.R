@@ -342,6 +342,14 @@ iNZightPlotGG <- function(
     c(rlang::sym(data_name), main = main, xlab = xlab, ylab = ylab, plot_args)
   )
   
+  if (isTRUE(rotate) && !(type %in% c("gg_pie", "gg_donut"))) {
+    if (type != "gg_gridplot") {
+      plot_exprs$plot <- rotate(plot_exprs$plot)
+    } else {
+      plot_exprs$plot <- rotate_gridplot(plot_exprs$plot)
+    }
+  }
+  
   if (length(gg_theme) > 0 && gg_theme != "grey") {
     theme_fun <- list(
       "bw"      = rlang::expr(ggplot2::theme_bw()),
@@ -374,13 +382,7 @@ iNZightPlotGG <- function(
     plot_exprs <- iNZightPlotGG_facet(data, data_name, plot_exprs, dots$g1, dots$g2, dots$g1.level, dots$g2.level)
   }
   
-  if (isTRUE(rotate) && !(type %in% c("gg_pie", "gg_donut"))) {
-    if (type != "gg_gridplot") {
-    plot_exprs$plot <- rotate(plot_exprs$plot)
-    } else {
-      plot_exprs$plot <- rotate_gridplot(plot_exprs$plot)
-    }
-  }
+
   
   if (isTRUE(!missing(palette) && !is.null(palette) && palette != "default")) {
     plot_exprs$plot <- apply_palette(plot_exprs$plot, palette, type)
