@@ -362,7 +362,7 @@ iNZightPlotGG <- function(
     plot_exprs <- iNZightPlotGG_facet(data, data_name, plot_exprs, dots$g1, dots$g2, dots$g1.level, dots$g2.level)
   }
   
-  if (isTRUE(rotate) && !(type %in% c("gg_pie", "gg_donut"))) {
+  if (isTRUE(rotate) && !(type %in% c("gg_pie", "gg_donut", "gg_gridplot"))) {
     plot_exprs$plot <- rotate(plot_exprs$plot)
   }
   
