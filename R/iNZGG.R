@@ -58,6 +58,14 @@ add_to_group <- function(expr, vars) {
   }
 }
 
+rotate_gridplot <- function(expr) {
+  if (expr[[1]] == "waffle::waffle") {
+    expr$flip <- TRUE
+  }
+  
+  expr
+}
+
 apply_palette <- function(expr, palette, type) {
   viridis_names <- unname(unlist(viridis_palette_names()))
   colour_plots <- c("gg_cumcurve", "gg_lollipop", "gg_freqpolygon", "gg_barcode", "gg_dotstrip")
@@ -366,8 +374,12 @@ iNZightPlotGG <- function(
     plot_exprs <- iNZightPlotGG_facet(data, data_name, plot_exprs, dots$g1, dots$g2, dots$g1.level, dots$g2.level)
   }
   
-  if (isTRUE(rotate) && !(type %in% c("gg_pie", "gg_donut", "gg_gridplot"))) {
+  if (isTRUE(rotate) && !(type %in% c("gg_pie", "gg_donut"))) {
+    if (type != "gg_gridplot") {
     plot_exprs$plot <- rotate(plot_exprs$plot)
+    } else {
+      plot_exprs$plot <- rotate_gridplot(plot_exprs$plot)
+    }
   }
   
   if (isTRUE(!missing(palette) && !is.null(palette) && palette != "default")) {
