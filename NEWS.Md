@@ -2,6 +2,7 @@
 __Release date__: 
 
 - fix greyscale palette for ggplot heatmaps (#121, @daniel-barnett)
+- add rotation functionality for gridplots (#123, @daniel-barnett)
 
 # iNZightPlots 2.10
 __Release date__: 13 August 2019
