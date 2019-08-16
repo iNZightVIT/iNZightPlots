@@ -1,3 +1,8 @@
+# iNZightPlots 2.10.9.9000
+__Release date__: 
+
+- fix greyscale palette for ggplot heatmaps (#121, @daniel-barnett)
+
 # iNZightPlots 2.10
 __Release date__: 13 August 2019
 

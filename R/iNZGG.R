@@ -76,7 +76,11 @@ apply_palette <- function(expr, palette, type) {
     if (type %in% colour_plots) {
       rlang::expr(!!expr + ggplot2::scale_colour_grey())
     } else {
-      rlang::expr(!!expr + ggplot2::scale_fill_grey())
+      if (type != "gg_heatmap") {
+        rlang::expr(!!expr + ggplot2::scale_fill_grey())
+      } else {
+        rlang::expr(!!expr + ggplot2::scale_fill_gradient(low = "white", high = "black"))
+      }
     }
   } else {
     if (type %in% colour_plots) {
