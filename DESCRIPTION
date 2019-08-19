@@ -34,7 +34,8 @@ Imports:
     waffle,
     tidyr,
     plotly,
-    ggbeeswarm
+    ggbeeswarm,
+    ggridges
 Suggests:
     viridis,
     RColorBrewer,
