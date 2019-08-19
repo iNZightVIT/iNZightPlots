@@ -20,7 +20,8 @@ optional_args <- list(
   gg_poppyramid = c("gg_bins"),
   gg_freqpolygon = c("gg_lwd", "gg_size"),
   gg_barcode2 = c("gg_height", "gg_width", "alpha"),
-  gg_beeswarm = c("gg_size")
+  gg_beeswarm = c("gg_size"),
+  gg_ridgeline = c("alpha")
 )
 
 replace_data_name <- function(expr, new_name) {
@@ -1215,6 +1216,25 @@ iNZightPlotGG_beeswarm <- function(data, x, y, main = sprintf("Distribution of %
         ggplot2::ylab(!!ylab)
     )
   }
+  
+  list(
+    plot = plot_expr
+  )
+}
+
+iNZightPlotGG_ridgeline <- function(data, x, y, main = "Ridgeline plot", xlab = as.character(x), ylab = as.character(y), ...) {
+  x <- rlang::sym(x)
+  y <- rlang::sym(y)
+  
+  dots <- list(...)
+  
+  plot_expr <- rlang::expr(
+    ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x, fill = !!x)) +
+      ggridges::geom_density_ridges(!!!dots) + 
+      ggplot2::ggtitle(!!main) + 
+      ggplot2::xlab(!!xlab) + 
+      ggplot2::ylab(!!ylab)
+  )
   
   list(
     plot = plot_expr
