@@ -20,7 +20,8 @@ optional_args <- list(
   gg_poppyramid = c("gg_bins"),
   gg_freqpolygon = c("gg_lwd", "gg_size"),
   gg_barcode2 = c("gg_height", "gg_width", "alpha"),
-  gg_beeswarm = c("gg_size")
+  gg_beeswarm = c("gg_size"),
+  gg_gridplot = c("gg_perN")
 )
 
 replace_data_name <- function(expr, new_name) {
@@ -1139,13 +1140,14 @@ iNZightPlotGG_lollipop2 <- function(data, x, y, main = sprintf("Count of %s", as
   )
 }
 
-iNZightPlotGG_gridplot <- function(data, x, main = sprintf("Gridplot of %s", as.character(x)), xlab = "1 observation/square", ...) {
+iNZightPlotGG_gridplot <- function(data, x, main = sprintf("Gridplot of %s", as.character(x)), xlab = sprintf("%s observation/square", perN), perN = 1, ...) {
   x <- rlang::sym(x)
   
   data_expr <- rlang::expr(
     plot_data <- !!rlang::enexpr(data) %>% 
       dplyr::select(!!x) %>% 
-      table()
+      table() %>% 
+      magrittr::divide_by_int(!!as.integer(perN))
   )
   
   plot_expr <- rlang::expr(
