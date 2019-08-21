@@ -342,11 +342,19 @@ iNZightPlotGG <- function(
     c(rlang::sym(data_name), main = main, xlab = xlab, ylab = ylab, plot_args)
   )
   
-  if (isTRUE(rotate) && !(type %in% c("gg_pie", "gg_donut"))) {
-    if (type != "gg_gridplot") {
-      plot_exprs$plot <- rotate(plot_exprs$plot)
-    } else {
+  if (!(type %in% c("gg_pie", "gg_donut"))) {
+    if (type == "gg_gridplot" && isTRUE(rotate)) {
       plot_exprs$plot <- rotate_gridplot(plot_exprs$plot)
+    } else {
+      default_rotated <- c("gg_boxplot", "gg_violin", "gg_beeswarm", "gg_quasirandom", "gg_poppyramid")
+      
+      if (type %in% default_rotated) {
+        rotate <- if (!is.null(rotate)) !rotate else TRUE
+      }
+      
+      if (isTRUE(rotate)) {
+        plot_exprs$plot <- rotate(plot_exprs$plot)
+      }
     }
   }
   
