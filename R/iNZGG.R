@@ -184,7 +184,7 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
     if (!("y" %in% names(varnames))) {
       names(varnames) <- replace(names(varnames), names(varnames) == "x", "y")
       if (isTRUE(!is.null(extra_vars$fill_colour) && extra_vars$fill_colour != "")) {
-        if (type %in% c("gg_lollipop", "gg_cumcurve", "gg_barcode", "gg_dotstrip")) {
+        if (type %in% c("gg_lollipop", "gg_cumcurve", "gg_barcode", "gg_dotstrip", "gg_quasirandom")) {
           varnames["colour"] <- extra_vars$fill_colour
         } else {
           varnames["fill"] <- extra_vars$fill_colour
