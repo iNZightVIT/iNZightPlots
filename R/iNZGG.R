@@ -399,8 +399,6 @@ iNZightPlotGG <- function(
   attr(plot_object, "plottype") <- c(type)
   attr(plot_object, "varnames") <- unlist(dots)
   
-  cat(attr(plot_object, "code"))
-  
   if (type %in% c("gg_lollipop", "gg_column2")) {
     attr(plot_object, "varnames") <- attr(plot_object, "varnames")[names(attr(plot_object, "varnames")) != "y"]
   }
@@ -1228,8 +1226,6 @@ iNZightPlotGG_quasirandom <- function(data, x, y, main = sprintf("Distribution o
   y <- rlang::sym(y)
   
   dots <- list(...)
-  
-  print(dots)
   
   if (missing(x)) {
     x <- rlang::expr(factor(1))
