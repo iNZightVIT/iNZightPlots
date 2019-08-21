@@ -21,7 +21,7 @@ optional_args <- list(
   gg_freqpolygon = c("gg_lwd", "gg_size"),
   gg_barcode2 = c("gg_height", "gg_width", "alpha"),
   gg_beeswarm = c("gg_size"),
-  gg_quasirandom = c("gg_size", "gg_width", "gg_method")
+  gg_quasirandom = c("gg_size", "gg_swarmwidth", "gg_method")
 )
 
 replace_data_name <- function(expr, new_name) {
@@ -270,6 +270,10 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
       if (!is.null(varnames[["alpha"]])) {
         varnames[["alpha"]] <- as.numeric(varnames[["alpha"]])
       }
+    }
+    
+    if (type %in% c("gg_quasirandom")) {
+      names(varnames) <- replace(names(varnames), names(varnames) == "swarmwidth", "width")
     }
   }
   
