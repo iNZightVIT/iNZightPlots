@@ -346,7 +346,7 @@ iNZightPlotGG <- function(
     if (type == "gg_gridplot" && isTRUE(rotate)) {
       plot_exprs$plot <- rotate_gridplot(plot_exprs$plot)
     } else {
-      default_rotated <- c("gg_boxplot", "gg_violin", "gg_beeswarm", "gg_quasirandom", "gg_poppyramid")
+      default_rotated <- c("gg_boxplot", "gg_violin", "gg_beeswarm", "gg_quasirandom")
       
       if (type %in% default_rotated) {
         rotate <- if (!is.null(rotate)) !rotate else TRUE
@@ -941,7 +941,6 @@ iNZightPlotGG_poppyramid <- function(data, x, fill, main = sprintf("Count of %s 
     ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, fill = !!fill)) + 
       ggplot2::geom_histogram(data = subset(!!rlang::enexpr(data), !!fill == levels(!!fill)[1]), !!!dots) + 
       ggplot2::geom_histogram(data = subset(!!rlang::enexpr(data), !!fill == levels(!!fill)[2]), ggplot2::aes(y = stat(count * -1)), !!!dots) + 
-      ggplot2::coord_flip() + 
       ggplot2::labs(title = !!main) + 
       ggplot2::xlab(!!xlab) + 
       ggplot2::ylab(!!ylab) + 
