@@ -1,8 +1,9 @@
 # iNZightPlots 2.10.9.9000
-__Release date__: 
+__Release date__:
 
 - fix greyscale palette for ggplot heatmaps (#121, @daniel-barnett)
 - add rotation functionality for gridplots (#123, @daniel-barnett)
+- add useful summary information for dates and times
 
 # iNZightPlots 2.10
 __Release date__: 13 August 2019
@@ -34,7 +35,7 @@ __Release date:__ 30 April 2019
 __Release date__: 05 April 019
 
 - fix bug in `getPlotSummary` when passing variables names
-  
+
 
 # iNZightPlots 2.7
 __Release date__: 23 March 2017
