@@ -331,6 +331,7 @@ iNZightPlotGG <- function(
     rotate <- extra_args$rotation
     desc <- extra_args$desc
     overall_size <- extra_args$cex
+    rotate_labels <- extra_args$rotate_labels
     
     extra_args$desc <- desc
   }
@@ -370,6 +371,10 @@ iNZightPlotGG <- function(
     plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + !!theme_fun)
   }
   
+  if (exists("rotate_labels") && isTRUE(rotate_labels)) {
+    plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1)))
+  }
+  
   if (exists("overall_size") && !is.null(overall_size) && isTRUE(overall_size != 1)) {
     plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::theme(text = ggplot2::element_text(size = !!(as.numeric(overall_size) * 11))))
   }
@@ -381,8 +386,6 @@ iNZightPlotGG <- function(
   if (isTRUE(!is.null(dots$g1))) {
     plot_exprs <- iNZightPlotGG_facet(data, data_name, plot_exprs, dots$g1, dots$g2, dots$g1.level, dots$g2.level)
   }
-  
-
   
   if (isTRUE(!missing(palette) && !is.null(palette) && palette != "default")) {
     plot_exprs$plot <- apply_palette(plot_exprs$plot, palette, type)
