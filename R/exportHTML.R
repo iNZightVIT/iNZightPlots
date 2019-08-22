@@ -481,18 +481,20 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
         colnames(dd[[i]]) <- c(attributes(x)$varnames$x, attributes(x)$varnames$y)
       }
 
-      #obtain boxplot information
-      box = plot$boxinfo
-      quantiles = box[[i]]$quantiles
-      min = box[[i]]$min
-      max = box[[i]]$max
-
-      # get cumulative frequency of counts for each group:
-      countsTab[i+1] = sum(plots[[i]]$counts, countsTab[i])
-      # get boxplot summaries for each group
-      boxTable <- rbind(as.data.frame(quantiles), min, max)
-      rownames(boxTable)[4:5] <- c("min", "max")
-      boxList[[i]] <- boxTable
+      if (!is.null(plot$boxinfo)) {
+        #obtain boxplot information
+        box = plot$boxinfo
+        quantiles = box[[i]]$quantiles
+        min = box[[i]]$min
+        max = box[[i]]$max
+  
+        # get cumulative frequency of counts for each group:
+        countsTab[i+1] = sum(plots[[i]]$counts, countsTab[i])
+        # get boxplot summaries for each group
+        boxTable <- rbind(as.data.frame(quantiles), min, max)
+        rownames(boxTable)[4:5] <- c("min", "max")
+        boxList[[i]] <- boxTable
+      }
     }
 
     #bind all groups together:
@@ -510,14 +512,17 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
     #variable selection
     tab <- varSelect(varNames, pl, order, extra.vars, data)
 
-    #To obtain box whisker plot information:
-    boxInfo <- plot$boxinfo$all
-    quantiles <- boxInfo$quantiles
-    min <- boxInfo$min
-    max <- boxInfo$max
-    boxTable <- rbind(as.data.frame(quantiles), min, max)
-    rownames(boxTable)[4:5] <- c("min", "max")
-
+    if (!is.null(plot$boxinfo)) {
+      #To obtain box whisker plot information:
+      boxInfo <- plot$boxinfo$all
+      quantiles <- boxInfo$quantiles
+      min <- boxInfo$min
+      max <- boxInfo$max
+      boxTable <- rbind(as.data.frame(quantiles), min, max)
+      rownames(boxTable)[4:5] <- c("min", "max")
+    } else {
+      boxTable <- list()
+    }
     ## JS:
     chart <- list(type = "dot", varNames = names(tab), data = tab, colGroupNo = colGroupNo,
                   boxData = boxTable)
