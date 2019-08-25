@@ -1,7 +1,7 @@
 Package: iNZightPlots
 Type: Package
 Title: iNZightPlots
-Version: 2.10
+Version: 2.10.1
 Authors@R: c(person("Tom", "Elliott", role = c("aut", "cre"),
                     email = "tom.elliott@auckland.ac.nz"),
              person("Yu Han", "Soh", role = "ctb"),
@@ -34,7 +34,8 @@ Imports:
     waffle,
     tidyr,
     plotly,
-    ggbeeswarm
+    ggbeeswarm,
+    lubridate
 Suggests:
     viridis,
     RColorBrewer,
