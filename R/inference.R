@@ -378,30 +378,98 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
     if (is.survey && !twoway) hypothesis <- NULL
 
     if (!is.null(hypothesis) && !bs) {
-        if (is.survey) {
-            chi2 <- try(svychisq(~y+x, des), TRUE)
-        } else {
-            chi2 <- suppressWarnings(chisq.test(object$tab))
-        }
+        HypOut <- switch(hypothesis$test,
+            "proportion" = {
+                if (is.survey) {
+                    HypOut <- NULL
+                } else if (twoway) {
+                    HypOut <- NULL
+                } else {
+                    if (ncol(object$tab) == 2) {
+                        pfun <- if (hypothesis$use.exact) binom.test else prop.test
+                        prtest <- pfun(object$tab,
+                            p = hypothesis$value, 
+                            alternative = hypothesis$alternative
+                        )
 
-        if (inherits(chi2, "try-error")) {
-            HypOut <- NULL
-        } else {
-            piece1 <- ifelse(twoway,
-                             sprintf("distribution of %s does not depend on %s", vn$x, vn$y),
-                             "true proportions in each category are equal")
-            piece2 <- ifelse(twoway,
-                             sprintf("distribution of %s changes with %s", vn$x, vn$y),
-                             "true proportions in each category are not equal")
+                        HypOut <- c(
+                            sprintf("%s",
+                                ifelse(hypothesis$use.exact,
+                                    "Exact binomial test",
+                                    "One-sample test of a proportion"
+                                )
+                                # vn$x,
+                                # colnames(object$tab)[1]
+                            ),
+                            "",
+                            sprintf("   %s, p-value %s%s",
+                                ifelse(hypothesis$use.exact, 
+                                    sprintf(
+                                        "Number of successes = %s, number of trials = %s",
+                                        prtest$statistic, prtest$parameter
+                                    ),
+                                    sprintf("X-squared = %s, df = %s",
+                                        format(signif(prtest$statistic, 5)),
+                                        format(signif(prtest$parameter, 2))
+                                    )
+                                ),
+                                ifelse(prtest$p.value < 2.2e-16, "", "= "), 
+                                format.pval(prtest$p.value, digits = 5)
+                            ),
+                            "",
+                            sprintf("          Null Hypothesis: %s",
+                                sprintf("true proportion of %s = %s is %s",
+                                    vn$x, colnames(object$tab)[1], 
+                                    hypothesis$value
+                                )
+                            ),
+                            sprintf("   Alternative Hypothesis: %s", 
+                                sprintf("true proportion of %s = %s is %s %s",
+                                    vn$x, colnames(object$tab)[1],
+                                    ifelse(hypothesis$alternative == "two.sided",
+                                        "not equal to",
+                                        paste(hypothesis$alternative, "than")
+                                    ),
+                                    hypothesis$value
+                                )
+                            ), 
+                            ""
+                        )
 
-            HypOut <- c(sprintf("Chi-square test for equal %s",
-                                ifelse(twoway, "distributions", "proportions")), "",
-                        paste0("   X^2 = ", format(signif(chi2$statistic, 5)), ", ",
-                               "df = ", format(signif(chi2$parameter, 5)), ", ",
-                               "p-value ", ifelse(chi2$p.value < 2.2e-16, "", "= "), format.pval(chi2$p.value, digits = 5)), "",
-                        sprintf("          Null Hypothesis: %s", piece1),
-                        sprintf("   Alternative Hypothesis: %s", piece2), "")
-        }
+                    } else {
+                        HypOut <- NULL
+                    }
+                }
+                HypOut
+            },
+            "chi2" = {
+                if (is.survey) {
+                    chi2 <- try(svychisq(~y+x, des), TRUE)
+                } else {
+                    chi2 <- suppressWarnings(chisq.test(object$tab))
+                }
+
+                if (inherits(chi2, "try-error")) {
+                    HypOut <- NULL
+                } else {
+                    piece1 <- ifelse(twoway,
+                                     sprintf("distribution of %s does not depend on %s", vn$x, vn$y),
+                                     "true proportions in each category are equal")
+                    piece2 <- ifelse(twoway,
+                                     sprintf("distribution of %s changes with %s", vn$x, vn$y),
+                                     "true proportions in each category are not equal")
+
+                    HypOut <- c(sprintf("Chi-square test for equal %s",
+                                        ifelse(twoway, "distributions", "proportions")), "",
+                                paste0("   X^2 = ", format(signif(chi2$statistic, 5)), ", ",
+                                       "df = ", format(signif(chi2$parameter, 5)), ", ",
+                                       "p-value ", ifelse(chi2$p.value < 2.2e-16, "", "= "), format.pval(chi2$p.value, digits = 5)), "",
+                                sprintf("          Null Hypothesis: %s", piece1),
+                                sprintf("   Alternative Hypothesis: %s", piece2), "")
+                }
+                HypOut
+            }
+        )
     } else {
         HypOut <- NULL
     }
@@ -537,8 +605,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
         ## Text formatting to return a character vector - each row of matrix
         mat <- rbind(c("Lower", "Estimate", "Upper"), mat)
         colnames(mat) <- NULL
-
-        LEVELS <- names(object$tab)
+        LEVELS <- colnames(object$tab)
         mat <- cbind(c("", LEVELS), mat)
         rownames(mat) <- NULL
 
@@ -616,7 +683,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
 
 freq1way.edited <- function(tbl, inf.type = "estimates", conf.level = 0.95) {
     ## Before freq1way is called should output the variable name in the table
-    level.names <- names(tbl)
+    level.names <- colnames(tbl)
     n <- sum(tbl)
     ncats <- length(tbl)
     ncatsC2 <- choose(ncats, 2)
