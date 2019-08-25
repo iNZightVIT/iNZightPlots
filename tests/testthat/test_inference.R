@@ -44,3 +44,8 @@ test_that("Two-sample tests use appropriate CI", {
         )
     )
 })
+
+d <- data.frame(x = sample(c("A", "B"), 100, replace = TRUE, c(0.3, 0.8)))
+test_that("One sample proportions", {
+    
+})
