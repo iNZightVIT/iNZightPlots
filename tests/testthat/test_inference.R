@@ -51,25 +51,22 @@ btest <- binom.test(table(d$x), p = 0.4, alternative = "less")
 ctest <- chisq.test(table(d$x))
 s1 <- getPlotSummary(x, data = d, summary.type = "inference",
     inference.type = "conf",
-    hypothesis = list(
-        test = "proportion",
-        use.exact = FALSE,
-        value = 0.5,
-        alternative = "two.sided"
-    ))
+    hypothesis.test = "proportion",
+    hypothesis.use.exact = FALSE,
+    hypothesis.value = 0.5,
+    hypothesis.alt = "two.sided"
+)
 s2 <- getPlotSummary(x, data = d, summary.type = "inference",
     inference.type = "conf",
-    hypothesis = list(
-        test = "proportion",
-        use.exact = TRUE,
-        value = 0.4,
-        alternative = "less"
-    ))
+    hypothesis.test = "proportion",
+    hypothesis.use.exact = TRUE,
+    hypothesis.value = 0.4,
+    hypothesis.alt = "less"
+)
 s3 <- getPlotSummary(x, data = d, summary.type = "inference",
     inference.type = "conf",
-    hypothesis = list(
-        test = "chi2"
-    ))
+    hypothesis.test = "chi2"
+)
 
 test_that("One-sample tests give correct p-value", {
     expect_match(
@@ -126,10 +123,25 @@ rownames(d) <- NULL
 ctest <- chisq.test(table(d$Course, d$Machine), simulate = TRUE)
 s1 <- getPlotSummary(Machine, Course, data = d, summary.type = "inference",
     inference.type = "conf",
-    hypothesis = list(
-        test = "chi2"
-    )
+    hypothesis.test = "chi2"
 )
 test_that("Simulated p-value is included when small expected values", {
     expect_match(paste(s1, collapse = "\n"), "simulated p-value = ")
 })
+
+test_that("Simulated p-value is included when requested", {
+    cas <- read.csv("cas.csv")
+    s <- getPlotSummary(travel, getlunch, data = cas, 
+        summary.type = "inference",
+        inference.type = "conf",
+        hypothesis.test = "chi2", hypothesis.simulate.p.value = TRUE
+    )
+    expect_match(paste(s, collapse = "\n"), "simulated p-value")
+})
+
+
+# a giant table
+
+# 2000?
+# tab <- matrix(sample(2000, replace = TRUE), ncol = 50)
+# system.time(chisq.test(tab, simulate = TRUE))[3]

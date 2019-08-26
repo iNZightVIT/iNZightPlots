@@ -458,6 +458,11 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
                     }
                 }
 
+                # from experimenting, tables bigger than this 
+                # start taking too long to simulate the p-value
+                if (prod(dim(object$tab)) > 2000) 
+                    hypothesis$simulate.p.value <- FALSE
+
                 if (inherits(chi2, "try-error")) {
                     HypOut <- NULL
                 } else {
@@ -474,6 +479,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
                         chi2out <- c("",
                             "Note: some expected counts are less than 5"
                         )
+                    }
+                    if (!is.null(chi2sim) || hypothesis$simulated.p.value) {
                         simpval <- sprintf(", simulated p-value %s%s",
                             ifelse(chi2sim$p.value < 2.2e-16, "", "= "),
                             format.pval(chi2sim$p.value, digits = 5)
