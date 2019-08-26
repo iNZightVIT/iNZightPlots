@@ -443,11 +443,25 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
                 HypOut
             },
             "chi2" = {
+                chi2sim <- NULL
                 if (is.survey) {
                     chi2 <- try(svychisq(~y+x, des), TRUE)
                 } else {
                     chi2 <- suppressWarnings(chisq.test(object$tab))
+                    if (any(chi2$expected < 5)) {
+                        chi2 <- suppressWarnings(
+                            chisq.test(object$tab, correct = FALSE)
+                        )
+                        chi2sim <- suppressWarnings(
+                            chisq.test(object$tab, simulate.p.value = TRUE)
+                        )
+                    }
                 }
+
+                # from experimenting, tables bigger than this 
+                # start taking too long to simulate the p-value
+                if (prod(dim(object$tab)) > 2000) 
+                    hypothesis$simulate.p.value <- FALSE
 
                 if (inherits(chi2, "try-error")) {
                     HypOut <- NULL
@@ -459,13 +473,38 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
                                      sprintf("distribution of %s changes with %s", vn$x, vn$y),
                                      "true proportions in each category are not equal")
 
-                    HypOut <- c(sprintf("Chi-square test for equal %s",
-                                        ifelse(twoway, "distributions", "proportions")), "",
-                                paste0("   X^2 = ", format(signif(chi2$statistic, 5)), ", ",
-                                       "df = ", format(signif(chi2$parameter, 5)), ", ",
-                                       "p-value ", ifelse(chi2$p.value < 2.2e-16, "", "= "), format.pval(chi2$p.value, digits = 5)), "",
-                                sprintf("          Null Hypothesis: %s", piece1),
-                                sprintf("   Alternative Hypothesis: %s", piece2), "")
+                    chi2out <- NULL
+                    simpval <- ""
+                    if (!is.null(chi2sim)) {
+                        chi2out <- c("",
+                            "Note: some expected counts are less than 5"
+                        )
+                    }
+                    if (!is.null(chi2sim) || hypothesis$simulated.p.value) {
+                        simpval <- sprintf(", simulated p-value %s%s",
+                            ifelse(chi2sim$p.value < 2.2e-16, "", "= "),
+                            format.pval(chi2sim$p.value, digits = 5)
+                        )
+                    }
+
+                    HypOut <- c(
+                        sprintf("Chi-square test for equal %s",
+                            ifelse(twoway, "distributions", "proportions")
+                        ),
+                        "",
+                        paste0("   X^2 = ", format(signif(chi2$statistic, 5)), ", ",
+                            "df = ", format(signif(chi2$parameter, 5)), ", ",
+                            "p-value ", ifelse(chi2$p.value < 2.2e-16, "", "= "), 
+                                format.pval(chi2$p.value, digits = 5),
+                            simpval
+                        ), 
+                        chi2out,
+                        "",
+                        sprintf("          Null Hypothesis: %s", piece1),
+                        sprintf("   Alternative Hypothesis: %s", piece2), 
+                        ""
+                    )
+
                 }
                 HypOut
             }
