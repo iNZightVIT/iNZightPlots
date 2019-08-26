@@ -44,3 +44,74 @@ test_that("Two-sample tests use appropriate CI", {
         )
     )
 })
+
+d <- data.frame(x = sample(c("A", "B"), 100, replace = TRUE, c(0.3, 0.8)))
+ptest <- prop.test(table(d$x), )
+btest <- binom.test(table(d$x), p = 0.4, alternative = "less")
+ctest <- chisq.test(table(d$x))
+s1 <- getPlotSummary(x, data = d, summary.type = "inference",
+    inference.type = "conf",
+    hypothesis = list(
+        test = "proportion",
+        use.exact = FALSE,
+        value = 0.5,
+        alternative = "two.sided"
+    ))
+s2 <- getPlotSummary(x, data = d, summary.type = "inference",
+    inference.type = "conf",
+    hypothesis = list(
+        test = "proportion",
+        use.exact = TRUE,
+        value = 0.4,
+        alternative = "less"
+    ))
+s3 <- getPlotSummary(x, data = d, summary.type = "inference",
+    inference.type = "conf",
+    hypothesis = list(
+        test = "chi2"
+    ))
+
+test_that("One-sample tests give correct p-value", {
+    expect_match(
+        paste(s1, collapse = "\n"),
+        sprintf("p-value = %s", format.pval(ptest$p.value, digits = 5))
+    )
+    expect_match(
+        paste(s2, collapse = "\n"),
+        sprintf("p-value = %s", format.pval(btest$p.value, digits = 5))
+    )
+    expect_match(
+        paste(s3, collapse = "\n"),
+        sprintf("p-value = %s", format.pval(ctest$p.value, digits = 5))
+    )
+})
+
+test_that("One-sample tests display correct hypotheses", {
+    expect_match(
+        paste(s1, collapse = "\n"),
+        "Null Hypothesis: true proportion of x = A is 0.5"
+    )
+    expect_match(
+        paste(s1, collapse = "\n"),
+        "Alternative Hypothesis: true proportion of x = A is not equal to 0.5"
+    )
+
+    expect_match(
+        paste(s2, collapse = "\n"),
+        "Null Hypothesis: true proportion of x = A is 0.4"
+    )
+    expect_match(
+        paste(s2, collapse = "\n"),
+        "Alternative Hypothesis: true proportion of x = A is less than 0.4"
+    )
+
+    expect_match(
+        paste(s3, collapse = "\n"),
+        "Null Hypothesis: true proportions in each category are equal"
+    )
+    expect_match(
+        paste(s3, collapse = "\n"),
+        "Alternative Hypothesis: true proportions in each category are not equal"
+    )  
+})
+
