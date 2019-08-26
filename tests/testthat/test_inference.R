@@ -115,3 +115,21 @@ test_that("One-sample tests display correct hypotheses", {
     )  
 })
 
+
+# small counts
+d <- expand.grid(
+    Machine = c("Desktop of tablet", "Mobile"),
+    Course = c("STATS101/G", "STATS108")
+)
+d <- d[rep(1:4, c(4, 3, 1, 2)),]
+rownames(d) <- NULL
+ctest <- chisq.test(table(d$Course, d$Machine), simulate = TRUE)
+s1 <- getPlotSummary(Machine, Course, data = d, summary.type = "inference",
+    inference.type = "conf",
+    hypothesis = list(
+        test = "chi2"
+    )
+)
+test_that("Simulated p-value is included when small expected values", {
+    expect_match(paste(s1, collapse = "\n"), "simulated p-value = ")
+})
