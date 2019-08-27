@@ -346,7 +346,7 @@ iNZightPlotGG <- function(
     if (type == "gg_gridplot" && isTRUE(rotate)) {
       plot_exprs$plot <- rotate_gridplot(plot_exprs$plot)
     } else {
-      default_rotated <- c("gg_boxplot", "gg_violin", "gg_beeswarm", "gg_quasirandom")
+      default_rotated <- c("gg_boxplot", "gg_violin", "gg_beeswarm", "gg_quasirandom", "gg_lollipop", "gg_column2")
       
       if (type %in% default_rotated) {
         rotate <- if (!is.null(rotate)) !rotate else TRUE
