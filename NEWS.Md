@@ -5,6 +5,8 @@ __Release date__:
 - add hypothesis test for proportions (normal and exact) 
 - show simulated p-value for Chi-square test when expected counts < 5 or requested by user
 - add ability to change the number of observations each square represents for gridplots
+- rotate some numeric plots to have variable of interest on x-axis, e.g. violins (#106, daniel-barnett)
+- add new `quasirandom` plot instead of `beeswarm` to enable control of swarm width/method 
 
 
 # iNZightPlots 2.10.1
