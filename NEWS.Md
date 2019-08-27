@@ -4,6 +4,7 @@ __Release date__:
 - fix a bug where level labels weren't shown in one-way table inference
 - add hypothesis test for proportions (normal and exact) 
 - show simulated p-value for Chi-square test when expected counts < 5 or requested by user
+- add ability to rotate x-axis label text
 
 
 # iNZightPlots 2.10.1
