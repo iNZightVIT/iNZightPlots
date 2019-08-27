@@ -14,10 +14,10 @@ test_that("Datetimes plot OK", {
     expect_is(iNZightPlot(magnitude, g1 = origintime, data = quakes),
         "inzplotoutput")
     expect_is(
-        iNZightPlot(magnitude, 
+        iNZightPlot(magnitude,
             g1 = felt,
-            g2 = origintime, 
-            g2.level = "_MULTI", 
+            g2 = origintime,
+            g2.level = "_MULTI",
             data = quakes
         ),
         "inzplotoutput"
@@ -35,10 +35,10 @@ test_that("Dates plot OK", {
     expect_is(iNZightPlot(magnitude, g1 = date, data = quakes),
         "inzplotoutput")
     expect_is(
-        iNZightPlot(magnitude, 
+        iNZightPlot(magnitude,
             g1 = felt,
-            g2 = date, 
-            g2.level = "_MULTI", 
+            g2 = date,
+            g2.level = "_MULTI",
             data = quakes
         ),
         "inzplotoutput"
@@ -56,18 +56,76 @@ test_that("Times plot OK", {
     expect_is(iNZightPlot(magnitude, g1 = time, data = quakes),
         "inzplotoutput")
     expect_is(
-        iNZightPlot(magnitude, 
+        iNZightPlot(magnitude,
             g1 = felt,
-            g2 = time, 
-            g2.level = "_MULTI", 
+            g2 = time,
+            g2.level = "_MULTI",
             data = quakes
         ),
         "inzplotoutput"
     )
 })
 
-test_that("Summaries work", {
-    expect_is(getPlotSummary(origintime, data = quakes), "inzight.plotsummary")
-    expect_is(getPlotSummary(date, data = quakes), "inzight.plotsummary")
-    expect_is(getPlotSummary(time, data = quakes), "inzight.plotsummary")
+test_that("Summaries provide a reasonable summary", {
+    dt.smry <- getPlotSummary(origintime, data = quakes)
+    date.smry <- getPlotSummary(date, data = quakes)
+    time.smry <- getPlotSummary(time, data = quakes)
+
+    expect_is(dt.smry, "inzight.plotsummary")
+    expect_is(date.smry, "inzight.plotsummary")
+    expect_is(time.smry, "inzight.plotsummary")
+
+    dti <- grep("Sample Size", dt.smry)
+
+    dx <- strsplit(gsub("  +", "|", dt.smry[dti + 1]), "\\|")[[1]][-1]
+    names(dx) <- strsplit(gsub("  +", "|", dt.smry[dti]), "\\|")[[1]][-1]
+    expect_equal(
+        names(dx),
+        c("Start Time", "End Time", "Time Range", "Sample Size")
+    )
+    expect_equal(
+        as.character(dx),
+        c(
+            as.character(range(quakes$origintime)),
+            as.character(
+                lubridate::seconds_to_period(
+                    diff(as.integer(range(quakes$origintime)))
+                )
+            ),
+            nrow(quakes)
+        )
+    )
+
+    dti <- grep("Sample Size", date.smry)
+    dx <- strsplit(gsub("  +", "|", date.smry[dti + 1]), "\\|")[[1]][-1]
+    names(dx) <- strsplit(gsub("  +", "|", date.smry[dti]), "\\|")[[1]][-1]
+    expect_equal(
+        names(dx),
+        c("Start Date", "End Date", "Date Range", "Sample Size")
+    )
+    expect_equal(
+        as.character(dx),
+        c(
+            as.character(range(quakes$date)),
+            sprintf("%i days", as.integer(diff(range(quakes$date)))),
+            nrow(quakes)
+        )
+    )
+
+    dti <- grep("Sample Size", time.smry)
+    dx <- strsplit(gsub("  +", "|", time.smry[dti + 1]), "\\|")[[1]][-1]
+    names(dx) <- strsplit(gsub("  +", "|", time.smry[dti]), "\\|")[[1]][-1]
+    expect_equal(
+        names(dx),
+        c("Earliest Time", "Latest Time", "Sample Size")
+    )
+    expect_equal(
+        as.character(dx),
+        c(
+            as.character(range(quakes$time)),
+            nrow(quakes)
+        )
+    )
+
+
 })
