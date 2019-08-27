@@ -119,6 +119,7 @@ inzDataframe <- function(m, data = NULL, names = list(),
     }
     makeF <- sapply(df$data, needs_transform)
     trans <- list()
+    trans.extra <- list()
     if (any(makeF))
         for (i in colnames(df$data)[makeF]) {
             if (inherits(df$data[[i]], "Date")) {
@@ -147,6 +148,7 @@ inzDataframe <- function(m, data = NULL, names = list(),
                         inherits(df$data[[i]], "POSIXct"),
                         "datetime", "time"
                     )
+                trans.extra[[i]]$tz <- attr(df$data[[i]], "tzone")
                 if (i %in% c("g1", "g2")) {
                     ## convert datetime to factor ...
                     lvls <- scales::pretty_breaks(4)(df$data[[i]])
@@ -160,6 +162,7 @@ inzDataframe <- function(m, data = NULL, names = list(),
                 df$data[[i]] <- as.factor(df$data[[i]])
             }
         }
+    if (length(trans.extra)) trans$extra <- trans.extra
     if (length(trans)) df$transformations <- trans
 
     # convert any -Inf/Inf values to NA's

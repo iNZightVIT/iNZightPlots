@@ -31,7 +31,9 @@
 #' @param hypothesis.value H0 value for hypothesis test
 #' @param hypothesis.alt alternative hypothesis (!=, <, >)
 #' @param hypothesis.var.equal use equal variance assumption for t-test?
+#' @param hypothesis.use.exact logical, if \code{TRUE} the exact p-value will be calcualted (if applicable)
 #' @param hypothesis.test in some cases (currently just two-samples) can perform multiple tests (t-test or ANOVA)
+#' @param hypothesis.simulated.p.value also calculate (where available) the simulated p-value
 #' @param hypothesis either NULL for no test, or missing (in which case above arguments are used)
 #' @param ... additional arguments, see \code{inzpar}
 #' @return an \code{inzight.plotsummary} object with a print method
@@ -46,11 +48,16 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            hypothesis.value = 0,
                            hypothesis.alt = c("two.sided", "less", "greater"),
                            hypothesis.var.equal = FALSE,
-                           hypothesis.test = c("default", "t.test", "anova"),
+                           hypothesis.use.exact = FALSE,
+                           hypothesis.test = c("default", "t.test", "anova", "chi2", "proportion"),
+                           hypothesis.simulated.p.value = FALSE,
                            hypothesis = list(value = hypothesis.value,
                                              alternative = match.arg(hypothesis.alt),
                                              var.equal = hypothesis.var.equal,
-                                             test = match.arg(hypothesis.test)),
+                                             use.exact = hypothesis.use.exact,
+                                             test = match.arg(hypothesis.test),
+                                             simulated.p.value = hypothesis.simulated.p.value
+                           ),
                            ...) {
 
     # if (inherits(x, "data.frame")) {

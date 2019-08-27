@@ -174,7 +174,10 @@ transform_axes <- function(x, which, opts, label) {
             opts$transform[[which]],
             "datetime" = {
                 ## format labels for datetime
-                xt <- as.POSIXct(x, origin = "1970-01-01")
+                xt <- as.POSIXct(x,
+                    origin = "1970-01-01",
+                    tz = opts$transform$extra[[which]]$tz
+                )
             },
             "date" = {
                 xt <- as.Date(x, origin = "1970-01-01")
