@@ -37,7 +37,6 @@ Imports:
     ggbeeswarm,
     lubridate,
     ggridges
-    lubridate
 Suggests:
     viridis,
     RColorBrewer,
