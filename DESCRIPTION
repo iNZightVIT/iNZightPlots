@@ -35,7 +35,8 @@ Imports:
     tidyr,
     plotly,
     ggbeeswarm,
-    lubridate
+    lubridate,
+    ggridges
 Suggests:
     viridis,
     RColorBrewer,

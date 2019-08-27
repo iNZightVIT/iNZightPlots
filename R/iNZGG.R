@@ -21,6 +21,7 @@ optional_args <- list(
   gg_freqpolygon = c("gg_lwd", "gg_size"),
   gg_barcode2 = c("gg_height", "gg_width", "alpha"),
   gg_beeswarm = c("gg_size"),
+  gg_ridgeline = c("alpha"),
   gg_gridplot = c("gg_perN"),
   gg_quasirandom = c("gg_size", "gg_swarmwidth", "gg_method")
 )
@@ -189,7 +190,7 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
   
   if (type %in% c("gg_pie", "gg_donut")) {
     names(varnames) <- replace(names(varnames), names(varnames) == "x", "fill")
-  } else if (type %in% c("gg_violin", "gg_barcode", "gg_boxplot", "gg_cumcurve", "gg_column2", "gg_lollipop", "gg_dotstrip", "gg_density", "gg_barcode2", "gg_beeswarm", "gg_quasirandom")) {
+  } else if (type %in% c("gg_violin", "gg_barcode", "gg_boxplot", "gg_cumcurve", "gg_column2", "gg_lollipop", "gg_dotstrip", "gg_density", "gg_barcode2", "gg_beeswarm", "gg_ridgeline", "gg_quasirandom")) {
     if (!("y" %in% names(varnames))) {
       names(varnames) <- replace(names(varnames), names(varnames) == "x", "y")
       if (isTRUE(!is.null(extra_vars$fill_colour) && extra_vars$fill_colour != "")) {
@@ -1252,11 +1253,27 @@ iNZightPlotGG_beeswarm <- function(data, x, y, main = sprintf("Distribution of %
   )
 }
 
+iNZightPlotGG_ridgeline <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(y), ylab = as.character(x), ...) {
+  x <- rlang::sym(x)
+  
+  plot_expr <- rlang::expr(
+    ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x, fill = !!x)) +
+      ggridges::geom_density_ridges(!!!dots) + 
+      ggplot2::ggtitle(!!main) + 
+      ggplot2::xlab(!!xlab) + 
+      ggplot2::ylab(!!ylab)
+  )
+  
+  list(
+    plot = plot_expr
+  )
+}
+
 iNZightPlotGG_quasirandom <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
   y <- rlang::sym(y)
   
   dots <- list(...)
-  
+
   if (missing(x)) {
     x <- rlang::expr(factor(1))
     
