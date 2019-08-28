@@ -440,12 +440,16 @@ getInfo.inzhist <- function(plot, x) {
   tab <- as.data.frame(cbind(lower, upper, counts, pct))
 
   # To obtain box whisker plot information:
-  boxInfo <- plot$boxinfo$all
-  quantiles <- boxInfo$quantiles
-  min <- boxInfo$min
-  max <- boxInfo$max
-  boxTable <- rbind(as.data.frame(quantiles), min, max)
-  rownames(boxTable)[4:5] <- c("min", "max")
+  if (!is.null(plot$boxinfo)) {
+    boxInfo <- plot$boxinfo$all
+    quantiles <- boxInfo$quantiles
+    min <- boxInfo$min
+    max <- boxInfo$max
+    boxTable <- rbind(as.data.frame(quantiles), min, max)
+    rownames(boxTable)[4:5] <- c("min", "max")
+  } else {
+    boxTable <- list()
+  }
   # Output as a list:
   chart <- list(type = "hist", data = tab, boxData = boxTable, n = n, inf = NULL)
   histJS <- paste(readLines(system.file("histogram.js", package = "iNZightPlots")), collapse = "\n")
