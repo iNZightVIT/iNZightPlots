@@ -20,7 +20,10 @@ optional_args <- list(
   gg_poppyramid = c("gg_bins"),
   gg_freqpolygon = c("gg_lwd", "gg_size"),
   gg_barcode2 = c("gg_height", "gg_width", "alpha"),
-  gg_beeswarm = c("gg_size")
+  gg_beeswarm = c("gg_size"),
+  gg_ridgeline = c("alpha"),
+  gg_gridplot = c("gg_perN"),
+  gg_quasirandom = c("gg_size", "gg_swarmwidth", "gg_method")
 )
 
 replace_data_name <- function(expr, new_name) {
@@ -68,7 +71,7 @@ rotate_gridplot <- function(expr) {
 
 apply_palette <- function(expr, palette, type) {
   viridis_names <- unname(unlist(viridis_palette_names()))
-  colour_plots <- c("gg_cumcurve", "gg_lollipop", "gg_freqpolygon", "gg_barcode", "gg_dotstrip")
+  colour_plots <- c("gg_cumcurve", "gg_lollipop", "gg_freqpolygon", "gg_barcode", "gg_dotstrip", "gg_quasirandom")
   
   if (palette %in% viridis_names) {
     if (type %in% colour_plots) {
@@ -187,11 +190,11 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
   
   if (type %in% c("gg_pie", "gg_donut")) {
     names(varnames) <- replace(names(varnames), names(varnames) == "x", "fill")
-  } else if (type %in% c("gg_violin", "gg_barcode", "gg_boxplot", "gg_cumcurve", "gg_column2", "gg_lollipop", "gg_dotstrip", "gg_density", "gg_barcode2", "gg_beeswarm")) {
+  } else if (type %in% c("gg_violin", "gg_barcode", "gg_boxplot", "gg_cumcurve", "gg_column2", "gg_lollipop", "gg_dotstrip", "gg_density", "gg_barcode2", "gg_beeswarm", "gg_ridgeline", "gg_quasirandom")) {
     if (!("y" %in% names(varnames))) {
       names(varnames) <- replace(names(varnames), names(varnames) == "x", "y")
       if (isTRUE(!is.null(extra_vars$fill_colour) && extra_vars$fill_colour != "")) {
-        if (type %in% c("gg_lollipop", "gg_cumcurve", "gg_barcode", "gg_dotstrip")) {
+        if (type %in% c("gg_lollipop", "gg_cumcurve", "gg_barcode", "gg_dotstrip", "gg_quasirandom")) {
           varnames["colour"] <- extra_vars$fill_colour
         } else {
           varnames["fill"] <- extra_vars$fill_colour
@@ -278,9 +281,13 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
         varnames[["alpha"]] <- as.numeric(varnames[["alpha"]])
       }
     }
+    
+    if (type %in% c("gg_quasirandom")) {
+      names(varnames) <- replace(names(varnames), names(varnames) == "swarmwidth", "width")
+    }
   }
   
-  if (type %in% c("gg_lollipop", "gg_lollipop2", "gg_freqpolygon", "gg_dotstrip", "gg_beeswarm")) {
+  if (type %in% c("gg_lollipop", "gg_lollipop2", "gg_freqpolygon", "gg_dotstrip", "gg_beeswarm", "gg_quasirandom")) {
     if (!("size" %in% names(varnames))) {
       varnames[['size']] <- 6
     }
@@ -331,6 +338,7 @@ iNZightPlotGG <- function(
     rotate <- extra_args$rotation
     desc <- extra_args$desc
     overall_size <- extra_args$cex
+    rotate_labels <- extra_args$rotate_labels
     
     extra_args$desc <- desc
   }
@@ -342,11 +350,19 @@ iNZightPlotGG <- function(
     c(rlang::sym(data_name), main = main, xlab = xlab, ylab = ylab, plot_args)
   )
   
-  if (isTRUE(rotate) && !(type %in% c("gg_pie", "gg_donut"))) {
-    if (type != "gg_gridplot") {
-      plot_exprs$plot <- rotate(plot_exprs$plot)
-    } else {
+  if (!(type %in% c("gg_pie", "gg_donut"))) {
+    if (type == "gg_gridplot" && isTRUE(rotate)) {
       plot_exprs$plot <- rotate_gridplot(plot_exprs$plot)
+    } else {
+      default_rotated <- c("gg_boxplot", "gg_violin", "gg_beeswarm", "gg_quasirandom", "gg_lollipop", "gg_column2")
+      
+      if (type %in% default_rotated) {
+        rotate <- if (!is.null(rotate)) !rotate else TRUE
+      }
+      
+      if (isTRUE(rotate)) {
+        plot_exprs$plot <- rotate(plot_exprs$plot)
+      }
     }
   }
   
@@ -370,6 +386,10 @@ iNZightPlotGG <- function(
     plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + !!theme_fun)
   }
   
+  if (exists("rotate_labels") && isTRUE(rotate_labels)) {
+    plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1)))
+  }
+  
   if (exists("overall_size") && !is.null(overall_size) && isTRUE(overall_size != 1)) {
     plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::theme(text = ggplot2::element_text(size = !!(as.numeric(overall_size) * 11))))
   }
@@ -381,8 +401,6 @@ iNZightPlotGG <- function(
   if (isTRUE(!is.null(dots$g1))) {
     plot_exprs <- iNZightPlotGG_facet(data, data_name, plot_exprs, dots$g1, dots$g2, dots$g1.level, dots$g2.level)
   }
-  
-
   
   if (isTRUE(!missing(palette) && !is.null(palette) && palette != "default")) {
     plot_exprs$plot <- apply_palette(plot_exprs$plot, palette, type)
@@ -933,7 +951,6 @@ iNZightPlotGG_poppyramid <- function(data, x, fill, main = sprintf("Count of %s 
     ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, fill = !!fill)) + 
       ggplot2::geom_histogram(data = subset(!!rlang::enexpr(data), !!fill == levels(!!fill)[1]), !!!dots) + 
       ggplot2::geom_histogram(data = subset(!!rlang::enexpr(data), !!fill == levels(!!fill)[2]), ggplot2::aes(y = stat(count * -1)), !!!dots) + 
-      ggplot2::coord_flip() + 
       ggplot2::labs(title = !!main) + 
       ggplot2::xlab(!!xlab) + 
       ggplot2::ylab(!!ylab) + 
@@ -1153,13 +1170,14 @@ iNZightPlotGG_lollipop2 <- function(data, x, y, main = sprintf("Count of %s", as
   )
 }
 
-iNZightPlotGG_gridplot <- function(data, x, main = sprintf("Gridplot of %s", as.character(x)), xlab = "1 observation/square", ...) {
+iNZightPlotGG_gridplot <- function(data, x, main = sprintf("Gridplot of %s", as.character(x)), xlab = sprintf("%s observation/square", perN), perN = 1, ...) {
   x <- rlang::sym(x)
   
   data_expr <- rlang::expr(
     plot_data <- !!rlang::enexpr(data) %>% 
       dplyr::select(!!x) %>% 
-      table()
+      table() %>% 
+      magrittr::divide_by_int(!!as.integer(perN))
   )
   
   plot_expr <- rlang::expr(
@@ -1224,6 +1242,54 @@ iNZightPlotGG_beeswarm <- function(data, x, y, main = sprintf("Distribution of %
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, colour = !!x)) +
         ggbeeswarm::geom_beeswarm(!!!dots) + 
+        ggplot2::ggtitle(!!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
+    )
+  }
+  
+  list(
+    plot = plot_expr
+  )
+}
+
+iNZightPlotGG_ridgeline <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(y), ylab = as.character(x), ...) {
+  x <- rlang::sym(x)
+  
+  plot_expr <- rlang::expr(
+    ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x, fill = !!x)) +
+      ggridges::geom_density_ridges(!!!dots) + 
+      ggplot2::ggtitle(!!main) + 
+      ggplot2::xlab(!!xlab) + 
+      ggplot2::ylab(!!ylab)
+  )
+  
+  list(
+    plot = plot_expr
+  )
+}
+
+iNZightPlotGG_quasirandom <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
+  y <- rlang::sym(y)
+  
+  dots <- list(...)
+
+  if (missing(x)) {
+    x <- rlang::expr(factor(1))
+    
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y)) +
+        ggbeeswarm::geom_quasirandom(!!!dots) + 
+        ggplot2::ggtitle(!!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
+    )
+  } else {
+    x <- rlang::sym(x)
+    
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, colour = !!x)) +
+        ggbeeswarm::geom_quasirandom(!!!dots) + 
         ggplot2::ggtitle(!!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
