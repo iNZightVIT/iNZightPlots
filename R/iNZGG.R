@@ -1255,6 +1255,7 @@ iNZightPlotGG_beeswarm <- function(data, x, y, main = sprintf("Distribution of %
 
 iNZightPlotGG_ridgeline <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(y), ylab = as.character(x), ...) {
   x <- rlang::sym(x)
+  y <- rlang::sym(y)
   
   dots <- list(...)
   
