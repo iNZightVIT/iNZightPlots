@@ -386,11 +386,25 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
                     HypOut <- NULL
                 } else {
                     if (ncol(object$tab) == 2) {
-                        pfun <- if (hypothesis$use.exact) binom.test else prop.test
-                        prtest <- pfun(object$tab,
-                            p = hypothesis$value, 
-                            alternative = hypothesis$alternative
-                        )
+                        if (hypothesis$use.exact) {
+                            prtest <- binom.test(object$tab,
+                                p = hypothesis$value,
+                                alternative = hypothesis$alternative
+                            )
+                        } else {
+                            n <- sum(object$tab)
+                            phat <- object$tab[1] / n
+                            p <- hypothesis$value
+                            Z <- (phat - p) / sqrt(p * (1 - p) / n)
+                            prtest <- list(
+                                statistic = Z,
+                                p.value = switch(hypothesis$alternative,
+                                    "two.sided" = pnorm(abs(Z), lower.tail = FALSE),
+                                    "less" = pnorm(Z, lower.tail = TRUE),
+                                    "greater" = pnorm(Z, lower.tail = FALSE)
+                                )
+                            )
+                        }
 
                         HypOut <- c(
                             sprintf("%s",
@@ -398,8 +412,6 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
                                     "Exact binomial test",
                                     "One-sample test of a proportion"
                                 )
-                                # vn$x,
-                                # colnames(object$tab)[1]
                             ),
                             "",
                             sprintf("   %s, p-value %s%s",
@@ -408,9 +420,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
                                         "Number of successes = %s, number of trials = %s",
                                         prtest$statistic, prtest$parameter
                                     ),
-                                    sprintf("X-squared = %s, df = %s",
-                                        format(signif(prtest$statistic, 5)),
-                                        format(signif(prtest$parameter, 2))
+                                    sprintf("Z-score = %s",
+                                        format(signif(prtest$statistic, 5))
                                     )
                                 ),
                                 ifelse(prtest$p.value < 2.2e-16, "", "= "), 
@@ -473,15 +484,14 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
                                      sprintf("distribution of %s changes with %s", vn$x, vn$y),
                                      "true proportions in each category are not equal")
 
-                    chi2out <- NULL
+                    chi2out <- ""
                     simpval <- ""
-                    if (!is.null(chi2sim)) {
-                        chi2out <- c("",
-                            "Note: some expected counts are less than 5"
-                        )
+                    if (!is.null(chi2sim) && any(chi2$expected < 5)) {
+                        chi2out <- " (since some expected counts < 5)"
                     }
                     if (!is.null(chi2sim)) {
-                        simpval <- sprintf(", simulated p-value %s%s",
+                        simpval <- sprintf("\n   Simulated p-value%s %s%s",
+                            chi2out,
                             ifelse(chi2sim$p.value < 2.2e-16, "", "= "),
                             format.pval(chi2sim$p.value, digits = 5)
                         )
@@ -498,7 +508,6 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
                                 format.pval(chi2$p.value, digits = 5),
                             simpval
                         ), 
-                        chi2out,
                         "",
                         sprintf("          Null Hypothesis: %s", piece1),
                         sprintf("   Alternative Hypothesis: %s", piece2), 

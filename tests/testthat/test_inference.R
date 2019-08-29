@@ -45,8 +45,14 @@ test_that("Two-sample tests use appropriate CI", {
     )
 })
 
+set.seed(400)
 d <- data.frame(x = sample(c("A", "B"), 100, replace = TRUE, c(0.3, 0.8)))
-ptest <- prop.test(table(d$x), )
+ptest <- list(
+    p.value = pnorm(
+        abs((table(d$x)[[1]] / 100 - 0.5) / 0.05),
+        lower.tail = FALSE
+    )
+)
 btest <- binom.test(table(d$x), p = 0.4, alternative = "less")
 ctest <- chisq.test(table(d$x))
 s1 <- getPlotSummary(x, data = d, summary.type = "inference",
@@ -67,7 +73,6 @@ s3 <- getPlotSummary(x, data = d, summary.type = "inference",
     inference.type = "conf",
     hypothesis.test = "chi2"
 )
-
 test_that("One-sample tests give correct p-value", {
     expect_match(
         paste(s1, collapse = "\n"),
@@ -126,17 +131,22 @@ s1 <- getPlotSummary(Machine, Course, data = d, summary.type = "inference",
     hypothesis.test = "chi2"
 )
 test_that("Simulated p-value is included when small expected values", {
-    expect_match(paste(s1, collapse = "\n"), "simulated p-value = ")
+    expect_match(
+        paste(s1, collapse = "\n"), 
+        "Simulated p-value (since some expected counts < 5) =",
+        fixed = TRUE
+    )
 })
 
 test_that("Simulated p-value is included when requested", {
     cas <- read.csv("cas.csv")
-    s <- getPlotSummary(travel, getlunch, data = cas, 
+    s <- getPlotSummary(cellsource, gender, data = cas, 
         summary.type = "inference",
         inference.type = "conf",
-        hypothesis.test = "chi2", hypothesis.simulate.p.value = TRUE
+        hypothesis.test = "chi2", 
+        hypothesis.simulated.p.value = TRUE
     )
-    expect_match(paste(s, collapse = "\n"), "simulated p-value")
+    expect_match(paste(s, collapse = "\n"), "Simulated p-value =")
 })
 
 
