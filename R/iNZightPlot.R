@@ -148,6 +148,9 @@ iNZightPlot <-
     }
     
     if (isTRUE(grepl("^gg_", list(...)$plottype))) {
+      # Remove xlab and ylab from varnames list (for lite)
+      varnames <- varnames[!(names(varnames) %in% c("xlab", "ylab"))]
+      
       ret.plot <- do.call(
         iNZightPlotGG, 
         c(list(
