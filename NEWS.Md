@@ -1,5 +1,5 @@
-# iNZightPlots 2.10.1.9000
-__Release date__: 
+# iNZightPlots 2.10.2
+__Release date__: 2 September 2019
 
 - fix a bug where level labels weren't shown in one-way table inference
 - add hypothesis test for proportions (normal and exact) 
