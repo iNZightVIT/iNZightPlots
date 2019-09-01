@@ -1,3 +1,16 @@
+# iNZightPlots 2.10.2
+__Release date__: 2 September 2019
+
+- fix a bug where level labels weren't shown in one-way table inference
+- add hypothesis test for proportions (normal and exact) 
+- show simulated p-value for Chi-square test when expected counts < 5 or requested by user
+- fix bug in exported interactive plots when boxplots are disabled
+- add ability to rotate x-axis label text
+- add ability to change the number of observations each square represents for gridplots
+- rotate some numeric plots to have variable of interest on x-axis, e.g. violins (#106, daniel-barnett)
+- add new `quasirandom` plot instead of `beeswarm` to enable control of swarm width/method 
+
+
 # iNZightPlots 2.10.1
 __Release date__: 26 August 2019
 
