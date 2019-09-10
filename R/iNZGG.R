@@ -71,7 +71,7 @@ rotate_gridplot <- function(expr) {
 
 apply_palette <- function(expr, palette, type) {
   viridis_names <- unname(unlist(viridis_palette_names()))
-  colour_plots <- c("gg_cumcurve", "gg_lollipop", "gg_freqpolygon", "gg_barcode", "gg_dotstrip", "gg_quasirandom")
+  colour_plots <- c("gg_cumcurve", "gg_lollipop", "gg_freqpolygon", "gg_barcode", "gg_dotstrip", "gg_quasirandom", "gg_lollipop2")
   
   if (palette %in% viridis_names) {
     if (type %in% colour_plots) {
@@ -284,6 +284,14 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
     
     if (type %in% c("gg_quasirandom")) {
       names(varnames) <- replace(names(varnames), names(varnames) == "swarmwidth", "width")
+    }
+    
+    if (type %in% c("gg_lollipop2")) {
+      if (!("y" %in% names(varnames))) {
+        if (isTRUE(!is.null(extra_vars$fill_colour) && extra_vars$fill_colour != "")) {
+          varnames[["colour"]] <- extra_vars$fill_colour
+        }
+      }
     }
   }
   
