@@ -1394,6 +1394,8 @@ iNZightPlot <-
                                "native", valueOnly = TRUE), 5)
     }
 
+    attr(plot.list, "code") <- capture.output(m)
+
     class(plot.list) <- "inzplotoutput"
     return(invisible(plot.list))
 }
