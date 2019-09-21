@@ -13,8 +13,15 @@ test_that("Dot plot inference tests", {
             design = dclus1,
             summary.type = "inference",
             inference.type = "conf"
+            # hypothesis.value = 600
         )
     )
+    inz_inf <- 
+        eval(parse(text = 
+            gsub("p-", "p", 
+                sprintf("list(%s)", inz_test[grep("p-value = ", inz_test)])
+            )
+        ))
     est_tbl <- 
         read.table(
             textConnection(
@@ -22,6 +29,7 @@ test_that("Dot plot inference tests", {
             ),
             header = TRUE
         )
+
     expect_equal(
         est_tbl,
         data.frame(
@@ -30,4 +38,59 @@ test_that("Dot plot inference tests", {
             Upper = round(svy_ci[[2]], 1)
         )
     )
+    expect_equal(
+        inz_inf,
+        list(
+            t = as.numeric(format(svy_test$statistic[[1]], digits = 5)),
+            df = svy_test$parameter[[1]],
+            pvalue = as.numeric(format.pval(svy_test$p.value[[1]]))
+        )
+    )
+
+    ## test hypothesis vars are used
 })
+
+test_that("Two sample tests (dot plot by factor)", {
+    svy_mean <- svyby(~api00, ~awards, dclus1, svymean)
+    svy_ci <- confint(svy_mean)
+    svy_test <- svyttest(api00~awards, dclus1)
+
+    inz_test <- capture.output(
+        getPlotSummary(api00, awards,
+            design = dclus1,
+            summary.type = "inference",
+            inference.type = "conf"
+        )
+    )
+    inz_inf <- 
+        eval(parse(text = 
+            gsub("p-", "p", 
+                sprintf("list(%s)", inz_test[grep("p-value = ", inz_test)])
+            )
+        ))
+    est_tbl <- 
+        read.table(
+            textConnection(
+                inz_test[grep("Population Means with", inz_test) + c(2:4)]
+            ),
+            header = TRUE
+        )
+
+    expect_equal(
+        est_tbl,
+        data.frame(
+            Lower = round(svy_ci[,1], 1), 
+            Mean = round(svy_mean[,2], 1),
+            Upper = round(svy_ci[,2], 1)
+        )
+    )
+    expect_equal(
+        inz_inf,
+        list(
+            t = as.numeric(format(svy_test$statistic[[1]], digits = 5)),
+            df = svy_test$parameter[[1]],
+            pvalue = as.numeric(format.pval(svy_test$p.value[[1]]))
+        )
+    )
+})
+
