@@ -280,7 +280,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
         ## hypothesis testing - one sample
         if (is.survey) {
             des <- update(des, .h0 = x - hypothesis$value)
-            test.out <- svyttest(.h0 ~ 0, des)
+            test.out <- svyttest(.h0 ~ 1, des)
         } else {
             test.out <- t.test(toplot$all$x,
                                alternative = hypothesis$alternative,
