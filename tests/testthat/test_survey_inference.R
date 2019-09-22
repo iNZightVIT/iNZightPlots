@@ -141,3 +141,36 @@ test_that("ANOVA tests (dot plot by factor)", {
     )
 })
 
+test_that("Survey regression inference (Scatter plots)", {
+    svy_test <- svyglm(api00 ~ api99, dclus1)
+    svy_ci <- confint(svy_test)
+    svy_coef <- summary(svy_test)$coef
+
+    inz_test <- capture.output(
+        getPlotSummary(api99, api00,
+            design = dclus1,
+            summary.type = "inference",
+            inference.type = "conf",
+            trend = "linear"
+        )
+    )
+
+    est_tbl <- 
+        read.table(
+            textConnection(
+                inz_test[grep("Linear Trend Coefficients", inz_test) + c(2:4)]
+            ),
+            header = TRUE
+        )
+
+    svy_tbl <- 
+        data.frame(
+            Estimate = as.numeric(sprintf("%.5g", svy_coef[, 1])),
+            Lower = as.numeric(sprintf("%.5g", svy_ci[, 1])),
+            Upper = as.numeric(sprintf("%.5g", svy_ci[, 2])),
+            p.value = as.numeric(format.pval(svy_coef[, 4], digits = 2))
+        )
+    rownames(svy_tbl) <- c("Intercept", "api99")
+
+    expect_equal(est_tbl, svy_tbl)
+})
