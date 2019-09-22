@@ -241,3 +241,18 @@ test_that("Two way contingency tables (two-way bar plots)", {
         )
     )
 })
+
+
+
+
+# test_that("Subset inference", {
+#     inz_test <- capture.output(
+#         getPlotSummary(api00,
+#             design = dclus1,
+#             g1 = stype,
+#             summary.type = "inference",
+#             inference.type = "conf"
+#             # hypothesis.value = 600
+#         )
+#     )
+# })
