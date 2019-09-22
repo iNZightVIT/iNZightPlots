@@ -89,25 +89,15 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         if (!is.null(m$g2)) {
 
             mc <- match.call(expand.dots = TRUE)
+            mc$g1 <- NULL
+            mc$g1.level <- NULL
             names(mc) <- gsub("g2", "g1", names(mc))
 
             if (length(varnames) > 0) {
+                mc$varnames$g1 <- NULL
                 names(mc$varnames) <- gsub("g2", "g1", names(mc$varnames))
-                # varnames$g1 <- varnames$g2
-                # varnames$g2 <- NULL
             }
             return(eval(mc))
-            # return(mc)
-
-            # return(getPlotSummary(x = !!x, y = y, 
-            #     g1 = g2, g1.level = g2.level, 
-            #     g2 = NULL, g2.level = NULL,
-            #     varnames = varnames, colby = colby, sizeby = sizeby, 
-            #     data = data, design = design, freq = freq, 
-            #     missing.info = missing.info, inzpars = inzpars, env = env,
-            #     summary.type = summary.type, hypothesis = hypothesis, 
-            #     ...
-            # ))
         }
     }
 
