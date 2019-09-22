@@ -454,3 +454,73 @@ test_that("Subset twice inference - one sample t-test", {
     expect_equal(inz_ests, svy_ests)
 })
 
+
+
+test_that("Subset (only g2) inference - two sample t-test", {
+    svy_list <- lapply(levels(apiclus1$stype),
+        function(st) 
+            subset(dclus1, stype == st)
+    )
+    svy_means <- lapply(svy_list, 
+        function(d) 
+            svyby(~api00, ~awards, d, svymean)
+    )
+    # svy_cis <- lapply(svy_means, confint)
+    svy_tests <- lapply(svy_list, 
+        function(d) 
+            svyttest(api00~awards, d)
+    )
+
+    assign("dclus1", dclus1, envir = .GlobalEnv)
+    inz_test <- capture.output(
+        getPlotSummary(api00, awards,
+            design = dclus1,
+            g2 = stype, g2.level = "_MULTI",
+            summary.type = "inference",
+            inference.type = "conf"
+        )
+    )
+    rm(dclus1, envir = .GlobalEnv)
+
+    inz_tabs <- lapply(grep("Population Means", inz_test),
+        function(i) 
+            est_tbl <- 
+                read.table(
+                    textConnection(
+                        inz_test[i + 2:4]
+                    ),
+                    header = TRUE
+                )
+    )
+    svy_tabs <- lapply(svy_means,
+        function(svy_mean) {
+            svy_ci <- confint(svy_mean)
+            data.frame(
+                Lower = round(svy_ci[,1], 1), 
+                Mean = round(svy_mean[,2], 1),
+                Upper = round(svy_ci[,2], 1)
+            )
+        }
+    )
+    expect_equal(inz_tabs, svy_tabs)
+
+    inz_ests <- lapply(grep("p-value", inz_test),
+        function(i)
+            eval(parse(text = 
+                gsub("p-", "p", 
+                    sprintf("list(%s)", inz_test[i])
+                )
+            ))
+    )
+    svy_ests <- lapply(svy_tests, 
+        function(svy_test)
+            list(
+                t = as.numeric(format(svy_test$statistic[[1]], digits = 5)),
+                df = svy_test$parameter[[1]],
+                pvalue = as.numeric(format.pval(svy_test$p.value[[1]]))
+            )
+    )
+    expect_equal(inz_ests, svy_ests)
+})
+
+

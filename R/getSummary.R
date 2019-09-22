@@ -51,12 +51,13 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            hypothesis.use.exact = FALSE,
                            hypothesis.test = c("default", "t.test", "anova", "chi2", "proportion"),
                            hypothesis.simulated.p.value = FALSE,
-                           hypothesis = list(value = hypothesis.value,
-                                             alternative = match.arg(hypothesis.alt),
-                                             var.equal = hypothesis.var.equal,
-                                             use.exact = hypothesis.use.exact,
-                                             test = match.arg(hypothesis.test),
-                                             simulated.p.value = hypothesis.simulated.p.value
+                           hypothesis = list(
+                                value = hypothesis.value,
+                                alternative = match.arg(hypothesis.alt),
+                                var.equal = hypothesis.var.equal,
+                                use.exact = hypothesis.use.exact,
+                                test = match.arg(hypothesis.test),
+                                simulated.p.value = hypothesis.simulated.p.value
                            ),
                            ...) {
 
@@ -86,17 +87,27 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ## fix up some subsetting group stuff
     if (is.null(m$g1)) {
         if (!is.null(m$g2)) {
-            if (length(varnames) > 0) {
-                varnames$g1 <- varnames$g2
-                varnames$g2 <- NULL
-            }
 
-            getPlotSummary(x = x, y = y, g1 = g2, g1.level = g2.level, g2 = NULL, g2.level = NULL,
-                           varnames = varnames, colby = colby, sizeby = sizeby, data = data,
-                           design = design, freq = freq, missing.info = missing.info,
-                           inzpars = inzpars,
-                           env = env,
-                           summary.type = summary.type, hypothesis = hypothesis, ...)
+            mc <- match.call(expand.dots = TRUE)
+            names(mc) <- gsub("g2", "g1", names(mc))
+
+            if (length(varnames) > 0) {
+                names(mc$varnames) <- gsub("g2", "g1", names(mc$varnames))
+                # varnames$g1 <- varnames$g2
+                # varnames$g2 <- NULL
+            }
+            return(eval(mc))
+            # return(mc)
+
+            # return(getPlotSummary(x = !!x, y = y, 
+            #     g1 = g2, g1.level = g2.level, 
+            #     g2 = NULL, g2.level = NULL,
+            #     varnames = varnames, colby = colby, sizeby = sizeby, 
+            #     data = data, design = design, freq = freq, 
+            #     missing.info = missing.info, inzpars = inzpars, env = env,
+            #     summary.type = summary.type, hypothesis = hypothesis, 
+            #     ...
+            # ))
         }
     }
 
