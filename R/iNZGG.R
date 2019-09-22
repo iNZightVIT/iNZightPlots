@@ -358,7 +358,7 @@ iNZightPlotGG <- function(
     c(rlang::sym(data_name), main = main, xlab = xlab, ylab = ylab, plot_args)
   )
   
-  if (!(type %in% c("gg_pie", "gg_donut"))) {
+  if (!(type %in% c("gg_pie", "gg_donut", "gg_cumcurve"))) {
     if (type == "gg_gridplot" && isTRUE(rotate)) {
       plot_exprs$plot <- rotate_gridplot(plot_exprs$plot)
     } else {
@@ -394,8 +394,14 @@ iNZightPlotGG <- function(
     plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + !!theme_fun)
   }
   
-  if (exists("rotate_labels") && isTRUE(rotate_labels)) {
-    plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1)))
+  if (exists("rotate_labels") && !(type %in% c("gg_pie", "gg_donut", "gg_cumcurve", "gg_gridplot"))) {
+    if (isTRUE(rotate_labels$x)) {
+      plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1)))
+    }
+    
+    if (isTRUE(rotate_labels$y)) {
+      plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 45, vjust = 1, hjust=1)))
+    }
   }
   
   if (exists("overall_size") && !is.null(overall_size) && isTRUE(overall_size != 1)) {
