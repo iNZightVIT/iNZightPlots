@@ -1,6 +1,7 @@
 # iNZightPlots 2.10.2.9000
 __Release date__: TBA
 
+- fix up inference information for surveys (+ tests)
 
 
 # iNZightPlots 2.10.2
