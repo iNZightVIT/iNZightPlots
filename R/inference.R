@@ -667,7 +667,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
                          apply(cis, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
             }
         }
-    } else {
+    } else { ## one-way table
         mat <- t(rbind(inf$conf$lower, inf$conf$estimate, inf$conf$upper))
 
         mat <- matrix(apply(mat, 2, function(col) {

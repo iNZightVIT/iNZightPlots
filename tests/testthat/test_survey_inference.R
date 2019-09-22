@@ -3,7 +3,7 @@ context("Survey design inference functions")
 data(api, package = "survey")
 dclus1 <- svydesign(id = ~dnum, weights = ~pw, data = apiclus1, fpc = ~fpc)
 
-test_that("Dot plot inference tests", {
+test_that("One sample t-test", {
     svy_mean <- svymean(~api00, dclus1)
     svy_ci <- confint(svy_mean)
     svy_test <- svyttest(api00~1, dclus1)
@@ -50,7 +50,7 @@ test_that("Dot plot inference tests", {
     ## test hypothesis vars are used
 })
 
-test_that("Two sample tests (dot plot by binary factor)", {
+test_that("Two sample t-test", {
     svy_mean <- svyby(~api00, ~awards, dclus1, svymean)
     svy_ci <- confint(svy_mean)
     svy_test <- svyttest(api00~awards, dclus1)
@@ -95,7 +95,7 @@ test_that("Two sample tests (dot plot by binary factor)", {
 })
 
 
-test_that("ANOVA tests (dot plot by factor)", {
+test_that("ANOVA (equivalent)", {
     svy_mean <- svyby(~growth, ~stype, dclus1, svymean)
     svy_ci <- confint(svy_mean)
     svy_test <- svyglm(growth ~ stype, dclus1)
@@ -141,7 +141,7 @@ test_that("ANOVA tests (dot plot by factor)", {
     )
 })
 
-test_that("Survey regression inference (Scatter plots)", {
+test_that("Survey regression", {
     svy_test <- svyglm(api00 ~ api99, dclus1)
     svy_ci <- confint(svy_test)
     svy_coef <- summary(svy_test)$coef
@@ -192,7 +192,7 @@ test_that("Survey regression inference (Scatter plots)", {
 
 # })
 
-test_that("Two way contingency tables (two-way bar plots)", {
+test_that("Two way Chi-square contingency tables", {
     svy_prop <- svyby(~stype, ~awards, dclus1, svymean)
     svy_ci <- confint(svy_prop)
     svy_test <- suppressWarnings(svychisq(~awards+stype, dclus1))
@@ -245,14 +245,68 @@ test_that("Two way contingency tables (two-way bar plots)", {
 
 
 
-# test_that("Subset inference", {
-#     inz_test <- capture.output(
-#         getPlotSummary(api00,
-#             design = dclus1,
-#             g1 = stype,
-#             summary.type = "inference",
-#             inference.type = "conf"
-#             # hypothesis.value = 600
-#         )
-#     )
-# })
+test_that("Subset inference - one sample t-test", {
+    svy_list <- lapply(levels(apiclus1$stype),
+        function(st) 
+            subset(dclus1, stype == st)
+    )
+    svy_means <- lapply(svy_list, 
+        function(d) 
+            svymean(~api00, d)
+    )
+    # svy_cis <- lapply(svy_means, confint)
+    svy_tests <- lapply(svy_list, 
+        function(d) 
+            svyttest(api00~1, d)
+    )
+
+    inz_test <- capture.output(
+        getPlotSummary(api00,
+            design = dclus1,
+            g1 = stype,
+            summary.type = "inference",
+            inference.type = "conf"
+        )
+    )
+
+    inz_tabs <- lapply(grep("Population Mean", inz_test),
+        function(i) 
+            est_tbl <- 
+                read.table(
+                    textConnection(
+                        inz_test[i + 2:3]
+                    ),
+                    header = TRUE
+                )
+    )
+    svy_tabs <- lapply(svy_means,
+        function(svy_mean) {
+            svy_ci <- confint(svy_mean)
+            data.frame(
+                Lower = round(svy_ci[[1]], 1), 
+                Mean = round(svy_mean[[1]], 1),
+                Upper = round(svy_ci[[2]], 1)
+            )
+        }
+    )
+    expect_equal(inz_tabs, svy_tabs)
+
+    inz_ests <- lapply(grep("p-value", inz_test),
+        function(i)
+            eval(parse(text = 
+                gsub("p-", "p", 
+                    sprintf("list(%s)", inz_test[i])
+                )
+            ))
+    )
+    svy_ests <- lapply(svy_tests, 
+        function(svy_test)
+            list(
+                t = as.numeric(format(svy_test$statistic[[1]], digits = 5)),
+                df = svy_test$parameter[[1]],
+                pvalue = as.numeric(format.pval(svy_test$p.value[[1]]))
+            )
+    )
+    expect_equal(inz_ests, svy_ests)
+})
+
