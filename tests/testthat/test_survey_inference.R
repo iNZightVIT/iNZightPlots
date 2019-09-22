@@ -174,3 +174,70 @@ test_that("Survey regression inference (Scatter plots)", {
 
     expect_equal(est_tbl, svy_tbl)
 })
+
+## These don't have a survey:: package function, so will have to investigate ...
+# test_that("Chi-square survey (one way bar plots)", {
+#     svy_prop <- svytotal(~stype, dclus1)
+#     svy_ci <- confint(svy_prop)
+#     svy_test <- svychisq(~stype, dclus1)
+
+#     inz_test <- capture.output(
+#         getPlotSummary(awards, stype,
+#             # data = apiclus1,
+#             design = dclus1,
+#             summary.type = "inference",
+#             inference.type = "conf"
+#         )
+#     )
+
+# })
+
+test_that("Two way contingency tables (two-way bar plots)", {
+    svy_prop <- svyby(~stype, ~awards, dclus1, svymean)
+    svy_ci <- confint(svy_prop)
+    svy_test <- suppressWarnings(svychisq(~awards+stype, dclus1))
+
+    inz_test <- suppressWarnings(capture.output(
+        getPlotSummary(stype, awards,
+            design = dclus1,
+            summary.type = "inference",
+            inference.type = "conf"
+        )
+    ))
+
+    est_tbl <- 
+        read.table(
+            textConnection(
+                inz_test[grep("Estimated Proportions", inz_test) + c(3:4)]
+            ),
+            header = FALSE,
+            col.names = c("Level", "E", "H", "M", "Sums")
+        )
+    inz_inf <-         
+        eval(parse(text = 
+            gsub("\\^", "", gsub("and", ", df2 =", gsub("p-", "p", 
+                sprintf("list(%s)", inz_test[grep("p-value = ", inz_test)])
+            )))
+        ))
+
+    expect_equal(
+        est_tbl,
+        data.frame(
+            Level = c("No", "Yes"),
+            E = as.numeric(format(svy_prop[, 2], digits = 3)),
+            H = as.numeric(format(svy_prop[, 3], digits = 3)),
+            M = as.numeric(format(svy_prop[, 4], digits = 3)),
+            Sums = rep(1, 2)
+        )
+    )
+
+    expect_equal(
+        inz_inf,
+        list(
+            X2 = signif(svy_test$statistic[[1]], 5),
+            df = round(svy_test$parameter[[1]], 3),
+            df2 = round(svy_test$parameter[[2]], 2),
+            pvalue = as.numeric(format.pval(svy_test$p.value, digits = 5))
+        )
+    )
+})

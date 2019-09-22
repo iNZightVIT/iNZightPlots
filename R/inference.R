@@ -529,7 +529,9 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
                         ),
                         "",
                         paste0("   X^2 = ", format(signif(chi2$statistic, 5)), ", ",
-                            "df = ", format(signif(chi2$parameter, 5)), ", ",
+                            "df = ", 
+                            paste(sprintf("%.4g", chi2$parameter), collapse = " and "),
+                            ", ",
                             "p-value ", ifelse(chi2$p.value < 2.2e-16, "", "= "), 
                                 format.pval(chi2$p.value, digits = 5),
                             simpval
