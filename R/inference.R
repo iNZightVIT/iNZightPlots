@@ -122,7 +122,6 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
             ## Two sample t-test
 
             if (is.survey) {
-                # fit <- try(svyglm(if (is.numeric(des$variables$x)) x ~ y else y ~ x, design = des), TRUE)
                 fmla <- if (is.numeric(des$variables$x)) x ~ y else y ~ x
                 ttest <- try(svyttest(fmla, design = des), silent = TRUE)
                 if (inherits(ttest, "try-error")) {
@@ -131,7 +130,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
                 } else {
                     ci <- confint(ttest)
                     mat <- rbind(
-                        c("Lowerr", "Mean", "Upper"),
+                        c("Lower", "Mean", "Upper"),
                         format(c(ci[[1]], ttest$estimate[[1]], ci[[1]]), digits = 4)
                     )
                     colnames(mat) <- NULL
@@ -168,7 +167,10 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
         if (!is.null(hypothesis)) {
             if (length(toplot) == 2 && hypothesis$test %in% c("default", "t.test")) {
                 if (is.survey) {
-                    test.out <- try(svyttest(if (is.numeric(des$variables$x)) x ~ y else y ~ x, des), TRUE)
+                    test.out <- try(
+                        svyttest(if (is.numeric(des$variables$x)) x ~ y else y ~ x, des), 
+                        silent = TRUE
+                    )
                 } else {
                     test.out <- t.test(toplot[[1]]$x, toplot[[2]]$x,
                                        mu = hypothesis$value, alternative = hypothesis$alternative,
@@ -220,23 +222,41 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
                                      }
                                      ))
         if (is.survey) {
-            fit <- try(svyglm(x ~ y, des), TRUE)
+            fit <- try(svyglm(if (is.numeric(des$variables$x)) x ~ y else y ~ x, des), TRUE)
         } else {
             fit <- lm(x ~ y, data = dat)
         }
 
-        if (!is.survey && !is.null(hypothesis) && (length(toplot) > 2 | hypothesis$test == "anova")) {
-            fstat <- summary(fit)$fstatistic
+        if (!is.null(hypothesis) && (length(toplot) > 2 | hypothesis$test == "anova")) {
+            if (is.survey) {
+                fstat <- regTermTest(fit, 
+                    if (is.numeric(des$variables$x)) ~y else ~x
+                    # hypothesis values here
+                    # null = ...
+                )
+                Fval <- fstat$Ftest[1]
+                Fdf <- c(fstat$df, fstat$ddf)
+                fpval <- fstat$p[1]
+                Fname <- sprintf(
+                    "Wald test for %s (ANOVA equivalent for survey design)",
+                    if (is.numeric(des$variables$x)) vn$y else vn$x
+                )
+            } else {
+                fstat <- summary(fit)$fstatistic
+                Fval <- fstat[1]
+                Fdf <- fstat[2:3]
+                fpval <- pf(fstat[1], fstat[2], fstat[3], lower.tail = FALSE)
+                Fname <- "One-way Analysis of Variance (ANOVA F-test)"
+            }
+            fpval <- format.pval(fpval, digits = 5)
 
-            fpval <- format.pval(pf(fstat[1], fstat[2], fstat[3], lower.tail = FALSE),
-                                 digits = 5)
-            Ftest <- c("One-way Analysis of Variance (ANOVA F-test)", "",
-                       paste0("   F = ", signif(fstat[1], 5),
-                              ", df = ", fstat[2], " and ", fstat[3],
+            Ftest <- c(Fname, "",
+                       paste0("   F = ", signif(Fval, 5),
+                              ", df = ", Fdf[1], " and ", Fdf[2],
                               ", p-value ", ifelse(substr(fpval, 1, 1) == "<", "", "= "), fpval))
             out <- c(out, "", Ftest, "",
-                     "          Null Hypothesis: true group means are equal",
-                     "   Alternative Hypothesis: true group means are not equal")
+                     "          Null Hypothesis: true group means are all equal",
+                     "   Alternative Hypothesis: true group means are not all equal")
         }
 
         if (length(toplot) > 2) {
@@ -256,7 +276,9 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
                      "Estimates", "",
                      apply(diffMat, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
 
-            if (!is.survey) {
+            if (is.survey) {
+                ## To do: figure out how to make pairwise comparisons!
+            } else {
                 mc <- try(s20x::multipleComp(fit))
                 if (!inherits(mc, "try-error")) {
                     cimat <- triangularMatrix(LEVELS, mc, "ci")
