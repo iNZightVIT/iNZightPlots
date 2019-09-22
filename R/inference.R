@@ -131,7 +131,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
                     ci <- confint(ttest)
                     mat <- rbind(
                         c("Lower", "Mean", "Upper"),
-                        format(c(ci[[1]], ttest$estimate[[1]], ci[[1]]), digits = 4)
+                        format(c(ci[[1]], ttest$estimate[[1]], ci[[2]]), digits = 4)
                     )
                     colnames(mat) <- NULL
                 }
