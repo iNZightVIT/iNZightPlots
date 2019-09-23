@@ -1,5 +1,5 @@
-# iNZightPlots 2.10.2.9000
-__Release date__: TBA
+# iNZightPlots 2.10.3
+__Release date__: 23 September 2019
 
 - rotate spine plot by default
 - change default colouring behaviour for categorical lollipop plots 
