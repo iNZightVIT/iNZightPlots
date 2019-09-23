@@ -1,4 +1,4 @@
-# iNZightPlots 2.10.10
+# iNZightPlots 2.10.3
 __Release date__: 23 September 2019
 
 - rotate spine plot by default
