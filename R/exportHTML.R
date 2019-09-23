@@ -450,8 +450,15 @@ getInfo.inzhist <- function(plot, x) {
   } else {
     boxTable <- list()
   }
+  
+  if (!is.null(plot$meaninfo)) {
+    meanInfo <- plot$meaninfo$all$mean
+  } else {
+    meanInfo <- list()
+  }
+  
   # Output as a list:
-  chart <- list(type = "hist", data = tab, boxData = boxTable, n = n, inf = NULL)
+  chart <- list(type = "hist", data = tab, boxData = boxTable, meanData = meanInfo, n = n, inf = NULL)
   histJS <- paste(readLines(system.file("histogram.js", package = "iNZightPlots")), collapse = "\n")
   JSData <- list(chart = jsonlite::toJSON(chart), jsFile = histJS)
   return(list(tbl = tableInfo, js = JSData))
@@ -467,9 +474,11 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
     levList = list()
     dd = list()
     boxList = list()
+    meanList = list()
     order = list()
     countsTab = as.numeric()
     countsTab[1] = 0
+
 
     for (i in 1:length(levels)) {
       #currently only takes variable plotted
@@ -499,12 +508,17 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
         rownames(boxTable)[4:5] <- c("min", "max")
         boxList[[i]] <- boxTable
       }
+      
+      if (!is.null(plot$meaninfo)) {
+        meanList[[i]] <- plot$meaninfo[[i]]$mean
+      }
+      
     }
-
+    
     #bind all groups together:
     tab <- do.call("rbind", dd)
     chart <- list(type = "dot", data = data.frame(tab), boxData = boxList, levList = levList,
-                  countsTab = countsTab, levNames = names(plots), varNames = colnames(tab))
+                  countsTab = countsTab, levNames = names(plots), varNames = colnames(tab), meanData = meanList)
 
   } else { #for single dot plots
 
@@ -527,9 +541,15 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
     } else {
       boxTable <- list()
     }
+    
+    if (!is.null(plot$meaninfo)) {
+      meanInfo <- plot$meaninfo$all$mean
+    } else {
+      meanInfo <- list()
+    }
     ## JS:
     chart <- list(type = "dot", varNames = names(tab), data = tab, colGroupNo = colGroupNo,
-                  boxData = boxTable)
+                  boxData = boxTable, meanData = meanInfo)
   }
 
   ##Attributes for HTML table

@@ -1,3 +1,12 @@
+# iNZightPlots 2.10.10
+__Release date__: 23 September 2019
+
+- rotate spine plot by default
+- change default colouring behaviour for categorical lollipop plots 
+- add interactivity for mean indicators on dotplots/histograms
+- add ability to rotate x/y axis labels for ggplots
+
+
 # iNZightPlots 2.10.2
 __Release date__: 2 September 2019
 
