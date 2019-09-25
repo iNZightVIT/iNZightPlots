@@ -1394,7 +1394,10 @@ iNZightPlot <-
                                "native", valueOnly = TRUE), 5)
     }
 
-    attr(plot.list, "code") <- capture.output(m)
+    plot_code <- capture.output(m)
+    plot_code <- gsub("iNZightPlot(x = ", "iNZightPlot(", 
+        plot_code, fixed = TRUE)
+    attr(plot.list, "code") <- plot_code
 
     class(plot.list) <- "inzplotoutput"
     return(invisible(plot.list))
