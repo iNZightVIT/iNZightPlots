@@ -106,15 +106,13 @@ apply_palette <- function(expr, palette, type) {
   }
 }
 
-check_nas <- function(data, exprs, data_name) {
+check_nas <- function(data, exprs, data_name, plot_args) {
   plot_varnames <- unlist(plot_args[plot_args %in% names(data)])
   
   if (any(vapply(data[, plot_varnames, drop = FALSE], anyNA, logical(1)))) {
     complete <- complete.cases(data[, plot_varnames])
     
     plot_varnames <- rlang::syms(plot_varnames)
-    
-    print(plot_varnames)
     
     if (is.null(exprs$data)) {
       exprs <- list(
@@ -130,6 +128,17 @@ check_nas <- function(data, exprs, data_name) {
     }
   }
   
+  exprs
+}
+
+count_nas <- function(data, exprs, data_name, plot_args) {
+  plot_varnames <- unlist(plot_args[plot_args %in% names(data)])
+  
+  if (any(vapply(data[, plot_varnames, drop = FALSE], anyNA, logical(1)))) {
+    complete <- complete.cases(data[, plot_varnames])
+    exprs$plot <- rlang::expr(!!exprs$plot + ggplot2::labs(subtitle = !!sprintf("%d Missing Observations Removed", sum(!complete))))
+  }
+
   exprs
 }
 
@@ -427,7 +436,9 @@ iNZightPlotGG <- function(
   }
   
   if (!(type %in% c("gg_lollipop", "gg_column2"))) {
-    plot_exprs <- check_nas(data, plot_exprs, data_name)
+    plot_exprs <- check_nas(data, plot_exprs, data_name, unname(plot_args))
+  } else {
+    plot_exprs <- count_nas(data, plot_exprs, data_name, unname(plot_args))
   }
   
   if (isTRUE(!is.null(caption) && caption != "")) {
