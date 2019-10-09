@@ -107,12 +107,18 @@ apply_palette <- function(expr, palette, type) {
 }
 
 check_nas <- function(data, exprs, data_name) {
-  if (any(vapply(data, anyNA, logical(1)))) {
-    complete <- complete.cases(data)
+  plot_varnames <- unlist(plot_args[plot_args %in% names(data)])
+  
+  if (any(vapply(data[, plot_varnames, drop = FALSE], anyNA, logical(1)))) {
+    complete <- complete.cases(data[, plot_varnames])
+    
+    plot_varnames <- rlang::syms(plot_varnames)
+    
+    print(plot_varnames)
     
     if (is.null(exprs$data)) {
       exprs <- list(
-        data = rlang::expr(plot_data <- !!rlang::sym(data_name) %>% tidyr::drop_na()),
+        data = rlang::expr(plot_data <- !!rlang::sym(data_name) %>% tidyr::drop_na(!!!plot_varnames)),
         plot = replace_data_name(exprs$plot, "plot_data")
       )
       
