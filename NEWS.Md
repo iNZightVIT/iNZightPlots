@@ -1,7 +1,7 @@
 # iNZightPlots 2.10.3.9000
 __Release date__: TBA
 
-
+- add `use.plotly` attribute to ggplots
 
 # iNZightPlots 2.10.3
 __Release date__: 23 September 2019
