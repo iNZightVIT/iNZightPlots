@@ -1,7 +1,8 @@
 # iNZightPlots 2.10.3.9000
 __Release date__: TBA
 
-
+- fix bug where only complete cases over all variables were used for ggplots
+- add count of missing values to numeric lollipop/column plots
 
 # iNZightPlots 2.10.3
 __Release date__: 23 September 2019
