@@ -24,7 +24,8 @@ optional_args <- list(
   gg_beeswarm = c("gg_size"),
   gg_ridgeline = c("alpha"),
   gg_gridplot = c("gg_perN"),
-  gg_quasirandom = c("gg_size", "gg_swarmwidth", "gg_method")
+  gg_quasirandom = c("gg_size", "gg_swarmwidth", "gg_method"),
+  gg_divergingstackedbar = c("gg_cutpoint")
 )
 
 replace_data_name <- function(expr, new_name) {
@@ -237,9 +238,9 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
   if (type %in% c("gg_column2", "gg_lollipop")) {
     names(varnames) <- replace(names(varnames), names(varnames) == "labels", "x")
   }
-  
+
   extra_args <- Filter(Negate(is.null), extra_vars[optional_args[[type]]])
-  
+
   varnames <- as.list(varnames)
   
   if (!is.null(extra_args) && length(extra_args) > 0) {
@@ -1277,16 +1278,16 @@ iNZightPlotGG_gridplot <- function(data, x, main = sprintf("Gridplot of %s", as.
   )
 }
 
-iNZightPlotGG_divergingstackedbar <- function(data, x, y, main = sprintf("Diverging stacked bar of %s by %s", as.character(y), as.character(x)), xlab = as.character(x), ylab = "Count", cut_point = NULL,...) {
+iNZightPlotGG_divergingstackedbar <- function(data, x, y, main = sprintf("Diverging stacked bar of %s by %s", as.character(y), as.character(x)), xlab = as.character(x), ylab = "Count", cutpoint = NULL,...) {
   orig_x <- x
   x <- rlang::sym(y)
   
   y <- rlang::sym(orig_x)
   
-  if (is.null(cut_point)) {
-    cut_point <- rlang::expr(floor(nlevels(!!y) / 2))
+  if (is.null(cutpoint) || cutpoint == "Default") {
+    cutpoint <- rlang::expr(floor(nlevels(!!y) / 2))
   } else {
-    cut_point <- rlang::enexpr(cut_point)
+    cutpoint <- rlang::enexpr(cutpoint)
   }
   
   data_expr <- rlang::expr(
@@ -1297,8 +1298,8 @@ iNZightPlotGG_divergingstackedbar <- function(data, x, y, main = sprintf("Diverg
   
   plot_expr <- rlang::expr(
     ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, fill = !!y)) + 
-      ggplot2::geom_col(data = subset(plot_data, !!y %in% levels(!!y)[1:!!cut_point]), ggplot2::aes(y = -Count)) +
-      ggplot2::geom_col(data = subset(plot_data, !(!!y %in% levels(!!y)[1:!!cut_point])), ggplot2::aes(y = Count), position = ggplot2::position_stack(reverse = TRUE)) +
+      ggplot2::geom_col(data = subset(plot_data, !!y %in% levels(!!y)[1:!!cutpoint]), ggplot2::aes(y = -Count)) +
+      ggplot2::geom_col(data = subset(plot_data, !(!!y %in% levels(!!y)[1:!!cutpoint])), ggplot2::aes(y = Count), position = ggplot2::position_stack(reverse = TRUE)) +
       ggplot2::geom_hline(yintercept = 0) + 
       ggplot2::coord_flip() + 
       ggplot2::labs(title = !!main) + 
