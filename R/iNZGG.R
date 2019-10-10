@@ -1221,11 +1221,17 @@ iNZightPlotGG_gridplot <- function(data, x, main = sprintf("Gridplot of %s", as.
   )
 }
 
-iNZightPlotGG_divergingstackedbar <- function(data, x, y, main = sprintf("Diverging stacked bar of %s by %s", as.character(y), as.character(x)), xlab = as.character(x), ylab = "Count", ...) {
+iNZightPlotGG_divergingstackedbar <- function(data, x, y, main = sprintf("Diverging stacked bar of %s by %s", as.character(y), as.character(x)), xlab = as.character(x), ylab = "Count", cut_point = NULL,...) {
   orig_x <- x
   x <- rlang::sym(y)
   
   y <- rlang::sym(orig_x)
+  
+  if (is.null(cut_point)) {
+    cut_point <- rlang::expr(floor(nlevels(!!y) / 2))
+  } else {
+    cut_point <- rlang::enexpr(cut_point)
+  }
   
   data_expr <- rlang::expr(
     plot_data <- !!rlang::enexpr(data) %>% 
@@ -1235,8 +1241,8 @@ iNZightPlotGG_divergingstackedbar <- function(data, x, y, main = sprintf("Diverg
   
   plot_expr <- rlang::expr(
     ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, fill = !!y)) + 
-      ggplot2::geom_col(data = subset(plot_data, !!y %in% levels(!!y)[1:floor(nlevels(!!y) / 2)]), ggplot2::aes(y = -Count)) +
-      ggplot2::geom_col(data = subset(plot_data, !(!!y %in% levels(!!y)[1:floor(nlevels(!!y) / 2)])), ggplot2::aes(y = Count), position = ggplot2::position_stack(reverse = TRUE)) +
+      ggplot2::geom_col(data = subset(plot_data, !!y %in% levels(!!y)[1:!!cut_point]), ggplot2::aes(y = -Count)) +
+      ggplot2::geom_col(data = subset(plot_data, !(!!y %in% levels(!!y)[1:!!cut_point])), ggplot2::aes(y = Count), position = ggplot2::position_stack(reverse = TRUE)) +
       ggplot2::geom_hline(yintercept = 0) + 
       ggplot2::coord_flip() + 
       ggplot2::labs(title = !!main) + 
