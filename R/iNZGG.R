@@ -600,8 +600,24 @@ rotate <- function(plot_expr) {
     }
   }
   
+  remove_function <- function(expr, fun, i = 0) {
+    if (length(expr) == 1) {
+      if (as.character(expr) == fun) {
+        expr <- NULL
+        expr
+      }
+    } else {
+      if (rlang::call_name(expr[[3]]) == fun) {
+        expr[[2]]
+      } else {
+        expr[[2]] <- remove_function(expr[[2]], fun)
+        expr
+      }
+    }
+  }
+  
   if (check_for_function(plot_expr, "coord_flip")) {
-    rlang::expr(!!plot_expr + ggplot2::coord_cartesian())
+    remove_function(plot_expr, "coord_flip")
   } else {
     rlang::expr(!!plot_expr + ggplot2::coord_flip())
   }
