@@ -1,7 +1,7 @@
 # iNZightPlots 2.10.3.9000
 __Release date__: TBA
 
-
+- fix issue with brushing points on interactive dotplot when boxplots have been disabled
 
 # iNZightPlots 2.10.3
 __Release date__: 23 September 2019
