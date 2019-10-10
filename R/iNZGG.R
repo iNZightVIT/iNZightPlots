@@ -20,6 +20,7 @@ optional_args <- list(
   gg_poppyramid = c("gg_bins"),
   gg_freqpolygon = c("gg_lwd", "gg_size"),
   gg_barcode2 = c("gg_height", "gg_width", "alpha"),
+  gg_barcode3 = c("gg_height", "gg_width", "alpha"),
   gg_beeswarm = c("gg_size"),
   gg_ridgeline = c("alpha"),
   gg_gridplot = c("gg_perN"),
@@ -190,11 +191,11 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
   
   if (type %in% c("gg_pie", "gg_donut")) {
     names(varnames) <- replace(names(varnames), names(varnames) == "x", "fill")
-  } else if (type %in% c("gg_violin", "gg_barcode", "gg_boxplot", "gg_cumcurve", "gg_column2", "gg_lollipop", "gg_dotstrip", "gg_density", "gg_barcode2", "gg_beeswarm", "gg_ridgeline", "gg_quasirandom")) {
+  } else if (type %in% c("gg_violin", "gg_barcode", "gg_boxplot", "gg_cumcurve", "gg_column2", "gg_lollipop", "gg_dotstrip", "gg_density", "gg_barcode2", "gg_beeswarm", "gg_ridgeline", "gg_quasirandom", "gg_barcode3")) {
     if (!("y" %in% names(varnames))) {
       names(varnames) <- replace(names(varnames), names(varnames) == "x", "y")
       if (isTRUE(!is.null(extra_vars$fill_colour) && extra_vars$fill_colour != "")) {
-        if (type %in% c("gg_lollipop", "gg_cumcurve", "gg_barcode", "gg_dotstrip", "gg_quasirandom")) {
+        if (type %in% c("gg_lollipop", "gg_cumcurve", "gg_barcode", "gg_dotstrip", "gg_quasirandom", "gg_barcode3")) {
           varnames["colour"] <- extra_vars$fill_colour
         } else {
           varnames["fill"] <- extra_vars$fill_colour
@@ -262,6 +263,18 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
       if ("height" %in% names(varnames)) {
         varnames[['height']] <- as.numeric(varnames[['height']])
         # names(non_mapped) <- replace(names(non_mapped), names(non_mapped) == "gg_height", "height")
+      }
+    }
+    
+    if (type %in% c("gg_barcode3")) {
+      if ("width" %in% names(varnames)) {
+        varnames[['size']] <- as.numeric(varnames[['width']])
+        varnames[['width']] <- NULL
+      }
+      
+      if ("height" %in% names(varnames)) {
+        varnames[['radius']] <- as.numeric(varnames[['height']])
+        varnames[['height']] <- NULL
       }
     }
     
@@ -787,6 +800,49 @@ iNZightPlotGG_barcode2 <- function(data, x, y, fill = "darkgreen", main = sprint
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x)) + 
         ggplot2::geom_tile(!!!dots) + 
+        ggplot2::labs(title = !!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
+    )
+  }
+  
+  list(
+    plot = plot_expr
+  )
+}
+
+iNZightPlotGG_barcode3 <- function(data, x, y, fill = "darkgreen", main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(y), ylab = as.character(x), ...) {
+  y <- rlang::sym(y)
+  dots <- list(...)
+  
+  if (is.null(dots$radius)) {
+    radius <- 0.5
+    dots$radius <- 0.5
+  } else {
+    radius <- dots$radius
+  }
+  
+  if (is.null(dots$size)) {
+    dots$size <- 1
+  }
+  
+  if (missing(x)) {
+    x <- rlang::expr(factor(1))
+    
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x)) + 
+        ggplot2::geom_spoke(angle = pi/2, position = ggplot2::position_nudge(y = -!!radius/2), !!!dots) + 
+        ggplot2::labs(title = !!main) + 
+        ggplot2::xlab(!!xlab) + 
+        ggplot2::ylab(!!ylab)
+    )
+  } else {
+    x <- rlang::sym(x)
+    colour <- rlang::sym(x)
+    
+    plot_expr <- rlang::expr(
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x, colour = !!colour)) + 
+        ggplot2::geom_spoke(angle = pi/2, position = ggplot2::position_nudge(y = -!!radius/2), !!!dots) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
