@@ -341,6 +341,8 @@ iNZightPlotGG_extraargs <- function(extra_args) {
 }
 
 ##' @importFrom magrittr "%>%"
+##' @importFrom rlang ":="
+##' @importFrom ggplot2 "stat"
 iNZightPlotGG <- function(
   data, 
   type, 
@@ -480,7 +482,7 @@ iNZightPlotGG_pie <- function(data, fill, main = sprintf("Pie Chart of %s", as.c
   
   plot_expr <- rlang::expr(
     ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = factor(1), fill = !!fill)) + 
-      ggplot2::geom_bar(ggplot2::aes(y = ..count../sum(..count..)), position = "fill") +
+      ggplot2::geom_bar(ggplot2::aes(y = stat(!!rlang::sym("count")/sum(!!rlang::sym("count")))), position = "fill") +
       ggplot2::coord_polar(theta = "y") + 
       ggplot2::xlab("") + 
       ggplot2::ylab("") + 
@@ -516,10 +518,10 @@ iNZightPlotGG_donut <- function(data, fill, main = sprintf("Donut Chart of %s", 
         dplyr::group_by(!!fill) %>% 
         dplyr::summarise(Count = dplyr::n()) %>% 
         dplyr::ungroup() %>% 
-        dplyr::mutate(Fraction = Count / sum(Count)) %>% 
-        dplyr::arrange(dplyr::desc(Fraction)) %>% 
-        dplyr::mutate(ymax = cumsum(Fraction)) %>% 
-        dplyr::mutate(ymin = dplyr::lag(ymax, default = 0))
+        dplyr::mutate(Fraction = !!rlang::sym("Count") / sum(!!rlang::sym("Count"))) %>% 
+        dplyr::arrange(dplyr::desc(!!rlang::sym("Fraction"))) %>% 
+        dplyr::mutate(ymax = cumsum(!!rlang::sym("Fraction"))) %>% 
+        dplyr::mutate(ymin = dplyr::lag(!!rlang::sym("ymax"), default = 0))
     )
   } else {
     data_expr <- rlang::expr(
@@ -527,14 +529,14 @@ iNZightPlotGG_donut <- function(data, fill, main = sprintf("Donut Chart of %s", 
         dplyr::group_by(!!fill) %>% 
         dplyr::summarise(Count = dplyr::n()) %>% 
         dplyr::ungroup() %>% 
-        dplyr::mutate(Fraction = Count / sum(Count)) %>% 
-        dplyr::mutate(ymax = cumsum(Fraction)) %>% 
-        dplyr::mutate(ymin = dplyr::lag(ymax, default = 0))
+        dplyr::mutate(Fraction = !!rlang::sym("Count") / sum(!!rlang::sym("Count"))) %>% 
+        dplyr::mutate(ymax = cumsum(!!rlang::sym("Fraction"))) %>% 
+        dplyr::mutate(ymin = dplyr::lag(!!rlang::sym("ymax"), default = 0))
     )
   }
   
   plot_expr <- rlang::expr(
-    ggplot2::ggplot(plot_data, ggplot2::aes(fill = !!fill, ymax = ymax, ymin = ymin, xmax = 4, xmin = 3)) + 
+    ggplot2::ggplot(plot_data, ggplot2::aes(fill = !!fill, ymax = !!rlang::sym("ymax"), ymin = !!rlang::sym("ymin"), xmax = 4, xmin = 3)) + 
       ggplot2::geom_rect() +
       ggplot2::coord_polar(theta = "y") + 
       ggplot2::xlab("") + 
@@ -657,7 +659,7 @@ iNZightPlotGG_heatmap <- function(data, x, y, main = sprintf("Heatmap of %s and 
   
   plot_expr <- rlang::expr(
     ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, y = !!y)) +
-      ggplot2::geom_tile(ggplot2::aes(fill = Count)) + 
+      ggplot2::geom_tile(ggplot2::aes(fill = !!rlang::sym("Count"))) + 
       ggplot2::labs(title = !!main) + 
       ggplot2::xlab(!!xlab) + 
       ggplot2::ylab(!!ylab)
@@ -682,7 +684,7 @@ iNZightPlotGG_stackedcolumn <- function(data, fill, main = sprintf("Stacked colu
   
   plot_expr <- rlang::expr(
     ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, fill = !!fill)) + 
-      ggplot2::geom_bar(ggplot2::aes(y = ..count../sum(..count..)), position = "fill") +
+      ggplot2::geom_bar(ggplot2::aes(y = stat(!!rlang::sym("count")/sum(!!rlang::sym("count")))), position = "fill") +
       ggplot2::scale_y_continuous(labels = scales::percent) + 
       ggplot2::labs(title = !!main) + 
       ggplot2::xlab(!!xlab) + 
@@ -998,7 +1000,7 @@ iNZightPlotGG_cumcurve <- function(data, x, y, main = sprintf("Cumulative Count 
     )
     
     plot_expr <- rlang::expr(
-      ggplot2::ggplot(plot_data, ggplot2::aes(x = !!y, y = Observation)) + 
+      ggplot2::ggplot(plot_data, ggplot2::aes(x = !!y, y = !!rlang::sym("Observation"))) + 
         ggplot2::geom_step(!!!dots) + 
         ggplot2::labs(title = !!main) +
         ggplot2::xlab(!!xlab) + 
@@ -1015,7 +1017,7 @@ iNZightPlotGG_cumcurve <- function(data, x, y, main = sprintf("Cumulative Count 
     )
     
     plot_expr <- rlang::expr(
-      ggplot2::ggplot(plot_data, ggplot2::aes(x = !!y, y = Observation, colour = !!x)) + 
+      ggplot2::ggplot(plot_data, ggplot2::aes(x = !!y, y = !!rlang::sym("Observation"), colour = !!x)) + 
         ggplot2::geom_step(!!!dots) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
@@ -1038,7 +1040,7 @@ iNZightPlotGG_poppyramid <- function(data, x, fill, main = sprintf("Count of %s 
   plot_expr <- rlang::expr(
     ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, fill = !!fill)) + 
       ggplot2::geom_histogram(data = subset(!!rlang::enexpr(data), !!fill == levels(!!fill)[1]), !!!dots) + 
-      ggplot2::geom_histogram(data = subset(!!rlang::enexpr(data), !!fill == levels(!!fill)[2]), ggplot2::aes(y = stat(count * -1)), !!!dots) + 
+      ggplot2::geom_histogram(data = subset(!!rlang::enexpr(data), !!fill == levels(!!fill)[2]), ggplot2::aes(y = stat(!!rlang::sym("count") * -1)), !!!dots) + 
       ggplot2::labs(title = !!main) + 
       ggplot2::xlab(!!xlab) + 
       ggplot2::ylab(!!ylab) + 
@@ -1059,7 +1061,7 @@ iNZightPlotGG_spine <- function(data, x, fill, main = sprintf("Count of %s by %s
   plot_expr <- rlang::expr(
     ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, fill = !!fill)) + 
       ggplot2::geom_bar(data = subset(!!rlang::enexpr(data), !!fill == levels(!!fill)[1]), !!!dots) + 
-      ggplot2::geom_bar(data = subset(!!rlang::enexpr(data), !!fill == levels(!!fill)[2]), ggplot2::aes(y = stat(count * -1)), !!!dots) + 
+      ggplot2::geom_bar(data = subset(!!rlang::enexpr(data), !!fill == levels(!!fill)[2]), ggplot2::aes(y = stat(!!rlang::sym("count") * -1)), !!!dots) + 
       ggplot2::coord_flip() + 
       ggplot2::labs(title = !!main) + 
       ggplot2::xlab(!!xlab) + 
@@ -1205,7 +1207,7 @@ iNZightPlotGG_lollipop2 <- function(data, x, y, main = sprintf("Count of %s", as
           dplyr::group_by(!!x) %>% 
           dplyr::summarise(Count = dplyr::n()) %>% 
           dplyr::ungroup() %>% 
-          dplyr::mutate(!!x := forcats::fct_reorder(!!x, Count))
+          dplyr::mutate(!!x := forcats::fct_reorder(!!x, !!rlang::sym("Count")))
       )
     } else {
       data_expr <- rlang::expr(
@@ -1216,7 +1218,7 @@ iNZightPlotGG_lollipop2 <- function(data, x, y, main = sprintf("Count of %s", as
     }
     
     plot_expr <- rlang::expr(
-      ggplot2::ggplot(plot_data, ggplot2::aes(!!x, Count)) + 
+      ggplot2::ggplot(plot_data, ggplot2::aes(!!x, !!rlang::sym("Count"))) + 
         ggplot2::geom_point(!!!point_dots) + 
         ggplot2::geom_segment(ggplot2::aes(xend = !!x, yend = 0), !!!line_dots) + 
         ggplot2::labs(title = !!main) + 
@@ -1232,7 +1234,7 @@ iNZightPlotGG_lollipop2 <- function(data, x, y, main = sprintf("Count of %s", as
           dplyr::group_by(!!x, !!y) %>% 
           dplyr::summarise(Count = dplyr::n()) %>% 
           dplyr::ungroup() %>% 
-          dplyr::mutate(!!x := forcats::fct_reorder(!!x, Count))
+          dplyr::mutate(!!x := forcats::fct_reorder(!!x, !!rlang::sym("Count")))
       )
     } else {
       data_expr <- rlang::expr(
@@ -1243,9 +1245,9 @@ iNZightPlotGG_lollipop2 <- function(data, x, y, main = sprintf("Count of %s", as
     }
     
     plot_expr <- rlang::expr(
-      ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, colour = !!y, y = Count)) + 
+      ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, colour = !!y, y = !!rlang::sym("Count"))) + 
         ggplot2::geom_point(position = ggplot2::position_dodge(width = 0.5), !!!point_dots) + 
-        ggplot2::geom_linerange(ggplot2::aes(ymin = 0, ymax = Count), position = ggplot2::position_dodge(width = 0.5), !!!line_dots) + 
+        ggplot2::geom_linerange(ggplot2::aes(ymin = 0, ymax = !!rlang::sym("Count")), position = ggplot2::position_dodge(width = 0.5), !!!line_dots) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
         ggplot2::ylab(!!ylab)
@@ -1298,8 +1300,8 @@ iNZightPlotGG_divergingstackedbar <- function(data, x, y, main = sprintf("Diverg
   
   plot_expr <- rlang::expr(
     ggplot2::ggplot(plot_data, ggplot2::aes(x = !!x, fill = !!y)) + 
-      ggplot2::geom_col(data = subset(plot_data, !!y %in% levels(!!y)[1:!!cutpoint]), ggplot2::aes(y = -Count)) +
-      ggplot2::geom_col(data = subset(plot_data, !(!!y %in% levels(!!y)[1:!!cutpoint])), ggplot2::aes(y = Count), position = ggplot2::position_stack(reverse = TRUE)) +
+      ggplot2::geom_col(data = subset(plot_data, !!y %in% levels(!!y)[1:!!cutpoint]), ggplot2::aes(y = -!!rlang::sym("Count"))) +
+      ggplot2::geom_col(data = subset(plot_data, !(!!y %in% levels(!!y)[1:!!cutpoint])), ggplot2::aes(y = !!rlang::sym("Count")), position = ggplot2::position_stack(reverse = TRUE)) +
       ggplot2::geom_hline(yintercept = 0) + 
       ggplot2::coord_flip() + 
       ggplot2::labs(title = !!main) + 
