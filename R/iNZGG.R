@@ -457,6 +457,8 @@ iNZightPlotGG <- function(
   )
   
   attr(plot_object, "code") <- unname(unlist(lapply(plot_exprs, rlang::expr_text)))
+  attr(plot_object, "code_expr") <- plot_exprs
+  attr(plot_object, "data_name") <- data_name
   attr(plot_object, "plottype") <- c(type)
   attr(plot_object, "varnames") <- unlist(dots)
   attr(plot_object, "use.plotly") <- !type %in%  c("gg_pie", "gg_donut", "gg_gridplot", "gg_barcode2", "gg_barcode", "gg_ridgeline")
