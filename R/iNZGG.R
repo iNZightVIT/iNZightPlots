@@ -473,10 +473,17 @@ iNZightPlotGG <- function(
 iNZightPlotGG_pie <- function(data, fill, main = sprintf("Pie Chart of %s", as.character(fill)), ordered = FALSE, ...) {
   fill <- rlang::sym(fill)
   
-  if (ordered) {
+  if (ordered == "desc") {
     data_expr <- rlang::expr(
       plot_data <- !!rlang::enexpr(data) %>% 
         dplyr::mutate(!!fill := forcats::fct_infreq(!!fill))
+    )
+    
+    data <- rlang::sym("plot_data")
+  } else if (ordered == "asc") {
+    data_expr <- rlang::expr(
+      plot_data <- !!rlang::enexpr(data) %>% 
+        dplyr::mutate(!!fill := forcats::fct_rev(forcats::fct_infreq(!!fill)))
     )
     
     data <- rlang::sym("plot_data")
@@ -498,7 +505,7 @@ iNZightPlotGG_pie <- function(data, fill, main = sprintf("Pie Chart of %s", as.c
       )
   )
   
-  if (ordered) {
+  if (ordered %in% c("asc", "desc")) {
     list(
       data = data_expr,
       plot = plot_expr
@@ -513,7 +520,7 @@ iNZightPlotGG_pie <- function(data, fill, main = sprintf("Pie Chart of %s", as.c
 iNZightPlotGG_donut <- function(data, fill, main = sprintf("Donut Chart of %s", as.character(fill)), ordered = FALSE, ...) {
   fill <- rlang::sym(fill)
   
-  if (ordered) {
+  if (ordered == "desc") {
     data_expr <- rlang::expr(
       plot_data <- !!rlang::enexpr(data) %>% 
         dplyr::mutate(!!fill := forcats::fct_infreq(!!fill)) %>% 
@@ -522,6 +529,18 @@ iNZightPlotGG_donut <- function(data, fill, main = sprintf("Donut Chart of %s", 
         dplyr::ungroup() %>% 
         dplyr::mutate(Fraction = !!rlang::sym("Count") / sum(!!rlang::sym("Count"))) %>% 
         dplyr::arrange(dplyr::desc(!!rlang::sym("Fraction"))) %>% 
+        dplyr::mutate(ymax = cumsum(!!rlang::sym("Fraction"))) %>% 
+        dplyr::mutate(ymin = dplyr::lag(!!rlang::sym("ymax"), default = 0))
+    )
+  } else if (ordered == "asc") {
+    data_expr <- rlang::expr(
+      plot_data <- !!rlang::enexpr(data) %>% 
+        dplyr::mutate(!!fill := forcats::fct_rev(forcats::fct_infreq(!!fill))) %>% 
+        dplyr::group_by(!!fill) %>% 
+        dplyr::summarise(Count = dplyr::n()) %>% 
+        dplyr::ungroup() %>% 
+        dplyr::mutate(Fraction = !!rlang::sym("Count") / sum(!!rlang::sym("Count"))) %>% 
+        dplyr::arrange(!!rlang::sym("Fraction")) %>% 
         dplyr::mutate(ymax = cumsum(!!rlang::sym("Fraction"))) %>% 
         dplyr::mutate(ymin = dplyr::lag(!!rlang::sym("ymax"), default = 0))
     )
@@ -562,10 +581,17 @@ iNZightPlotGG_donut <- function(data, fill, main = sprintf("Donut Chart of %s", 
 iNZightPlotGG_column <- function(data, x, group, main = sprintf("Column chart of %s", as.character(x)), xlab = as.character(x), ylab = "Count", ordered = FALSE, ...) {
   x <- rlang::sym(x)
   
-  if (ordered) {
+  if (ordered == "desc") {
     data_expr <- rlang::expr(
       plot_data <- !!rlang::enexpr(data) %>% 
         dplyr::mutate(!!x := forcats::fct_infreq(!!x))
+    )
+    
+    data <- rlang::sym("plot_data")
+  } else if (ordered == "asc") {
+    data_expr <- rlang::expr(
+      plot_data <- !!rlang::enexpr(data) %>% 
+        dplyr::mutate(!!x := forcats::fct_rev(forcats::fct_infreq(!!x)))
     )
     
     data <- rlang::sym("plot_data")
@@ -592,7 +618,7 @@ iNZightPlotGG_column <- function(data, x, group, main = sprintf("Column chart of
   }
   
   
-  if (ordered) {
+  if (ordered %in% c("asc", "desc")) {
     list(
       data = data_expr,
       plot = plot_expr
@@ -1195,7 +1221,7 @@ iNZightPlotGG_mosaic <- function(data, x, y, main = sprintf("Mosaic plot of %s a
 iNZightPlotGG_lollipop2 <- function(data, x, y, main = sprintf("Count of %s", as.character(x)), xlab = as.character(x), ylab = "Count", ordered = FALSE, ...) {
   x <- rlang::sym(x)
   dots <- list(...)
-  
+
   point_dots <- dots[c("size", "colour")]
   line_dots <- dots[c("lwd", "colour")]
   
@@ -1203,13 +1229,13 @@ iNZightPlotGG_lollipop2 <- function(data, x, y, main = sprintf("Count of %s", as
   line_dots <- Filter(Negate(is.null), line_dots)
   
   if (missing(y)) {
-    if (ordered) {
+    if (ordered %in% c("desc", "asc")) {
       data_expr <- rlang::expr(
         plot_data <- !!rlang::enexpr(data) %>% 
           dplyr::group_by(!!x) %>% 
           dplyr::summarise(Count = dplyr::n()) %>% 
           dplyr::ungroup() %>% 
-          dplyr::mutate(!!x := forcats::fct_reorder(!!x, !!rlang::sym("Count")))
+          dplyr::mutate(!!x := forcats::fct_reorder(!!x, !!rlang::sym("Count"), .desc = !!(ordered == "desc")))
       )
     } else {
       data_expr <- rlang::expr(
@@ -1230,13 +1256,13 @@ iNZightPlotGG_lollipop2 <- function(data, x, y, main = sprintf("Count of %s", as
   } else {
     y <- rlang::sym(y)
     
-    if (ordered) {
+    if (ordered %in% c("desc", "asc")) {
       data_expr <- rlang::expr(
         plot_data <- !!rlang::enexpr(data) %>% 
           dplyr::group_by(!!x, !!y) %>% 
           dplyr::summarise(Count = dplyr::n()) %>% 
           dplyr::ungroup() %>% 
-          dplyr::mutate(!!x := forcats::fct_reorder(!!x, !!rlang::sym("Count")))
+          dplyr::mutate(!!x := forcats::fct_reorder(!!x, !!rlang::sym("Count"), .desc = !!(ordered == "desc")))
       )
     } else {
       data_expr <- rlang::expr(

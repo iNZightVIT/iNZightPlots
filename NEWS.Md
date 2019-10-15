@@ -4,6 +4,7 @@ __Release date__: TBA
 - add `use.plotly` attribute to ggplots
 - new method of plotting barcode plots using `geom_spoke`
 - add cutpoint option for diverging stacked bar charts
+- sortable plots now can be sorted in either ascending or descending
 
 # iNZightPlots 2.10.3
 __Release date__: 23 September 2019
