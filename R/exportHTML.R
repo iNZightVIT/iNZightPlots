@@ -501,8 +501,6 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
         min = box[[i]]$min
         max = box[[i]]$max
   
-        # get cumulative frequency of counts for each group:
-        countsTab[i+1] = sum(plots[[i]]$counts, countsTab[i])
         # get boxplot summaries for each group
         boxTable <- rbind(as.data.frame(quantiles), min, max)
         rownames(boxTable)[4:5] <- c("min", "max")
@@ -513,6 +511,8 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
         meanList[[i]] <- plot$meaninfo[[i]]$mean
       }
       
+      # get cumulative frequency of counts for each group:
+      countsTab[i+1] = sum(plots[[i]]$counts, countsTab[i])
     }
     
     #bind all groups together:
