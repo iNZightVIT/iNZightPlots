@@ -6,6 +6,8 @@ __Release date__: TBA
 - add cutpoint option for diverging stacked bar charts
 - sortable plots now can be sorted in either ascending or descending
 - gridplots now ignore background colours
+- fix bug where only complete cases over all variables were used for ggplots
+- add count of missing values to numeric lollipop/column plots
 - fix issue with brushing points on interactive dotplot when boxplots have been disabled
 
 
