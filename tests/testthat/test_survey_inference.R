@@ -175,22 +175,53 @@ test_that("Survey regression", {
     expect_equal(est_tbl, svy_tbl)
 })
 
-## These don't have a survey:: package function, so will have to investigate ...
-# test_that("Chi-square survey (one way bar plots)", {
-#     svy_prop <- svytotal(~stype, dclus1)
-#     svy_ci <- confint(svy_prop)
-#     svy_test <- svychisq(~stype, dclus1)
 
-#     inz_test <- capture.output(
-#         getPlotSummary(awards, stype,
-#             # data = apiclus1,
-#             design = dclus1,
-#             summary.type = "inference",
-#             inference.type = "conf"
-#         )
-#     )
+test_that("Single proportion survey (binary variable)", {
+    svy_prop <- svymean(~awards, dclus1)
+    svy_ci <- confint(svy_prop)
+    svy_Z <- (coef(svy_prop)[[1]] - 0.25) / SE(svy_prop)[[1]]
+    svy_p <- pnorm(abs(svy_Z), lower.tail = FALSE)
 
-# })
+    inz_test <- capture.output(
+        getPlotSummary(awards,
+            design = dclus1,
+            summary.type = "inference",
+            inference.type = "conf",
+            hypothesis.test = "proportion",
+            hypothesis.value = 0.25
+        )
+    )
+
+    inz_inf <- 
+        eval(parse(text = 
+            gsub("Z-", "Z", gsub("p-", "p", 
+                sprintf("list(%s)", inz_test[grep("p-value = ", inz_test)])
+            ))
+        ))
+    expect_equal(
+        inz_inf,
+        list(
+            Zscore = as.numeric(format(svy_Z, digits = 5)), 
+            pvalue = as.numeric(format.pval(svy_p, digits = 5))
+        )
+    )
+})
+
+test_that("Chi-square survey (one way bar plots)", {
+    svy_prop <- svytotal(~stype, dclus1)
+    svy_ci <- confint(svy_prop)
+    svy_test <- svychisq(~stype, dclus1)
+
+    inz_test <- capture.output(
+        getPlotSummary(awards, stype,
+            # data = apiclus1,
+            design = dclus1,
+            summary.type = "inference",
+            inference.type = "conf"
+        )
+    )
+
+})
 
 test_that("Two way Chi-square contingency tables", {
     svy_prop <- svyby(~stype, ~awards, dclus1, svymean)

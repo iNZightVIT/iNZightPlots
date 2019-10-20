@@ -401,15 +401,58 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
         return("Not enough data to perform bootstraps.")
 
     twoway <- nrow(phat) > 1
-    if (is.survey && !twoway) hypothesis <- NULL
 
     if (!is.null(hypothesis) && !bs) {
         HypOut <- switch(hypothesis$test,
             "proportion" = {
-                if (is.survey) {
+                if (twoway) {
                     HypOut <- NULL
-                } else if (twoway) {
-                    HypOut <- NULL
+                } else if (is.survey) {
+                    if (ncol(object$tab) == 2) {
+                        pr <- survey::svymean(~x, des)
+                        phat <- coef(pr)[[1]]
+                        p <- hypothesis$value
+                        se <- SE(pr)[[1]]
+                        Z <- (phat - p) / se
+                        prtest <- list(
+                            statistic = Z,
+                            p.value = switch(hypothesis$alternative,
+                                "two.sided" = pnorm(abs(Z), lower.tail = FALSE),
+                                "less" = pnorm(Z, lower.tail = TRUE),
+                                "greater" = pnorm(Z, lower.tail = FALSE)
+                            )
+                        )
+
+                        HypOut <- c(
+                            "One-sample test of a proportion",
+                            "",
+                            sprintf("   Z-score = %s, p-value %s%s",
+                                format(signif(prtest$statistic, 5)),
+                                ifelse(prtest$p.value < 2.2e-16, "", "= "), 
+                                format.pval(prtest$p.value, digits = 5)
+                            ),
+                            "",
+                            sprintf("          Null Hypothesis: %s",
+                                sprintf("true proportion of %s = %s is %s",
+                                    vn$x, colnames(object$tab)[1], 
+                                    hypothesis$value
+                                )
+                            ),
+                            sprintf("   Alternative Hypothesis: %s", 
+                                sprintf("true proportion of %s = %s is %s %s",
+                                    vn$x, colnames(object$tab)[1],
+                                    ifelse(hypothesis$alternative == "two.sided",
+                                        "not equal to",
+                                        paste(hypothesis$alternative, "than")
+                                    ),
+                                    hypothesis$value
+                                )
+                            ), 
+                            ""
+                        )
+                    } else {
+                        HypOut <- NULL
+                    }
                 } else {
                     if (ncol(object$tab) == 2) {
                         if (hypothesis$use.exact) {
