@@ -524,3 +524,149 @@ test_that("Subset (only g2) inference - two sample t-test", {
 })
 
 
+############################################ Replicate weight designs
+
+chis <- iNZightTools::smart_read("chis.csv")
+# chis <- iNZightTools::smart_read("tests/testthat/chis.csv")
+dchis <- suppressWarnings(svrepdesign(
+    data = chis,
+    repweights = "rakedw[1-9]",
+    weights = ~rakedw0,
+    type = "other", scale = 1, rscales = 1
+))
+
+test_that("Replicate weight designs - one sample t-test", {
+    z <- getPlotSummary(bmi_p,
+        design = dchis,
+        summary.type = "inference",
+        inference.type = "conf"
+    )
+    expect_is(z, "inzight.plotsummary")
+    expect_output(print(z), "Design-based One Sample t-test")
+
+    z <- getPlotSummary(bmi_p,
+        g1 = race,
+        design = dchis,
+        summary.type = "inference",
+        inference.type = "conf"
+    )
+    expect_is(z, "inzight.plotsummary")
+    expect_output(print(z), "Design-based One Sample t-test")
+})
+
+test_that("Replicate weight designs - two sample t-test", {
+    z <- getPlotSummary(bmi_p, srsex,
+        design = dchis,
+        summary.type = "inference",
+        inference.type = "conf"
+    )
+    expect_is(z, "inzight.plotsummary")
+    expect_output(print(z), "Design-based Two Sample T-test")
+
+    z <- getPlotSummary(bmi_p, srsex,
+        g1 = race,
+        design = dchis,
+        summary.type = "inference",
+        inference.type = "conf"
+    )
+    expect_is(z, "inzight.plotsummary")
+    expect_output(print(z), "Design-based Two Sample T-test")
+})
+
+test_that("Replicate weight designs - ANOVA", {
+    z <- getPlotSummary(bmi_p, race,
+        design = dchis,
+        summary.type = "inference",
+        inference.type = "conf"
+    )
+    expect_is(z, "inzight.plotsummary")
+    expect_output(print(z), "Wald test for race")
+
+    z <- getPlotSummary(bmi_p, race,
+        g1 = srsex,
+        design = dchis,
+        summary.type = "inference",
+        inference.type = "conf"
+    )
+    expect_is(z, "inzight.plotsummary")
+    expect_output(print(z), "Wald test for race")
+})
+
+test_that("Replicate weight designs - regression", {
+    z <- suppressWarnings(getPlotSummary(bmi_p, ab22,
+        design = dchis,
+        summary.type = "inference",
+        inference.type = "conf",
+        trend = "linear"
+    ))
+    expect_is(z, "inzight.plotsummary")
+    expect_output(print(z), "Linear Trend Coefficients")
+
+    z <- suppressWarnings(getPlotSummary(bmi_p, ab22,
+        g1 = race,
+        design = dchis,
+        summary.type = "inference",
+        inference.type = "conf",
+        trend = "linear"
+    ))
+    expect_is(z, "inzight.plotsummary")
+    expect_output(print(z), "Linear Trend Coefficients")
+})
+
+test_that("Replicate weight designs - single proportion", {
+    z <- getPlotSummary(srsex,
+        design = dchis,
+        summary.type = "inference",
+        inference.type = "conf"
+    )
+    expect_is(z, "inzight.plotsummary")
+    # expect_output(print(z), "")
+
+    z <- getPlotSummary(srsex,
+        g1 = race,
+        design = dchis,
+        summary.type = "inference",
+        inference.type = "conf"
+    )
+    expect_is(z, "inzight.plotsummary")
+    # expect_output(print(z), "")
+})
+
+test_that("Replicate weight designs - one way table", {
+    z <- getPlotSummary(race,
+        design = dchis,
+        summary.type = "inference",
+        inference.type = "conf"
+    )
+    expect_is(z, "inzight.plotsummary")
+    # expect_output(print(z), "")
+    
+    z <- getPlotSummary(race,
+        g1 = srsex,
+        design = dchis,
+        summary.type = "inference",
+        inference.type = "conf"
+    )
+    expect_is(z, "inzight.plotsummary")
+    # expect_output(print(z), "")
+})
+
+test_that("Replicate weight designs - two way table", {
+    z <- getPlotSummary(race, srsex,
+        design = dchis,
+        summary.type = "inference",
+        inference.type = "conf"
+    )
+    expect_is(z, "inzight.plotsummary")
+    expect_output(print(z), "Chi-square test for equal distributions")
+
+    z <- getPlotSummary(race, srsex,
+        g1 = smoke,
+        design = dchis,
+        summary.type = "inference",
+        inference.type = "conf"
+    )
+    expect_is(z, "inzight.plotsummary")
+    expect_output(print(z), "Chi-square test for equal distributions")
+})
+
