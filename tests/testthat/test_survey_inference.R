@@ -211,7 +211,13 @@ test_that("Single proportion survey (binary variable)", {
 #     svy_tab <- svytotal(~stype, dclus1)
 #     svy_ci <- confint(svy_prop)
 
-#     svyglm()
+#     count <- coef(svy_tab)
+#     svyglm(I(length(pw)) ~ 1, design = dclus1, family = quasipoisson())
+#     svyglm(I(sum(pw)) ~ stype, design = dclus1, family = quasipoisson())
+
+#     f1 <- glm(coef(svy_tab) ~ 1, family = quasipoisson())
+#     f2 <- glm(coef(svy_tab) ~ names(svy_tab), family = quasipoisson())
+#     survey:::anova.svyglm(f1, f2)
 
 #     svy_test <- svychisq(~stype, dclus1)
 
@@ -222,7 +228,6 @@ test_that("Single proportion survey (binary variable)", {
 #             inference.type = "conf"
 #         )
 #     )
-
 # })
 
 test_that("Two way Chi-square contingency tables", {
