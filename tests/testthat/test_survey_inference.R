@@ -670,3 +670,146 @@ test_that("Replicate weight designs - two way table", {
     expect_output(print(z), "Chi-square test for equal distributions")
 })
 
+############################################ Poststratified designs
+
+data(api, package = "survey")
+dclus1 <- svydesign(id = ~dnum, weights = ~pw, 
+    data = apiclus1, fpc = ~fpc)
+pop.types <- data.frame(stype = c("E","H","M"), Freq = c(4421,755,1018))
+dclus1p <- postStratify(dclus1, ~stype, pop.types)
+
+test_that("Post-strat designs - one sample t-test", {
+    z <- getPlotSummary(api00,
+        design = dclus1p,
+        summary.type = "inference",
+        inference.type = "conf"
+    )
+    expect_is(z, "inzight.plotsummary")
+    expect_output(print(z), "Design-based One Sample t-test")
+
+    z <- getPlotSummary(api00,
+        g1 = awards,
+        design = dclus1p,
+        summary.type = "inference",
+        inference.type = "conf"
+    )
+    expect_is(z, "inzight.plotsummary")
+    expect_output(print(z), "Design-based One Sample t-test")
+})
+
+test_that("Post-strat designs - two sample t-test", {
+    z <- getPlotSummary(api00, sch.wide,
+        design = dclus1p,
+        summary.type = "inference",
+        inference.type = "conf"
+    )
+    expect_is(z, "inzight.plotsummary")
+    expect_output(print(z), "Design-based Two Sample T-test")
+
+    z <- suppressWarnings(getPlotSummary(api00, awards,
+        g1 = yr.rnd,
+        design = dclus1p,
+        summary.type = "inference",
+        inference.type = "conf"
+    ))
+    expect_is(z, "inzight.plotsummary")
+    expect_output(print(z), "Design-based Two Sample T-test")
+})
+
+test_that("Post-strat designs - ANOVA", {
+    z <- getPlotSummary(api00, stype,
+        design = dclus1p,
+        summary.type = "inference",
+        inference.type = "conf"
+    )
+    expect_is(z, "inzight.plotsummary")
+    expect_output(print(z), "Wald test for stype")
+
+    z <- suppressWarnings(getPlotSummary(api00, stype,
+        g1 = awards,
+        design = dclus1p,
+        summary.type = "inference",
+        inference.type = "conf"
+    ))
+    expect_is(z, "inzight.plotsummary")
+    expect_output(print(z), "Wald test for stype")
+})
+
+test_that("Post-strat designs - regression", {
+    z <- getPlotSummary(api99, api00,
+        design = dclus1p,
+        summary.type = "inference",
+        inference.type = "conf",
+        trend = "linear"
+    )
+    expect_is(z, "inzight.plotsummary")
+    expect_output(print(z), "Linear Trend Coefficients")
+
+    z <- suppressWarnings(getPlotSummary(api99, api00,
+        g1 = awards,
+        design = dclus1p,
+        summary.type = "inference",
+        inference.type = "conf",
+        trend = "linear"
+    ))
+    expect_is(z, "inzight.plotsummary")
+    expect_output(print(z), "Linear Trend Coefficients")
+})
+
+test_that("Post-strat designs - single proportion", {
+    z <- getPlotSummary(awards,
+        design = dclus1p,
+        summary.type = "inference",
+        inference.type = "conf"
+    )
+    expect_is(z, "inzight.plotsummary")
+    # expect_output(print(z), "")
+
+    z <- getPlotSummary(awards,
+        g1 = yr.rnd,
+        design = dclus1p,
+        summary.type = "inference",
+        inference.type = "conf"
+    )
+    expect_is(z, "inzight.plotsummary")
+    # expect_output(print(z), "")
+})
+
+test_that("Post-strat designs - one way table", {
+    z <- getPlotSummary(stype,
+        design = dclus1p,
+        summary.type = "inference",
+        inference.type = "conf"
+    )
+    expect_is(z, "inzight.plotsummary")
+    # expect_output(print(z), "")
+
+    z <- getPlotSummary(stype,
+        g1 = awards,
+        design = dclus1p,
+        summary.type = "inference",
+        inference.type = "conf"
+    )
+    expect_is(z, "inzight.plotsummary")
+    # expect_output(print(z), "")
+})
+
+test_that("Post-strat designs - two way table", {
+    z <- getPlotSummary(stype, both,
+        design = dclus1p,
+        summary.type = "inference",
+        inference.type = "conf"
+    )
+    expect_is(z, "inzight.plotsummary")
+    expect_output(print(z), "Chi-square test for equal distributions")
+
+    z <- getPlotSummary(stype, yr.rnd,
+        g1 = awards,
+        design = dclus1p,
+        summary.type = "inference",
+        inference.type = "conf"
+    )
+    expect_is(z, "inzight.plotsummary")
+    expect_output(print(z), "Chi-square test for equal distributions")
+})
+
