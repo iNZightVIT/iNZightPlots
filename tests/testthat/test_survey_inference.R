@@ -207,21 +207,23 @@ test_that("Single proportion survey (binary variable)", {
     )
 })
 
-test_that("Chi-square survey (one way bar plots)", {
-    svy_prop <- svytotal(~stype, dclus1)
-    svy_ci <- confint(svy_prop)
-    svy_test <- svychisq(~stype, dclus1)
+# test_that("Chi-square survey (one way bar plots)", {
+#     svy_tab <- svytotal(~stype, dclus1)
+#     svy_ci <- confint(svy_prop)
 
-    inz_test <- capture.output(
-        getPlotSummary(awards, stype,
-            # data = apiclus1,
-            design = dclus1,
-            summary.type = "inference",
-            inference.type = "conf"
-        )
-    )
+#     svyglm()
 
-})
+#     svy_test <- svychisq(~stype, dclus1)
+
+#     inz_test <- capture.output(
+#         getPlotSummary(awards, stype,
+#             design = dclus1,
+#             summary.type = "inference",
+#             inference.type = "conf"
+#         )
+#     )
+
+# })
 
 test_that("Two way Chi-square contingency tables", {
     svy_prop <- svyby(~stype, ~awards, dclus1, svymean)
