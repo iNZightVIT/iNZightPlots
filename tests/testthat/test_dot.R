@@ -11,7 +11,13 @@ test_that("Colour by", {
     )
 })
 
-
+test_that("Colour by with quantiles", {
+    expect_is(
+        iNZightPlot(Sepal.Width, colby = Petal.Width, col.method = "rank",
+            data = iris),
+        "inzplotoutput"
+    )
+})
 
 test_that("Inference information is correct", {
     set.seed(1)

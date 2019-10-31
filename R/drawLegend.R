@@ -114,6 +114,7 @@ drawContLegend <- function(var, title = "", height = NULL, cex.mult = 1,
     if (opts$col.method == "rank") {
         at <- seq(0, 100, by = 20)
         label <- paste0(at, "%")
+        labs <- label
     } else if (!is.null(opts$transform$colby)) {
         if (opts$transform$colby == "datetime") {
             ## format labels for datetime
