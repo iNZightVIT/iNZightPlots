@@ -11,6 +11,7 @@ __Release date__: TBA
 - fix issue with brushing points on interactive dotplot when boxplots have been disabled
 - fix up inference information for surveys (+ tests)
 - fix bug where colour by ranks was returning an error
+- fix bug where x axis transformation was wrong for dotplot by factor when x was the factor and y the numeric
 
 
 # iNZightPlots 2.10.3

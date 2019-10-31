@@ -164,7 +164,18 @@ inzDataframe <- function(m, data = NULL, names = list(),
             }
         }
     if (length(trans.extra)) trans$extra <- trans.extra
-    if (length(trans)) df$transformations <- trans
+    if (length(trans)) {
+        # switch x and y axis transform if x is factor and y is numeric
+        if (all(c("x", "y") %in% colnames(df$data))) {
+            if (is_cat(df$data$x) && is_num(df$data$y)) {
+                tr_x <- trans$x
+                trans$x <- trans$y
+                trans$y <- tr_x
+            }
+        }
+
+        df$transformations <- trans
+    }
 
     # convert any -Inf/Inf values to NA's
     # this is likely to occur if the user supplies a transformed value
