@@ -10,13 +10,14 @@ __Release date__: TBA
 - add count of missing values to numeric lollipop/column plots
 - fix issue with brushing points on interactive dotplot when boxplots have been disabled
 - fix up inference information for surveys (+ tests)
+- fix bug where colour by ranks was returning an error
 
 
 # iNZightPlots 2.10.3
 __Release date__: 23 September 2019
 
 - rotate spine plot by default
-- change default colouring behaviour for categorical lollipop plots 
+- change default colouring behaviour for categorical lollipop plots
 - add interactivity for mean indicators on dotplots/histograms
 - add ability to rotate x/y axis labels for ggplots
 
@@ -25,13 +26,13 @@ __Release date__: 23 September 2019
 __Release date__: 2 September 2019
 
 - fix a bug where level labels weren't shown in one-way table inference
-- add hypothesis test for proportions (normal and exact) 
+- add hypothesis test for proportions (normal and exact)
 - show simulated p-value for Chi-square test when expected counts < 5 or requested by user
 - fix bug in exported interactive plots when boxplots are disabled
 - add ability to rotate x-axis label text
 - add ability to change the number of observations each square represents for gridplots
 - rotate some numeric plots to have variable of interest on x-axis, e.g. violins (#106, daniel-barnett)
-- add new `quasirandom` plot instead of `beeswarm` to enable control of swarm width/method 
+- add new `quasirandom` plot instead of `beeswarm` to enable control of swarm width/method
 
 
 # iNZightPlots 2.10.1
