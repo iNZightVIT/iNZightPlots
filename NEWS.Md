@@ -1,5 +1,5 @@
-# iNZightPlots 2.10.3.9000
-__Release date__: TBA
+# iNZightPlots 2.10.4
+__Release date__: 11 November 2019
 
 - add `use.plotly` attribute to ggplots
 - new method of plotting barcode plots using `geom_spoke`
