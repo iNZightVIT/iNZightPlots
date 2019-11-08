@@ -73,7 +73,7 @@ rotate_gridplot <- function(expr) {
 
 apply_palette <- function(expr, palette, type) {
   viridis_names <- unname(unlist(viridis_palette_names()))
-  colour_plots <- c("gg_cumcurve", "gg_lollipop", "gg_freqpolygon", "gg_barcode", "gg_dotstrip", "gg_quasirandom", "gg_lollipop2")
+  colour_plots <- c("gg_cumcurve", "gg_lollipop", "gg_freqpolygon", "gg_barcode", "gg_dotstrip", "gg_quasirandom", "gg_lollipop2", "gg_barcode3", "gg_dotstrip")
   
   if (palette %in% viridis_names) {
     if (type %in% colour_plots) {
@@ -225,9 +225,9 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
       varnames["y"] <- orig_x
     }
     
-    if (type %in% c("gg_barcode", "gg_dotstrip") && isTRUE(!is.null(extra_vars$fill_colour) && extra_vars$fill_colour != "")) {
-      varnames["colour"] <- extra_vars$fill_colour
-    }
+    # if (type %in% c("gg_barcode", "gg_dotstrip") && isTRUE(!is.null(extra_vars$fill_colour) && extra_vars$fill_colour != "")) {
+    #   varnames["colour"] <- extra_vars$fill_colour
+    # }
   } else if (type %in% c("gg_stackedbar", "gg_stackedcolumn")) {
     names(varnames) <- replace(names(varnames), names(varnames) == "x", "fill")
     if ("y" %in% names(varnames)) {
@@ -1165,7 +1165,7 @@ iNZightPlotGG_dotstrip <- function(data, x, y, fill = "darkgreen", main = sprint
     colour <- rlang::sym(x)
     
     plot_expr <- rlang::expr(
-      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x)) + 
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x, colour = !!colour)) + 
         ggplot2::geom_point(!!!dots) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 

@@ -13,6 +13,7 @@ __Release date__: TBA
 - fix bug where colour by ranks was returning an error
 - fix bug where x axis transformation was wrong for dotplot by factor when x was the factor and y the numeric
 - Enable transparency options for ridgeline plots
+- Add colour options for barcode and dot strip plots
 
 
 # iNZightPlots 2.10.3
