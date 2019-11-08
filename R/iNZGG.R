@@ -22,7 +22,7 @@ optional_args <- list(
   gg_barcode2 = c("gg_height", "gg_width", "alpha"),
   gg_barcode3 = c("gg_height", "gg_width", "alpha"),
   gg_beeswarm = c("gg_size"),
-  gg_ridgeline = c("alpha"),
+  gg_ridgeline = c("alpha", "alpha_densitygroup"),
   gg_gridplot = c("gg_perN"),
   gg_quasirandom = c("gg_size", "gg_swarmwidth", "gg_method"),
   gg_divergingstackedbar = c("gg_cutpoint")
@@ -73,7 +73,7 @@ rotate_gridplot <- function(expr) {
 
 apply_palette <- function(expr, palette, type) {
   viridis_names <- unname(unlist(viridis_palette_names()))
-  colour_plots <- c("gg_cumcurve", "gg_lollipop", "gg_freqpolygon", "gg_barcode", "gg_dotstrip", "gg_quasirandom", "gg_lollipop2")
+  colour_plots <- c("gg_cumcurve", "gg_lollipop", "gg_freqpolygon", "gg_barcode", "gg_dotstrip", "gg_quasirandom", "gg_lollipop2", "gg_barcode3", "gg_dotstrip")
   
   if (palette %in% viridis_names) {
     if (type %in% colour_plots) {
@@ -225,9 +225,9 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
       varnames["y"] <- orig_x
     }
     
-    if (type %in% c("gg_barcode", "gg_dotstrip") && isTRUE(!is.null(extra_vars$fill_colour) && extra_vars$fill_colour != "")) {
-      varnames["colour"] <- extra_vars$fill_colour
-    }
+    # if (type %in% c("gg_barcode", "gg_dotstrip") && isTRUE(!is.null(extra_vars$fill_colour) && extra_vars$fill_colour != "")) {
+    #   varnames["colour"] <- extra_vars$fill_colour
+    # }
   } else if (type %in% c("gg_stackedbar", "gg_stackedcolumn")) {
     names(varnames) <- replace(names(varnames), names(varnames) == "x", "fill")
     if ("y" %in% names(varnames)) {
@@ -294,7 +294,7 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
       }
     }
     
-    if (type %in% c("gg_density")) {
+    if (type %in% c("gg_density", "gg_ridgeline")) {
       if ("x" %in% names(varnames)) {
         varnames[["alpha"]] <- NULL
         varnames[["alpha_density"]] <- NULL
@@ -1033,7 +1033,7 @@ iNZightPlotGG_lollipop <- function(data, x, y, main = sprintf("Distribution of %
   )
 }
 
-iNZightPlotGG_cumcurve <- function(data, x, y, main = sprintf("Cumulative Count of %s", as.character(y)), xlab = as.character(y), ylab = "Cumulative Frequency", ...) {
+iNZightPlotGG_cumcurve <- function(data, x, y, main = sprintf("Cumulative Curve of %s", as.character(y)), xlab = as.character(y), ylab = "Cumulative Frequency", ...) {
   y <- rlang::sym(y)
   dots <- list(...)
   
@@ -1165,7 +1165,7 @@ iNZightPlotGG_dotstrip <- function(data, x, y, fill = "darkgreen", main = sprint
     colour <- rlang::sym(x)
     
     plot_expr <- rlang::expr(
-      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x)) + 
+      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x, colour = !!colour)) + 
         ggplot2::geom_point(!!!dots) + 
         ggplot2::labs(title = !!main) + 
         ggplot2::xlab(!!xlab) + 
