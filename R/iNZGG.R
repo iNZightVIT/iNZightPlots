@@ -1033,7 +1033,7 @@ iNZightPlotGG_lollipop <- function(data, x, y, main = sprintf("Distribution of %
   )
 }
 
-iNZightPlotGG_cumcurve <- function(data, x, y, main = sprintf("Cumulative Count of %s", as.character(y)), xlab = as.character(y), ylab = "Cumulative Frequency", ...) {
+iNZightPlotGG_cumcurve <- function(data, x, y, main = sprintf("Cumulative Curve of %s", as.character(y)), xlab = as.character(y), ylab = "Cumulative Frequency", ...) {
   y <- rlang::sym(y)
   dots <- list(...)
   
