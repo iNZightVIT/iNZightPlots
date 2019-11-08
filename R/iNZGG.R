@@ -22,7 +22,7 @@ optional_args <- list(
   gg_barcode2 = c("gg_height", "gg_width", "alpha"),
   gg_barcode3 = c("gg_height", "gg_width", "alpha"),
   gg_beeswarm = c("gg_size"),
-  gg_ridgeline = c("alpha"),
+  gg_ridgeline = c("alpha", "alpha_densitygroup"),
   gg_gridplot = c("gg_perN"),
   gg_quasirandom = c("gg_size", "gg_swarmwidth", "gg_method"),
   gg_divergingstackedbar = c("gg_cutpoint")
@@ -294,7 +294,7 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
       }
     }
     
-    if (type %in% c("gg_density")) {
+    if (type %in% c("gg_density", "gg_ridgeline")) {
       if ("x" %in% names(varnames)) {
         varnames[["alpha"]] <- NULL
         varnames[["alpha_density"]] <- NULL
