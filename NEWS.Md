@@ -1,8 +1,27 @@
+# iNZightPlots 2.10.4
+__Release date__: 11 November 2019
+
+- add `use.plotly` attribute to ggplots
+- new method of plotting barcode plots using `geom_spoke`
+- add cutpoint option for diverging stacked bar charts
+- sortable plots now can be sorted in either ascending or descending
+- gridplots now ignore background colours
+- fix bug where only complete cases over all variables were used for ggplots
+- add count of missing values to numeric lollipop/column plots
+- fix issue with brushing points on interactive dotplot when boxplots have been disabled
+- fix up inference information for surveys (+ tests)
+- fix bug where colour by ranks was returning an error
+- fix bug where x axis transformation was wrong for dotplot by factor when x was the factor and y the numeric
+- Enable transparency options for ridgeline plots
+- Add colour options for barcode and dot strip plots
+- Change default title of cumulative curve plots to "Cumulative Curve ..." (was "Cumulative Count ...")
+
+
 # iNZightPlots 2.10.3
 __Release date__: 23 September 2019
 
 - rotate spine plot by default
-- change default colouring behaviour for categorical lollipop plots 
+- change default colouring behaviour for categorical lollipop plots
 - add interactivity for mean indicators on dotplots/histograms
 - add ability to rotate x/y axis labels for ggplots
 
@@ -11,13 +30,13 @@ __Release date__: 23 September 2019
 __Release date__: 2 September 2019
 
 - fix a bug where level labels weren't shown in one-way table inference
-- add hypothesis test for proportions (normal and exact) 
+- add hypothesis test for proportions (normal and exact)
 - show simulated p-value for Chi-square test when expected counts < 5 or requested by user
 - fix bug in exported interactive plots when boxplots are disabled
 - add ability to rotate x-axis label text
 - add ability to change the number of observations each square represents for gridplots
 - rotate some numeric plots to have variable of interest on x-axis, e.g. violins (#106, daniel-barnett)
-- add new `quasirandom` plot instead of `beeswarm` to enable control of swarm width/method 
+- add new `quasirandom` plot instead of `beeswarm` to enable control of swarm width/method
 
 
 # iNZightPlots 2.10.1

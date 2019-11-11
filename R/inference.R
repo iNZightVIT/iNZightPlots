@@ -122,14 +122,17 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
             ## Two sample t-test
 
             if (is.survey) {
-                fit <- try(svyglm(if (is.numeric(des$variables$x)) x ~ y else y ~ x, design = des), TRUE)
-                if (inherits(fit, "try-error")) {
+                fmla <- if (is.numeric(des$variables$x)) x ~ y else y ~ x
+                ttest <- try(svyttest(fmla, design = des), silent = TRUE)
+                if (inherits(ttest, "try-error")) {
                     mat <- rbind(c("Lower", "Mean", "Upper"),
                                  rep(NA, 3))
                 } else {
-                    ci <- confint(fit)
-                    mat <- rbind(c("Lower", "Mean", "Upper"),
-                                 format(c(ci[2,1], coef(fit)[2], ci[2, 2]), digits = 4))
+                    ci <- confint(ttest)
+                    mat <- rbind(
+                        c("Lower", "Mean", "Upper"),
+                        format(c(ci[[1]], ttest$estimate[[1]], ci[[2]]), digits = 4)
+                    )
                     colnames(mat) <- NULL
                 }
             } else {
@@ -164,7 +167,10 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
         if (!is.null(hypothesis)) {
             if (length(toplot) == 2 && hypothesis$test %in% c("default", "t.test")) {
                 if (is.survey) {
-                    test.out <- try(svyttest(if (is.numeric(des$variables$x)) x ~ y else y ~ x, des), TRUE)
+                    test.out <- try(
+                        svyttest(if (is.numeric(des$variables$x)) x ~ y else y ~ x, des), 
+                        silent = TRUE
+                    )
                 } else {
                     test.out <- t.test(toplot[[1]]$x, toplot[[2]]$x,
                                        mu = hypothesis$value, alternative = hypothesis$alternative,
@@ -216,23 +222,41 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
                                      }
                                      ))
         if (is.survey) {
-            fit <- try(svyglm(x ~ y, des), TRUE)
+            fit <- try(svyglm(if (is.numeric(des$variables$x)) x ~ y else y ~ x, des), TRUE)
         } else {
             fit <- lm(x ~ y, data = dat)
         }
 
-        if (!is.survey && !is.null(hypothesis) && (length(toplot) > 2 | hypothesis$test == "anova")) {
-            fstat <- summary(fit)$fstatistic
+        if (!is.null(hypothesis) && (length(toplot) > 2 | hypothesis$test == "anova")) {
+            if (is.survey) {
+                fstat <- regTermTest(fit, 
+                    if (is.numeric(des$variables$x)) ~y else ~x
+                    # hypothesis values here
+                    # null = ...
+                )
+                Fval <- fstat$Ftest[1]
+                Fdf <- c(fstat$df, fstat$ddf)
+                fpval <- fstat$p[1]
+                Fname <- sprintf(
+                    "Wald test for %s (ANOVA equivalent for survey design)",
+                    if (is.numeric(des$variables$x)) vn$y else vn$x
+                )
+            } else {
+                fstat <- summary(fit)$fstatistic
+                Fval <- fstat[1]
+                Fdf <- fstat[2:3]
+                fpval <- pf(fstat[1], fstat[2], fstat[3], lower.tail = FALSE)
+                Fname <- "One-way Analysis of Variance (ANOVA F-test)"
+            }
+            fpval <- format.pval(fpval, digits = 5)
 
-            fpval <- format.pval(pf(fstat[1], fstat[2], fstat[3], lower.tail = FALSE),
-                                 digits = 5)
-            Ftest <- c("One-way Analysis of Variance (ANOVA F-test)", "",
-                       paste0("   F = ", signif(fstat[1], 5),
-                              ", df = ", fstat[2], " and ", fstat[3],
+            Ftest <- c(Fname, "",
+                       paste0("   F = ", signif(Fval, 5),
+                              ", df = ", Fdf[1], " and ", Fdf[2],
                               ", p-value ", ifelse(substr(fpval, 1, 1) == "<", "", "= "), fpval))
             out <- c(out, "", Ftest, "",
-                     "          Null Hypothesis: true group means are equal",
-                     "   Alternative Hypothesis: true group means are not equal")
+                     "          Null Hypothesis: true group means are all equal",
+                     "   Alternative Hypothesis: true group means are not all equal")
         }
 
         if (length(toplot) > 2) {
@@ -252,7 +276,9 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
                      "Estimates", "",
                      apply(diffMat, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
 
-            if (!is.survey) {
+            if (is.survey) {
+                ## To do: figure out how to make pairwise comparisons!
+            } else {
                 mc <- try(s20x::multipleComp(fit))
                 if (!inherits(mc, "try-error")) {
                     cimat <- triangularMatrix(LEVELS, mc, "ci")
@@ -280,7 +306,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
         ## hypothesis testing - one sample
         if (is.survey) {
             des <- update(des, .h0 = x - hypothesis$value)
-            test.out <- svyttest(.h0 ~ 0, des)
+            test.out <- svyttest(.h0 ~ 1, des)
         } else {
             test.out <- t.test(toplot$all$x,
                                alternative = hypothesis$alternative,
@@ -375,15 +401,58 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
         return("Not enough data to perform bootstraps.")
 
     twoway <- nrow(phat) > 1
-    if (is.survey && !twoway) hypothesis <- NULL
 
     if (!is.null(hypothesis) && !bs) {
         HypOut <- switch(hypothesis$test,
             "proportion" = {
-                if (is.survey) {
+                if (twoway) {
                     HypOut <- NULL
-                } else if (twoway) {
-                    HypOut <- NULL
+                } else if (is.survey) {
+                    if (ncol(object$tab) == 2) {
+                        pr <- survey::svymean(~x, des)
+                        phat <- coef(pr)[[1]]
+                        p <- hypothesis$value
+                        se <- SE(pr)[[1]]
+                        Z <- (phat - p) / se
+                        prtest <- list(
+                            statistic = Z,
+                            p.value = switch(hypothesis$alternative,
+                                "two.sided" = pnorm(abs(Z), lower.tail = FALSE),
+                                "less" = pnorm(Z, lower.tail = TRUE),
+                                "greater" = pnorm(Z, lower.tail = FALSE)
+                            )
+                        )
+
+                        HypOut <- c(
+                            "One-sample test of a proportion",
+                            "",
+                            sprintf("   Z-score = %s, p-value %s%s",
+                                format(signif(prtest$statistic, 5)),
+                                ifelse(prtest$p.value < 2.2e-16, "", "= "), 
+                                format.pval(prtest$p.value, digits = 5)
+                            ),
+                            "",
+                            sprintf("          Null Hypothesis: %s",
+                                sprintf("true proportion of %s = %s is %s",
+                                    vn$x, colnames(object$tab)[1], 
+                                    hypothesis$value
+                                )
+                            ),
+                            sprintf("   Alternative Hypothesis: %s", 
+                                sprintf("true proportion of %s = %s is %s %s",
+                                    vn$x, colnames(object$tab)[1],
+                                    ifelse(hypothesis$alternative == "two.sided",
+                                        "not equal to",
+                                        paste(hypothesis$alternative, "than")
+                                    ),
+                                    hypothesis$value
+                                )
+                            ), 
+                            ""
+                        )
+                    } else {
+                        HypOut <- NULL
+                    }
                 } else {
                     if (ncol(object$tab) == 2) {
                         if (hypothesis$use.exact) {
@@ -503,7 +572,9 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
                         ),
                         "",
                         paste0("   X^2 = ", format(signif(chi2$statistic, 5)), ", ",
-                            "df = ", format(signif(chi2$parameter, 5)), ", ",
+                            "df = ", 
+                            paste(sprintf("%.4g", chi2$parameter), collapse = " and "),
+                            ", ",
                             "p-value ", ifelse(chi2$p.value < 2.2e-16, "", "= "), 
                                 format.pval(chi2$p.value, digits = 5),
                             simpval
@@ -639,7 +710,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
                          apply(cis, 1, function(x) paste0("   ", paste(x, collapse = "   "))))
             }
         }
-    } else {
+    } else { ## one-way table
         mat <- t(rbind(inf$conf$lower, inf$conf$estimate, inf$conf$upper))
 
         mat <- matrix(apply(mat, 2, function(col) {

@@ -146,15 +146,15 @@ iNZightPlot <-
             m, data = md, names = varnames, g1.level, g2.level, env = env
         )
     }
-    
+
     if (isTRUE(grepl("^gg_", list(...)$plottype))) {
       # Remove xlab and ylab from varnames list (for lite)
       varnames <- varnames[!(names(varnames) %in% c("xlab", "ylab"))]
-      
+
       ret.plot <- do.call(
-        iNZightPlotGG, 
+        iNZightPlotGG,
         c(list(
-          setNames(df$data, df$varnames), 
+          setNames(df$data, df$varnames),
           type = list(...)$plottype,
           data_name = list(...)$data_name,
           main = list(...)$main,
@@ -169,37 +169,37 @@ iNZightPlot <-
           list(g1.level = g1.level, g2.level = g2.level)
         )
       )
-      
+
       return(ret.plot)
-      
+
       # if (isTRUE(list(...)$plottype %in% c("gg_pie", "gg_donut", "gg_stackedcolumn", "gg_stackedbar"))) {
       #   ret.plot <- iNZightPlotGG(
-      #     setNames(df$data, df$varnames), 
-      #     type = list(...)$plottype, 
+      #     setNames(df$data, df$varnames),
+      #     type = list(...)$plottype,
       #     data_name = list(...)$data.name,
       #     fill = varnames$x
       #   )
       #   return(ret.plot)
       # } else if (isTRUE(list(...)$plottype %in% c("gg_bar", "gg_column"))) {
       #   ret.plot <- iNZightPlotGG(
-      #     setNames(df$data, df$varnames), 
-      #     type = list(...)$plottype, 
+      #     setNames(df$data, df$varnames),
+      #     type = list(...)$plottype,
       #     data_name = list(...)$data.name,
       #     x = varnames$x
       #   )
       #   return(ret.plot)
       # } else if (isTRUE(list(...)$plottype %in% c("gg_violin", "gg_barcode"))) {
       #   ret.plot <- iNZightPlotGG(
-      #     setNames(df$data, df$varnames), 
-      #     type = list(...)$plottype, 
+      #     setNames(df$data, df$varnames),
+      #     type = list(...)$plottype,
       #     data_name = list(...)$data.name,
       #     y = varnames$x
       #   )
       #   return(ret.plot)
       # }
     }
-    
-    
+
+
     total.missing <- sum(apply(df$data, 1, function(x) any(is.na(x))))
     total.obs <- nrow(df$data)
 
