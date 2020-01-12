@@ -85,5 +85,5 @@ Generate summary or inference information for an iNZight plot
 Works much the same as \code{iNZightPlot}
 }
 \author{
-tell029
+Tom Elliott
 }

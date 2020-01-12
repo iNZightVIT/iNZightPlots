@@ -2,12 +2,17 @@
 % Please edit documentation in R/exploreAllSummaries.R
 \name{exploreAllSummaries}
 \alias{exploreAllSummaries}
+\alias{print.allSummaries}
 \title{Explore all Univariate Summaries}
 \usage{
 exploreAllSummaries(data)
+
+\method{print}{allSummaries}(x, ...)
 }
 \arguments{
 \item{data}{a data set}
+
+\item{...}{additional arguments passed to getPlotSummary()}
 }
 \value{
 allSummaries object
@@ -15,6 +20,11 @@ allSummaries object
 \description{
 Allows easy access to a summary for every variable in the data set.
 }
+\section{Methods (by generic)}{
+\itemize{
+\item \code{print}: print method for allSummaries object
+}}
+
 \author{
-tell029
+Tom Elliott
 }
