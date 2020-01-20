@@ -8,8 +8,13 @@
 \usage{
 exportSVG(x, file, ...)
 
-\method{exportSVG}{function}(x, file = "inzightplot.svg",
-  width = dev.size()[1], height = dev.size()[2], ...)
+\method{exportSVG}{`function`}(
+  x,
+  file = "inzightplot.svg",
+  width = dev.size()[1],
+  height = dev.size()[2],
+  ...
+)
 
 \method{exportSVG}{inzplotoutput}(x, file = "inzightplot.svg", ...)
 }

@@ -6,12 +6,12 @@
 #' @return allSummaries object
 #' @author Tom Elliott
 #' @export
-exploreAllSummaries <- function(data) {
+exploreAllSummaries <- function(data, ...) {
     ## Runs getPlotSummary() on all variables.
 
     sums <- lapply(colnames(data),
-        function(x) {
-            paste(getPlotSummary(data[, x], varnames = list(x = x), ...),
+        function(cname) {
+            paste(getPlotSummary(data[, cname], varnames = list(x = cname), ...),
                 collapse = "\n"
             )
         }
@@ -24,6 +24,6 @@ exploreAllSummaries <- function(data) {
 }
 
 #' @describeIn exploreAllSummaries print method for allSummaries object
-#' @export
+#' @param x an \code{allSummaries} object
 print.allSummaries <- function(x, ...)
     cat(x)

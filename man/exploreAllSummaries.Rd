@@ -5,7 +5,7 @@
 \alias{print.allSummaries}
 \title{Explore all Univariate Summaries}
 \usage{
-exploreAllSummaries(data)
+exploreAllSummaries(data, ...)
 
 \method{print}{allSummaries}(x, ...)
 }
@@ -13,6 +13,8 @@ exploreAllSummaries(data)
 \item{data}{a data set}
 
 \item{...}{additional arguments passed to getPlotSummary()}
+
+\item{x}{an \code{allSummaries} object}
 }
 \value{
 allSummaries object
