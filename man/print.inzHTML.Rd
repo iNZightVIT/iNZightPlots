@@ -4,8 +4,7 @@
 \alias{print.inzHTML}
 \title{Print method for `inzHTML` object}
 \usage{
-\method{print}{inzHTML}(x, viewer = getOption("viewer",
-  utils::browseURL), ...)
+\method{print}{inzHTML}(x, viewer = getOption("viewer", utils::browseURL), ...)
 }
 \arguments{
 \item{x}{a URL that will be printed}
