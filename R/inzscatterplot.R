@@ -211,8 +211,12 @@ plot.inzscatter <- function(obj, gen) {
                             col = opts$col.line))
         } else {
             byy <- as.factor(obj$colby)  # pseudo-by-variable
-            xtmp <- lapply(levels(byy), function(c) subset(obj$x, obj$colby == c))
-            ytmp <- lapply(levels(byy), function(c) subset(obj$y, obj$colby == c))
+            xtmp <- lapply(levels(byy),
+                function(c) obj$x[obj$colby == c]
+            )
+            ytmp <- lapply(levels(byy),
+                function(c) obj$y[obj$colby == c]
+            )
 
             for (b in 1:length(levels(byy)))
                 grid.lines(xtmp[[b]], ytmp[[b]], default.units = "native",

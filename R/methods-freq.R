@@ -6,7 +6,7 @@ gSubset.inz.freq <- function(df, g1.level, g2.level, df.vs, missing) {
 
     dd <- df$data
     dd$freq <- df$freq
-    
+
     matrix.plot <- FALSE
     if ("g2" %in% df.vs) {
         if (is.null(g2.level)) g2.level <- "_ALL"
@@ -17,7 +17,7 @@ gSubset.inz.freq <- function(df, g1.level, g2.level, df.vs, missing) {
         if (is.numeric(g2.level)) {
             if (as.integer(g2.level) != g2.level)
                 warning(paste0("g2.level truncated to ", g2.level, "."))
-            
+
             if (g2.level == 0) {
                 g2.level <- "_ALL"
             } else if (g2.level == ng2 + 1) {
@@ -36,14 +36,15 @@ gSubset.inz.freq <- function(df, g1.level, g2.level, df.vs, missing) {
         } else {
             if (g2.level == "_MULTI") {
                 matrix.plot <- TRUE
-            }                
-            
+            }
+
             missing$g2 <- sum(is.na(dd$g2))
             df1 <- lapply(g2l,
-                          function(l) {
-                              dft <- subset(dd, dd$g2 == l)
-                              dft[, colnames(dft) != "g2"]
-                          })
+                function(l) {
+                    dft <- dd[dd$g2 == l & !is.na(dd$g2), , drop = FALSE]
+                    dft[, colnames(dft) != "g2"]
+                }
+            )
             names(df1) <- g2l
         }
     } else {
@@ -76,7 +77,7 @@ gSubset.inz.freq <- function(df, g1.level, g2.level, df.vs, missing) {
         g1l <- "all"
         g1.level <- "all"
     }
-    
+
     # this converts each data.frame in the list to a list of data
     # frames for all levels of g1
     df.list <- lapply(df1, function(df2) {
