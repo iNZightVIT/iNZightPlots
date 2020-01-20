@@ -90,10 +90,12 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
             di <- svydesign(ids=~1, weights = dfi$freq, data = dfi)
         else if (xattr$class == "inz.survey") {
             if ("y" %in% colnames(obj$df$variables)) {
-                di <- subset(obj$df, y == i)
+                ss <- obj$df$variables$y == i & !is.na(obj$df$variables$y)
+                di <- obj$df[ss]
             } else di <- obj$df
         } else {
-            dfi <- subset(df, id == i)
+            ss <- id == i & !is.na(id)
+            dfi <- df[ss, , drop = FALSE]
             dfi$y <- NULL
             di <- dfi
         }
@@ -193,10 +195,10 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
 
     boxinfo <- if (boxplot & (!"mean" %in% opts$inference.par) & nrow(df) > 5)
         boxSummary(out, opts) else NULL
-    
+
     meaninfo <- if (mean_indicator)
         meanSummary(out, opts) else NULL
-      
+
 
     nbins <- bins <- NULL
     if (hist) {
@@ -474,11 +476,11 @@ addMean <- function(x, opts, i) {
   r <- opts$rowNum
   c <- opts$colNum
   opts <- x$opts
-  
+
   if (is.null(x))
     return()
-  
-  grid.points(unit(x$mean, "native"), unit(0.4, "npc"), 
+
+  grid.points(unit(x$mean, "native"), unit(0.4, "npc"),
                gp = gpar(fill = "black", cex = opts$cex.dotpt * 1.5), pch = 24,
                name = paste("inz-mean", r, c, i, sep = "."))
 }
