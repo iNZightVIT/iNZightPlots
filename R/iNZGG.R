@@ -145,8 +145,8 @@ count_nas <- function(data, exprs, data_name, plot_args) {
 }
 
 iNZightPlotGG_facet <- function(data, data_name, exprs, g1, g2, g1.level, g2.level) {
-  if (!is.null(g1)) {
-    if (g1.level != "_MULTI") {
+  if (!is.null(g1) && length(g1) > 0) {
+    if (!is.null(g1.level) && g1.level != "_MULTI") {
       if (is.null(exprs$data)) {
         exprs <- list(
           data = rlang::expr(plot_data <- !!rlang::sym(data_name) %>% dplyr::filter(!!rlang::sym(g1) == !!g1.level)),
@@ -163,8 +163,8 @@ iNZightPlotGG_facet <- function(data, data_name, exprs, g1, g2, g1.level, g2.lev
     }
   }
   
-  if (!is.null(g2)) {
-    if (g2.level != "_MULTI" && g2.level != "_ALL") {
+  if (!is.null(g2) && length(g2) > 0) {
+    if (!is.null(g2.level) && g2.level != "_MULTI" && g2.level != "_ALL") {
       if (is.null(exprs$data)) {
         exprs <- list(
           data = rlang::expr(plot_data <- !!rlang::sym(data_name) %>% dplyr::filter(!!rlang::sym(g2) == !!g2.level)),
@@ -186,7 +186,7 @@ iNZightPlotGG_facet <- function(data, data_name, exprs, g1, g2, g1.level, g2.lev
     
   }
   
-  if (isTRUE(is.null(g2))) {
+  if (isTRUE(is.null(g2) || length(g2) == 0)) {
     exprs$plot <- rlang::expr(!!exprs$plot + ggplot2::facet_grid(rows = ggplot2::vars(!!rlang::sym(g1)), labeller = ggplot2::label_both))
   } else {
     exprs$plot <- rlang::expr(!!exprs$plot + ggplot2::facet_grid(rows = ggplot2::vars(!!rlang::sym(g1)), cols = ggplot2::vars(!!rlang::sym(g2)), labeller = ggplot2::label_both))
@@ -200,10 +200,12 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
   varnames <- varnames[grep("g1", names(varnames), invert = TRUE)]
   varnames <- varnames[grep("g2", names(varnames), invert = TRUE)]
   non_mapped <- varnames[grep("^(x|y)$", names(varnames), invert = TRUE)]
-  varnames <- varnames[grep("^(x|y)$", names(varnames))]
+  varnames <- varnames[grep("^(x|y)$", names(varnames)) || names(varnames) %in% optional_vars[[type]]]
+  varnames <- varnames[varnames != ""]
   nullVars <- vapply(data[, varnames, drop = FALSE], is.null, FUN.VALUE = logical(1))
   varnames[which(nullVars)] <- NULL
-  varnames[!varnames %in% colnames(data)] <- NULL
+  
+  varnames[!varnames %in% colnames(data) && !varnames %in% optional_vars[[type]]] <- NULL
   
   if (type %in% c("gg_pie", "gg_donut")) {
     names(varnames) <- replace(names(varnames), names(varnames) == "x", "fill")
@@ -443,7 +445,7 @@ iNZightPlotGG <- function(
     plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::theme(panel.background = ggplot2::element_rect(fill = !!extra_args$bg)))
   }
   
-  if (isTRUE(!is.null(dots$g1))) {
+  if (isTRUE(!is.null(dots$g1) && length(dots$g1) > 0)) {
     plot_exprs <- iNZightPlotGG_facet(data, data_name, plot_exprs, dots$g1, dots$g2, dots$g1.level, dots$g2.level)
   }
   
