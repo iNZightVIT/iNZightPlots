@@ -90,10 +90,12 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
             di <- svydesign(ids=~1, weights = dfi$freq, data = dfi)
         else if (xattr$class == "inz.survey") {
             if ("y" %in% colnames(obj$df$variables)) {
-                di <- subset(obj$df, y == i)
+                ss <- obj$df$variables$y == i & !is.na(obj$df$variables$y)
+                di <- obj$df[ss]
             } else di <- obj$df
         } else {
-            dfi <- subset(df, id == i)
+            ss <- id == i & !is.na(id)
+            dfi <- df[ss, , drop = FALSE]
             dfi$y <- NULL
             di <- dfi
         }

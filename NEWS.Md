@@ -1,3 +1,9 @@
+# iNZightPlots 2.10.4.9000
+__Release date__: TBA
+
+- Add formula interface function, `iNZPlot`, for `iNZightPlot`.
+
+
 # iNZightPlots 2.10.4
 __Release date__: 11 November 2019
 

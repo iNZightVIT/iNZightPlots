@@ -6,7 +6,7 @@ gSubset <- function(df, g1.level, g2.level, df.vs, missing)
 gSubset.default <- function(df, g1.level, g2.level, df.vs, missing) {
     # subset the data by g2 (keep everything, so xlims can be calculated)
     # g2 can take values (0 = "_ALL", 1:ng2, ng2+1 = "_MULTI")
-    
+
     matrix.plot <- FALSE
     if ("g2" %in% df.vs) {
         if (is.null(g2.level)) g2.level <- "_ALL"
@@ -17,7 +17,7 @@ gSubset.default <- function(df, g1.level, g2.level, df.vs, missing) {
         if (is.numeric(g2.level)) {
             if (as.integer(g2.level) != g2.level)
                 warning(paste0("g2.level truncated to ", g2.level, "."))
-            
+
             if (g2.level == 0) {
                 g2.level <- "_ALL"
             } else if (g2.level == ng2 + 1) {
@@ -36,14 +36,15 @@ gSubset.default <- function(df, g1.level, g2.level, df.vs, missing) {
         } else {
             if (g2.level == "_MULTI") {
                 matrix.plot <- TRUE
-            }                
-            
+            }
+
             missing$g2 <- sum(is.na(df$data$g2))
             df1 <- lapply(g2l,
-                          function(l) {
-                              dft <- subset(df$data, df$data$g2 == l)
-                              dft[, colnames(dft) != "g2"]
-                          })
+                function(l) {
+                    dft <- df$data[df$data$g2 == l & !is.na(df$data$g2), , drop = FALSE]
+                    dft[, colnames(dft) != "g2"]
+                }
+            )
             names(df1) <- g2l
         }
     } else {

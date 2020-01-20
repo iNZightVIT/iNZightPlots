@@ -128,7 +128,7 @@ iNZightPlot <-
 # ----------------
     # grab the arguments and the data frame is supplied:
     m <- match.call(expand.dots = FALSE)
-
+    
     ## getSummary and other wrappers will pass an inz.data object
     if (missing(df)) {
         if (!is.null(design)) {
@@ -150,20 +150,36 @@ iNZightPlot <-
     if (isTRUE(grepl("^gg_", list(...)$plottype))) {
       # Remove xlab and ylab from varnames list (for lite)
       varnames <- varnames[!(names(varnames) %in% c("xlab", "ylab"))]
-
+      
+      if (!("data_name" %in% names(list(...)))) {
+        data_name <- as.character(match.call()[["data"]])
+      } else {
+        data_name <- list(...)$data_name
+      }
+      
+      if ("x" %in% names(m) && !("x" %in% varnames)) {
+        varnames[["x"]] <- as.character(m[["x"]])
+      }
+      
+      if ("y" %in% names(m) && !("y" %in% varnames)) {
+        varnames[["y"]] <- as.character(m[["y"]])
+      }
+      
       ret.plot <- do.call(
         iNZightPlotGG,
         c(list(
           setNames(df$data, df$varnames),
           type = list(...)$plottype,
-          data_name = list(...)$data_name,
+          data_name = data_name,
           main = list(...)$main,
           xlab = xlab,
           ylab = ylab,
           extra_args = list(...),
           palette = list(...)$palette,
           gg_theme = list(...)$gg_theme,
-          caption = list(...)$caption
+          caption = list(...)$caption,
+          g1 = as.character(m$g1),
+          g2 = as.character(m$g2)
           ),
           varnames,
           list(g1.level = g1.level, g2.level = g2.level)
@@ -1396,4 +1412,4 @@ iNZightPlot <-
 
     class(plot.list) <- "inzplotoutput"
     return(invisible(plot.list))
-}
+    }

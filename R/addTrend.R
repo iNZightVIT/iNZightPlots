@@ -62,8 +62,16 @@ addXYtrend <- function(obj, opts, col.args, xlim, ylim) {
             )
         } else {
             byy <- as.factor(obj$col)  # pseudo-by-variable
-            xtmp <- lapply(levels(byy), function(c) subset(x, obj$col == c))
-            ytmp <- lapply(levels(byy), function(c) subset(y, obj$col == c))
+            xtmp <- lapply(levels(byy),
+                function(c) {
+                    x[obj$col == c & !is.na(obj$col)]
+                }
+            )
+            ytmp <- lapply(levels(byy),
+                function(c) {
+                    y[obj$col == c & !is.na(obj$col)]
+                }
+            )
 
             for (b in 1:length(levels(byy))) {
                 lapply(opts$trend,
