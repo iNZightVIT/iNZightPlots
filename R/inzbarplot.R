@@ -73,7 +73,8 @@ create.inz.barplot <- function(obj) {
     } else {
         if (!is.null(svy)) {
             tab <- svytable(~y + x, design = svy)
-            phat <- svyby(~x, by = ~y, svy, FUN = svymean, drop.empty.groups = FALSE)[, 1 + 1:ncol(tab)]
+            phat <- svyby(~x, by = ~y, svy, FUN = svymean, drop.empty.groups = FALSE)
+            phat <- phat[, 1 + 1:ncol(tab)]
             nn <- rowSums(tab)
         } else if (!is.null(df$freq)) {
             tab <- xtabs(df$freq ~ df$y + df$x)
@@ -133,7 +134,8 @@ create.inz.barplot <- function(obj) {
             0,
             max(
                 ymax,
-                if (!is.null(inflist)) attr(inflist, "max"), na.rm = TRUE
+                if (!is.null(inflist)) attr(inflist, "max"),
+                na.rm = TRUE
             )
         )
     )
@@ -276,15 +278,20 @@ barinference <- function(obj, tab, phat, counts) {
                             ## IN FUTURE: might want to bootstrap another way?
                             inf <- try({
                                 n <- rowSums(tab)
-                                b <- boot(dat, function(d, f) {
-                                    tt <- t(table(d[f, 1], d[f, 2]))
-                                    sweep(tt, 1, n, "/")
-                                }, R = 1000)
-                                cis <- apply(b$t, 2, function(x)
-                                    c(
-                                        quantile(x, probs = c(0.025, 0.975)),
-                                        mean(x)
-                                    )
+                                b <- boot(dat,
+                                    function(d, f) {
+                                        tt <- t(table(d[f, 1], d[f, 2]))
+                                        sweep(tt, 1, n, "/")
+                                    },
+                                    R = 1000
+                                )
+                                cis <- apply(b$t, 2,
+                                    function(x) {
+                                        c(
+                                            quantile(x, probs = c(0.025, 0.975)),
+                                            mean(x)
+                                        )
+                                    }
                                 )
                             },
                             silent = TRUE)
@@ -311,13 +318,18 @@ barinference <- function(obj, tab, phat, counts) {
                         } else {
                             n <- sum(tab)
                             if (n == 0) return(NULL)
-                            b <- boot(dat, function(d, f)
-                                table(d[f, 1]) / n, R = opts$n.boot)
-                            cis <- apply(b$t, 2, function(x)
-                                c(
-                                    quantile(x, probs = c(0.025, 0.975)),
-                                    mean(x)
-                                ))
+                            b <- boot(dat,
+                                function(d, f) table(d[f, 1]) / n,
+                                R = opts$n.boot
+                            )
+                            cis <- apply(b$t, 2,
+                                function(x) {
+                                    c(
+                                        quantile(x, probs = c(0.025, 0.975)),
+                                        mean(x)
+                                    )
+                                }
+                            )
                             list(
                                 lower = cis[1, , drop = FALSE],
                                 upper = cis[2, , drop = FALSE],
@@ -328,9 +340,12 @@ barinference <- function(obj, tab, phat, counts) {
                 } else {
                     if (svy) {
                         if (twoway) {
-                            est <- svyby(~x, by = ~y, obj$df, FUN = svymean,
+                            est <- svyby(~x, by = ~y, obj$df,
+                                FUN = svymean,
                                 vartype = "ci",
-                                drop.empty.groups = FALSE)[, -1]
+                                drop.empty.groups = FALSE
+                            )
+                            est <- est[, -1]
                             nc <- length(levels(obj$df$variables$x))
                             list(
                                 lower = as.matrix(est[, nc + 1:nc]),
@@ -347,12 +362,16 @@ barinference <- function(obj, tab, phat, counts) {
                         }
                     } else {
                         ## Standard confidence interval:
-                        t(apply(tab, 1, function(x) {
-                            n <- sum(x)
-                            p <- ifelse(x >= opts$min.count, x / n, NA)
-                            se <- sqrt(p * (1 - p) / n)
-                            se * 1.96
-                        })) -> size
+                        size <- t(
+                            apply(tab, 1,
+                                function(x) {
+                                    n <- sum(x)
+                                    p <- ifelse(x >= opts$min.count, x / n, NA)
+                                    se <- sqrt(p * (1 - p) / n)
+                                    se * 1.96
+                                }
+                            )
+                        )
                         if (!twoway) phat <- t(phat)
                         list(
                             lower = phat - size,
@@ -388,7 +407,7 @@ barinference <- function(obj, tab, phat, counts) {
                                         return(list(compL = NA, compU = NA))
 
                                     suppressWarnings(
-                                        moecalc(
+                                        iNZightMR::moecalc(
                                             seBinprops(n[ii], phat[ii, i]),
                                             est = phat[ii, i]
                                         )
@@ -408,16 +427,20 @@ barinference <- function(obj, tab, phat, counts) {
                             phat <- c(phat) # don't want matrix
                             res <- with(
                                 suppressWarnings(
-                                    moecalc(seMNprops(sum(tab), phat),
-                                        est = phat)
+                                    iNZightMR::moecalc(
+                                        seMNprops(sum(tab), phat),
+                                        est = phat
+                                    )
                                 ),
                                 list(lower = t(compL), upper = t(compU))
                             )
-                            lapply(res, function(r) {
-                                colnames(r) <- colnames(tab)
-                                r[tab < opts$min.count] <- NA
-                                r
-                            })
+                            lapply(res,
+                                function(r) {
+                                    colnames(r) <- colnames(tab)
+                                    r[tab < opts$min.count] <- NA
+                                    r
+                                }
+                            )
                         }
                     }
                 }
@@ -429,35 +452,47 @@ barinference <- function(obj, tab, phat, counts) {
     if (counts) {
         # loop over [conf, comp]
         Ns <- if (twoway) rowSums(tab) else sum(tab)
-        result <- lapply(result, function(res) {
-            if (is.null(res)) return(res)
-            # loop over [lower, upper, estimate]
-            lapply(res, function(r) {
-                sweep(r, 1, Ns, "*")
-            })
-        })
+        result <- lapply(result,
+            function(res) {
+                if (is.null(res)) return(res)
+                # loop over [lower, upper, estimate]
+                lapply(res,
+                    function(r) {
+                        sweep(r, 1, Ns, "*")
+                    }
+                )
+            }
+        )
     }
 
     # make everything a matrix
-    result <- lapply(result, function(res) {
-        if (is.null(res)) return(res)
-        lapply(res, function(r) {
-            unclass(r)
-        })
-    })
+    result <- lapply(result,
+        function(res) {
+            if (is.null(res)) return(res)
+            lapply(res,
+                function(r) {
+                    unclass(r)
+                }
+            )
+        }
+    )
 
     attr(result, "bootstrap") <- bs
     attr(result, "max") <- max(
-        sapply(result, function(r) {
-            if (is.null(r)) 0
-            else max(
-                sapply(r, function(x) {
-                    if(is.null(x)) 0
-                    else max(c(0, x), na.rm = TRUE)
-                }),
-                na.rm = TRUE
-            )
-        }),
+        sapply(result,
+            function(r) {
+                if (is.null(r)) 0
+                else max(
+                    sapply(r,
+                        function(x) {
+                            if (is.null(x)) 0
+                            else max(c(0, x), na.rm = TRUE)
+                        }
+                    ),
+                    na.rm = TRUE
+                )
+            }
+        ),
         na.rm = TRUE
     )
 
