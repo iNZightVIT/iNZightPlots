@@ -200,12 +200,12 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
   varnames <- varnames[grep("g1", names(varnames), invert = TRUE)]
   varnames <- varnames[grep("g2", names(varnames), invert = TRUE)]
   non_mapped <- varnames[grep("^(x|y)$", names(varnames), invert = TRUE)]
-  varnames <- varnames[grep("^(x|y)$", names(varnames)) || names(varnames) %in% optional_vars[[type]]]
+  varnames <- varnames[grep("^(x|y)$", names(varnames))]
   varnames <- varnames[varnames != ""]
   nullVars <- vapply(data[, varnames, drop = FALSE], is.null, FUN.VALUE = logical(1))
   varnames[which(nullVars)] <- NULL
   
-  varnames[!varnames %in% colnames(data) && !varnames %in% optional_vars[[type]]] <- NULL
+  varnames[!varnames %in% colnames(data)] <- NULL
   
   if (type %in% c("gg_pie", "gg_donut")) {
     names(varnames) <- replace(names(varnames), names(varnames) == "x", "fill")
