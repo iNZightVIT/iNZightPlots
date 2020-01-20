@@ -34,13 +34,12 @@ There are four options for the formula passed in:
 \code{y ~ x | g1 + g2} will produce a plot of \code{y} against \code{x} subset by \code{g1} and \code{g2}.
 }
 \examples{
-data("SURFIncomeSurvey_200", package = "iNZight")
-iNZPlot(Income, data = SURFIncomeSurvey_200)
-iNZPlot(Income ~ Gender, data = SURFIncomeSurvey_200)
-iNZPlot(Income ~ Gender | Qualification, data = SURFIncomeSurvey_200)
-iNZPlot(Income ~ Gender | Qualification + Ethnicity, data = SURFIncomeSurvey_200, g2.level = "_MULTI")
-
-iNZPlot(Income ~ Gender | Qualification, data = SURFIncomeSurvey_200, plottype = "gg_boxplot")
+data("CO2")
+iNZPlot(uptake, data = CO2)
+iNZPlot(uptake ~ Treatment, data = CO2)
+iNZPlot(uptake ~ Treatment | Type, data = CO2)
+iNZPlot(uptake ~ Treatment | Type, 
+data = CO2, g1.level = "Quebec")
 }
 \seealso{
 iNZightPlot

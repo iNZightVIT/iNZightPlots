@@ -24,13 +24,12 @@
 #' @seealso iNZightPlot
 #'
 #' @examples
-#' data("SURFIncomeSurvey_200", package = "iNZight")
-#' iNZPlot(Income, data = SURFIncomeSurvey_200)
-#' iNZPlot(Income ~ Gender, data = SURFIncomeSurvey_200)
-#' iNZPlot(Income ~ Gender | Qualification, data = SURFIncomeSurvey_200)
-#' iNZPlot(Income ~ Gender | Qualification + Ethnicity, data = SURFIncomeSurvey_200, g2.level = "_MULTI")
-#' 
-#' iNZPlot(Income ~ Gender | Qualification, data = SURFIncomeSurvey_200, plottype = "gg_boxplot")
+#' data("CO2")
+#' iNZPlot(uptake, data = CO2)
+#' iNZPlot(uptake ~ Treatment, data = CO2)
+#' iNZPlot(uptake ~ Treatment | Type, data = CO2)
+#' iNZPlot(uptake ~ Treatment | Type, 
+#' data = CO2, g1.level = "Quebec")
 iNZPlot <- function(f, data = NULL, ...) {
     f <- match.call()[["f"]] 
     if (!rlang::is_formula(f)) {
