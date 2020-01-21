@@ -2,6 +2,7 @@
 __Release date__: TBA
 
 - Add formula interface function, `iNZPlot`, for `iNZightPlot`.
+- Get Summary for trends no longer includes superfluous "+" in front of negative coefficients
 
 
 # iNZightPlots 2.10.4

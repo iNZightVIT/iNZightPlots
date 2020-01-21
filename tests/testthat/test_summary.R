@@ -24,9 +24,9 @@ data(api, package = "survey")
 dclus2<-svydesign(id=~dnum+snum, fpc=~fpc1+fpc2, data=apiclus2)
 
 test_that("Survey summaries are correct", {
-    expect_is(getPlotSummary(api00, design = dclus2), 
+    expect_is(getPlotSummary(api00, design = dclus2),
         "inzight.plotsummary")
-    expect_is(getPlotSummary(api00, sch.wide, design = dclus2), 
+    expect_is(getPlotSummary(api00, sch.wide, design = dclus2),
         "inzight.plotsummary")
     expect_is(getPlotSummary(api00, api99, design = dclus2),
         "inzight.plotsummary")
@@ -34,7 +34,7 @@ test_that("Survey summaries are correct", {
         "inzight.plotsummary")
     expect_is(getPlotSummary(sch.wide, awards, design = dclus2),
         "inzight.plotsummary")
-    
+
 })
 
 chis <- iNZightTools::smart_read("chis.csv")
@@ -47,8 +47,20 @@ dchis <- suppressWarnings(svrepdesign(
 test_that("Survey replicate design summaries are correct", {
     expect_is(getPlotSummary(bmi_p, design = dchis), "inzight.plotsummary")
     expect_is(getPlotSummary(bmi_p, sex, design = dchis), "inzight.plotsummary")
-    expect_is(suppressWarnings(getPlotSummary(bmi_p, marit, design = dchis)), 
+    expect_is(suppressWarnings(getPlotSummary(bmi_p, marit, design = dchis)),
         "inzight.plotsummary")
     expect_is(getPlotSummary(sex, design = dchis), "inzight.plotsummary")
     expect_is(getPlotSummary(sex, smoke, design = dchis), "inzight.plotsummary")
+})
+
+
+test_that("Regression summary: negative coefficients", {
+    o <- capture.output(
+        getPlotSummary(Sepal.Length, Sepal.Width,
+            data = iris, trend = "linear", width = 80)
+    )
+    expect_match(o, "Sepal.Width = 3.419 - 0.06188 * Sepal.Length",
+        fixed = TRUE,
+        all = FALSE
+    )
 })
