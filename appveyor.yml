@@ -27,8 +27,6 @@ environment:
 
 build_script:
   - travis-tool.sh install_deps
-  - travis-tool.sh install_github iNZightVIT/iNZightTools@dev
-  - travis-tool.sh install_github iNZightVIT/iNZightMR@dev
 
 test_script:
   - travis-tool.sh run_tests

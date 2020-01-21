@@ -20,20 +20,11 @@ matrix:
   allow_failures:
     - os: osx
 
-r_check_args: "--as-cran --install-args=--build"
-
-r_github_packages:
-  - iNZightVIT/iNZightTools@dev
-
 env:
   global:
     - R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
     - _R_CHECK_SYSTEM_CLOCK_=FALSE
     - _R_CHECK_FORCE_SUGGESTS_=FALSE
-
-repos:
-  docker: https://r.docker.stat.auckland.ac.nz
-
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo chown -R $(whoami) /usr/local/share; fi
