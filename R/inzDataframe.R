@@ -37,7 +37,17 @@ inzDataframe <- function(m, data = NULL, names = list(),
     names <- names[!sapply(names, is.null)]
 
     # the variables we want to look for in argument list (m)
-    vars <- c("", "x", "y", "g1", "g2", "colby", "sizeby", "symbolby", "locate")
+    vars <- c(
+        "",
+        "x",
+        "y",
+        "g1",
+        "g2",
+        "colby",
+        "sizeby",
+        "symbolby",
+        "locate"
+    )
     mw <- names(m) %in% vars
     mw[1] <- FALSE  # the function name
     mw <- mw & !sapply(as.list(m), is.null)

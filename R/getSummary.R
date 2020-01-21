@@ -37,7 +37,7 @@
 #' @param hypothesis either NULL for no test, or missing (in which case above arguments are used)
 #' @param ... additional arguments, see \code{inzpar}
 #' @return an \code{inzight.plotsummary} object with a print method
-#' @author tell029
+#' @author Tom Elliott
 #' @export
 getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            g2 = NULL, g2.level = NULL, varnames = list(),
@@ -49,7 +49,8 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            hypothesis.alt = c("two.sided", "less", "greater"),
                            hypothesis.var.equal = FALSE,
                            hypothesis.use.exact = FALSE,
-                           hypothesis.test = c("default", "t.test", "anova", "chi2", "proportion"),
+                           hypothesis.test =
+                                c("default", "t.test", "anova", "chi2", "proportion"),
                            hypothesis.simulated.p.value = FALSE,
                            hypothesis = list(
                                 value = hypothesis.value,
@@ -147,11 +148,12 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ## }
 
     obj <- iNZightPlot(x = x, y = y, g1 = g1, g1.level = g1.level,
-                       g2 = g2, g2.level = g2.level, varnames = varnames,
-                       colby = NULL, sizeby = NULL,
-                       data = data, design = design, freq = freq,
-                       missing.info = missing.info, inzpars = inzpars,
-                       plot = FALSE, df = df, ...)
+        g2 = g2, g2.level = g2.level, varnames = varnames,
+        colby = NULL, sizeby = NULL,
+        data = data, design = design, freq = freq,
+        missing.info = missing.info, inzpars = inzpars,
+        plot = FALSE, df = df, ...
+    )
 
     ### Now we just loop over everything ...
 
@@ -159,7 +161,8 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 }
 
 
-summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis = NULL, width = 100) {
+summary.inzplotoutput <- function(object, summary.type = "summary",
+                                  hypothesis = NULL, width = 100) {
     if (length(summary.type) > 1) {
         warning("Only using the first element of `summary.type`")
         summary.type <- summary.type[1]
@@ -203,15 +206,21 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
     #    return("Inference for Survey Designs not yet implemented.")
 
     add(Hrule)
-    add(center(switch(summary.type,
-                      "summary" =
-                          paste0("iNZight Summary",
-                                 ifelse(is.survey, " - Survey Design", "")),
-                      "inference" =
-                      paste("iNZight Inference using",
-                            ifelse(bs,
-                                   "the Nonparametric Bootstrap",
-                                   "Normal Theory"))), width))
+    add(
+        center(
+            switch(summary.type,
+                "summary" =
+                    paste0("iNZight Summary",
+                            ifelse(is.survey, " - Survey Design", "")),
+                "inference" =
+                    paste("iNZight Inference using",
+                        ifelse(bs,
+                                "the Nonparametric Bootstrap",
+                                "Normal Theory"))
+            ),
+            width
+        )
+    )
     add(hrule)
 
     scatter <- FALSE
@@ -222,16 +231,47 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
     }
 
     ## A tidy header that formats the vames of the variables
-    mat <- cbind(ind(ifelse(scatter, "Response/outcome variable: ", "Primary variable of interest: ")),
-                 paste0(ifelse(scatter, vnames$y, vnames$x),
-                        " (", gsub("factor", "categorical", vartypes[[ifelse(scatter, vnames$y, vnames$x)]]), ")"))
+    mat <- cbind(
+        ind(
+            ifelse(scatter,
+                "Response/outcome variable: ",
+                "Primary variable of interest: "
+            )
+        ),
+        paste0(
+            ifelse(scatter, vnames$y, vnames$x),
+            " (",
+            gsub("factor", "categorical",
+                vartypes[[ifelse(scatter, vnames$y, vnames$x)]]
+            ),
+            ")"
+        )
+    )
 
-    if ("y" %in% names(vnames))
-        mat <- rbind(mat, cbind(ind(paste0(ifelse(scatter,
-                                                  "Predictor/explanatory", "Secondary"),
-                                           " variable: ")),
-                                paste0(ifelse(scatter, vnames$x, vnames$y),
-                                       " (", gsub("factor", "categorical", vartypes[[ifelse(scatter, vnames$x, vnames$y)]]), ")")))
+    if ("y" %in% names(vnames)) {
+        mat <- rbind(
+            mat,
+            cbind(
+                ind(
+                    paste0(
+                        ifelse(scatter,
+                            "Predictor/explanatory",
+                            "Secondary"
+                        ),
+                        " variable: "
+                    )
+                ),
+                paste0(
+                    ifelse(scatter, vnames$x, vnames$y),
+                    " (",
+                    gsub("factor", "categorical",
+                        vartypes[[ifelse(scatter, vnames$x, vnames$y)]]
+                    ),
+                    ")"
+                )
+            )
+        )
+    }
 
     wg <- c("g1", "g2") %in% names(vnames)
 
@@ -240,45 +280,71 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
 
     if (any(wg)) {
         mat <- rbind(mat, "")
-        mat <- rbind(mat, cbind(ind("Subset by: "),
-                                do.call(paste, c(vnames[c("g1", "g2")[wg]], list(sep = " and ")))))
+        mat <- rbind(
+            mat,
+            cbind(
+                ind("Subset by: "),
+                do.call(paste,
+                    c(
+                        vnames[c("g1", "g2")[wg]],
+                        list(sep = " and ")
+                    )
+                )
+            )
+        )
         #if (is.survey)
         #    mat <- rbind(mat, c("NOTE: ", "survey summaries are not yet reliable for subsets."))
     }
 
-    mat <- rbind(mat, "",
-                 cbind("Total number of observations: ", total.obs))
+    mat <- rbind(mat, "", cbind("Total number of observations: ", total.obs))
     if (total.missing > 0) {
         allnames <- c("x", "y", "g1", "g2")
         nn <- allnames[allnames %in% names(missing)]
         nn <- nn[sapply(missing[nn], function(m) m > 0)]
-        mat <- rbind(mat,
-                     cbind(ind("Number omitted due to missingness: "),
-                           paste0(total.missing,
-                                  if (length(missing) > 1) {
-                                      paste0(" (",
-                                             paste(sapply(nn, function(i) {
-                                                 paste0(missing[[i]], " in ", vnames[[i]])
-                                             }), collapse = ", "),
-                                             ")")
-                                  })),
-                     cbind(ind("Total number of observations used: "),
-                           total.obs - total.missing))
+        mat <- rbind(
+            mat,
+            cbind(
+                ind("Number omitted due to missingness: "),
+                paste0(total.missing,
+                    if (length(missing) > 1) {
+                        paste0(" (",
+                                paste(sapply(nn, function(i) {
+                                    paste0(missing[[i]], " in ", vnames[[i]])
+                                }), collapse = ", "),
+                                ")")
+                    }
+                )
+            ),
+            cbind(
+                ind("Total number of observations used: "),
+                total.obs - total.missing
+            )
+        )
     }
     if (is.survey) {
         des <- attr(obj, "main.design")
-        mat <- rbind(mat, cbind("Estimated population size: ",
-                                paste0(round(coef(svytotal(matrix(rep(1, nrow(des$variables)), ncol = 1), des)))
-                                       )
-                                )
-                     )
+        mat <- rbind(
+            mat,
+            cbind(
+                "Estimated population size: ",
+                paste0(
+                    round(
+                        coef(
+                            svytotal(matrix(rep(1, nrow(des$variables)), ncol = 1), des)
+                        )
+                    )
+                )
+            )
+        )
     }
     mat <- cbind(format(mat[, 1], justify = "right"), mat[, 2])
     apply(mat, 1, add)
 
     if (is.survey) {
         add(hrule)
-        sapply(capture.output(attr(object, "main.design")), function(o) add(ind(o)))
+        sapply(capture.output(attr(object, "main.design")),
+            function(o) add(ind(o))
+        )
         design.list <- attr(object, "design")
     }
 
@@ -288,83 +354,107 @@ summary.inzplotoutput <- function(object, summary.type = "summary", hypothesis =
     simpleCap <- function(x) {
         s <- strsplit(x, " ")[[1]]
         paste(toupper(substring(s, 1,1)), substring(s, 2),
-              sep="", collapse=" ")
+            sep="",
+            collapse=" "
+        )
     }
     stype <- simpleCap(summary.type)
 
-    if (!is.null(vnames$y) && vartypes[[vnames$x]] == "factor" && vartypes[[vnames$y]] == "numeric") {
+    if ( !is.null(vnames$y) &&
+         vartypes[[vnames$x]] == "factor" &&
+         vartypes[[vnames$y]] == "numeric" ) {
         tmpx <- vnames$y
         vnames$y <- vnames$x
         vnames$x <- tmpx
     }
 
     ## Cycle through G2 first
-    lapply(names(obj), function(this) {
-        if (this != "all") {
-            add(Hrule)
-            add(ind("For the subset where ", 5), vnames$g2, " = ", this)
-        }
-
-        lapply(names(obj[[this]]), function(o) {
-            pl <- obj[[this]][[o]]
-
-            xtype <- vartypes[[vnames$x]]
-            header <- switch(xtype,
-                             "numeric" = {
-                                 if ("y" %in% names(vnames)) {
-                                     switch(vartypes[[vnames$y]],
-                                            "numeric" = {
-                                                sprintf("%s of %s versus %s",
-                                                        stype, vnames$y, vnames$x)
-                                            },
-                                            "factor" = {
-                                                sprintf("%s of %s by %s",
-                                                        stype, vnames$x, vnames$y)
-                                            })
-                                 } else {
-                                     sprintf("%s of %s", stype, vnames$x)
-                                 }
-                             },
-                             "factor" = {
-                                 if ("y" %in% names(vnames)) {
-                                     switch(vartypes[[vnames$y]],
-                                            "numeric" = {
-                                                sprintf("%s of the distribution of %s by %s",
-                                                        stype, vnames$x, vnames$y)
-                                            },
-                                            "factor" = {
-                                                sprintf("%s of the distribution of %s (columns) by %s (rows)",
-                                                        stype, vnames$x, vnames$y)
-                                            })
-                                 } else {
-                                     sprintf("%s of the distribution of %s", stype, vnames$x)
-                                 }
-                             })
-
-            if (o != "all") {
-                add(hrule)
-                header <- paste0(header, paste0(", for ", vnames$g1, " = ", o))
+    lapply(names(obj),
+        function(this) {
+            if (this != "all") {
+                add(Hrule)
+                add(ind("For the subset where ", 5), vnames$g2, " = ", this)
             }
-            header <- paste0(header, ":")
 
-            add(header, underline = TRUE)
+            lapply(names(obj[[this]]),
+                function(o) {
+                    pl <- obj[[this]][[o]]
+
+                    xtype <- vartypes[[vnames$x]]
+                    header <- switch(xtype,
+                        "numeric" = {
+                            if ("y" %in% names(vnames)) {
+                                switch(vartypes[[vnames$y]],
+                                    "numeric" = {
+                                        sprintf("%s of %s versus %s",
+                                            stype, vnames$y, vnames$x
+                                        )
+                                    },
+                                    "factor" = {
+                                        sprintf("%s of %s by %s",
+                                            stype, vnames$x, vnames$y
+                                        )
+                                    }
+                                )
+                            } else {
+                                sprintf("%s of %s", stype, vnames$x)
+                            }
+                        },
+                        "factor" = {
+                            if ("y" %in% names(vnames)) {
+                                switch(vartypes[[vnames$y]],
+                                    "numeric" = {
+                                        sprintf("%s of the distribution of %s by %s",
+                                            stype, vnames$x, vnames$y
+                                        )
+                                    },
+                                    "factor" = {
+                                        sprintf(
+                                            "%s of the distribution of %s (columns) by %s (rows)",
+                                            stype, vnames$x, vnames$y
+                                        )
+                                    }
+                                )
+                            } else {
+                                sprintf("%s of the distribution of %s", stype, vnames$x)
+                            }
+                        }
+                    )
+
+                    if (o != "all") {
+                        add(hrule)
+                        header <- paste0(header, paste0(", for ", vnames$g1, " = ", o))
+                    }
+                    header <- paste0(header, ":")
+
+                    add(header, underline = TRUE)
+                    add("")
+
+                    pl.design <- if (is.survey) design.list[[this]][[o]] else NULL
+
+                    sapply(
+                        switch(summary.type,
+                            "summary" =
+                                summary(pl, vn = vnames, des = pl.design),
+                            "inference" =
+                                inference(pl, bs, inzclass,
+                                    des = pl.design,
+                                    width = width,
+                                    vn = vnames,
+                                    nb = attr(obj, "nboot"),
+                                    hypothesis = hypothesis
+                                )
+                        ),
+                        add
+                    )
+
+                    add("")
+                }
+            )
+
             add("")
-
-            pl.design <- if (is.survey) design.list[[this]][[o]] else NULL
-
-            sapply(switch(summary.type,
-                          "summary" = summary(pl, vn = vnames, des = pl.design),
-                          "inference" = inference(pl, bs, inzclass, des = pl.design,
-                                                  width = width,
-                                                  vn = vnames, nb = attr(obj, "nboot"),
-                                                  hypothesis = hypothesis)),
-                   add)
-
-            add("")
-        })
-
-        add("")
-    })
+        }
+    )
 
     add(Hrule)
 
@@ -397,11 +487,18 @@ summary.inzdata <- function(object, des, width = 100, ...) {
     }
 
     add(Hrule)
-    add(center(sprintf(
-        "iNZight summary of %s",
-        ifelse(is.null(attr(object, "name", exact = TRUE)), "dataset",
-               paste0("\"", attr(object, "name", exact = TRUE), "\""))),
-        width))
+    add(
+        center(
+            sprintf(
+                "iNZight summary of %s",
+                ifelse(is.null(attr(object, "name", exact = TRUE)),
+                    "dataset",
+                    paste0("\"", attr(object, "name", exact = TRUE), "\"")
+                )
+            ),
+            width
+        )
+    )
     add(hrule)
 
     # mat <- cbind(ind(ifelse(scatter, "Response/outcome variable: ", "Primary variable of interest: ")),
@@ -410,9 +507,15 @@ summary.inzdata <- function(object, des, width = 100, ...) {
 
     n.numeric <- sum(sapply(object, is.numeric))
     n.factor <- sum(!sapply(object, is.numeric))
-    mat <- rbind(c(ind("Number of observations (rows): "), nrow(object)),
-                 c(ind("Number of variables (columns): "),
-                   sprintf("%s (%s numeric and %s categorical)", ncol(object), n.numeric, n.factor)))
+    mat <- rbind(
+        c(ind("Number of observations (rows): "), nrow(object)),
+        c(
+            ind("Number of variables (columns): "),
+            sprintf("%s (%s numeric and %s categorical)",
+                ncol(object), n.numeric, n.factor
+            )
+        )
+    )
 
     mat <- cbind(format(mat[, 1], justify = "right"), mat[, 2])
     apply(mat, 1, add)
@@ -427,20 +530,38 @@ summary.inzdata <- function(object, des, width = 100, ...) {
         add("")
         numvars <- object[,sapply(object, is.numeric)]
         mat <- do.call(rbind,
-            lapply(numvars, function(x) {
-                c(min(x, na.rm = TRUE), max(x, na.rm = TRUE), sum(is.na(x)))
-            })
+            lapply(numvars,
+                function(x) {
+                    c(min(x, na.rm = TRUE), max(x, na.rm = TRUE), sum(is.na(x)))
+                }
+            )
         )
-        mat <- matrix(apply(mat, 2, function(col) {
-            format(col, digits = 4)
-        }), nrow = nrow(mat))
+        mat <- matrix(
+            apply(mat, 2,
+                function(col) {
+                    format(col, digits = 4)
+                }
+            ),
+            nrow = nrow(mat)
+        )
         mat[grep("NA", mat)] <- ""
 
-        mat <- rbind(c("", "min", "max", "n. missing"), cbind(names(numvars), mat))
-        mat <- matrix(apply(mat, 2, function(col) {
-            format(col, justify = "right")
-        }), nrow = nrow(mat))
-        apply(mat, 1, function(x) add(paste0("   ", paste(x, collapse = "   "))))
+        mat <- rbind(
+            c("", "min", "max", "n. missing"),
+            cbind(names(numvars), mat)
+        )
+        mat <- matrix(
+            apply(mat, 2,
+                function(col) {
+                    format(col, justify = "right")
+                }
+            ),
+            nrow = nrow(mat)
+        )
+        apply(mat, 1,
+            function(x)
+                add(paste0("   ", paste(x, collapse = "   ")))
+        )
         add("")
     }
 
@@ -451,21 +572,39 @@ summary.inzdata <- function(object, des, width = 100, ...) {
 
         catvars <- object[, !sapply(object, is.numeric)]
         mat <- do.call(rbind,
-            lapply(catvars, function(x) {
-                nlev <- length(levels(x))
-                c(nlev, sum(is.na(x)))
-            })
+            lapply(catvars,
+                function(x) {
+                    nlev <- length(levels(x))
+                    c(nlev, sum(is.na(x)))
+                }
+            )
         )
-        mat <- matrix(apply(mat, 2, function(col) {
-            format(col, digits = 4)
-        }), nrow = nrow(mat))
+        mat <- matrix(
+            apply(mat, 2,
+                function(col) {
+                    format(col, digits = 4)
+                }
+            ),
+            nrow = nrow(mat)
+        )
         mat[grep("NA", mat)] <- ""
 
-        mat <- rbind(c("", "n. categories", "n. missing"), cbind(names(catvars), mat))
-        mat <- matrix(apply(mat, 2, function(col) {
-            format(col, justify = "right")
-        }), nrow = nrow(mat))
-        apply(mat, 1, function(x) add(paste0("   ", paste(x, collapse = "   "))))
+        mat <- rbind(
+            c("", "n. categories", "n. missing"),
+            cbind(names(catvars), mat)
+        )
+        mat <- matrix(
+            apply(mat, 2,
+                function(col) {
+                    format(col, justify = "right")
+                }
+            ),
+            nrow = nrow(mat)
+        )
+        apply(mat, 1,
+            function(x)
+                add(paste0("   ", paste(x, collapse = "   ")))
+        )
         add("")
     }
 

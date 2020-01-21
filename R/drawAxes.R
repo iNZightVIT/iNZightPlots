@@ -15,8 +15,7 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts,
     at <- x$at
     labs <- x$labs
 
-    switch(
-        which,
+    switch(which,
         "x" = {
             if (main) {
                 grid.xaxis(
@@ -85,8 +84,7 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts,
         x.lev <- levels(x)[ww]
     }
 
-    switch(
-        which,
+    switch(which,
         "x" = {
             rot <- opts$rot
             labText <- textGrob(
@@ -170,8 +168,7 @@ transform_axes <- function(x, which, opts, label) {
     ## put X into the correct format ...
     if (!is.null(opts$transform[[which]])) {
         ## we need to apply a transformation
-        switch(
-            opts$transform[[which]],
+        switch(opts$transform[[which]],
             "datetime" = {
                 ## format labels for datetime
                 xt <- as.POSIXct(x,

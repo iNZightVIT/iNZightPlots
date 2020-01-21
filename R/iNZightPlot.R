@@ -74,61 +74,82 @@
 #' @importFrom iNZightTools is_num is_cat is_dt is_survey is_svydesign is_svyrep
 #' @author Tom Elliott
 #' @export
-iNZightPlot <-
-    function(x, y = NULL, g1 = NULL, g1.level = NULL,
-            g2 = NULL, g2.level = NULL, varnames = list(),
-            colby = NULL, sizeby = NULL, symbolby = NULL, extra.vars,
-            locate = NULL, locate.id = NULL, locate.col = NULL,
-            locate.extreme = NULL, highlight = NULL,
-            data = NULL, design = NULL, freq = NULL,
-            missing.info = TRUE,
-            xlab = varnames$x, ylab = varnames$y,
-            # type = "",
-            new = TRUE,  # compatibility arguments
-            inzpars = inzpar(), layout.only = FALSE, plot = TRUE,
-            xaxis = TRUE, yaxis = TRUE, xlim = NULL, ylim = NULL,
-            zoombars = NULL,
-            hide.legend = FALSE,
-            df, env = parent.frame(), ...) {
+iNZightPlot <- function(x,
+                        y = NULL,
+                        g1 = NULL,
+                        g1.level = NULL,
+                        g2 = NULL,
+                        g2.level = NULL,
+                        varnames = list(),
+                        colby = NULL,
+                        sizeby = NULL,
+                        symbolby = NULL,
+                        extra.vars,
+                        locate = NULL,
+                        locate.id = NULL,
+                        locate.col = NULL,
+                        locate.extreme = NULL,
+                        highlight = NULL,
+                        data = NULL,
+                        design = NULL,
+                        freq = NULL,
+                        missing.info = TRUE,
+                        xlab = varnames$x,
+                        ylab = varnames$y,
+                        new = TRUE,
+                        inzpars = inzpar(),
+                        layout.only = FALSE,
+                        plot = TRUE,
+                        xaxis = TRUE,
+                        yaxis = TRUE,
+                        xlim = NULL,
+                        ylim = NULL,
+                        zoombars = NULL,
+                        hide.legend = FALSE,
+                        df,
+                        env = parent.frame(),
+                        ...) {
 
-# ---------------------------------------------------------------------------- #
-#   iNZightPlots v2.0, written by Tom Elliott (2014, University of Auckland)
-#
-# This function will `attempt` to take a large variety of data configurations
-# and attempt to make a suitable plot. It can take into account the data
-# structure (for example, frequency or survey data), and make use of these in
-# the final plot. It also contains a suite of additional options such a trend
-# lines and inference information which can also be added to plots as required.
-#
-# A Summary and Inference method will be associated with the output of this
-# file, so users can easily get numerical information about any particular
-# plot they produce. The inference information will be either theoretically or
-# bootstrap based.
-#
-# ---------------------------------------------------------------------------- #
-# ++++++++ FOR (future) DEVELOPERS ++++++++
-#
-# First of all, welcome to the iNZight team!3
-# Second, have fun reading through all the code :D
-#
-# +++ How iNZightPlots works +++
-#
-# I'll write this later ...
-#
-# Have fun coding!
-# ---------------------------------------------------------------------------- #
-#          Original author: Tom Elliott <tom.elliott@auckland.ac.nz>           #
-# ---------------------------------------------------------------------------- #
+    # ---------------------------------------------------------------------------- #
+    #   iNZightPlots v2.0, written by Tom Elliott (2014, University of Auckland)
+    #
+    # This function will `attempt` to take a large variety of data configurations
+    # and attempt to make a suitable plot. It can take into account the data
+    # structure (for example, frequency or survey data), and make use of these in
+    # the final plot. It also contains a suite of additional options such a trend
+    # lines and inference information which can also be added to plots as required.
+    #
+    # A Summary and Inference method will be associated with the output of this
+    # file, so users can easily get numerical information about any particular
+    # plot they produce. The inference information will be either theoretically or
+    # bootstrap based.
+    #
+    # ---------------------------------------------------------------------------- #
+    # ++++++++ FOR (future) DEVELOPERS ++++++++
+    #
+    # First of all, welcome to the iNZight team!3
+    # Second, have fun reading through all the code :D
+    #
+    # +++ How iNZightPlots works +++
+    #
+    # I'll write this later ...
+    # ... update (21/01/2020) - not yet written :'D
+    #
+    # Have fun coding!
+    # ---------------------------------------------------------------------------- #
+    #          Original author: Tom Elliott <tom.elliott@auckland.ac.nz>           #
+    # ---------------------------------------------------------------------------- #
 
-################################################################################
-################################################################################
+    ################################################################################
+    ################################################################################
 
-# ---------------------------------------------------------------------------- #
-# 1. The data step
-# ----------------
+    # ---------------------------------------------------------------------------- #
+    # 1. The data step
+    # ----------------
+
     # grab the arguments and the data frame is supplied:
     m <- match.call(expand.dots = FALSE)
-    
+
     ## getSummary and other wrappers will pass an inz.data object
     if (missing(df)) {
         if (!is.null(design)) {
@@ -143,76 +164,58 @@ iNZightPlot <-
         ## necessary information, including survey design,
         ## or frequency information:
         df <- inzDataframe(
-            m, data = md, names = varnames, g1.level, g2.level, env = env
+            m,
+            data = md,
+            names = varnames,
+            g1.level,
+            g2.level,
+            env = env
         )
     }
 
     if (isTRUE(grepl("^gg_", list(...)$plottype))) {
-      # Remove xlab and ylab from varnames list (for lite)
-      varnames <- varnames[!(names(varnames) %in% c("xlab", "ylab"))]
-      
-      if (!("data_name" %in% names(list(...)))) {
-        data_name <- as.character(match.call()[["data"]])
-      } else {
-        data_name <- list(...)$data_name
-      }
-      
-      if ("x" %in% names(m) && !("x" %in% varnames)) {
-        varnames[["x"]] <- as.character(m[["x"]])
-      }
-      
-      if ("y" %in% names(m) && !("y" %in% varnames)) {
-        varnames[["y"]] <- as.character(m[["y"]])
-      }
-      
-      ret.plot <- do.call(
-        iNZightPlotGG,
-        c(list(
-          setNames(df$data, df$varnames),
-          type = list(...)$plottype,
-          data_name = data_name,
-          main = list(...)$main,
-          xlab = xlab,
-          ylab = ylab,
-          extra_args = list(...),
-          palette = list(...)$palette,
-          gg_theme = list(...)$gg_theme,
-          caption = list(...)$caption,
-          g1 = as.character(m$g1),
-          g2 = as.character(m$g2)
-          ),
-          varnames,
-          list(g1.level = g1.level, g2.level = g2.level)
+        # Remove xlab and ylab from varnames list (for lite)
+        varnames <- varnames[!(names(varnames) %in% c("xlab", "ylab"))]
+
+        if (!("data_name" %in% names(list(...)))) {
+            data_name <- as.character(match.call()[["data"]])
+        } else {
+            data_name <- list(...)$data_name
+        }
+
+        if ("x" %in% names(m) && !("x" %in% varnames)) {
+            varnames[["x"]] <- as.character(m[["x"]])
+        }
+
+        if ("y" %in% names(m) && !("y" %in% varnames)) {
+            varnames[["y"]] <- as.character(m[["y"]])
+        }
+
+        ret.plot <- do.call(iNZightPlotGG,
+            c(
+                list(
+                    setNames(df$data, df$varnames),
+                    type = list(...)$plottype,
+                    data_name = data_name,
+                    main = list(...)$main,
+                    xlab = xlab,
+                    ylab = ylab,
+                    extra_args = list(...),
+                    palette = list(...)$palette,
+                    gg_theme = list(...)$gg_theme,
+                    caption = list(...)$caption,
+                    g1 = as.character(m$g1),
+                    g2 = as.character(m$g2)
+                ),
+                varnames,
+                list(
+                    g1.level = g1.level,
+                    g2.level = g2.level
+                )
+            )
         )
-      )
 
-      return(ret.plot)
-
-      # if (isTRUE(list(...)$plottype %in% c("gg_pie", "gg_donut", "gg_stackedcolumn", "gg_stackedbar"))) {
-      #   ret.plot <- iNZightPlotGG(
-      #     setNames(df$data, df$varnames),
-      #     type = list(...)$plottype,
-      #     data_name = list(...)$data.name,
-      #     fill = varnames$x
-      #   )
-      #   return(ret.plot)
-      # } else if (isTRUE(list(...)$plottype %in% c("gg_bar", "gg_column"))) {
-      #   ret.plot <- iNZightPlotGG(
-      #     setNames(df$data, df$varnames),
-      #     type = list(...)$plottype,
-      #     data_name = list(...)$data.name,
-      #     x = varnames$x
-      #   )
-      #   return(ret.plot)
-      # } else if (isTRUE(list(...)$plottype %in% c("gg_violin", "gg_barcode"))) {
-      #   ret.plot <- iNZightPlotGG(
-      #     setNames(df$data, df$varnames),
-      #     type = list(...)$plottype,
-      #     data_name = list(...)$data.name,
-      #     y = varnames$x
-      #   )
-      #   return(ret.plot)
-      # }
+        return(ret.plot)
     }
 
 
@@ -234,7 +237,8 @@ iNZightPlot <-
     ## (e.g., too many factor levels, etc)
     varnames[!names(varnames) %in% colnames(df$data)] <- NULL
     vartypes <- lapply(df$data[, names(varnames), drop = FALSE],
-                       function(x) ifelse(is.factor(x), "factor", "numeric"))
+        function(x) ifelse(is.factor(x), "factor", "numeric")
+    )
     names(vartypes) <- unlist(varnames)
     df.vs <- colnames(df$data)
     missing <- list()  # a container to save missing value information
@@ -258,22 +262,38 @@ iNZightPlot <-
         if (ynull) {
             if (length(levels(df$data$x)) > params("max.levels") &
                 is.null(zoombars)) {
-                msg <- paste0("Too many levels in ", varnames$x,
-                              " to draw a barchart.\n",
-                              "(", varnames$x, " has ",
-                              length(levels(df$data$x)), " levels.)")
+                msg <- paste0(
+                    "Too many levels in ",
+                    varnames$x,
+                    " to draw a barchart.\n",
+                    "(",
+                    varnames$x,
+                    " has ",
+                    length(levels(df$data$x)),
+                    " levels.)"
+                )
                 stopPlot(msg)
                 plot <- FALSE
             }
         } else if (yfact) {
             if (length(levels(df$data$x)) * length(levels(df$data$y)) >
                     params("max.levels") & is.null(zoombars)) {
-                msg <- paste0("Too many levels in ", varnames$x, " and ",
-                              varnames$y, " to draw a barchart.\n",
-                              "(", varnames$x, " has ",
-                              length(levels(df$data$x)), " levels, ",
-                              varnames$y, " has ", length(levels(df$data$y)),
-                              "levels.)")
+                msg <- paste0(
+                    "Too many levels in ",
+                    varnames$x,
+                    " and ",
+                    varnames$y,
+                    " to draw a barchart.\n",
+                    "(",
+                    varnames$x,
+                    " has ",
+                    length(levels(df$data$x)),
+                    " levels, ",
+                    varnames$y,
+                    " has ",
+                    length(levels(df$data$y)),
+                    "levels.)"
+                )
                 stopPlot("Too many levels in x and y to draw a barchart.")
                 plot <- FALSE
             }
@@ -287,7 +307,10 @@ iNZightPlot <-
 
     ## store transformation information (for axes, etc)
     if (!is.null(df$transformations)) {
-        opts$transform <- utils::modifyList(opts$transform, df$transformations)
+        opts$transform <- utils::modifyList(
+            opts$transform,
+            df$transformations
+        )
     }
     ## apply transformations
     df <- inztransform(df, opts$transform)
@@ -375,17 +398,20 @@ iNZightPlot <-
         # we just need to go through all plots and test if they should be
         # LARGESAMPLE or not:
         if (is.null(opts$largesample)) {
-            sample.sizes <- do.call(
-                c,
-                lapply(df.list, function(df)
-                    sapply(df, function(a) {
-                        if (is_survey(a)) {
-                            o <- nrow(a$variables)
-                        } else {
-                            o <- nrow(a)
-                        }
-                        if (is.null(o)) 0 else o
-                    })
+            sample.sizes <- do.call(c,
+                lapply(df.list,
+                    function(df) {
+                        sapply(df,
+                            function(a) {
+                                if (is_survey(a)) {
+                                    o <- nrow(a$variables)
+                                } else {
+                                    o <- nrow(a)
+                                }
+                                if (is.null(o)) 0 else o
+                            }
+                        )
+                    }
                 )
             )
             smallest.sample <- min(sample.sizes, na.rm = TRUE)
@@ -439,7 +465,9 @@ iNZightPlot <-
             xattr$symbol.width <- 1
         } else {
             xattr$symbol.width <- convertWidth(unit(opts$cex.dotpt, "char"),
-                                               "native", valueOnly = TRUE)
+                "native",
+                valueOnly = TRUE
+            )
         }
 
         ## sort out bin sizing:
@@ -453,9 +481,12 @@ iNZightPlot <-
         xr <- diff(range(allX, na.rm = TRUE))
         mult.width <- ifelse(isDiscrete, 1, 1.2)
 
-        xattr$dotplotstuff <- list(mdiff = mdiff,
-                                   xr = xr, isDiscrete = isDiscrete,
-                                   mult.width = mult.width)
+        xattr$dotplotstuff <- list(
+            mdiff = mdiff,
+            xr = xr,
+            isDiscrete = isDiscrete,
+            mult.width = mult.width
+        )
     }
 
     # for now, disable barplot counts if two-way table
@@ -473,7 +504,12 @@ iNZightPlot <-
 
         dev.hold()
         grid.newpage()
-        pushViewport(viewport(gp = gpar(cex = opts$cex), name = "container"))
+        pushViewport(
+            viewport(
+                gp = gpar(cex = opts$cex),
+                name = "container"
+            )
+        )
     } else {
         try(
             {
@@ -483,8 +519,9 @@ iNZightPlot <-
         )
     }
 
-    plot.list <- lapply(df.list, function(df)
-        lapply(df, createPlot, opts, xattr))
+    plot.list <- lapply(df.list,
+        function(df) lapply(df, createPlot, opts, xattr)
+    )
 
     plot.class <- class(plot.list[[1]][[1]])
 
@@ -498,10 +535,18 @@ iNZightPlot <-
         )
     }
 
-    xlim.raw <- range(sapply(plot.list, function(x)
-        sapply(x, function(y) y$xlim)), finite = TRUE)
-    ylim.raw <- range(sapply(plot.list, function(x)
-        sapply(x, function(y) y$ylim)), finite = TRUE)
+    xlim.raw <- range(
+        sapply(plot.list,
+            function(x) sapply(x, function(y) y$xlim)
+        ),
+        finite = TRUE
+    )
+    ylim.raw <- range(
+        sapply(plot.list,
+            function(x) sapply(x, function(y) y$ylim)
+        ),
+        finite = TRUE
+    )
     if (!is.null(xlim)) xlim.raw <- xlim
     if (!is.null(ylim)) ylim.raw <- ylim
 
@@ -528,16 +573,15 @@ iNZightPlot <-
     barplot <- any(TYPE == "bar")
 
     if (barplot) {
-        BARPLOT.N <-
-            lapply(plot.list, function(x)
-                lapply(x, function(y) y$ntotal))
+        BARPLOT.N <- lapply(plot.list,
+            function(x) lapply(x, function(y) y$ntotal)
+        )
     }
 
     maxcnt <- NULL
     if (any(TYPE %in% c("grid", "hex"))) {
       # if there is a `counts` need to get the max:
-        maxcnt <- switch(
-            TYPE[which(TYPE %in% c("grid", "hex"))],
+        maxcnt <- switch(TYPE[which(TYPE %in% c("grid", "hex"))],
             "grid" = {
                 warning(
                     "Frequency density not constant scale ",
@@ -545,11 +589,17 @@ iNZightPlot <-
                 )
             },
             "hex" = {
-                max(sapply(plot.list, function(x) sapply(x, function(y) {
-                    if (class(y) == "inzhex")
-                        max(y$hex@count, na.rm = TRUE)
-                    else 0
-                })))
+                max(
+                    sapply(plot.list,
+                        function(x) sapply(x,
+                            function(y) {
+                                if (class(y) == "inzhex")
+                                    max(y$hex@count, na.rm = TRUE)
+                                else 0
+                            }
+                        )
+                    )
+                )
             }
         )
     } else if (any(TYPE %in% c("dot", "hist"))) {
@@ -560,20 +610,31 @@ iNZightPlot <-
         if (any(plot.class == "inzhist")) {
             nOutofview <- 0
         } else {
-            nOutofview <-
-                sum(sapply(
-                    plot.list, function(x)
-                        sapply(
-                            x, function(y)
-                                sapply(y$toplot, function(z)
-                                    sum(z$x < min(xlim) | z$x > max(xlim)))
+            nOutofview <- sum(
+                sapply(plot.list,
+                    function(x) sapply(x,
+                        function(y) sapply(y$toplot,
+                            function(z)
+                                sum(z$x < min(xlim) | z$x > max(xlim))
                         )
-                ))
+                    )
+                )
+            )
         }
     } else if (all(plot.class != "inzbar")) {
-        nOutofview <- sum(sapply(plot.list, function(x) sapply(x, function(z)
-            sum(z$x < min(xlim) | z$x > max(xlim) |
-                z$y < min(ylim) | z$y > max(ylim)))))
+        nOutofview <- sum(
+            sapply(plot.list,
+                function(x) sapply(x,
+                    function(z)
+                        sum(
+                            z$x < min(xlim) |
+                            z$x > max(xlim) |
+                            z$y < min(ylim) |
+                            z$y > max(ylim)
+                        )
+                )
+            )
+        )
     } else {
         nOutofview <- 0
     }
@@ -660,41 +721,60 @@ iNZightPlot <-
         # split the title text into the appropriate number of lines,
         # then calcualate the height of it.
         VPcontainer.width <- convertWidth(unit(1, "npc"), "in", TRUE)
-        main.grob <- textGrob(titles$main, gp = gpar(cex = opts$cex.main),
-            name = "inz-main-title")
+        main.grob <- textGrob(titles$main,
+            gp = gpar(cex = opts$cex.main),
+            name = "inz-main-title"
+        )
         MAIN.width <- convertWidth(grobWidth(main.grob), "in", TRUE)
         MAIN.lnheight <- convertWidth(grobHeight(main.grob), "in", TRUE)
         if (MAIN.width > 0.9 * VPcontainer.width) {
             titles$main <- gsub(",", ",\n", titles$main)
-            main.grob <- textGrob(titles$main, gp = gpar(cex = opts$cex.main),
-                name = "inz-main-title")
+            main.grob <- textGrob(titles$main,
+                gp = gpar(cex = opts$cex.main),
+                name = "inz-main-title"
+            )
             MAIN.width <- convertWidth(grobWidth(main.grob), "in", TRUE)
         }
         if (MAIN.width > 0.9 * VPcontainer.width) {
             titles$main <- gsub("subset", "\nsubset", titles$main)
-            main.grob <- textGrob(titles$main, gp = gpar(cex = opts$cex.main),
-                name = "inz-main-title")
+            main.grob <- textGrob(titles$main,
+                gp = gpar(cex = opts$cex.main),
+                name = "inz-main-title"
+            )
             MAIN.width <- convertWidth(grobWidth(main.grob), "in", TRUE)
         }
         if (MAIN.width > 0.9 * VPcontainer.width) {
-            titles$main <- gsub(" (size prop", "\n (size prop", titles$main,
-                fixed = TRUE)
-            main.grob <- textGrob(titles$main, gp = gpar(cex = opts$cex.main),
-                name = "inz-main-title")
+            titles$main <- gsub(" (size prop", "\n (size prop",
+                titles$main,
+                fixed = TRUE
+            )
+            main.grob <- textGrob(titles$main,
+                gp = gpar(cex = opts$cex.main),
+                name = "inz-main-title"
+            )
             MAIN.width <- convertWidth(grobWidth(main.grob), "in", TRUE)
         }
-        MAIN.height <-
-            convertHeight(grobHeight(main.grob), "in", TRUE) + MAIN.lnheight
+        MAIN.height <- convertHeight(
+            grobHeight(main.grob),
+            "in",
+            TRUE
+        ) + MAIN.lnheight
 
         # -- xaxis labels
-        xlab.grob <- textGrob(titles$xlab, y = unit(0.6, "lines"),
-                              gp = gpar(cex = opts$cex.lab), name = "inz-xlab")
+        xlab.grob <- textGrob(titles$xlab,
+            y = unit(0.6, "lines"),
+            gp = gpar(cex = opts$cex.lab),
+            name = "inz-xlab"
+        )
         XLAB.height <- convertHeight(grobHeight(xlab.grob), "in", TRUE) * 3
         # -- yaxis labels
         if (!is.null(titles$ylab)) {
-            ylab.grob <- textGrob(titles$ylab, x = unit(0.6, "lines"),
+            ylab.grob <- textGrob(titles$ylab,
+                x = unit(0.6, "lines"),
                 name = "inz-ylab",
-                rot = 90, gp = gpar(cex = opts$cex.lab))
+                rot = 90,
+                gp = gpar(cex = opts$cex.lab)
+            )
             YLAB.width <- convertWidth(grobWidth(ylab.grob), "in", TRUE) * 3
         } else {
             YLAB.width <- 0
@@ -703,7 +783,7 @@ iNZightPlot <-
         ## -- xaxis marks
         XAX.height <-
             convertWidth(unit(1, "lines"), "in", TRUE) * 2 *
-            opts$cex.axis * xaxis
+                opts$cex.axis * xaxis
 
         ## -- yaxis marks
         YAX.width <- if (any(TYPE %in% c("dot", "hist")) &
@@ -711,19 +791,18 @@ iNZightPlot <-
             ## need to grab the factoring variable -> might be x OR y
             yf <- if (is.factor(df$data$y)) df$data$y else df$data$x
             yl <- levels(yf)
-            yWidths <-
-                sapply(
-                    yl,
-                    function(L)
-                        convertWidth(
-                            grobWidth(
-                                textGrob(
-                                    L,
-                                    gp = gpar(cex = opts$cex.axis * multi.cex))
-                            ),
-                            "in", TRUE
-                        )
-                )
+            yWidths <- sapply(yl,
+                function(L)
+                    convertWidth(
+                        grobWidth(
+                            textGrob(L,
+                                gp = gpar(cex = opts$cex.axis * multi.cex)
+                            )
+                        ),
+                        "in",
+                        TRUE
+                    )
+            )
             max(yWidths)
         } else 0
 
@@ -733,9 +812,19 @@ iNZightPlot <-
 
         ## -- legend(s)
         leg.grob1 <- leg.grob2 <- leg.grob3 <- leg.grob4 <- NULL
-        cex.mult <- ifelse("g1" %in% df.vs, 1,
-            ifelse("g1.level" %in% df.vs,
-                   ifelse(length(levels(df$g1.level)) >= 6, 0.7, 1), 1))
+        cex.mult <- ifelse(
+            "g1" %in% df.vs,
+            1,
+            ifelse(
+                "g1.level" %in% df.vs,
+                ifelse(
+                    length(levels(df$g1.level)) >= 6,
+                    0.7,
+                    1
+                ),
+                1
+            )
+        )
 
 
         xnum <- !xfact
@@ -764,8 +853,11 @@ iNZightPlot <-
                 }
 
                 if (all(TYPE != "bar"))
-                    misscol <- any(sapply(plot.list, function(x)
-                        sapply(x, function(y) y$nacol)))
+                    misscol <- any(
+                        sapply(plot.list,
+                            function(x) sapply(x, function(y) y$nacol)
+                        )
+                    )
                 else
                     misscol <- FALSE
 
@@ -785,15 +877,14 @@ iNZightPlot <-
                         opts$pch
                     }
 
-                leg.grob1 <-
-                    drawLegend(
-                        f.levels <- levels(as.factor(df$data$colby)),
-                        col = ptcol,
-                        pch = legPch,
-                        title = varnames$colby,
-                        any.missing = misscol,
-                        opts = opts
-                    )
+                leg.grob1 <- drawLegend(
+                    f.levels <- levels(as.factor(df$data$colby)),
+                    col = ptcol,
+                    pch = legPch,
+                    title = varnames$colby,
+                    any.missing = misscol,
+                    opts = opts
+                )
 
                 if (misscol) {
                     ptcol <- c(ptcol, opts$col.missing)
@@ -801,17 +892,19 @@ iNZightPlot <-
                 }
                 col.args$f.cols <- structure(ptcol, .Names = f.levels)
             } else {
-                misscol <- any(sapply(plot.list, function(x)
-                    sapply(x, function(y) y$nacol)))
-                leg.grobL <-
-                    drawContLegend(
-                        df$data$colby,
-                        title = varnames$colby,
-                        height = 0.4 * PAGE.height,
-                        cex.mult = cex.mult,
-                        any.missing = misscol,
-                        opts = opts
+                misscol <- any(
+                    sapply(plot.list,
+                        function(x) sapply(x, function(y) y$nacol)
                     )
+                )
+                leg.grobL <- drawContLegend(
+                    df$data$colby,
+                    title = varnames$colby,
+                    height = 0.4 * PAGE.height,
+                    cex.mult = cex.mult,
+                    any.missing = misscol,
+                    opts = opts
+                )
                 leg.grob1 <- leg.grobL$fg
                 col.args$n.range <- range(df$data$colby, na.rm = TRUE)
                 col.args$n.cols <- leg.grobL$n.cols
@@ -826,43 +919,54 @@ iNZightPlot <-
                     else opts$col.default$cat(nby)
             }
 
-            leg.grob1 <-
-                drawLegend(
-                    levels(as.factor(df$data$y)),
-                    col = barcol, pch = 22,
-                    title = varnames$y, opts = opts
-                )
+            leg.grob1 <- drawLegend(
+                levels(as.factor(df$data$y)),
+                col = barcol, pch = 22,
+                title = varnames$y, opts = opts
+            )
             col.args$b.cols <- barcol
         }
 
         if (!is.null(locate.col)) col.args$locate.col <- locate.col
 
         if ("sizeby" %in% names(varnames) & any(TYPE %in% c("scatter"))) {
-            misssize <- any(sapply(plot.list, function(x)
-                sapply(x, function(x2) x2$nasize)))
+            misssize <- any(
+                sapply(plot.list,
+                    function(x) sapply(x, function(x2) x2$nasize)
+                )
+            )
             if (misssize) {
                 misstext <- paste0("missing ", varnames$sizeby)
-                leg.grob2 <- drawLegend(misstext, col = "grey50", pch = 4,
-                                        cex.mult = cex.mult * 0.8, opts = opts)
+                leg.grob2 <- drawLegend(
+                    misstext,
+                    col = "grey50",
+                    pch = 4,
+                    cex.mult = cex.mult * 0.8,
+                    opts = opts
+                )
             }
         }
 
         if (xnum & ynum) {
-            df.lens <- lapply(plot.list, function(a) {
-                mm <- sapply(
-                    a,
-                    function(b)
-                        sum(
-                            apply(cbind(b$x, b$y), 1,
-                            function(c) all(!is.na(c)))
-                        )
-                )
-                A <- a[[which.max(mm)]]
-                cbind(A$x, A$y)
-            })
+            df.lens <- lapply(plot.list,
+                function(a) {
+                    mm <- sapply(a,
+                        function(b)
+                            sum(
+                                apply(cbind(b$x, b$y), 1,
+                                    function(c) all(!is.na(c))
+                                )
+                            )
+                    )
+                    A <- a[[which.max(mm)]]
+                    cbind(A$x, A$y)
+                }
+            )
             ddd <- df.lens[[which.max(sapply(df.lens, nrow))]]
-            leg.grob3 <-
-                drawLinesLegend(ddd, opts = opts, cex.mult = cex.mult * 0.8)
+            leg.grob3 <- drawLinesLegend(ddd,
+                opts = opts,
+                cex.mult = cex.mult * 0.8
+            )
         }
 
         if ("symbolby" %in% names(varnames) &
@@ -879,11 +983,12 @@ iNZightPlot <-
                     legPch <- c(legPch, 3)
                     legLvls <- c(legLvls, "missing")
                 }
-                leg.grob4 <-
-                    drawLegend(
-                        legLvls, col = rep("#333333", length(legLvls)),
-                        pch = legPch, title = varnames$symbolby, opts = opts
-                    )
+                leg.grob4 <- drawLegend(legLvls,
+                    col = rep("#333333", length(legLvls)),
+                    pch = legPch,
+                    title = varnames$symbolby,
+                    opts = opts
+                )
             }
         }
 
@@ -922,8 +1027,9 @@ iNZightPlot <-
             subtitle <- ""
             if (missing.info & length(missing) > 0) {
                 POS.missing <- missing[missing != 0]
-                names(POS.missing) <-
-                    unlist(varnames[match(names(POS.missing), names(varnames))])
+                names(POS.missing) <- unlist(
+                    varnames[match(names(POS.missing), names(varnames))]
+                )
                 missinfo <-
                     if (length(missing) > 1)
                         paste0(
@@ -939,8 +1045,11 @@ iNZightPlot <-
                     else ""
 
                 if (total.missing > 0) {
-                    subtitle <-
-                        paste0(total.missing, " missing values", missinfo)
+                    subtitle <- paste0(
+                        total.missing,
+                        " missing values",
+                        missinfo
+                    )
                 }
             }
 
@@ -983,19 +1092,18 @@ iNZightPlot <-
             if (wdth > 0) unit(wdth, "in") + unit(1, "char")
             else unit(0, "null")
 
-        TOPlayout <-
-            grid.layout(
-                nrow = 6, ncol = 5,
-                heights = unit.c(
-                    MAIN.hgt, XAX.hgt, PLOT.hgt,
-                    XAX.hgt, XLAB.hgt, SUB.hgt
-                ),
-                widths = unit.c(
-                    YLAB.wd, YAX.wd, PLOT.wd,
-                    if (any(TYPE %in% c("scatter", "grid", "hex"))) YAX.wd
-                    else unit(0.5, "in"), LEG.wd
-                )
+        TOPlayout <- grid.layout(
+            nrow = 6, ncol = 5,
+            heights = unit.c(
+                MAIN.hgt, XAX.hgt, PLOT.hgt,
+                XAX.hgt, XLAB.hgt, SUB.hgt
+            ),
+            widths = unit.c(
+                YLAB.wd, YAX.wd, PLOT.wd,
+                if (any(TYPE %in% c("scatter", "grid", "hex"))) YAX.wd
+                else unit(0.5, "in"), LEG.wd
             )
+        )
 
         ## Send the layout to the plot window
         pushViewport(viewport(layout = TOPlayout, name = "VP:TOPlayout"))
@@ -1010,11 +1118,16 @@ iNZightPlot <-
             x.lev <- levels(df$data$x)
             nLabs <- length(x.lev)
             maxWd <- 0.8 * plotWidth / nLabs
-            rot <- any(sapply(x.lev, function(l)
-                convertWidth(
-                    grobWidth(textGrob(l, gp = gpar(cex = opts$cex.axis))),
-                    "in", TRUE
-                ) > maxWd))
+            rot <- any(
+                sapply(x.lev,
+                    function(l)
+                        convertWidth(
+                            grobWidth(textGrob(l, gp = gpar(cex = opts$cex.axis))),
+                            "in",
+                            TRUE
+                        ) > maxWd
+                    )
+                )
             opts$rot <- rot
 
             # transform?
@@ -1027,29 +1140,44 @@ iNZightPlot <-
             if (rot) {
                 ## Unable to update the viewport, so just recreate it:
                 XAXht <- drawAxes(
-                    df$data$x, which = "x", main = TRUE, label = TRUE, opts,
-                    heightOnly = TRUE, layout.only = layout.only
+                    df$data$x,
+                    which = "x",
+                    main = TRUE,
+                    label = TRUE, opts,
+                    heightOnly = TRUE,
+                    layout.only = layout.only
                 )
                 XAX.hgt2 <- convertWidth(XAXht, "in")
 
                 ## destroy the old one
                 popViewport()
-                TOPlayout <-
-                    grid.layout(
-                        nrow = 6, ncol = 5,
-                        heights = unit.c(
-                            MAIN.hgt, XAX.hgt, PLOT.hgt,
-                            XAX.hgt2, XLAB.hgt, SUB.hgt
-                        ),
-                        widths = unit.c(
-                            YLAB.wd, YAX.wd, PLOT.wd, YAX.wd, LEG.wd
-                        )
+                TOPlayout <- grid.layout(
+                    nrow = 6,
+                    ncol = 5,
+                    heights = unit.c(
+                        MAIN.hgt,
+                        XAX.hgt,
+                        PLOT.hgt,
+                        XAX.hgt2,
+                        XLAB.hgt,
+                        SUB.hgt
+                    ),
+                    widths = unit.c(
+                        YLAB.wd,
+                        YAX.wd,
+                        PLOT.wd,
+                        YAX.wd,
+                        LEG.wd
                     )
+                )
 
                 ## Send the layout to the plot window
-                pushViewport(viewport(
-                    layout = TOPlayout, name = "VP:TOPlayout"
-                ))
+                pushViewport(
+                    viewport(
+                        layout = TOPlayout,
+                        name = "VP:TOPlayout"
+                    )
+                )
             }
         }
 
@@ -1146,8 +1274,12 @@ iNZightPlot <-
         vspace <- if (matrix.plot) sub.hgt else unit(0, "in")
         hgts <- rep(unit.c(vspace, unit(1, "null")), nr)
 
-        PLOTlayout <- grid.layout(nrow = length(hgts), ncol = length(wds),
-                                  heights = hgts, widths = wds)
+        PLOTlayout <- grid.layout(
+            nrow = length(hgts),
+            ncol = length(wds),
+            heights = hgts,
+            widths = wds
+        )
         seekViewport("VP:TOPlayout")
         pushViewport(viewport(layout.pos.row = 3, layout.pos.col = 3))
         pushViewport(viewport(layout = PLOTlayout, name = "VP:PLOTlayout"))
@@ -1175,15 +1307,23 @@ iNZightPlot <-
             if (matrix.plot) {
                 ## add that little thingy
                 seekViewport("VP:PLOTlayout")
-                pushViewport(viewport(
-                    layout.pos.row = R - 1,
-                    gp = gpar(cex = multi.cex, fontface = "bold")
-                ))
-                grid.rect(gp = gpar(fill = rep(opts$col.sub, length = 2)[2]))
+                pushViewport(
+                    viewport(
+                        layout.pos.row = R - 1,
+                        gp = gpar(cex = multi.cex, fontface = "bold")
+                    )
+                )
+                grid.rect(
+                    gp = gpar(
+                        fill = rep(opts$col.sub, length = 2)[2]
+                    )
+                )
                 grid.text(
                     paste(varnames$g2, "=", g2.level[g2id]),
                     gp = gpar(
-                        cex = opts$cex.lab, col = "#ffffff", fontface = "bold"
+                        cex = opts$cex.lab,
+                        col = "#ffffff",
+                        fontface = "bold"
                     )
                 )
             }
@@ -1200,23 +1340,32 @@ iNZightPlot <-
                 ## create a new one of the same name, but retain it long enough
                 ## to use it for drawing the axes
                 if (any(TYPE %in% c("dot", "hist")) & !layout.only) {
-                    vp2rm <- try(switch(
-                        TYPE,
-                        "dot" = {
-                            seekViewport("VP:dotplot-levels")
-                            popViewport()
-                        },
-                        "hist" = {
-                            seekViewport("VP:histplot-levels")
-                            popViewport()
-                        }
-                    ), TRUE)
+                    vp2rm <- try(
+                        switch(
+                            TYPE,
+                            "dot" = {
+                                seekViewport("VP:dotplot-levels")
+                                popViewport()
+                            },
+                            "hist" = {
+                                seekViewport("VP:histplot-levels")
+                                popViewport()
+                            }
+                        ),
+                        silent = TRUE
+                    )
                 }
 
                 seekViewport("VP:PLOTlayout")
-                pushViewport(viewport(layout.pos.row = R, layout.pos.col = C,
-                                      xscale = xlim, yscale = ylim,
-                                      gp = gpar(cex = multi.cex)))
+                pushViewport(
+                    viewport(
+                        layout.pos.row = R,
+                        layout.pos.col = C,
+                        xscale = xlim,
+                        yscale = ylim,
+                        gp = gpar(cex = multi.cex)
+                    )
+                )
                 ## grid.rect(gp = gpar(fill = "transparent"))
 
                 subt <- g1.level[g1id]
@@ -1240,9 +1389,11 @@ iNZightPlot <-
                         unit(0, "null")
                     },
                     unit(1, "null"))
-                pushViewport(viewport(
-                    layout = grid.layout(2, 1, heights = hgt)
-                ))
+                pushViewport(
+                    viewport(
+                        layout = grid.layout(2, 1, heights = hgt)
+                    )
+                )
 
                 ## I found "VP:locate.these.points" so far is just using here
                 ## and no other depencies so I think giving the its a
@@ -1250,32 +1401,49 @@ iNZightPlot <-
                 nameVP <-
                     if (NG1 == 1 && NG2 == 1) "VP:locate.these.points"
                     else paste0("VP:locate.these.points", g2id, g1id)
-                pushViewport(viewport(
-                    layout.pos.row = 2, xscale = xlim, yscale = ylim,
-                    clip = "on", name = nameVP
-                ))
+                pushViewport(
+                    viewport(
+                        layout.pos.row = 2,
+                        xscale = xlim,
+                        yscale = ylim,
+                        clip = "on",
+                        name = nameVP
+                    )
+                )
 
                 if (!layout.only) {
                     ## background color:
-                    grid.rect(gp = gpar(fill = opts$bg, lty = 0),
-                        name = paste("inz-plot-bg", r, c, sep = "."))
-                    plot(plot.list[[g2id]][[g1id]], gen =
-                         list(opts = opts, mcex = multi.cex,
-                              col.args = col.args,
-                              maxcount = maxcnt, LIM = c(xlim.raw, ylim.raw)))
+                    grid.rect(
+                        gp = gpar(fill = opts$bg, lty = 0),
+                        name = paste("inz-plot-bg", r, c, sep = ".")
+                    )
+                    plot(
+                        plot.list[[g2id]][[g1id]],
+                        gen = list(
+                            opts = opts,
+                            mcex = multi.cex,
+                            col.args = col.args,
+                            maxcount = maxcnt,
+                            LIM = c(xlim.raw, ylim.raw)
+                        )
+                    )
                 }
                 upViewport()
 
                 if (!is.null(p.title)) {
                     pushViewport(viewport(layout.pos.row = 1))
-                    grid.rect(gp = gpar(fill = opts$col.sub[1]),
-                        name = paste("inz-sub-bg", r, c, sep = "."))
+                    grid.rect(
+                        gp = gpar(fill = opts$col.sub[1]),
+                        name = paste("inz-sub-bg", r, c, sep = ".")
+                    )
                     grid.draw(subt)
                     upViewport()
                 }
 
-                grid.rect(gp = gpar(fill = "transparent"),
-                    name = paste("inz-rect-tp", r, c, sep = "."))
+                grid.rect(
+                    gp = gpar(fill = "transparent"),
+                    name = paste("inz-rect-tp", r, c, sep = ".")
+                )
 
 
                 ## add the appropriate axes:
@@ -1297,26 +1465,34 @@ iNZightPlot <-
                 if (barplot)
                     opts$bar.nmax <- BARPLOT.N[[g2id]][[g1id]]
 
-                pushViewport(viewport(
-                    layout.pos.row = 2, xscale = xlim,
-                    # yscale = if (any(TYPE == "bar")) 100 * ylim else ylim
-                    yscale = ylim
-                ))
+                pushViewport(
+                    viewport(
+                        layout.pos.row = 2,
+                        xscale = xlim,
+                        yscale = ylim
+                    )
+                )
                 opts$ZOOM <- zoombars
                 if (r == nr & xaxis)  # bottom
                     drawAxes(
                         X, "x", TRUE,
                         c %% 2 == 1 |
                             !any(TYPE %in% c("scatter", "grid", "hex")),
-                        opts, layout.only = layout.only, pos = "bottom"
+                        opts,
+                        layout.only = layout.only,
+                        pos = "bottom"
                     )
 
                 if (c == 1 & (!opts$internal.labels |
                     !any(TYPE %in% c("dot", "hist"))) & yaxis)  # left column
                     drawAxes(
                         if (any(TYPE == "bar")) ylim else Y,
-                        "y", TRUE, (nr - r) %% 2 == 0, opts,
-                        layout.only = layout.only, pos = "left"
+                        "y",
+                        TRUE,
+                        (nr - r) %% 2 == 0,
+                        opts,
+                        layout.only = layout.only,
+                        pos = "left"
                     )
 
                 if (!any(TYPE %in% c("dot", "hist")) & yaxis) {
@@ -1324,19 +1500,30 @@ iNZightPlot <-
                     if (c == nc | g1id == NG1)
                         drawAxes(
                             if (any(TYPE == "bar")) ylim else Y,
-                            "y", FALSE, (nr - r) %% 2 == 1,
-                            opts, layout.only = layout.only, pos = "right"
+                            "y",
+                            FALSE,
+                            (nr - r) %% 2 == 1,
+                            opts,
+                            layout.only = layout.only,
+                            pos = "right"
                         )
                 }
                 upViewport()
 
                 if (any(TYPE %in% c("scatter", "grid", "hex")) & xaxis) {
-                    pushViewport(viewport(
-                        layout.pos.row = 1, xscale = xlim, yscale = ylim
-                    ))
+                    pushViewport(
+                        viewport(
+                            layout.pos.row = 1,
+                            xscale = xlim,
+                            yscale = ylim
+                        )
+                    )
                     if (r == 1)
-                        drawAxes(X, "x", FALSE, c %% 2 == 0, opts, sub = vspace,
-                                 layout.only = layout.only)
+                        drawAxes(X, "x", FALSE, c %% 2 == 0,
+                            opts,
+                            sub = vspace,
+                            layout.only = layout.only
+                        )
                     upViewport()
                 }
                 opts$ZOOM <- NULL
@@ -1365,18 +1552,22 @@ iNZightPlot <-
     }
 
     if (plot) {
-        plot.list$gen <- list(opts = opts,
-                              mcex = multi.cex,
-                              col.args = col.args,
-                              maxcount = maxcnt)
+        plot.list$gen <- list(
+            opts = opts,
+            mcex = multi.cex,
+            col.args = col.args,
+            maxcount = maxcnt
+        )
         plot.list$xlim <- xlim
         plot.list$ylim <- ylim
     } else {
-        attr(plot.list, "plotargs") <-
-            list(gen = list(
-                opts = opts, maxcount = maxcnt
+        attr(plot.list, "plotargs") <- list(
+            gen = list(
+                opts = opts,
+                maxcount = maxcnt
             ),
-            xlim = xlim, ylim = ylim
+            xlim = xlim,
+            ylim = ylim
         )
     }
 
@@ -1412,4 +1603,4 @@ iNZightPlot <-
 
     class(plot.list) <- "inzplotoutput"
     return(invisible(plot.list))
-    }
+}

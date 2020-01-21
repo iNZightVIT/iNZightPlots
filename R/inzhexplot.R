@@ -25,24 +25,39 @@ create.inz.hexplot <- function(obj) {
     cellid <- hb@cID
     ## now manipulate the counts with the weight variable
     W <- switch(xattr$class,
-                "inz.freq" = df$freq,
-                "inz.survey" = get_weights(obj$df)[!missing],
-                "inz.simple" = rep(1, nrow(df)))
+        "inz.freq" = df$freq,
+        "inz.survey" = get_weights(obj$df)[!missing],
+        "inz.simple" = rep(1, nrow(df))
+    )
 
     hb@count <- as.vector(tapply(W, cellid, sum))
-    hb@xcm <- as.vector(tapply(1:length(df$x), cellid,
-                               function(i) weighted.mean(df$x[i], W[i])))
-    hb@ycm <- as.vector(tapply(1:length(df$y), cellid,
-                               function(i) weighted.mean(df$y[i], W[i])))
+    hb@xcm <- as.vector(
+        tapply(1:length(df$x), cellid,
+            function(i) weighted.mean(df$x[i], W[i])
+        )
+    )
+    hb@ycm <- as.vector(
+        tapply(1:length(df$y), cellid,
+            function(i) weighted.mean(df$y[i], W[i])
+        )
+    )
 
-    out <- list(hex = hb, n.missing = n.missing, svy = obj$df,
-                colby = if("colby" %in% v) convert.to.factor(df$colby) else NULL,
-                nacol = if ("colby" %in% v) any(is.na(df$colby)) else FALSE,
-                xlim = if (nrow(df) > 0) hb@xbnds else c(-Inf, Inf),
-                ylim = if (nrow(df) > 0) hb@ybnds else c(-Inf, Inf),
-                x = df$x, y = df$y, n.bins = xbins,
-                trend = opts$trend, trend.by = opts$trend.by, smooth = opts$trend,
-                n.boot = opts$n.boot)
+    out <- list(
+        hex = hb,
+        n.missing = n.missing,
+        svy = obj$df,
+        colby = if("colby" %in% v) convert.to.factor(df$colby) else NULL,
+        nacol = if ("colby" %in% v) any(is.na(df$colby)) else FALSE,
+        xlim = if (nrow(df) > 0) hb@xbnds else c(-Inf, Inf),
+        ylim = if (nrow(df) > 0) hb@ybnds else c(-Inf, Inf),
+        x = df$x,
+        y = df$y,
+        n.bins = xbins,
+        trend = opts$trend,
+        trend.by = opts$trend.by,
+        smooth = opts$trend,
+        n.boot = opts$n.boot
+    )
     class(out) <- "inzhex"
 
     out
@@ -65,25 +80,40 @@ plot.inzhex <- function(obj, gen) {
         } else {
             colours <- col.args$f.cols
         }
-        hextri::panel.hextri(x = obj$x, y = obj$y,
-                             groups = factor(levels(obj$colby), levels = levels(obj$colby)),
-                             subscripts = as.numeric(obj$colby), colours = colours,
-                             nbins = obj$n.bins, style = opts$hex.style, diffuse = opts$hex.diffuse,
-                             shape = convertHeight(current.viewport()$height, "in", TRUE) /
-                                 convertWidth(current.viewport()$width, "in", TRUE))
+        hextri::panel.hextri(
+            x = obj$x,
+            y = obj$y,
+            groups = factor(levels(obj$colby), levels = levels(obj$colby)),
+            subscripts = as.numeric(obj$colby),
+            colours = colours,
+            nbins = obj$n.bins,
+            style = opts$hex.style,
+            diffuse = opts$hex.diffuse,
+            shape =
+                convertHeight(current.viewport()$height, "in", TRUE) /
+                    convertWidth(current.viewport()$width, "in", TRUE)
+        )
     } else {
         if (opts$hex.style == "alpha") {
             style <- "colorscale"
             colRGB <- col2rgb(opts$col.pt[1]) / 255
-            colramp <- function(n)
-                rgb(colRGB[1], colRGB[2], colRGB[3], seq(0, 1, length = n+1)[-1])
+            colramp <- function(n) {
+                rgb(colRGB[1], colRGB[2], colRGB[3],
+                    seq(0, 1, length = n+1)[-1]
+                )
+            }
         } else {
             style <- "centroids"
             colramp <- NULL
         }
-        grid.hexagons(obj$hex, style = style, maxcnt = gen$maxcount,
-                      border = 0, #if (style == "size") opts$col.pt else FALSE,
-                      pen = opts$col.pt[1], colramp = colramp)
+        grid.hexagons(
+            obj$hex,
+            style = style,
+            maxcnt = gen$maxcount,
+            border = 0, #if (style == "size") opts$col.pt else FALSE,
+            pen = opts$col.pt[1],
+            colramp = colramp
+        )
     }
 
     ## ---------------------------------------------------------------------------- ##
@@ -92,9 +122,11 @@ plot.inzhex <- function(obj, gen) {
     # Line of Equality (LOE)
     if (opts$LOE) {
         xx <- c(min(xlim, ylim), max(xlim, ylim))
-        grid.lines(xx, xx, default.units = "native",
-                   gp = gpar(col = opts$col.LOE, lty = opts$lty.LOE),
-                   name = paste("inz-loe", opts$rowNum, opts$colNum, sep = "."))
+        grid.lines(xx, xx,
+            default.units = "native",
+            gp = gpar(col = opts$col.LOE, lty = opts$lty.LOE),
+            name = paste("inz-loe", opts$rowNum, opts$colNum, sep = ".")
+        )
     }
 
     addXYsmoother(obj, opts, col.args, xlim, ylim)

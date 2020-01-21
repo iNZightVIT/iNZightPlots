@@ -80,11 +80,13 @@ gSubset.inz.freq <- function(df, g1.level, g2.level, df.vs, missing) {
 
     # this converts each data.frame in the list to a list of data
     # frames for all levels of g1
-    df.list <- lapply(df1, function(df2) {
-        df3 <- lapply(g1l, function(x) inzDataList(df2, x))
-        names(df3) <- g1l
-        df3
-    })
+    df.list <- lapply(df1,
+        function(df2) {
+            df3 <- lapply(g1l, function(x) inzDataList(df2, x))
+            names(df3) <- g1l
+            df3
+        }
+    )
 
     ## sum up all of the missing values
     w.df <-
@@ -92,14 +94,28 @@ gSubset.inz.freq <- function(df, g1.level, g2.level, df.vs, missing) {
         else if (g2.level == "_MULTI") 1:length(df.list)
         else g2.level
 
-    missing$x <- sum(sapply(df.list[w.df], function(df)
-                            sum(sapply(df, function(d) sum(is.na(d$x))))))
+    missing$x <- sum(
+        sapply(df.list[w.df],
+            function(df) sum(
+                sapply(df, function(d) sum(is.na(d$x)))
+            )
+        )
+    )
     if ("y" %in% df.vs)
-        missing$y <- sum(sapply(df.list[w.df], function(df)
-                                sum(sapply(df, function(d) sum(is.na(d$y))))))
+        missing$y <- sum(
+            sapply(df.list[w.df],
+                function(df) sum(sapply(df, function(d) sum(is.na(d$y)))
+            )
+        )
+    )
 
     class(df.list) <- "inz.freq"
 
-    list(df = df.list, matrix = matrix.plot, missing = missing,
-         g1.level = g1.level, g2.level = g2.level)
+    list(
+        df = df.list,
+        matrix = matrix.plot,
+        missing = missing,
+        g1.level = g1.level,
+        g2.level = g2.level
+    )
 }

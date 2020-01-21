@@ -5,57 +5,68 @@
 #'
 #' @param x iNZight plot object or function that captures iNZight environment
 #' @param file Name of temporary svg file generated (by default: 'inzightplot.svg')
+#' @param ... additional arguments
 #' @return Opens up an SVG file of \code{x} with filename \code{file} in a web browser
 #' @author Yu Han Soh
 #' @export
-exportSVG <- function(x, file) UseMethod('exportSVG')
+exportSVG <- function(x, file, ...)
+    UseMethod('exportSVG')
 
-exportSVG.function <- function(x, file = 'inzightplot.svg', width = dev.size()[1], height = dev.size()[2]) {
-  
-  #get current directory
-  curdir <- getwd()
+#' @describeIn exportSVG method for functions
+#' @param width the width of the plot device
+#' @param height the height of the plot device
+exportSVG.function <- function(x, file = 'inzightplot.svg',
+                               width = dev.size()[1],
+                               height = dev.size()[2], ...) {
 
-  #set directory to temp directory
-  tdir <- tempdir()
-  setwd(tdir)
+    #get current directory
+    curdir <- getwd()
 
-  #create pdf graphics device into here:
-  pdf('tempfile.pdf', width = width, height = height, onefile = TRUE)
+    #set directory to temp directory
+    tdir <- tempdir()
+    setwd(tdir)
 
-  #do exporting:
-  obj <- x()
-  exportSVG(obj, file)
+    #create pdf graphics device into here:
+    pdf('tempfile.pdf', width = width, height = height, onefile = TRUE)
 
-  #turn off device:
-  dev.off()
+    #do exporting:
+    obj <- x()
+    exportSVG(obj, file)
 
-  #remove pdf:
-  file.remove('tempfile.pdf')
+    #turn off device:
+    dev.off()
 
-  #reset back to original directory:
-  setwd(curdir)
+    #remove pdf:
+    file.remove('tempfile.pdf')
+
+    #reset back to original directory:
+    setwd(curdir)
 
 }
 
-exportSVG.inzplotoutput <- function(x, file = 'inzightplot.svg') {
+#' @describeIn exportSVG method for an existing plot object
+exportSVG.inzplotoutput <- function(x, file = 'inzightplot.svg', ...) {
 
-  #suggest gridSVG:
-  if(!requireNamespace("gridSVG", quietly = TRUE)) {
-    stop(paste("Required packages aren't installed",
-               "Use 'install.packages('iNZightPlots', depends = TRUE)' to install them.",
-               sep = "\n"))
-  }
-  
-  curdir <- getwd()
-  #work in a temp directory
-  setwd(tempdir())
+    #suggest gridSVG:
+    if(!requireNamespace("gridSVG", quietly = TRUE)) {
+        stop(
+            paste("Required packages aren't installed",
+                "Use 'install.packages('iNZightPlots', depends = TRUE)' to install them.",
+                sep = "\n"
+            )
+        )
+    }
 
-  gridSVG::grid.export(file)
+    curdir <- getwd()
+    #work in a temp directory
+    setwd(tempdir())
 
-  #open in browser?
-  browseURL(file.path(file))
+    gridSVG::grid.export(file)
 
-  #return:
-  setwd(curdir)
+    #open in browser?
+    browseURL(file.path(file))
+
+    #return:
+    setwd(curdir)
 
 }

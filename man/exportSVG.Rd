@@ -2,14 +2,32 @@
 % Please edit documentation in R/exportSVG.R
 \name{exportSVG}
 \alias{exportSVG}
+\alias{exportSVG.function}
+\alias{exportSVG.inzplotoutput}
 \title{Export iNZightPlots as an SVG}
 \usage{
-exportSVG(x, file)
+exportSVG(x, file, ...)
+
+\method{exportSVG}{`function`}(
+  x,
+  file = "inzightplot.svg",
+  width = dev.size()[1],
+  height = dev.size()[2],
+  ...
+)
+
+\method{exportSVG}{inzplotoutput}(x, file = "inzightplot.svg", ...)
 }
 \arguments{
 \item{x}{iNZight plot object or function that captures iNZight environment}
 
 \item{file}{Name of temporary svg file generated (by default: 'inzightplot.svg')}
+
+\item{...}{additional arguments}
+
+\item{width}{the width of the plot device}
+
+\item{height}{the height of the plot device}
 }
 \value{
 Opens up an SVG file of \code{x} with filename \code{file} in a web browser
@@ -18,6 +36,13 @@ Opens up an SVG file of \code{x} with filename \code{file} in a web browser
 \code{exportSVG} is designed to export the iNZight plot as a temporary SVG that is opened in a web browser.
 The iNZightPlot must be drawn to a graphics device before exporting can occur.
 }
+\section{Methods (by class)}{
+\itemize{
+\item \code{function}: method for functions
+
+\item \code{inzplotoutput}: method for an existing plot object
+}}
+
 \author{
 Yu Han Soh
 }
