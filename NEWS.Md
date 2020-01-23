@@ -2,6 +2,7 @@
 __Release date__: TBA
 
 - Add formula interface function, `iNZPlot`, for `iNZightPlot`.
+- make subsetting/faceting for ggplots more in line with base iNZightPlots
 
 
 # iNZightPlots 2.10.4

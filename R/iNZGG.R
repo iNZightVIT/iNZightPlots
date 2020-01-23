@@ -187,9 +187,13 @@ iNZightPlotGG_facet <- function(data, data_name, exprs, g1, g2, g1.level, g2.lev
   }
   
   if (isTRUE(is.null(g2) || length(g2) == 0)) {
-    exprs$plot <- rlang::expr(!!exprs$plot + ggplot2::facet_grid(rows = ggplot2::vars(!!rlang::sym(g1)), labeller = ggplot2::label_both))
+    exprs$plot <- rlang::expr(!!exprs$plot + ggplot2::facet_wrap(ggplot2::vars(!!rlang::sym(g1)), labeller = ggplot2::label_both))
   } else {
-    exprs$plot <- rlang::expr(!!exprs$plot + ggplot2::facet_grid(rows = ggplot2::vars(!!rlang::sym(g1)), cols = ggplot2::vars(!!rlang::sym(g2)), labeller = ggplot2::label_both))
+    if (!is.null(g2.level) && g2.level == "_MULTI") {
+      exprs$plot <- rlang::expr(!!exprs$plot + ggplot2::facet_grid(cols = ggplot2::vars(!!rlang::sym(g1)), rows = ggplot2::vars(!!rlang::sym(g2)), labeller = ggplot2::label_both))
+    } else {
+      exprs$plot <- rlang::expr(!!exprs$plot + ggplot2::facet_wrap(ggplot2::vars(!!rlang::sym(g1)), labeller = ggplot2::label_both))
+    }
   }
   
   exprs
