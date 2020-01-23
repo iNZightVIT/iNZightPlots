@@ -680,6 +680,11 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
                         )
                     } else {
                         HypOut <- NULL
+                        ## Use anova.glm
+                        # for fit0 <- quasipoisson(y~1)
+                        # vs  fit1 <- quasipoisson(y~group)
+
+                        # then Rao-Scott likelihood comparison
                     }
                 } else {
                     if (ncol(object$tab) == 2) {
