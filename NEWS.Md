@@ -1,7 +1,6 @@
 # iNZightPlots 2.10.4.9000
-__Release date__: TBA
 
-- Add formula interface function, `iNZPlot`, for `iNZightPlot`.
+- Add formula interface function, `iNZPlot`, for `iNZightPlot`, along with similar wrappers `iNZSummary` and `iNZInference` for summary and inferential information, respectively.
 - Get Summary for trends no longer includes superfluous "+" in front of negative coefficients
 - make subsetting/faceting for ggplots more in line with base iNZightPlots
 
