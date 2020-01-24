@@ -490,15 +490,13 @@ summary.inzscatter <- function(object, vn, des, ...) {
         else
             out <- c(
                 out,
-                "Linear trend:", "",
-                paste0(
-                    "    ",
+                "Linear trend:",
+                "",
+                sprintf("    %s = %s %s %s * %s",
                     vn$y,
-                    " = ",
                     beta[1],
-                    " + ",
-                    beta[2],
-                    " * ",
+                    ifelse(beta[2] < 0, "-", "+"),
+                    abs(beta[2]),
                     vn$x
                 ),
                 paste0(
@@ -538,20 +536,15 @@ summary.inzscatter <- function(object, vn, des, ...) {
                 out,
                 "Quadratic trend:",
                 "",
-                paste0(
-                    "    ",
+                sprintf("    %s = %s %s %s * %s %s %s * %s^2",
                     vn$y,
-                    " = ",
                     beta[1],
-                    " + ",
-                    beta[2],
-                    " * ",
+                    ifelse(beta[2] < 0, "-", "+"),
+                    abs(beta[2]),
                     vn$x,
-                    " + ",
-                    beta[3],
-                    " * ",
-                    vn$x,
-                    "^2"
+                    ifelse(beta[3] < 0, "-", "+"),
+                    abs(beta[3]),
+                    vn$x
                 ),
                 ""
             )
@@ -578,25 +571,20 @@ summary.inzscatter <- function(object, vn, des, ...) {
         else
             out <- c(
                 out,
-                "Cubic trend:", "",
-                paste0(
-                    "    ",
+                "Cubic trend:",
+                "",
+                sprintf("    %s = %s %s %s * %s %s %s * %s^2 %s %s * %s^3",
                     vn$y,
-                    " = ",
                     beta[1],
-                    " + ",
-                    beta[2],
-                    " * ",
+                    ifelse(beta[2] < 0, "-", "+"),
+                    abs(beta[2]),
                     vn$x,
-                    " + ",
-                    beta[3],
-                    " * ",
+                    ifelse(beta[3] < 0, "-", "+"),
+                    abs(beta[3]),
                     vn$x,
-                    "^2 + ",
-                    beta[4],
-                    " * ",
-                    vn$x,
-                    "^3"
+                    ifelse(beta[4] < 0, "-", "+"),
+                    abs(beta[4]),
+                    vn$x
                 ),
                 ""
             )

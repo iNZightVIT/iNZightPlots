@@ -29,6 +29,7 @@ getPlotSummary(
   hypothesis = list(value = hypothesis.value, alternative = match.arg(hypothesis.alt),
     var.equal = hypothesis.var.equal, use.exact = hypothesis.use.exact, test =
     match.arg(hypothesis.test), simulated.p.value = hypothesis.simulated.p.value),
+  width = 100,
   ...
 )
 }
@@ -87,6 +88,8 @@ displayed in the plot}
 \item{hypothesis.simulated.p.value}{also calculate (where available) the simulated p-value}
 
 \item{hypothesis}{either NULL for no test, or missing (in which case above arguments are used)}
+
+\item{width}{width for the output, default is 100 characters}
 
 \item{...}{additional arguments, see \code{inzpar}}
 }

@@ -35,6 +35,7 @@
 #' @param hypothesis.test in some cases (currently just two-samples) can perform multiple tests (t-test or ANOVA)
 #' @param hypothesis.simulated.p.value also calculate (where available) the simulated p-value
 #' @param hypothesis either NULL for no test, or missing (in which case above arguments are used)
+#' @param width width for the output, default is 100 characters
 #' @param ... additional arguments, see \code{inzpar}
 #' @return an \code{inzight.plotsummary} object with a print method
 #' @author Tom Elliott
@@ -60,6 +61,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                                 test = match.arg(hypothesis.test),
                                 simulated.p.value = hypothesis.simulated.p.value
                            ),
+                           width = 100,
                            ...) {
 
     # if (inherits(x, "data.frame")) {
@@ -157,7 +159,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     ### Now we just loop over everything ...
 
-    summary(obj, summary.type, hypothesis)
+    summary(obj, summary.type, hypothesis, width = width)
 }
 
 
