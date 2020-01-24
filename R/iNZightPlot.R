@@ -183,12 +183,24 @@ iNZightPlot <- function(x,
             data_name <- list(...)$data_name
         }
 
-        if ("x" %in% names(m) && !("x" %in% varnames)) {
+        if ("x" %in% names(m) && !("x" %in% names(varnames))) {
             varnames[["x"]] <- as.character(m[["x"]])
         }
 
-        if ("y" %in% names(m) && !("y" %in% varnames)) {
+        if ("y" %in% names(m) && !("y" %in% names(varnames))) {
             varnames[["y"]] <- as.character(m[["y"]])
+        }
+        
+        if ("g1" %in% names(varnames)) {
+          g1 <- varnames[["g1"]]
+        } else {
+          g1 <- m$g1
+        }
+        
+        if ("g2" %in% names(varnames)) {
+          g2 <- varnames[["g2"]]
+        } else {
+          g2 <- m$g2
         }
 
         ret.plot <- do.call(iNZightPlotGG,
@@ -204,8 +216,8 @@ iNZightPlot <- function(x,
                     palette = list(...)$palette,
                     gg_theme = list(...)$gg_theme,
                     caption = list(...)$caption,
-                    g1 = as.character(m$g1),
-                    g2 = as.character(m$g2)
+                    g1 = as.character(g1),
+                    g2 = as.character(g2)
                 ),
                 varnames,
                 list(
