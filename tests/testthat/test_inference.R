@@ -9,24 +9,24 @@ d <- data.frame(
 
 test_that("Two-sample tests use appropriate CI", {
     pTRUE <- getPlotSummary(x, y, data = d,
-        summary.type = "inference", 
+        summary.type = "inference",
         inference.type = "conf",
         hypothesis.var.equal = TRUE
     )
     pFALSE <- getPlotSummary(x, y, data = d,
-        summary.type = "inference", 
+        summary.type = "inference",
         inference.type = "conf",
         hypothesis.var.equal = FALSE
     )
 
     pvals <- sapply(list(pTRUE, pFALSE), function(p) {
         as.numeric(
-            gsub(".+=", "", 
+            gsub(".+=", "",
                 strsplit(p[grep("p-value = ", p)[1]], ",")[[1]][3]
             )
         )
     })
-    expect_equal(pvals, 
+    expect_equal(pvals,
         c(
             t.test(x ~ y, data = d, var.equal = TRUE)$p.value,
             t.test(x ~ y, data = d)$p.value
@@ -114,7 +114,7 @@ test_that("One-sample tests display correct hypotheses", {
     expect_match(
         paste(s3, collapse = "\n"),
         "Alternative Hypothesis: true proportions in each category are not equal"
-    )  
+    )
 })
 
 
@@ -132,7 +132,7 @@ s1 <- getPlotSummary(Machine, Course, data = d, summary.type = "inference",
 )
 test_that("Simulated p-value is included when small expected values", {
     expect_match(
-        paste(s1, collapse = "\n"), 
+        paste(s1, collapse = "\n"),
         "Simulated p-value (since some expected counts < 5) =",
         fixed = TRUE
     )
@@ -140,10 +140,10 @@ test_that("Simulated p-value is included when small expected values", {
 
 test_that("Simulated p-value is included when requested", {
     cas <- read.csv("cas.csv")
-    s <- getPlotSummary(cellsource, gender, data = cas, 
+    s <- getPlotSummary(cellsource, gender, data = cas,
         summary.type = "inference",
         inference.type = "conf",
-        hypothesis.test = "chi2", 
+        hypothesis.test = "chi2",
         hypothesis.simulated.p.value = TRUE
     )
     expect_match(paste(s, collapse = "\n"), "Simulated p-value =")
@@ -155,3 +155,24 @@ test_that("Simulated p-value is included when requested", {
 # 2000?
 # tab <- matrix(sample(2000, replace = TRUE), ncol = 50)
 # system.time(chisq.test(tab, simulate = TRUE))[3]
+
+
+
+
+test_that("iNZInference gives the same output", {
+    expect_equal(
+        iNZInference(Sepal.Length ~ Sepal.Width,
+            data = iris, trend = "linear", width = 80),
+        getPlotSummary(Sepal.Width, Sepal.Length,
+            data = iris, trend = "linear", width = 80,
+            summary.type = "inference", inference.type = "conf")
+    )
+
+    expect_equal(
+        iNZInference(Sepal.Length ~ Sepal.Width | Species,
+            data = iris, trend = "linear", width = 80),
+        getPlotSummary(Sepal.Width, Sepal.Length, g1 =  Species,
+            data = iris, trend = "linear", width = 80,
+            summary.type = "inference")
+    )
+})

@@ -119,6 +119,11 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ### This is getting complex... so for now ignore manual use.
 
     ## ## Modify `inzpars` for the inference:
+    if ("inference.type" %in% names(list(...)) &&
+        list(...)[["inference.type"]] == "comp") {
+        warning("Comparison intervals not yet available for Inferential output.\n",
+            "Defaulting to confidence intervals.")
+    }
     ## dots <- list(...)
     ## inference.type <- inference.par <- NULL
     ## bs.inference <- FALSE
@@ -629,4 +634,135 @@ centerText <- function(x, width) {
     len <- nchar(x)
     pad <- floor((width - len) / 2)
     paste0(paste0(rep(" ", pad), collapse = ""), x)
+}
+
+
+#' @describeIn iNZPlot Wrapper for getPlotSummary to obtain summary information about a plot
+#' @export
+iNZSummary <- function(f, data = NULL, ...) {
+    f <- match.call()[["f"]]
+    if (!rlang::is_formula(f)) {
+        eval(
+            rlang::expr(
+                getPlotSummary(x = !!f,  data = !!match.call()[["data"]], ...)
+            )
+        )
+    } else {
+        f.list <- as.list(f)
+
+        if (lengths(f.list)[3] == 1) {
+            eval(
+                rlang::expr(
+                    getPlotSummary(
+                        x = !!f.list[[3]],
+                        y = !!f.list[[2]],
+                        data = !!match.call()[["data"]],
+                        ...
+                    )
+                )
+            )
+        } else {
+            f.list2 <- as.list(f.list[[3]])
+            if (lengths(f.list2)[3] == 1) {
+                eval(
+                    rlang::expr(
+                        getPlotSummary(
+                            x = !!f.list2[[2]],
+                            y = !!f.list[[2]],
+                            g1 = !!f.list2[[3]],
+                            data = !!match.call()[["data"]],
+                            ...
+                        )
+                    )
+                )
+            } else {
+                f.list3 <- as.list(f.list2[[3]])
+                eval(
+                    rlang::expr(
+                        getPlotSummary(
+                            x = !!f.list2[[2]],
+                            y = !!f.list[[2]],
+                            g1 = !!f.list3[[2]],
+                            g2 = !!f.list3[[3]],
+                            data = !!match.call()[["data"]],
+                            ...
+                        )
+                    )
+                )
+            }
+        }
+    }
+}
+
+#' @describeIn iNZPlot Wrapper for getPlotSummary to obtain inference information about a plot
+#' @export
+#' @param type Type type of inference to obtain, one of 'conf' or 'comp'
+#'             for confidence intervals and comparison intervals, respectively
+#'             (currently ignored).
+iNZInference <- function(f, data = NULL, type = c("conf", "comp"), ...) {
+    type <- match.arg(type)
+    f <- match.call()[["f"]]
+    if (!rlang::is_formula(f)) {
+        eval(
+            rlang::expr(
+                getPlotSummary(
+                    x = !!f,
+                    data = !!match.call()[["data"]],
+                    summary.type = "inference",
+                    inference.type = type,
+                    ...
+                )
+            )
+        )
+    } else {
+        f.list <- as.list(f)
+
+        if (lengths(f.list)[3] == 1) {
+            eval(
+                rlang::expr(
+                    getPlotSummary(
+                        x = !!f.list[[3]],
+                        y = !!f.list[[2]],
+                        data = !!match.call()[["data"]],
+                        summary.type = "inference",
+                        inference.type = type,
+                        ...
+                    )
+                )
+            )
+        } else {
+            f.list2 <- as.list(f.list[[3]])
+            if (lengths(f.list2)[3] == 1) {
+                eval(
+                    rlang::expr(
+                        getPlotSummary(
+                            x = !!f.list2[[2]],
+                            y = !!f.list[[2]],
+                            g1 = !!f.list2[[3]],
+                            data = !!match.call()[["data"]],
+                            summary.type = "inference",
+                            inference.type = type,
+                            ...
+                        )
+                    )
+                )
+            } else {
+                f.list3 <- as.list(f.list2[[3]])
+                eval(
+                    rlang::expr(
+                        getPlotSummary(
+                            x = !!f.list2[[2]],
+                            y = !!f.list[[2]],
+                            g1 = !!f.list3[[2]],
+                            g2 = !!f.list3[[3]],
+                            data = !!match.call()[["data"]],
+                            summary.type = "inference",
+                            inference.type = type,
+                            ...
+                        )
+                    )
+                )
+            }
+        }
+    }
 }
