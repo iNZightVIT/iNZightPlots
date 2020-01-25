@@ -7,3 +7,4 @@
 ^appveyor\.yml$
 ^.lintr$
 
+^cran-comments\.md$
