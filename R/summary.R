@@ -288,7 +288,7 @@ summary.inzdot <- function(object, des, ...) {
         top <- 1:((length(mat)-1)/2+1)
         bot <- ((length(mat)-1)/2+2):length(mat)
         out <- c(
-            "Population estimates:",
+            ifelse(is.null(des), "Estimates", "Population estimates:"),
             "",
             mat[top],
             "",
@@ -297,7 +297,11 @@ summary.inzdot <- function(object, des, ...) {
             mat[bot]
         )
     } else {
-        out <- c("Population estimates:", "", mat)
+        out <- c(
+            ifelse(is.null(des), "Estimates", "Population estimates:"),
+            "",
+            mat
+        )
     }
 
     out
