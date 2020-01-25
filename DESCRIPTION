@@ -1,6 +1,6 @@
 Package: iNZightPlots
 Type: Package
-Title: iNZightPlots
+Title: Graphics for iNZight
 Version: 2.10.4.9000
 Authors@R: c(person("Tom", "Elliott", role = c("aut", "cre"),
                     email = "tom.elliott@auckland.ac.nz"),
@@ -53,7 +53,10 @@ Remotes:
     iNZightVIT/iNZightTools@dev,
     iNZightVIT/iNZightMR@dev
 Description: Simple plotting function(s) for exploratory data analysis with
-    flexible plotting options to allow users to customise plots.
+    flexible plotting options to allow users to customise plots. The goal of
+    this package is to make it easy for beginniners to start exploring
+    a dataset through simple R function calls, as well as provide a similar
+    interface to summary statistics and inference information.
 License: GPL-3 | file LICENSE
 Encoding: UTF-8
 Language: en-GB
