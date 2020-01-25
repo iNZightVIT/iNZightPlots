@@ -119,7 +119,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ### This is getting complex... so for now ignore manual use.
 
     ## ## Modify `inzpars` for the inference:
-    if ("inference.type" %in% names(list(...)) &&
+    if (!is.null(list(...)[["inference.type"]]) &&
         list(...)[["inference.type"]] == "comp") {
         warning("Comparison intervals not yet available for Inferential output.\n",
             "Defaulting to confidence intervals.")
