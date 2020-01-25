@@ -4,6 +4,7 @@
 - Get Summary for trends no longer includes superfluous "+" in front of negative coefficients
 - make subsetting/faceting for ggplots more in line with base iNZightPlots
 - fix bug in summary output where "Population" was being displayed for non-survey data
+- fix bug in axis labelling of large values where scientific notation used inconsistently
 
 
 # iNZightPlots 2.10.4

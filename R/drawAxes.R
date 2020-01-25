@@ -14,6 +14,7 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts,
     x <- transform_axes(x, which, opts, label)
     at <- x$at
     labs <- x$labs
+    if (!is.logical(labs)) labs <- format(labs)
 
     switch(which,
         "x" = {
