@@ -79,7 +79,10 @@ create.inz.scatterplot <- function(obj) {
         eLab <- as.character(df$extreme.label)
         m <- cbind(df$x, df$y)
         if (sum(apply(m, 1, function(k) all(!is.na(k)))) > 0) {
-            dist <- mahalanobis(m, colMeans(m, na.rm = TRUE), cov(m, use = "complete.obs"))
+            dist <- mahalanobis(m,
+                colMeans(m, na.rm = TRUE),
+                cov(m, use = "complete.obs")
+            )
             o <- order(dist, decreasing = TRUE)
             text.labels <- eLab
             ext.ids <- o[1:min(sum(!is.na(dist)), xattr$nextreme)]
@@ -93,15 +96,26 @@ create.inz.scatterplot <- function(obj) {
     }
 
     # Combine everything together into a classed list which will have a `plot` method
-    out <- list(x = df$x, y = df$y, colby = df$colby, propsize = propsize, pch = pch,
-                fill.pt = opts$fill.pt, n.missing = n.missing,
-                nacol = if ("colby" %in% v) any(is.na(df$colby)) else FALSE,
-                nasize = if ("sizeby" %in% v) any(is.na(df$sizeby)) else FALSE,
-                xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
-                ylim = if (nrow(df) > 0) range(df$y, na.rm = TRUE) else c(-Inf, Inf),
-                trend = opts$trend, trend.by = opts$trend.by, smooth = opts$trend,
-                n.boot = opts$n.boot, text.labels = text.labels, extreme.ids = ext.ids,
-                point.order = ORDER)
+    out <- list(
+        x = df$x,
+        y = df$y,
+        colby = df$colby,
+        propsize = propsize,
+        pch = pch,
+        fill.pt = opts$fill.pt,
+        n.missing = n.missing,
+        nacol = if ("colby" %in% v) any(is.na(df$colby)) else FALSE,
+        nasize = if ("sizeby" %in% v) any(is.na(df$sizeby)) else FALSE,
+        xlim = if (nrow(df) > 0) range(df$x, na.rm = TRUE) else c(-Inf, Inf),
+        ylim = if (nrow(df) > 0) range(df$y, na.rm = TRUE) else c(-Inf, Inf),
+        trend = opts$trend,
+        trend.by = opts$trend.by,
+        smooth = opts$trend,
+        n.boot = opts$n.boot,
+        text.labels = text.labels,
+        extreme.ids = ext.ids,
+        point.order = ORDER
+    )
 
     if (xattr$class == "inz.survey")
         out$svy <- obj$df
@@ -155,16 +169,25 @@ plot.inzscatter <- function(obj, gen) {
     }
 
 
-    NotInView <- obj$x < min(xlim) | obj$x > max(xlim) | obj$y < min(ylim) | obj$y > max(ylim)
+    NotInView <-
+        obj$x < min(xlim) |
+        obj$x > max(xlim) |
+        obj$y < min(ylim) |
+        obj$y > max(ylim)
+
     obj$pch[NotInView] <- NA
     ptOrdering <-
-    grid.points(obj$x, obj$y, pch = obj$pch,
-                gp =
-                gpar(col = ptCols,
-                     cex = obj$propsize,
-                     lwd = opts$lwd.pt, alpha = opts$alpha,
-                     fill = if (obj$fill.pt == "fill") ptCols else obj$fill.pt),
-                name = paste("inz-SCATTERPOINTS", opts$rowNum, opts$colNum, sep = "."))
+    grid.points(obj$x, obj$y,
+        pch = obj$pch,
+        gp = gpar(
+            col = ptCols,
+            cex = obj$propsize,
+            lwd = opts$lwd.pt,
+            alpha = opts$alpha,
+            fill = if (obj$fill.pt == "fill") ptCols else obj$fill.pt
+        ),
+        name = paste("inz-SCATTERPOINTS", opts$rowNum, opts$colNum, sep = ".")
+    )
 
     ## Highlighting:
     if (!is.null(obj$highlight) & length(ptCols) > 1) {
@@ -176,17 +199,23 @@ plot.inzscatter <- function(obj, gen) {
                 else
                     opts$highlight.col
 
-            grid.points(obj$x[hl], obj$y[hl], pch = 19,
-                        gp =
-                        gpar(col = hcol,
-                             cex = obj$propsize * 1.4,
-                             lwd = opts$lwd.pt))
+            grid.points(obj$x[hl], obj$y[hl],
+                pch = 19,
+                gp = gpar(
+                    col = hcol,
+                    cex = obj$propsize * 1.4,
+                    lwd = opts$lwd.pt
+                )
+            )
 
-            grid.points(obj$x[hl], obj$y[hl], pch = 19,
-                        gp =
-                        gpar(col = ptCols[hl],
-                             cex = obj$propsize,
-                             lwd = opts$lwd.pt))
+            grid.points(obj$x[hl], obj$y[hl],
+                pch = 19,
+                gp = gpar(
+                    col = ptCols[hl],
+                    cex = obj$propsize,
+                    lwd = opts$lwd.pt
+                )
+            )
         }
     }
 
@@ -205,35 +234,51 @@ plot.inzscatter <- function(obj, gen) {
     # Connect by dots if they want it ...
     if (opts$join) {
         if (length(unique(obj$colby)) == 1 | !opts$lines.by) {
-            grid.lines(obj$x, obj$y, default.units = "native",
-                       gp =
-                       gpar(lwd = opts$lwd, lty = opts$lty,
-                            col = opts$col.line))
+            grid.lines(obj$x, obj$y,
+                default.units = "native",
+                gp = gpar(
+                    lwd = opts$lwd,
+                    lty = opts$lty,
+                    col = opts$col.line
+                )
+            )
         } else {
             byy <- as.factor(obj$colby)  # pseudo-by-variable
-            xtmp <- lapply(levels(byy), function(c) subset(obj$x, obj$colby == c))
-            ytmp <- lapply(levels(byy), function(c) subset(obj$y, obj$colby == c))
+            xtmp <- lapply(levels(byy),
+                function(c) obj$x[obj$colby == c]
+            )
+            ytmp <- lapply(levels(byy),
+                function(c) obj$y[obj$colby == c]
+            )
 
             for (b in 1:length(levels(byy)))
-                grid.lines(xtmp[[b]], ytmp[[b]], default.units = "native",
-                           gp =
-                           gpar(lwd = opts$lwd, lty = opts$lty,
-                                col = col.args$f.cols[b]))
+                grid.lines(xtmp[[b]], ytmp[[b]],
+                    default.units = "native",
+                    gp = gpar(
+                        lwd = opts$lwd,
+                        lty = opts$lty,
+                        col = col.args$f.cols[b]
+                    )
+                )
         }
     }
 
     ## add rugs --- these only make sense for a scatter plot
     if ("x" %in% strsplit(opts$rug, '')[[1]]) {
       # Add marks on the x-axis at the location of every data point
-        grid.polyline(x = unit(rep(obj$x, each = 2), "native"),
-                      y = unit(rep(c(0, 0.5), length(obj$x)), "char"),
-                      id.lengths = rep(2, length(obj$x)))
+        grid.polyline(
+            x = unit(rep(obj$x, each = 2), "native"),
+            y = unit(rep(c(0, 0.5), length(obj$x)), "char"),
+            id.lengths = rep(2, length(obj$x))
+        )
     }
     if ("y" %in% strsplit(opts$rug, '')[[1]]) {
       # Same, but for the y-axis
-        grid.polyline(y = unit(rep(obj$y, each = 2), "native"),
-                      x = unit(rep(c(0, 0.5), length(obj$y)), "char"),
-                      id.lengths = rep(2, length(obj$y)))
+        grid.polyline(
+            y = unit(rep(obj$y, each = 2), "native"),
+            x = unit(rep(c(0, 0.5), length(obj$y)), "char"),
+            id.lengths = rep(2, length(obj$y))
+        )
     }
 
     ## ---------------------------------------------------------------------------- ##
@@ -242,9 +287,11 @@ plot.inzscatter <- function(obj, gen) {
     # Line of Equality (LOE)
     if (opts$LOE) {
         xx <- c(min(xlim, ylim), max(xlim, ylim))
-        grid.lines(xx, xx, default.units = "native",
-                   gp = gpar(col = opts$col.LOE, lty = opts$lty.LOE),
-                   name = paste("inz-line-LOE", opts$rowNum, opts$colNum, sep = "."))
+        grid.lines(xx, xx,
+            default.units = "native",
+            gp = gpar(col = opts$col.LOE, lty = opts$lty.LOE),
+            name = paste("inz-line-LOE", opts$rowNum, opts$colNum, sep = ".")
+        )
     }
 
     if (opts$trend.by)

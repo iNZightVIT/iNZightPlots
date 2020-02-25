@@ -3,15 +3,15 @@
 #' @title Explore all Univariate Plots
 #' @param data a data frame
 #' @return NULL
-#' @author tell029
+#' @author Tom Elliott
 #' @export
 exploreAllPlots <- function(data) {
     ## Runs iNZightPlot on all of the variables, with a click-for-next thing.
-    
+
     grid.newpage()
     pushViewport(viewport())
 
-  # Title window:
+    # Title window:
     grid.text(paste("Click the next button to see next plot."))
 
     oask <- devAskNewPage(TRUE)

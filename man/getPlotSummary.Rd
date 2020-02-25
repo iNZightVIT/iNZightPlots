@@ -4,18 +4,34 @@
 \alias{getPlotSummary}
 \title{iNZight Plot Summary and Inference}
 \usage{
-getPlotSummary(x, y = NULL, g1 = NULL, g1.level = NULL, g2 = NULL,
-  g2.level = NULL, varnames = list(), colby = NULL, sizeby = NULL,
-  data = NULL, design = NULL, freq = NULL, missing.info = TRUE,
-  inzpars = inzpar(), summary.type = "summary", hypothesis.value = 0,
+getPlotSummary(
+  x,
+  y = NULL,
+  g1 = NULL,
+  g1.level = NULL,
+  g2 = NULL,
+  g2.level = NULL,
+  varnames = list(),
+  colby = NULL,
+  sizeby = NULL,
+  data = NULL,
+  design = NULL,
+  freq = NULL,
+  missing.info = TRUE,
+  inzpars = inzpar(),
+  summary.type = "summary",
+  hypothesis.value = 0,
   hypothesis.alt = c("two.sided", "less", "greater"),
-  hypothesis.var.equal = FALSE, hypothesis.use.exact = FALSE,
-  hypothesis.test = c("default", "t.test", "anova", "chi2",
-  "proportion"), hypothesis.simulated.p.value = FALSE,
-  hypothesis = list(value = hypothesis.value, alternative =
-  match.arg(hypothesis.alt), var.equal = hypothesis.var.equal, use.exact =
-  hypothesis.use.exact, test = match.arg(hypothesis.test),
-  simulated.p.value = hypothesis.simulated.p.value), ...)
+  hypothesis.var.equal = FALSE,
+  hypothesis.use.exact = FALSE,
+  hypothesis.test = c("default", "t.test", "anova", "chi2", "proportion"),
+  hypothesis.simulated.p.value = FALSE,
+  hypothesis = list(value = hypothesis.value, alternative = match.arg(hypothesis.alt),
+    var.equal = hypothesis.var.equal, use.exact = hypothesis.use.exact, test =
+    match.arg(hypothesis.test), simulated.p.value = hypothesis.simulated.p.value),
+  width = 100,
+  ...
+)
 }
 \arguments{
 \item{x}{a vector (numeric or factor), or the name of a column in the supplied
@@ -73,6 +89,8 @@ displayed in the plot}
 
 \item{hypothesis}{either NULL for no test, or missing (in which case above arguments are used)}
 
+\item{width}{width for the output, default is 100 characters}
+
 \item{...}{additional arguments, see \code{inzpar}}
 }
 \value{
@@ -85,5 +103,5 @@ Generate summary or inference information for an iNZight plot
 Works much the same as \code{iNZightPlot}
 }
 \author{
-tell029
+Tom Elliott
 }

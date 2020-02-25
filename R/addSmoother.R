@@ -29,16 +29,23 @@ addXYsmoother <- function(obj, opts, col.args, xlim, ylim) {
         else
             X <- cbind(x, y)
 
-        qs <- try(calcQSmooth(X, opts$quant.smooth, opts), TRUE)
+        qs <- try(calcQSmooth(X, opts$quant.smooth, opts), silent = TRUE)
         if (!inherits(qs, "try-error")) {
             qp <- qs$qp
             lty <- qs$lty
             lwd <- qs$lwd
-            for (q in 1:length(qp))
-                try(addQuantileSmoother(x, y, quantile = qp[q],
-                                        col = opts$col.smooth,
-                                        lty = lty[q], lwd = lwd[q],
-                                        opts = opts), TRUE)
+            for (q in 1:length(qp)) {
+                try(
+                    addQuantileSmoother(x, y,
+                        quantile = qp[q],
+                        col = opts$col.smooth,
+                        lty = lty[q],
+                        lwd = lwd[q],
+                        opts = opts
+                    ),
+                    silent = TRUE
+                )
+            }
         }
     } else if (!is.null(opts$smooth)) {
       # Smoothers
@@ -47,74 +54,108 @@ addXYsmoother <- function(obj, opts, col.args, xlim, ylim) {
                 warning("Smoothing value must be in the interval [0, 1]")
             } else {
                 if (length(unique(obj$col)) == 1 | !opts$trend.by) {
-                    try(addSmoother(x, y, f = opts$smooth,
-                                    col = opts$col.smooth, bs = opts$bs.inference,
-                                    opts = opts), TRUE)
+                    try(
+                        addSmoother(x, y,
+                            f = opts$smooth,
+                            col = opts$col.smooth,
+                            bs = opts$bs.inference,
+                            opts = opts
+                        ),
+                        silent = TRUE
+                    )
                 } else {
                     byy <- as.factor(obj$col)  # pseudo-by-variable
-                    xtmp <- lapply(levels(byy), function(c) subset(x, obj$col == c))
-                    ytmp <- lapply(levels(byy), function(c) subset(y, obj$col == c))
+                    xtmp <- lapply(levels(byy),
+                        function(c) {
+                            x[obj$col == c & !is.na(obj$col)]
+                        }
+                    )
+                    ytmp <- lapply(levels(byy),
+                        function(c) {
+                            y[obj$col == c & !is.na(obj$col)]
+                        }
+                    )
 
-                    for (b in 1:length(levels(byy)))
-                        try(addSmoother(xtmp[[b]], ytmp[[b]],
-                                        f = opts$smooth,
-                                        col = darken(col.args$f.cols[b]),
-                                        bs = FALSE, lty = opts$smoothby.lty,
-                                        opts = opts), TRUE)
+                    for (b in 1:length(levels(byy))) {
+                        try(
+                            addSmoother(xtmp[[b]], ytmp[[b]],
+                                f = opts$smooth,
+                                col = darken(col.args$f.cols[b]),
+                                bs = FALSE,
+                                lty = opts$smoothby.lty,
+                                opts = opts
+                            ),
+                            silent = TRUE
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-addSmoother <-
-function(x, y = NULL, f, col, bs, lty = 1, opts) {
+addSmoother <- function(x, y = NULL, f, col, bs, lty = 1, opts) {
     if (is.null(y) & is_survey(x)) {
         sm <- svysmooth(y ~ x, design = x, method = "locpoly")[[1]]
     } else {
         sm <- loess.smooth(x, y, span = f, family = "gaussian")
     }
     grid.lines(sm$x, sm$y,
-               default.units = "native",
-               gp = gpar(col = col, lwd = 2 * opts$lwd, lty = lty),
-               name = paste("inz-smoother", opts$rowNum, opts$colNum, sep = "."))
+        default.units = "native",
+        gp = gpar(col = col, lwd = 2 * opts$lwd, lty = lty),
+        name = paste("inz-smoother", opts$rowNum, opts$colNum, sep = ".")
+    )
 
     if (bs) {
         for (i in 1:30) {
-          # User wants bootstrap inference for the smoother:
+            # User wants bootstrap inference for the smoother:
             id <- sample(1:length(x), replace = TRUE)
             x2 <- x[id]
             y2 <- y[id]
             sm <- lowess(x2, y2, f = f)
             grid.lines(sm$x, sm$y,
-                       default.units = "native",
-                       gp = gpar(col = col, lwd = 1 * opts$lwd, lty = 3),
-                       name = paste("inz-bs-smoother", opts$rowNum, opts$colNum, sep = "."))
+                default.units = "native",
+                gp = gpar(col = col, lwd = 1 * opts$lwd, lty = 3),
+                name = paste("inz-bs-smoother", opts$rowNum, opts$colNum, sep = ".")
+            )
         }
     }
 }
 
-addQuantileSmoother <-
-function(x, y = NULL, quantile, col, lty, lwd, opts) {
-  # Draws quantiles on a plot.
+addQuantileSmoother <- function(x, y = NULL, quantile, col, lty, lwd, opts) {
+    # Draws quantiles on a plot.
     if (quantile < 0.5)  # symmetry
         quantile <- c(quantile, 1 - quantile)
 
-  # Because we are using the `svysmooth()` function from the `survey` package,
-  # we need to supply a design (here, everything is IID)
+    # Because we are using the `svysmooth()` function from the `survey` package,
+    # we need to supply a design (here, everything is IID)
     if (is.null(y) & is_survey(x))
         des <- x
     else
         des <- suppressWarnings(svydesign(ids = ~1, data = data.frame(x = x, y = y)))
 
-    invisible(sapply(quantile,
-                     function(a) {
-                         s <- svysmooth(y ~ x, design = des,
-                                        method = "quantreg", quantile = a)$x
-                         grid.lines(s$x, s$y, default.units = "native",
-                                    gp = gpar(col = col, lty = lty, lwd = lwd * opts$lwd),
-                                    name = paste(paste0("inz-quant-smooth-", a), opts$rowNum, opts$colNum, sep = "."))
-                     }))
+    invisible(
+        sapply(quantile,
+            function(a) {
+                s <- svysmooth(y ~ x,
+                    design = des,
+                    method = "quantreg",
+                    quantile = a
+                )
+                s <- s$x
+                grid.lines(s$x, s$y,
+                    default.units = "native",
+                    gp = gpar(col = col, lty = lty, lwd = lwd * opts$lwd),
+                    name = paste(
+                        paste0("inz-quant-smooth-", a),
+                        opts$rowNum,
+                        opts$colNum,
+                        sep = "."
+                    )
+                )
+            }
+        )
+    )
 }
 
 

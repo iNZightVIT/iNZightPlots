@@ -6,7 +6,7 @@ gSubset <- function(df, g1.level, g2.level, df.vs, missing)
 gSubset.default <- function(df, g1.level, g2.level, df.vs, missing) {
     # subset the data by g2 (keep everything, so xlims can be calculated)
     # g2 can take values (0 = "_ALL", 1:ng2, ng2+1 = "_MULTI")
-    
+
     matrix.plot <- FALSE
     if ("g2" %in% df.vs) {
         if (is.null(g2.level)) g2.level <- "_ALL"
@@ -17,7 +17,7 @@ gSubset.default <- function(df, g1.level, g2.level, df.vs, missing) {
         if (is.numeric(g2.level)) {
             if (as.integer(g2.level) != g2.level)
                 warning(paste0("g2.level truncated to ", g2.level, "."))
-            
+
             if (g2.level == 0) {
                 g2.level <- "_ALL"
             } else if (g2.level == ng2 + 1) {
@@ -36,14 +36,15 @@ gSubset.default <- function(df, g1.level, g2.level, df.vs, missing) {
         } else {
             if (g2.level == "_MULTI") {
                 matrix.plot <- TRUE
-            }                
-            
+            }
+
             missing$g2 <- sum(is.na(df$data$g2))
             df1 <- lapply(g2l,
-                          function(l) {
-                              dft <- subset(df$data, df$data$g2 == l)
-                              dft[, colnames(dft) != "g2"]
-                          })
+                function(l) {
+                    dft <- df$data[df$data$g2 == l & !is.na(df$data$g2), , drop = FALSE]
+                    dft[, colnames(dft) != "g2"]
+                }
+            )
             names(df1) <- g2l
         }
     } else {
@@ -79,11 +80,15 @@ gSubset.default <- function(df, g1.level, g2.level, df.vs, missing) {
 
     # this converts each data.frame in the list to a list of data
     # frames for all levels of g1
-    df.list <- lapply(df1, function(df2) {
-        df3 <- lapply(g1l, function(x) inzDataList(df2, x))
-        names(df3) <- g1l
-        df3
-    })
+    df.list <- lapply(df1,
+        function(df2) {
+            df3 <- lapply(g1l,
+                function(x) inzDataList(df2, x)
+            )
+            names(df3) <- g1l
+            df3
+        }
+    )
 
     ## sum up all of the missing values
     w.df <-
@@ -91,14 +96,29 @@ gSubset.default <- function(df, g1.level, g2.level, df.vs, missing) {
         else if (g2.level == "_MULTI") 1:length(df.list)
         else g2.level
 
-    missing$x <- sum(sapply(df.list[w.df], function(df)
-                            sum(sapply(df, function(d) sum(is.na(d$x))))))
+    missing$x <- sum(
+        sapply(df.list[w.df],
+            function(df) sum(
+                sapply(df, function(d) sum(is.na(d$x)))
+            )
+        )
+    )
     if ("y" %in% df.vs)
-        missing$y <- sum(sapply(df.list[w.df], function(df)
-                                sum(sapply(df, function(d) sum(is.na(d$y))))))
+        missing$y <- sum(
+            sapply(df.list[w.df],
+                function(df) sum(
+                    sapply(df, function(d) sum(is.na(d$y)))
+                )
+            )
+        )
 
     class(df.list) <- "inz.simple"
 
-    list(df = df.list, matrix = matrix.plot, missing = missing,
-         g1.level = g1.level, g2.level = g2.level)
+    list(
+        df = df.list,
+        matrix = matrix.plot,
+        missing = missing,
+        g1.level = g1.level,
+        g2.level = g2.level
+    )
 }

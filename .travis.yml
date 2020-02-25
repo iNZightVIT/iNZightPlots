@@ -20,20 +20,11 @@ matrix:
   allow_failures:
     - os: osx
 
-r_check_args: "--as-cran --install-args=--build"
-
-r_github_packages:
-  - iNZightVIT/iNZightTools@dev
-
 env:
   global:
     - R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
     - _R_CHECK_SYSTEM_CLOCK_=FALSE
     - _R_CHECK_FORCE_SUGGESTS_=FALSE
-
-repos:
-  docker: https://r.docker.stat.auckland.ac.nz
-
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo chown -R $(whoami) /usr/local/share; fi
@@ -43,24 +34,3 @@ before_script:
 
 after_success:
   - Rscript -e 'covr::codecov()'
-
-before_deploy:
-  - if [[ "${TRAVIS_OS_NAME}" = "osx" ]]; then
-      rm -f *.tar.gz;
-    fi
-
-deploy:
-  provider: releases
-  skip_cleanup: true
-  api_key:
-    secure: XsHb0IOzVVpd7vX5gehGT7Gje+JtDprlmMW/p8tMeUV7vWNxYvhltQlPnQDc8ohlx1NOXzRBHBLVJM6J6SW+u4vnJFNPHlYt9AN1ZbHsq17KieGhjciRp4IQx/2Bna+rLjmVNENgN7P3W/54PkCzm7UhXGsqZpZETMI3DI1CN4tNY4uZ7gL2Dg+UBBmAOFUtCaXLWHNhZadhgPb9fIDVSGF5UI+ZPDs3B5TpNXDqmFTLowDD3qH9CD/kaR2rOm0KrCQJ6dS1YR5Tof0io3XHe32ndMhdXbU1o7PDD8QdmDz8VXN5fxPqPYED75hUcTTPtUrJe/5zy4fmr++pbBcGkrZra7q90WxHT+XdhSKw7aSPSFoqZex1OnuJ8B09aSZ9+1bTVAr4QVvgDXL7o4HtZRgCg+XNJ/1ui5W72cUqsvby5kiTbyWWazNmEM29msnSBoVtRpkGbXfiQzrw4nVw5VY9i/I7ylW+19kGjsxHKwjXnX7tmM7HWZ3DZmh7EirCHhnqXw4Lz1MkqDz0r9qQMY8kcl0EFSDxDzbX7Hzz0nsxlDVZMII7BfoPIl7ZBvc3dHCqO2E+Ykxl9+sdnqiNKoTQtxIScE9zAVAR99P752HCtUoDGR8p3GCELkRpbyVDVb0TliR+uGhtYQMNBEH889/SAiK6uzCFBMkdMtWRZPU=
-  file_glob: true
-  file: iNZightPlots_*.tgz
-  overwrite: true
-  on:
-    tags: true
-    repo: iNZightVIT/iNZightPlots
-
-# the files we wants are
-# - Linux source (this is available by default on GH)
-# - Mac binary for the R version (currently only 3.3) -> iNZightPlots_x.y.z_R3.3_el-capitan.tgz

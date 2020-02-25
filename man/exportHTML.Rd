@@ -9,15 +9,35 @@
 \usage{
 exportHTML(x, file, data, local = FALSE, extra.vars, ...)
 
-\method{exportHTML}{function}(x, file = "index.html", data = NULL,
-  local = FALSE, extra.vars = NULL, width = dev.size()[1],
-  height = dev.size()[2], ...)
+\method{exportHTML}{`function`}(
+  x,
+  file = "index.html",
+  data = NULL,
+  local = FALSE,
+  extra.vars = NULL,
+  width = dev.size()[1],
+  height = dev.size()[2],
+  ...
+)
 
-\method{exportHTML}{ggplot}(x, file = "index.html", data = NULL,
-  local = FALSE, extra.vars = NULL, mapObj, ...)
+\method{exportHTML}{ggplot}(
+  x,
+  file = "index.html",
+  data = NULL,
+  local = FALSE,
+  extra.vars = NULL,
+  mapObj,
+  ...
+)
 
-\method{exportHTML}{inzplotoutput}(x, file = "index.html", data = NULL,
-  local = FALSE, extra.vars = NULL, ...)
+\method{exportHTML}{inzplotoutput}(
+  x,
+  file = "index.html",
+  data = NULL,
+  local = FALSE,
+  extra.vars = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{An iNZight plot object that captures iNZight environment}
