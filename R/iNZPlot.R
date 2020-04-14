@@ -32,20 +32,53 @@
 #' data = CO2, g1.level = "Quebec")
 iNZPlot <- function(f, data = NULL, ...) {
     f <- match.call()[["f"]]
+    dots <- rlang::enexprs(...)
+
     if (!rlang::is_formula(f)) {
-        eval(rlang::expr(iNZightPlot(x = !!f,  data = !!match.call()[["data"]], ...)))
+        eval(
+            rlang::expr(
+                iNZightPlot(x = !!f,
+                    data = !!match.call()[["data"]],
+                    !!!dots
+                )
+            )
+        )
     } else {
         f.list <- as.list(f)
 
         if (lengths(f.list)[3] == 1) {
-            eval(rlang::expr(iNZightPlot(x = !!f.list[[3]], y = !!f.list[[2]], data = !!match.call()[["data"]], ...)))
+            eval(
+                rlang::expr(
+                    iNZightPlot(x = !!f.list[[3]], y = !!f.list[[2]],
+                        data = !!match.call()[["data"]],
+                        !!!dots
+                    )
+                )
+            )
         } else {
             f.list2 <- as.list(f.list[[3]])
             if (lengths(f.list2)[3] == 1) {
-                eval(rlang::expr(iNZightPlot(x = !!f.list2[[2]], y = !!f.list[[2]], g1 = !!f.list2[[3]], data = !!match.call()[["data"]], ...)))
+                eval(
+                    rlang::expr(
+                        iNZightPlot(x = !!f.list2[[2]], y = !!f.list[[2]],
+                            g1 = !!f.list2[[3]],
+                            data = !!match.call()[["data"]],
+                            !!!dots
+                        )
+                    )
+                )
             } else {
                 f.list3 <- as.list(f.list2[[3]])
-                eval(rlang::expr(iNZightPlot(x = !!f.list2[[2]], y = !!f.list[[2]], g1 = !!f.list3[[2]], g2 = !!f.list3[[3]], data = !!match.call()[["data"]], ...)))
+                eval(
+                    rlang::expr(
+                        iNZightPlot(x = !!f.list2[[2]], y = !!f.list[[2]],
+                            g1 = !!f.list3[[2]],
+                            g2 = !!f.list3[[3]],
+                            data = !!match.call()[["data"]],
+                            !!!dots
+                        )
+                    )
+                )
             }
         }
     }
