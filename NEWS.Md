@@ -1,3 +1,5 @@
+- fix formula interface to handle `colby`, etc.
+
 # iNZightPlots 2.11
 
 - Add formula interface function, `iNZPlot`, for `iNZightPlot`, along with similar wrappers `iNZSummary` and `iNZInference` for summary and inferential information, respectively.

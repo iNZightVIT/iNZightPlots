@@ -190,13 +190,13 @@ iNZightPlot <- function(x,
         if ("y" %in% names(m) && !("y" %in% names(varnames))) {
             varnames[["y"]] <- as.character(m[["y"]])
         }
-        
+
         if ("g1" %in% names(varnames)) {
           g1 <- varnames[["g1"]]
         } else {
           g1 <- m$g1
         }
-        
+
         if ("g2" %in% names(varnames)) {
           g2 <- varnames[["g2"]]
         } else {
