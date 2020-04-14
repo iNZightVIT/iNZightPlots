@@ -149,6 +149,7 @@ iNZightPlot <- function(x,
 
     # grab the arguments and the data frame is supplied:
     m <- match.call(expand.dots = FALSE)
+    print(m)
 
     ## getSummary and other wrappers will pass an inz.data object
     if (missing(df)) {
@@ -190,13 +191,13 @@ iNZightPlot <- function(x,
         if ("y" %in% names(m) && !("y" %in% names(varnames))) {
             varnames[["y"]] <- as.character(m[["y"]])
         }
-        
+
         if ("g1" %in% names(varnames)) {
           g1 <- varnames[["g1"]]
         } else {
           g1 <- m$g1
         }
-        
+
         if ("g2" %in% names(varnames)) {
           g2 <- varnames[["g2"]]
         } else {

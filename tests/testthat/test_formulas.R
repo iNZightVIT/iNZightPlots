@@ -6,12 +6,12 @@ test_that("Formula interface works", {
         "inzplotoutput"
     )
     expect_is(
-        iNZPlot(Sepal.Width~Sepal.Length, data = iris),
+        iNZPlot(Sepal.Width ~ Sepal.Length, data = iris),
         "inzplotoutput"
     )
 
     expect_is(
-        iNZPlot(Sepal.Width~Sepal.Length|Species, data = iris),
+        iNZPlot(Sepal.Width ~ Sepal.Length | Species, data = iris),
         "inzplotoutput"
     )
 })
@@ -30,5 +30,12 @@ test_that("Formula yields same results", {
             plot.features = list(order.first = -1)),
         iNZightPlot(Sepal.Length, Sepal.Width, g1 = Species, data = iris,
             plot.features = list(order.first = -1))
+    )
+})
+
+test_that("Additional variables are parsed correctly", {
+    expect_equal(
+        iNZPlot(Species, data = iris, colby = Species),
+        iNZightPlot(Species, data = iris, colby = Species)
     )
 })
