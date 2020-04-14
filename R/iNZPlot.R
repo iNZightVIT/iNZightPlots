@@ -32,12 +32,14 @@
 #' data = CO2, g1.level = "Quebec")
 iNZPlot <- function(f, data = NULL, ...) {
     f <- match.call()[["f"]]
+    dots <- rlang::enexprs(...)
+
     if (!rlang::is_formula(f)) {
         eval(
             rlang::expr(
                 iNZightPlot(x = !!f,
                     data = !!match.call()[["data"]],
-                    ...
+                    !!!dots
                 )
             )
         )
@@ -49,7 +51,7 @@ iNZPlot <- function(f, data = NULL, ...) {
                 rlang::expr(
                     iNZightPlot(x = !!f.list[[3]], y = !!f.list[[2]],
                         data = !!match.call()[["data"]],
-                        ...
+                        !!!dots
                     )
                 )
             )
@@ -61,7 +63,7 @@ iNZPlot <- function(f, data = NULL, ...) {
                         iNZightPlot(x = !!f.list2[[2]], y = !!f.list[[2]],
                             g1 = !!f.list2[[3]],
                             data = !!match.call()[["data"]],
-                            ...
+                            !!!dots
                         )
                     )
                 )
@@ -73,7 +75,7 @@ iNZPlot <- function(f, data = NULL, ...) {
                             g1 = !!f.list3[[2]],
                             g2 = !!f.list3[[3]],
                             data = !!match.call()[["data"]],
-                            ...
+                            !!!dots
                         )
                     )
                 )

@@ -149,7 +149,6 @@ iNZightPlot <- function(x,
 
     # grab the arguments and the data frame is supplied:
     m <- match.call(expand.dots = FALSE)
-    print(m)
 
     ## getSummary and other wrappers will pass an inz.data object
     if (missing(df)) {

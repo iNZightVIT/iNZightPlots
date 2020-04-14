@@ -38,4 +38,14 @@ test_that("Additional variables are parsed correctly", {
         iNZPlot(Species, data = iris, colby = Species),
         iNZightPlot(Species, data = iris, colby = Species)
     )
+    expect_is(
+        iNZPlot(Sepal.Length, Sepal.Width,
+            data = iris,
+            sizeby = Petal.Length,
+            colby = Species,
+            trend = "linear",
+            trend.by = TRUE
+        ),
+        "inzplotoutput"
+    )
 })
