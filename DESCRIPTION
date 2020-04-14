@@ -27,7 +27,7 @@ Imports:
     chron,
     scales,
     iNZightMR,
-    iNZightTools >= 1.8.3,
+    iNZightTools (>= 1.8.3),
     magrittr,
     ggplot2,
     rlang,
