@@ -191,6 +191,19 @@ iNZightPlot <- function(x,
             varnames[["y"]] <- as.character(m[["y"]])
         }
 
+        # If Y is num, X is cat, flip
+        if ("y" %in% names(m) &&
+            is_num(df$data[["x"]]) &&
+            is_cat(df$data[["y"]]) ) {
+            xn <- varnames[["y"]]
+            varnames[["y"]] <- varnames[["x"]]
+            varnames[["x"]] <- xn
+
+            xx <- m$x
+            m$y <- m$x
+            m$x <- xx
+        }
+
         if ("g1" %in% names(varnames)) {
           g1 <- varnames[["g1"]]
         } else {

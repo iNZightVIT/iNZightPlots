@@ -1,4 +1,5 @@
 - fix formula interface to handle `colby`, etc.
+- fix FT plots for numeric/factor so either order displays the same plot (to match base iNZightPlots graphs)
 
 # iNZightPlots 2.11
 
