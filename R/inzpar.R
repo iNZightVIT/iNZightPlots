@@ -15,7 +15,7 @@
 #' \item{'col.missing'}{the colour for missing values; default is a light grey}
 #' \item{'reverse.palette'}{logical, if \code{TRUE} the palette will be reversed}
 #' \item{'col.method'}{the method to use for colouring by a variable, one of 'linear' or 'rank'}
-#' \item{'cex'}{the overal scaling for the entire plot; values less than 1 will make the text and points
+#' \item{'cex'}{the overall scaling for the entire plot; values less than 1 will make the text and points
 #' smaller, while values larger than 1 will magnify everything}
 #' \item{'cex.pt'}{the scaling value for points}
 #' \item{'cex.dotpt'}{
@@ -28,7 +28,7 @@
 #' \item{'cex.text'}{the scaling value for text on the plot}
 #' \item{'resize.method'}{one of 'proportional' (default) or 'emphasize'}
 #' \item{'alpha'}{transparency setting for points; default is 1, 0 is fully transparent}
-#' \item{'bg'}{the background color for the plot}
+#' \item{'bg'}{the background colour for the plot}
 #' \item{'grid.lines'}{logical to control drawing of axis grid lines}
 #' \item{'col.grid'}{if 'grid.lines' is \code{TRUE}, this controls the colour of them.
 #'      The default is 'default', which will choose a colour based on the value of 'bg')
@@ -53,12 +53,12 @@
 #' \item{'smoothby.lty'}{the line type used for smoothers if \code{trend.by = TRUE}}
 #' \item{'quant.smooth'}{if quantile smoothers are desired, they can be specified here as either
 #'      the quantiles to smooth over (e.g., \code{c(0.25, 0.5, 0.75)}), or \code{"default"}, which
-#'      uses the sample size to decide on an approprite set of quantile smoothers}
+#'      uses the sample size to decide on an appropriate set of quantile smoothers}
 #' \item{'LOE'}{logical, if \code{TRUE}, then a 1-1 line of equality is drawn}
 #' \item{'join'}{logical, if \code{TRUE}, then points are joined by lines}
 #' \item{'lines.by}{logical, if \code{join = TRUE} and \code{colby} is specified, points are joined
 #'      by the specified variable}
-#' \item{'col.trend'}{a named list of colors to be used for drawing the lines. The default is
+#' \item{'col.trend'}{a named list of colours to be used for drawing the lines. The default is
 #'      \code{list(linear = "blue", quadratic = "red", cubic = "green4")}}
 #' \item{'lty.trend'}{a named list of line types for various types of trend lines. The default is
 #'      \code{list(linear = 1, quadratic = 2, cubic = 3)}}
@@ -69,7 +69,7 @@
 #' \item{'col.smooth'}{the colour of the smoother}
 #' \item{'col.LOE'}{the colour of the line of equality}
 #' \item{'lty.LOE'}{the line type of the line of equality}
-#' \item{'boxplot'}{logical, if \code{TRUE}, a boxplot is drawn with dotplots and histgrams}
+#' \item{'boxplot'}{logical, if \code{TRUE}, a boxplot is drawn with dotplots and histograms}
 #' \item{'box.lwd', 'box.col', 'box.fill'}{the line width, colour, and fill colour for
 #'      the box plot drawn}
 #' \item{'bar.lwd', 'bar.col', 'bar.fill'}{the line width, colour, and fill colour of bars in a bar plot}
@@ -114,7 +114,7 @@
 #'
 #' @title iNZight Plotting Parameters
 #' @param ... If arguments are supplied, then these values are set. If left empty, then
-#' @param .viridis checks if the viridis package is installed; or can be turend off
+#' @param .viridis checks if the viridis package is installed; or can be turned off
 #' the default list is returned.
 #' @return an object of class \code{inzpar.list}
 #' @export

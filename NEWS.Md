@@ -1,29 +1,30 @@
-- fix formula interface to handle `colby`, etc.
-- move Financial Times graph package dependencies to Suggests (from Imports)
+- Fix formula interface to handle `colby`, etc.
+- Move Financial Times graph package dependencies to Suggests (from Imports)
+- Fix formula interface to handle `colby`, etc.
 
 # iNZightPlots 2.11
 
 - Add formula interface function, `iNZPlot`, for `iNZightPlot`, along with similar wrappers `iNZSummary` and `iNZInference` for summary and inferential information, respectively.
 - Get Summary for trends no longer includes superfluous "+" in front of negative coefficients
-- make subsetting/faceting for ggplots more in line with base iNZightPlots
-- fix bug in summary output where "Population" was being displayed for non-survey data
-- fix bug in axis labelling of large values where scientific notation used inconsistently
+- Make subsetting/faceting for ggplots more in line with base iNZightPlots
+- Fix bug in summary output where "Population" was being displayed for non-survey data
+- Fix bug in axis labelling of large values where scientific notation used inconsistently
 
 
 # iNZightPlots 2.10.4
 __Release date__: 11 November 2019
 
-- add `use.plotly` attribute to ggplots
-- new method of plotting barcode plots using `geom_spoke`
-- add cutpoint option for diverging stacked bar charts
-- sortable plots now can be sorted in either ascending or descending
-- gridplots now ignore background colours
-- fix bug where only complete cases over all variables were used for ggplots
-- add count of missing values to numeric lollipop/column plots
-- fix issue with brushing points on interactive dotplot when boxplots have been disabled
-- fix up inference information for surveys (+ tests)
-- fix bug where colour by ranks was returning an error
-- fix bug where x axis transformation was wrong for dotplot by factor when x was the factor and y the numeric
+- Add `use.plotly` attribute to ggplots
+- New method of plotting barcode plots using `geom_spoke`
+- Add cutpoint option for diverging stacked bar charts
+- Sortable plots now can be sorted in either ascending or descending
+- Gridplots now ignore background colours
+  Fix bug where only complete cases over all variables were used for ggplots
+- Add count of missing values to numeric lollipop/column plots
+- Fix issue with brushing points on interactive dotplot when boxplots have been disabled
+- Fix up inference information for surveys (+ tests)
+- Fix bug where colour by ranks was returning an error
+- Fix bug where x-axis transformation was wrong for dotplot by factor when x was the factor and y the numeric
 - Enable transparency options for ridgeline plots
 - Add colour options for barcode and dot strip plots
 - Change default title of cumulative curve plots to "Cumulative Curve ..." (was "Cumulative Count ...")
@@ -32,63 +33,63 @@ __Release date__: 11 November 2019
 # iNZightPlots 2.10.3
 __Release date__: 23 September 2019
 
-- rotate spine plot by default
-- change default colouring behaviour for categorical lollipop plots
-- add interactivity for mean indicators on dotplots/histograms
-- add ability to rotate x/y axis labels for ggplots
+- Rotate spine plot by default
+- Change default colouring behaviour for categorical lollipop plots
+- Add interactivity for mean indicators on dotplots/histograms
+- Add ability to rotate x/y axis labels for ggplots
 
 
 # iNZightPlots 2.10.2
 __Release date__: 2 September 2019
 
-- fix a bug where level labels weren't shown in one-way table inference
-- add hypothesis test for proportions (normal and exact)
-- show simulated p-value for Chi-square test when expected counts < 5 or requested by user
-- fix bug in exported interactive plots when boxplots are disabled
-- add ability to rotate x-axis label text
-- add ability to change the number of observations each square represents for gridplots
-- rotate some numeric plots to have variable of interest on x-axis, e.g. violins (#106, daniel-barnett)
-- add new `quasirandom` plot instead of `beeswarm` to enable control of swarm width/method
+- Fix a bug where level labels weren't shown in one-way table inference
+- Add hypothesis test for proportions (normal and exact)
+- Show simulated p-value for Chi-square test when expected counts < 5 or requested by user
+- Fix bug in exported interactive plots when boxplots are disabled
+- Add ability to rotate x-axis label text
+- Add ability to change the number of observations each square represents for gridplots
+- Rotate some numeric plots to have variable of interest on x-axis, e.g. violins (#106, daniel-barnett)
+- Add new `quasirandom` plot instead of `beeswarm` to enable control of swarm width/method
 
 
 # iNZightPlots 2.10.1
 __Release date__: 26 August 2019
 
-- fix greyscale palette for ggplot heatmaps (#121, @daniel-barnett)
-- add rotation functionality for gridplots (#123, @daniel-barnett)
-- add useful summary information for dates and times
+- Fix greyscale palette for ggplot heatmaps (#121, @daniel-barnett)
+- Add rotation functionality for gridplots (#123, @daniel-barnett)
+- Add useful summary information for dates and times
 
 
 # iNZightPlots 2.10
 __Release date__: 13 August 2019
 
-- fixes small bug where CIs for two-sample equal var didn't match the p-value
-- add option to change ggplot theme of Financial Times plots
-- add ability to include captions for sources in Financial Times plots
-- add beeswarm option for plotting (using ggbeeswarm)
+- Fixes small bug where CIs for two-sample equal var didn't match the p-value
+- Add option to change ggplot theme of Financial Times plots
+- Add ability to include captions for sources in Financial Times plots
+- Add beeswarm option for plotting (using ggbeeswarm)
 
 
 # iNZightPlots 2.9
 __Release date__: 15 July 2019
 
-- add a suite of new plot types from Financial Times (implemented using `ggplot`) (#90, @daniel-barnett)
-- improvements for survey plots and summaries
-- handle frequency variable
+- Add a suite of new plot types from Financial Times (implemented using `ggplot`) (#90, @daniel-barnett)
+- Improvements for survey plots and summaries
+- Handle frequency variable
 
 
 # iNZightPlots 2.8
 __Release date:__ 30 April 2019
 
-- fix a small bug where new device was created for dotplots even when `plot = FALSE`
-- begin adding unit tests
-- allow plotting of bar plots with counts (instead of %) (removes inference)
-- allow transformations using the `transform` argument (a named list)
+- Fix a small bug where new device was created for dotplots even when `plot = FALSE`
+- Begin adding unit tests
+- Allow plotting of bar plots with counts (instead of %) (removes inference)
+- Allow transformations using the `transform` argument (a named list)
 
 
 ## iNZightPlots 2.7.13
 __Release date__: 05 April 019
 
-- fix bug in `getPlotSummary` when passing variables names
+- Fix bug in `getPlotSummary` when passing variables names
 
 
 # iNZightPlots 2.7
@@ -96,17 +97,17 @@ __Release date__: 23 March 2017
 
 ## Major Changes
 
-- introduction of the exportation of SVG and interactive HTML documents
+- Introduction of the exportation of SVG and interactive HTML documents
 
 ## Bug Fixes
 
-- various
+- Various
 
 
 ## Patches
 
 ### Patch 2.7.1 - 02/06/2017
-- Mosly adjustments and improvements to the SVG and HTML export functionality
+- Mostly adjustments and improvements to the SVG and HTML export functionality
 - Changes to dependency structure - made SVG/HTML functions suggested instead of imports
 - Bumped R version up to 3.0
 - Default line type for all trends is now 1; user can choose alternatives
@@ -130,27 +131,27 @@ __Release date__: 23 March 2017
 - Again, more fixes/features for interactive plots - Yu Han is working hard!
 
 ### Patch 2.7.7 - 18/04/2018
-- more fixes and improvements to interactive plots
+- More fixes and improvements to interactive plots
 
 ### Patch 2.7.8 - 23/05/2018
-- fix bug showing up in changes to R 3.5.0
-- latest interact updates
-- reword the inference output for two-way chisquare test: proportions -> distributions
+- Fix bug showing up in changes to R 3.5.0
+- Latest interact updates
+- Reword the inference output for two-way Chi-square test: proportions -> distributions
 
 ### Patch 2.7.9 - 14/08/2018
-- restructure templates dir into inst dir to make html/css/js templates accessible via `system.file()`
-- various other bug fixes and changes to interactive plots
+- Restructure templates dir into inst dir to make html/css/js templates accessible via `system.file()`
+- Carious other bug fixes and changes to interactive plots
 
 ### Patch 2.7.10 - 17/08/2018
-- fix a bug in exportHTML where arguments not passed correctly
+- Fix a bug in `exportHTML` where arguments not passed correctly
 
 ### Patch 2.7.11 - 15/11/2018
-- [add] interactive plot helper function
-- [add] dataset summary function
-- [fix] bug in exporting thematic maps (and other fixes for interactive plots)
+- Add interactive plot helper function
+- Add dataset summary function
+- Fix a bug in exporting thematic maps (and other fixes for interactive plots)
 
 ### Patch 2.7.12 - 26/11/2018
-- fix bug in exporting interactive maps after implementing Stamen Maps
+- Fix bug in exporting interactive maps after implementing Stamen Maps
 
 ***
 # Version 2.6
@@ -158,17 +159,17 @@ __Release date__: 12 December 2016
 
 ## Major Changes
 
-- implementation of statistical hypothesis tests
+- Implementation of statistical hypothesis tests
 
 ## Minor Changes
 
-- adjust grid lines to be less distracting
-- allow legend to be hidden (`hide.legend`, logical)
+- Adjust grid lines to be less distracting
+- Allow legend to be hidden (`hide.legend`, logical)
 
 ## Bug Fixes
 
-- fix critical bug in inference output where CI's and p-values for reorded factors wern't reordered!
-- fix issue where confidence intervals for two-way table row proportions were ordered incorrectly
+- Fix critical bug in inference output where CI's and p-values for reordered factors weren't reordered!
+- Fix issue where confidence intervals for two-way table row proportions were ordered incorrectly
 
 ***
 # Version 2.5
@@ -176,30 +177,30 @@ __Release date__: 5 September 2016
 
 ## Major Changes
 
-- made it possible to create new methods for plots (as done in
+- Made it possible to create new methods for plots (as done in
   iNZightMaps).
-- allow any colour function to be specified (at least, any
+- Allow any colour function to be specified (at least, any
   that take a single argument `n`)
-- allow colour by in hex plots
+- Allow colour by in hex plots
 
 
 ## Minor Changes
 
-- changes to resizing algorithm (optional change between the
+- Changes to resizing algorithm (optional change between the
   two)
-- background color now applies to INSIDE the plot, not the
+- Background colour now applies to INSIDE the plot, not the
   entire graphics window
-- allow setting symbol by a variable
-- hex is now the default plot for large data sets
-- size of "large" data sets increased to 5001
-- allow control of line type
-- change the g1/g2 group labels to light/dark gray respectively. Can use `col.sub = c("g1col", "g2col")` to adjust them.
+- Allow setting symbol by a variable
+- Hex is now the default plot for large data sets
+- Size of "large" data sets increased to 5001
+- Allow control of line type
+- Change the g1/g2 group labels to light/dark grey respectively. Can use `col.sub = c("g1col", "g2col")` to adjust them.
 
 
 ## Bug Fixes
 
-- subsetting bug fix in dot plots and histograms
-- many other minor bugs fixed while implementing changes
+- Subsetting bug fix in dot plots and histograms
+- Many other minor bugs fixed while implementing changes
 
 
 ## Patches
@@ -215,45 +216,45 @@ __Release date__: 1 October 2015
 
 ## Minor Changes
 
-- new argument added for dotplots to allow group labels to be
+- New argument added for dotplots to allow group labels to be
   placed inside the plot, rather than in the axis margin: `internal.labels=TRUE`
 
 ### Patch 2.3.1 - 06/10/2015
 
-- fix how viewports are named
+- Fix how viewports are named
 
 ### Patch 2.3.2 - 08/10/2015
 
-- fix a bug that prevented comparison lines to be drawn on
+- Fix a bug that prevented comparison lines to be drawn on
   categorical dotplots
 
 ### Patch 2.3.3 - 13/10/2015
 
-- fix a bug where adding comparison intervals would break the
+- Fix a bug where adding comparison intervals would break the
   plot if any of the subgroups in a dotplot were too small. New
   behaviour ignores small groups and only compares large ones.
 
 ### Patch 2.3.4 - 13/10/2015
 
-- continuing from 2.3.3, but now use independent covariances
+- Continuing from 2.3.3, but now use independent covariances
 
 ### Patch 2.3.4 - 13/10/2015
 
-- FIX for Lite: dotplots by factor labels now also on histograms
+- Fix for Lite: dotplots by factor labels now also on histograms
 
 ### Patch 2.3.5 - 28/10/2015
 
-- fix the "number of missing observations" shown in summary output
+- Fix the "number of missing observations" shown in summary output
 
 ### Patch 2.3.7 - 02/11/2015
 
-- no longer redraws dotplots; instead, passes a logical
-  attribute for whether or not the scaling has changed (and
+- No longer redraws dotplots; instead, passes a logical
+  attribute for whether the scaling has changed (and
   therefore that the plot should be redrawn).
 
 ### Patch 2.3.8 - 16/11/2015
 
-- fix bug in `colby` if the variable has only one unique value
+- Fix bug in `colby` if the variable has only one unique value
 
 
 ***
@@ -262,17 +263,17 @@ __Release date__: 14 September 2015
 
 ## New Features - Survey Design
 
-- confidence intervals for histograms and bar plots
-- comparison intervals for histograms broken down by a factor
-- summary information for all basic plots (histograms, bar plots, and scatter plots)
+- Confidence intervals for histograms and bar plots
+- Comparison intervals for histograms broken down by a factor
+- Summary information for all basic plots (histograms, bar plots, and scatter plots)
 
 
 ## Bug Fixes
 
-- fixes a bug where missing information on barplots and scatter plots would cause the plotting function to die
-- fixes a bug in the printing of summary objects
-- fixes a bug where the minimum value of a single numeric variable summary was ommited
-- and various other small Bug Fixes
+- Fixes a bug where missing information on barplots and scatter plots would cause the plotting function to die
+- Fixes a bug in the printing of summary objects
+- Fixes a bug where the minimum value of a single numeric variable summary was omitted
+- And various other small Bug Fixes
 
 
 
@@ -282,14 +283,14 @@ __Release date__: 04 August 2015
 
 ## New Features
 
-- allow zooming of plots with the new `zoom`
+- Allow zooming of plots with the new `zoom`
   argument. Works for both univariate and bivariate plots, and a
-  related funcionality for 'zooming in' on bars in a barplot.
+  related functionality for 'zooming in' on bars in a barplot.
 
 
 ### Patch 2.1-1: 28 August 2015
 
-- fix a bug that occurs when all survey weights are equal
+- Fix a bug that occurs when all survey weights are equal
 
 
 
@@ -299,7 +300,7 @@ __Release date__: 03 August 2015
 
 ## Bug Fixes
 
-- fix an issue where requesting summary of 'dotplots' resulted
+- Fix an issue where requesting summary of 'dotplots' resulted
   in creating a new device, which resulted in errors on the Shiny
   server.
 
@@ -311,14 +312,14 @@ __Release date__: 27 July 2015
 
 ## New Features
 
-- additional arguments `xlim` and `ylim` allow users to
+- Additional arguments `xlim` and `ylim` allow users to
   specify the range of values shown on the plot
 
 ## Bug Fixes
 
-- several issues for dotplots have been fixed
+- Several issues for dotplots have been fixed
 
-- weighting variable used when drawing a scatter plot of
+- Weighting variable used when drawing a scatter plot of
   survey data
 
 - `conf` now corresponds to Year 12 intervals in dot plot
@@ -331,7 +332,7 @@ __Release date__: 01 July 2015
 
 ## Bug Fixes
 
-- fix up the order of bars in segmented bar plots to
+- Fix up the order of bars in segmented bar plots to
   correspond to the legend
 
 ***
@@ -340,7 +341,7 @@ __Release date__: 24 June 2015
 
 ## Minor Changes
 
-- remove facility where the colour-by variable is ignored if
+- Remove facility where the colour-by variable is ignored if
   there are 'too many' levels---this is now left up to users to
   decide if colour by a particular variable makes sense of not.
 
@@ -356,17 +357,17 @@ __Release date__: 16 June 2015
   to specify how many lower and upper points to identify,
   respectively.
 
-- equivalently, extreme points (by using Mahalanobis'
+- Equivalently, extreme points (by using Mahalanobis'
   distance) can be labelled on scatter plots using `label.extreme =
   numeric(1)`.
 
 
 ## Bug Fixes
 
-- fixed a small bug that stopped inference from working in
+- Fixed a small bug that stopped inference from working in
   dotplots when `x` is a factor and `y` is the numeric variable.
 
-- fix a bug that caused `nbins = 0` in some cases.
+- Fix a bug that caused `nbins = 0` in some cases.
 
 
 ***
@@ -375,7 +376,7 @@ __Release date__: 26 May 2015
 
 ## Major Changes
 
-- The entire package has been rewritten to accomodate complex
+- The entire package has been rewritten to accommodate complex
   survey designs. At present, survey objects are not fully
   supported, however the functionality will be added over time.
 
@@ -385,19 +386,19 @@ __Release date__: 26 May 2015
 - Algorithms used to compute inference intervals have been
   modified to use iNZightMR for comparisons.
 
-- lots of other changes to layout and presentation
+- Lots of other changes to layout and presentation
 
-- added additional arguments `locate`, `locate.id`,
+- Added additional arguments `locate`, `locate.id`,
   `locate.col` (and others) for locating points by IDs.
-  This is used in the improved locator functinoality in the main
+  This is used in the improved locator functionality in the main
   `iNZight` program.
 
 ## Minor Changes
 
-- the `col.by` and `size.by` arguments have been
+- The `col.by` and `size.by` arguments have been
   replaced by `colby` and `sizeby`
 
-- documentation has been added for several of the functions (finally!)
+- Documentation has been added for several of the functions (finally!)
 
 
 ***
@@ -405,10 +406,10 @@ __Release date__: 26 May 2015
 
 ## Bug Fixes
 
-- specifying `g2.level` with numbers wasn't working, has been fixed for plots,
+- Specifying `g2.level` with numbers wasn't working, has been fixed for plots,
   summary and inference information.
 
-- added more space to the y-axis on scatter plots
+- Added more space to the y-axis on scatter plots
 
 
 ***
