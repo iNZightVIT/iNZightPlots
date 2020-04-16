@@ -414,6 +414,8 @@ getInfo.inzbar <- function(plot, x) {
         tab[2,] <- paste0(tab[2,], "%")
         colnames(tab)[ncol(tab)] <- "Total"
         rownames(tab) <- c("Counts", "Percent")
+        
+        colnames(dt) <- c("othervar", "varx", "counts", "pct")
     }
 
     ## JSON:
