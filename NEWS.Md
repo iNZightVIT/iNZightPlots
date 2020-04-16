@@ -1,4 +1,5 @@
 - fix formula interface to handle `colby`, etc.
+- move Financial Times graph package dependencies to Suggests (from Imports)
 
 # iNZightPlots 2.11
 
