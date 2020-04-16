@@ -81,7 +81,7 @@ displayed in the plot}
 
 \item{hypothesis.var.equal}{use equal variance assumption for t-test?}
 
-\item{hypothesis.use.exact}{logical, if \code{TRUE} the exact p-value will be calcualted (if applicable)}
+\item{hypothesis.use.exact}{logical, if \code{TRUE} the exact p-value will be calculated (if applicable)}
 
 \item{hypothesis.test}{in some cases (currently just two-samples) can perform multiple tests (t-test or ANOVA)}
 

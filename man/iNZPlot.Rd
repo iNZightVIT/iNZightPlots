@@ -20,7 +20,8 @@ iNZPlot(f, data = NULL, ...)
 \item{...}{Any arguments to pass to \code{\link{iNZightPlot}}}
 
 \item{type}{Type type of inference to obtain, one of 'conf' or 'comp'
-for confidence intervals and comparison intervals, respectively}
+for confidence intervals and comparison intervals, respectively
+(currently ignored).}
 }
 \value{
 An \code{inzightplotoutput} object, which contains the information
@@ -30,7 +31,7 @@ An \code{inzightplotoutput} object, which contains the information
 iNZightPlot Formula Interface
 }
 \details{
-\code{iNZPlot} is a simple wrapper around the \code{\link{iNZightPlot}} function. 
+\code{iNZPlot} is a simple wrapper around the \code{\link{iNZightPlot}} function.
 
 There are four options for the formula passed in:
 
@@ -54,7 +55,7 @@ data("CO2")
 iNZPlot(uptake, data = CO2)
 iNZPlot(uptake ~ Treatment, data = CO2)
 iNZPlot(uptake ~ Treatment | Type, data = CO2)
-iNZPlot(uptake ~ Treatment | Type, 
+iNZPlot(uptake ~ Treatment | Type,
 data = CO2, g1.level = "Quebec")
 }
 \seealso{

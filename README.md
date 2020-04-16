@@ -36,7 +36,7 @@ iNZPlot(Sepal.Length ~ Sepal.Width | Species, data = iris)
 
 These functions all produce different graphs (dot plot and scatter plot), which means the focus is on exploring data, not on which type of graph to use. Subsetting works as expected, and can include up to two variables (e.g., `y ~ x | g1 + g2`).
 
-There are addtionally two companion functions for summary and inference information, which are
+There are additionally two companion functions for summary and inference information, which are
 ```r
 iNZSummary(Sepal.Length, data = iris)
 iNZInference(Sepal.Length ~ Species, data = iris)
@@ -58,7 +58,7 @@ iNZPlot(Sepal.Length ~ Sepal.Width, data = iris, colby = Species)
 
 ### Inference lines
 
-Usually you want to know if what you see has any statistical significance, and `iNZightPlots` makes this easy. We also provide __comparison intervals__ which can be, very simply, interpreted as "overalapping comparison intervals indicate no significant difference between groups".
+Usually you want to know if what you see has any statistical significance, and `iNZightPlots` makes this easy. We also provide __comparison intervals__ which can be, very simply, interpreted as "overlapping comparison intervals indicate no significant difference between groups".
 ```r
 # Add confidence intervals
 iNZPlot(Sepal.Length ~ Species, data = iris,

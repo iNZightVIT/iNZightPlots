@@ -31,7 +31,7 @@
 #' @param hypothesis.value H0 value for hypothesis test
 #' @param hypothesis.alt alternative hypothesis (!=, <, >)
 #' @param hypothesis.var.equal use equal variance assumption for t-test?
-#' @param hypothesis.use.exact logical, if \code{TRUE} the exact p-value will be calcualted (if applicable)
+#' @param hypothesis.use.exact logical, if \code{TRUE} the exact p-value will be calculated (if applicable)
 #' @param hypothesis.test in some cases (currently just two-samples) can perform multiple tests (t-test or ANOVA)
 #' @param hypothesis.simulated.p.value also calculate (where available) the simulated p-value
 #' @param hypothesis either NULL for no test, or missing (in which case above arguments are used)
