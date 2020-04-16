@@ -68,7 +68,7 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL,
                     "",
                     "You can run the following to install it:",
                     "  install.packages(\"plotly\")",
-                    ""
+                    "",
                     sep = "\n"
                 )
             )
