@@ -1,6 +1,6 @@
 context("Get Summary")
 
-cas <- read.csv("cas.csv")
+cas <- read.csv("cas.csv", stringsAsFactors = TRUE)
 
 test_that("One-way table summaries are correct", {
     p <- getPlotSummary(travel, data = cas)

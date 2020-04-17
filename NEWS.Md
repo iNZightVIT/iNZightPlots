@@ -1,6 +1,8 @@
 - fix formula interface to handle `colby`, etc.
 - fix FT plots for numeric/factor so either order displays the same plot (to match base iNZightPlots graphs)
 - Fix formula interface to handle `colby`, etc.
+- Move Financial Times graph package dependencies to Suggests (from Imports)
+- Fix formula interface to handle `colby`, etc.
 
 # iNZightPlots 2.11
 

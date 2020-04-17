@@ -60,8 +60,21 @@ exportHTML.function <- function(x, file = 'index.html', data = NULL,
 exportHTML.ggplot <- function(x, file = 'index.html', data = NULL,
                               local = FALSE, extra.vars = NULL, mapObj,
                               ...) {
-    if (missing(mapObj))
+    if (missing(mapObj)) {
+        if (!requireNamespace("plotly", quietly = TRUE)) {
+            stop(
+                paste(
+                    "The 'plotly' package is needed for this functionality.",
+                    "",
+                    "You can run the following to install it:",
+                    "  install.packages(\"plotly\")",
+                    "",
+                    sep = "\n"
+                )
+            )
+        }
         return(plotly::ggplotly(x))
+    }
 
     if (!inherits(mapObj, "iNZightMapPlot")) {
         stop("mapObj is not an 'iNZightMapPlot' object. This is only available for iNZightMaps.

@@ -356,7 +356,9 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
                     if (is.null(toplot[[t]]$x))
                         NULL
                     else
-                        data.frame(x = toplot[[t]]$x, y = t)
+                        data.frame(x = toplot[[t]]$x, y = t,
+                            stringsAsFactors = TRUE
+                        )
                 }
             )
         )
@@ -432,7 +434,9 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
                 ""
             )
 
-            means <- predict(fit, newdata = data.frame(y = levels(dat$y)))
+            means <- predict(fit,
+                newdata = data.frame(y = levels(dat$y), stringsAsFactors = TRUE)
+            )
             names(means) <- LEVELS <- levels(dat$y)
             diffMat <- outer(means, means, function(x, y) y - x)
             diffMat <- formatTriMat(diffMat, LEVELS)
@@ -938,7 +942,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
             tab <- object$tab
             dat <- data.frame(
                 x = rep(colnames(tab), times = colSums(tab)),
-                y = rep(rep(rownames(tab), times = ncol(tab)), tab)
+                y = rep(rep(rownames(tab), times = ncol(tab)), tab),
+                stringsAsFactors = TRUE
             )
 
             b <- boot(dat,
