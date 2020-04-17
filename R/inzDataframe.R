@@ -65,7 +65,10 @@ inzDataframe <- function(m, data = NULL, names = list(),
 
     if (is_survey(data)) {
         # print(data$variables)
-        df$data <- as.data.frame(lapply(m[mw], eval, data$variables, env))
+        df$data <- as.data.frame(
+            lapply(m[mw], eval, data$variables, env),
+            stringsAsFactors = TRUE
+        )
         newDat <- cbind(data$variables, df$data)
         # newcall <- modifyCall(data$call, "data", "newDat")
         data$variables <- newDat
@@ -73,13 +76,17 @@ inzDataframe <- function(m, data = NULL, names = list(),
         class(df) <- "inz.survey"
     } else if ("freq" %in% names(m)) {
         df$data <- as.data.frame(
-            lapply(m[mw & names(m) != "sizeby"], eval, data, env)
+            lapply(m[mw & names(m) != "sizeby"], eval, data, env),
+            stringsAsFactors = TRUE
         )
         df$freq <- eval(m$freq, data, env)
         df$max.freq <- max(df$freq)
         class(df) <- "inz.freq"
     } else {
-        df$data <- as.data.frame(lapply(m[mw], eval, data, env))
+        df$data <- as.data.frame(
+            lapply(m[mw], eval, data, env),
+            stringsAsFactors = TRUE
+        )
         class(df) <- "inz.simple"
     }
 

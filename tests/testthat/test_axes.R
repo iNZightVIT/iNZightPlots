@@ -3,7 +3,8 @@ context("Plot axes")
 test_that("Axis label formatting is consistent for large values", {
     d <- data.frame(
         x = runif(100, 0, 150000),
-        y = runif(100, -1e5, 1e5)
+        y = runif(100, -1e5, 1e5),
+        stringsAsFactors = TRUE
     )
 
     expect_silent(iNZightPlot(x, y, data = d))
