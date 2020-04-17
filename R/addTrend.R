@@ -104,12 +104,20 @@ addTrend <- function(x, y, order, xlim, col, bs, opts) {
             )
         }
         yy <- try(
-            predict(svyglm(expr, design = svy), data.frame(x = xx)),
+            predict(
+                svyglm(expr, design = svy),
+                data.frame(x = xx, stringsAsFactors = TRUE)
+            ),
             silent = TRUE
         )
     } else {
         yy <- try(
-            c(predict(lm(y ~ poly(x, order)), data.frame(x = xx))),
+            c(
+                predict(
+                    lm(y ~ poly(x, order)),
+                    data.frame(x = xx, stringsAsFactors = TRUE)
+                )
+            ),
             silent = TRUE
         )
     }
@@ -137,7 +145,10 @@ addTrend <- function(x, y, order, xlim, col, bs, opts) {
                 y2 <- y[id]
 
                 yy <- try(
-                    predict(lm(y2 ~ poly(x2, order)), data.frame(x2 = xx)),
+                    predict(
+                        lm(y2 ~ poly(x2, order)),
+                        data.frame(x2 = xx, stringsAsFactors = TRUE)
+                    ),
                     silent = TRUE
                 )
 
@@ -172,14 +183,19 @@ addParTrend <- function(x, y, by, order, xlim, cols, opts) {
             )
             yy <- try(
                 predict(LM <- svyglm(expr, design = svy),
-                    data.frame(x = xx, colby = byy)
+                    data.frame(x = xx, colby = byy, stringsAsFactors = TRUE)
                 ),
                 silent = TRUE
             )
         }
     } else {
         yy <- try(
-            c(predict(LM <- lm(y ~ poly(x, order) + by), data.frame(x = xx, by = byy))),
+            c(
+                predict(
+                    LM <- lm(y ~ poly(x, order) + by),
+                    data.frame(x = xx, by = byy, stringsAsFactors = TRUE)
+                )
+            ),
             silent = TRUE
         )
     }

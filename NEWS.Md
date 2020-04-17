@@ -3,6 +3,7 @@
 - Fix formula interface to handle `colby`, etc.
 - Move Financial Times graph package dependencies to Suggests (from Imports)
 - Fix formula interface to handle `colby`, etc.
+- Specify `stringsAsFactors = TRUE` for upcoming R 4.0.0
 
 # iNZightPlots 2.11
 

@@ -674,7 +674,7 @@ dotinference <- function(obj) {
         svy <- FALSE
         dat <- obj$df
         if (!"y" %in% colnames(dat)) {
-            dat <- data.frame(dat, y = factor("all"))
+            dat <- data.frame(dat, y = factor("all"), stringsAsFactors = TRUE)
             inf.type <- inf.type[inf.type != "comp"]
         } else if (bs) {
             dat <- dat[!is.na(dat$y), ]
@@ -796,7 +796,10 @@ dotinference <- function(obj) {
                                             if (svy) {
                                                 fit <- svyglm(x ~ y, design = dat)
                                                 est <- predict(fit,
-                                                    newdata = data.frame(y = levels(dat$variables$y))
+                                                    newdata = data.frame(
+                                                        y = levels(dat$variables$y),
+                                                        stringsAsFactors = TRUE
+                                                    )
                                                 )
                                                 mfit <- suppressWarnings(
                                                     iNZightMR::moecalc(fit, factorname = "y", est = est)
@@ -838,7 +841,10 @@ dotinference <- function(obj) {
                                                             newdat$y <- factor(newdat$y)
                                                             fit <- lm(x ~ y - 1, data = newdat)
                                                             est <- predict(fit,
-                                                                newdata = data.frame(y = levels(newdat$y))
+                                                                newdata = data.frame(
+                                                                    y = levels(newdat$y),
+                                                                    stringsAsFactors = TRUE
+                                                                )
                                                             )
                                                             ses <- iNZightMR::seIndepSes(summary(fit)$coef[, 2])
                                                             mfit <- suppressWarnings(
@@ -866,7 +872,10 @@ dotinference <- function(obj) {
                                                     } else {
                                                         fit <- lm(x ~ y - 1, data = dat)
                                                         est <- predict(fit,
-                                                            newdata = data.frame(y = levels(dat$y))
+                                                            newdata = data.frame(
+                                                                y = levels(dat$y),
+                                                                stringsAsFactors = TRUE
+                                                            )
                                                         )
                                                         ses <- iNZightMR::seIndepSes(summary(fit)$coef[, 2])
                                                         mfit <- suppressWarnings(

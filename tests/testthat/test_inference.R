@@ -3,7 +3,8 @@ context("Get plot inference")
 set.seed(100)
 d <- data.frame(
     x = rnorm(100, c(150, 155), c(10, 20)),
-    y = factor(c("A", "B"))
+    y = factor(c("A", "B")),
+    stringsAsFactors = TRUE
 )
 # iNZightPlot(x, y, data = d)
 
@@ -46,7 +47,10 @@ test_that("Two-sample tests use appropriate CI", {
 })
 
 set.seed(400)
-d <- data.frame(x = sample(c("A", "B"), 100, replace = TRUE, c(0.3, 0.8)))
+d <- data.frame(
+    x = sample(c("A", "B"), 100, replace = TRUE, c(0.3, 0.8)),
+    stringsAsFactors = TRUE
+)
 ptest <- list(
     p.value = pnorm(
         abs((table(d$x)[[1]] / 100 - 0.5) / 0.05),
@@ -139,7 +143,7 @@ test_that("Simulated p-value is included when small expected values", {
 })
 
 test_that("Simulated p-value is included when requested", {
-    cas <- read.csv("cas.csv")
+    cas <- read.csv("cas.csv", stringsAsFactors = TRUE)
     s <- getPlotSummary(cellsource, gender, data = cas,
         summary.type = "inference",
         inference.type = "conf",

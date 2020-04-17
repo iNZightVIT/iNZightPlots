@@ -1083,7 +1083,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
             ## and hence match the output from this function.
 
             dat <- data.frame(
-                x = rep(names(object$tab), times = object$tab)
+                x = rep(names(object$tab), times = object$tab),
+                stringsAsFactors = TRUE
             )
             b <- boot(dat,
                 function(d, f) {
@@ -1234,7 +1235,8 @@ pDiffCI <- function(p1, p2, n1, n2, z = 1.96) {
 inference.inzscatter <- function(object, des, bs, nb, vn, ...) {
     d <- data.frame(
         x = object$x,
-        y = object$y
+        y = object$y,
+        stringsAsFactors = TRUE
     )
     trend <- object$trend
 

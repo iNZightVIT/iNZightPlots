@@ -21,7 +21,7 @@ test_that("Unsupported plots return FALSE", {
     ))
 })
 
-df <- data.frame(x=x, y=y, a=a, b=b)
+df <- data.frame(x=x, y=y, a=a, b=b, stringsAsFactors = TRUE)
 test_that("FT plots return the correct response", {
     # expect_true(can.interact(
     #     iNZightPlot(a, plottype = "gg_column",
