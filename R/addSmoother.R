@@ -132,7 +132,11 @@ addQuantileSmoother <- function(x, y = NULL, quantile, col, lty, lwd, opts) {
     if (is.null(y) & is_survey(x))
         des <- x
     else
-        des <- suppressWarnings(svydesign(ids = ~1, data = data.frame(x = x, y = y)))
+        des <- suppressWarnings(
+            svydesign(ids = ~1,
+                data = data.frame(x = x, y = y, stringsAsFactors = TRUE)
+            )
+        )
 
     invisible(
         sapply(quantile,

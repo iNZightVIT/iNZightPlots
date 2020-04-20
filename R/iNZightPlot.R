@@ -173,61 +173,128 @@ iNZightPlot <- function(x,
         )
     }
 
-    if (isTRUE(grepl("^gg_", list(...)$plottype))) {
-        # Remove xlab and ylab from varnames list (for lite)
-        varnames <- varnames[!(names(varnames) %in% c("xlab", "ylab"))]
+    dots <- list(...)
 
-        if (!("data_name" %in% names(list(...)))) {
-            data_name <- as.character(match.call()[["data"]])
-        } else {
-            data_name <- list(...)$data_name
-        }
+    if (isTRUE(grepl("^gg_", dots$plottype))) {
 
-        if ("x" %in% names(m) && !("x" %in% names(varnames))) {
-            varnames[["x"]] <- as.character(m[["x"]])
-        }
+        # Required, general packages = 1, other pkgs for specific plots = 0.
+        gg_pkgs <- c(
+            "ggplot2",
+            "dplyr",
+            "tidyr",
+            "forcats",
+            "ggmosaic",
+            "waffle",
+            "ggthemes",
+            "ggbeeswarm",
+            "ggridges"
+        )
+        gg_pkgs_check <- sapply(gg_pkgs, requireNamespace, quietly = TRUE)
 
-        if ("y" %in% names(m) && !("y" %in% names(varnames))) {
-            varnames[["y"]] <- as.character(m[["y"]])
-        }
-        
-        if ("g1" %in% names(varnames)) {
-          g1 <- varnames[["g1"]]
-        } else {
-          g1 <- m$g1
-        }
-        
-        if ("g2" %in% names(varnames)) {
-          g2 <- varnames[["g2"]]
-        } else {
-          g2 <- m$g2
-        }
+        if ( any(!gg_pkgs_check) ) {
 
-        ret.plot <- do.call(iNZightPlotGG,
-            c(
-                list(
-                    setNames(df$data, df$varnames),
-                    type = list(...)$plottype,
-                    data_name = data_name,
-                    main = list(...)$main,
-                    xlab = xlab,
-                    ylab = ylab,
-                    extra_args = list(...),
-                    palette = list(...)$palette,
-                    gg_theme = list(...)$gg_theme,
-                    caption = list(...)$caption,
-                    g1 = as.character(g1),
-                    g2 = as.character(g2)
+            gg_pkgs_needed <- gg_pkgs[!gg_pkgs_check]
+            message(
+                "In order to use this (and other) plot types, you must install\n",
+                "the following packages:"
+            )
+            cat(
+                "\n    ",
+                paste(
+                    gg_pkgs_needed,
+                    collapse = ", "
                 ),
-                varnames,
-                list(
-                    g1.level = g1.level,
-                    g2.level = g2.level
+                "\n\n"
+            )
+
+            message("You can do this by running the following command:")
+            cat(
+                sprintf(
+                    "\n    install.packages(c(%s))\n\n",
+                    paste("\"", gg_pkgs_needed, "\"",
+                        collapse = ", ",
+                        sep = ""
+                    )
                 )
             )
-        )
 
-        return(ret.plot)
+            warning(
+                sprintf("Ignoring `plottype = %s`",
+                    dots$plottype
+                )
+            )
+            dots$plottype <- NULL
+
+        } else {
+
+            # Remove xlab and ylab from varnames list (for lite)
+            varnames <- varnames[!(names(varnames) %in% c("xlab", "ylab"))]
+
+            if (!("data_name" %in% names(list(...)))) {
+                data_name <- as.character(match.call()[["data"]])
+            } else {
+                data_name <- list(...)$data_name
+            }
+
+            if ("x" %in% names(m) && !("x" %in% names(varnames))) {
+                varnames[["x"]] <- as.character(m[["x"]])
+            }
+
+            if ("y" %in% names(m) && !("y" %in% names(varnames))) {
+                varnames[["y"]] <- as.character(m[["y"]])
+            }
+          
+            # If Y is num, X is cat, flip
+            if ("y" %in% names(m) &&
+                is_num(df$data[["x"]]) &&
+                is_cat(df$data[["y"]]) ) {
+                xn <- varnames[["y"]]
+                varnames[["y"]] <- varnames[["x"]]
+                varnames[["x"]] <- xn
+
+                xx <- m$x
+                m$y <- m$x
+                m$x <- xx
+            }
+
+            if ("g1" %in% names(varnames)) {
+            g1 <- varnames[["g1"]]
+            } else {
+            g1 <- m$g1
+            }
+
+            if ("g2" %in% names(varnames)) {
+            g2 <- varnames[["g2"]]
+            } else {
+            g2 <- m$g2
+            }
+
+            ret.plot <- do.call(iNZightPlotGG,
+                c(
+                    list(
+                        setNames(df$data, df$varnames),
+                        type = list(...)$plottype,
+                        data_name = data_name,
+                        main = list(...)$main,
+                        xlab = xlab,
+                        ylab = ylab,
+                        extra_args = list(...),
+                        palette = list(...)$palette,
+                        gg_theme = list(...)$gg_theme,
+                        caption = list(...)$caption,
+                        g1 = as.character(g1),
+                        g2 = as.character(g2)
+                    ),
+                    varnames,
+                    list(
+                        g1.level = g1.level,
+                        g2.level = g2.level
+                    )
+                )
+            )
+
+            return(ret.plot)
+        }
     }
 
 
@@ -312,7 +379,7 @@ iNZightPlot <- function(x,
         }
     }
 
-    dots <- list(...)  # capture the additional arguments
+    # dots <- list(...)  # capture the additional arguments
     opts <- inzpars
     wopt <- names(dots) %in% names(opts)  # which additional settings specified
     opts <- utils::modifyList(opts, dots[wopt])

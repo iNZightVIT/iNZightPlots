@@ -23,10 +23,11 @@ environment:
 
   matrix:
   - R_VERSION: release
-  - R_VERSION: devel
+  # - R_VERSION: devel
 
 build_script:
   - travis-tool.sh install_deps
+  - travis-tool.sh install_github iNZightVIT/iNZightTools@release/1.8.4
 
 test_script:
   - travis-tool.sh run_tests

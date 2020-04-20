@@ -27,7 +27,8 @@ test_that("One sample t-test", {
             textConnection(
                 inz_test[grep("Population Mean with", inz_test) + c(2:3)]
             ),
-            header = TRUE
+            header = TRUE,
+            stringsAsFactors = TRUE
         )
 
     expect_equal(
@@ -35,7 +36,8 @@ test_that("One sample t-test", {
         data.frame(
             Lower = round(svy_ci[[1]], 1),
             Mean = round(svy_mean[[1]], 1),
-            Upper = round(svy_ci[[2]], 1)
+            Upper = round(svy_ci[[2]], 1),
+            stringsAsFactors = TRUE
         )
     )
     expect_equal(
@@ -73,7 +75,8 @@ test_that("Two sample t-test", {
             textConnection(
                 inz_test[grep("Population Means with", inz_test) + c(2:4)]
             ),
-            header = TRUE
+            header = TRUE,
+            stringsAsFactors = TRUE
         )
 
     expect_equal(
@@ -81,7 +84,8 @@ test_that("Two sample t-test", {
         data.frame(
             Lower = round(svy_ci[,1], 1),
             Mean = round(svy_mean[,2], 1),
-            Upper = round(svy_ci[,2], 1)
+            Upper = round(svy_ci[,2], 1),
+            stringsAsFactors = TRUE
         )
     )
     expect_equal(
@@ -119,7 +123,8 @@ test_that("ANOVA (equivalent)", {
             textConnection(
                 inz_test[grep("Population Means with", inz_test) + c(2:5)]
             ),
-            header = TRUE
+            header = TRUE,
+            stringsAsFactors = TRUE
         )
 
     expect_equal(
@@ -127,7 +132,8 @@ test_that("ANOVA (equivalent)", {
         data.frame(
             Lower = round(svy_ci[,1], 2),
             Mean = round(svy_mean[,2], 2),
-            Upper = round(svy_ci[,2], 2)
+            Upper = round(svy_ci[,2], 2),
+            stringsAsFactors = TRUE
         )
     )
     expect_equal(
@@ -160,7 +166,8 @@ test_that("Survey regression", {
             textConnection(
                 inz_test[grep("Linear Trend Coefficients", inz_test) + c(2:4)]
             ),
-            header = TRUE
+            header = TRUE,
+            stringsAsFactors = TRUE
         )
 
     svy_tbl <-
@@ -168,7 +175,8 @@ test_that("Survey regression", {
             Estimate = as.numeric(sprintf("%.5g", svy_coef[, 1])),
             Lower = as.numeric(sprintf("%.5g", svy_ci[, 1])),
             Upper = as.numeric(sprintf("%.5g", svy_ci[, 2])),
-            p.value = as.numeric(format.pval(svy_coef[, 4], digits = 2))
+            p.value = as.numeric(format.pval(svy_coef[, 4], digits = 2)),
+            stringsAsFactors = TRUE
         )
     rownames(svy_tbl) <- c("Intercept", "api99")
 
@@ -249,7 +257,8 @@ test_that("Two way Chi-square contingency tables", {
                 inz_test[grep("Estimated Proportions", inz_test) + c(3:4)]
             ),
             header = FALSE,
-            col.names = c("Level", "E", "H", "M", "Sums")
+            col.names = c("Level", "E", "H", "M", "Sums"),
+            stringsAsFactors = TRUE
         )
     inz_inf <-
         eval(parse(text =
@@ -265,7 +274,8 @@ test_that("Two way Chi-square contingency tables", {
             E = as.numeric(format(svy_prop[, 2], digits = 3)),
             H = as.numeric(format(svy_prop[, 3], digits = 3)),
             M = as.numeric(format(svy_prop[, 4], digits = 3)),
-            Sums = rep(1, 2)
+            Sums = rep(1, 2),
+            stringsAsFactors = TRUE
         )
     )
 
@@ -314,7 +324,8 @@ test_that("Subset inference - one sample t-test", {
                     textConnection(
                         inz_test[i + 2:3]
                     ),
-                    header = TRUE
+                    header = TRUE,
+                    stringsAsFactors = TRUE
                 )
     )
     svy_tabs <- lapply(svy_means,
@@ -323,7 +334,8 @@ test_that("Subset inference - one sample t-test", {
             data.frame(
                 Lower = round(svy_ci[[1]], 1),
                 Mean = round(svy_mean[[1]], 1),
-                Upper = round(svy_ci[[2]], 1)
+                Upper = round(svy_ci[[2]], 1),
+                stringsAsFactors = TRUE
             )
         }
     )
@@ -380,7 +392,8 @@ test_that("Subset inference - two sample t-test", {
                     textConnection(
                         inz_test[i + 2:4]
                     ),
-                    header = TRUE
+                    header = TRUE,
+                    stringsAsFactors = TRUE
                 )
     )
     svy_tabs <- lapply(svy_means,
@@ -389,7 +402,8 @@ test_that("Subset inference - two sample t-test", {
             data.frame(
                 Lower = round(svy_ci[,1], 1),
                 Mean = round(svy_mean[,2], 1),
-                Upper = round(svy_ci[,2], 1)
+                Upper = round(svy_ci[,2], 1),
+                stringsAsFactors = TRUE
             )
         }
     )
@@ -458,7 +472,8 @@ test_that("Subset twice inference - one sample t-test", {
                     textConnection(
                         inz_test[i + 2:3]
                     ),
-                    header = TRUE
+                    header = TRUE,
+                    stringsAsFactors = TRUE
                 )
     )
     svy_tabs <- lapply(do.call(c, svy_means),
@@ -467,7 +482,8 @@ test_that("Subset twice inference - one sample t-test", {
             data.frame(
                 Lower = round(svy_ci[[1]], 1),
                 Mean = round(svy_mean[[1]], 1),
-                Upper = round(svy_ci[[2]], 1)
+                Upper = round(svy_ci[[2]], 1),
+                stringsAsFactors = TRUE
             )
         }
     )
@@ -527,7 +543,8 @@ test_that("Subset (only g2) inference - two sample t-test", {
                     textConnection(
                         inz_test[i + 2:4]
                     ),
-                    header = TRUE
+                    header = TRUE,
+                    stringsAsFactors = TRUE
                 )
     )
     svy_tabs <- lapply(svy_means,
@@ -536,7 +553,8 @@ test_that("Subset (only g2) inference - two sample t-test", {
             data.frame(
                 Lower = round(svy_ci[,1], 1),
                 Mean = round(svy_mean[,2], 1),
-                Upper = round(svy_ci[,2], 1)
+                Upper = round(svy_ci[,2], 1),
+                stringsAsFactors = TRUE
             )
         }
     )
@@ -713,7 +731,11 @@ test_that("Replicate weight designs - two way table", {
 data(api, package = "survey")
 dclus1 <- svydesign(id = ~dnum, weights = ~pw,
     data = apiclus1, fpc = ~fpc)
-pop.types <- data.frame(stype = c("E","H","M"), Freq = c(4421,755,1018))
+pop.types <- data.frame(
+    stype = c("E","H","M"),
+    Freq = c(4421,755,1018),
+    stringsAsFactors = TRUE
+)
 dclus1p <- postStratify(dclus1, ~stype, pop.types)
 
 test_that("Post-strat designs - one sample t-test", {

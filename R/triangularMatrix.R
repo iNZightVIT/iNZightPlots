@@ -1,6 +1,6 @@
 triangularMatrix <- function(factorLvls, output, statType) {
     ## takes a bunch of output (from "multiplComp") and presents it as a matrix
-    
+
     statsMatrix <- as.matrix(output)
     colNames <- colnames(statsMatrix)
 
@@ -13,12 +13,12 @@ triangularMatrix <- function(factorLvls, output, statType) {
             rns <- c()
             for (i in 1:(Nlev-1))
                 rns <- c(rns, paste(factorLvls[i], " - ", factorLvls[(i+1):Nlev]))
-            
-            
-            output.df <- as.data.frame(statsMatrix)
+
+
+            output.df <- as.data.frame(statsMatrix, stringsAsFactors = TRUE)
             output.df$name <- rownames(output.df)
 
-            ## No idea what these three lines are supposed to be doing ... 
+            ## No idea what these three lines are supposed to be doing ...
             ## fake <- data.frame(name = rns)
             ## statsMatrix <- as.matrix(merge(output.df, fake, by = "name", all.y = TRUE)[, -1])
             ## rownames(statsMatrix) <- rns
@@ -43,7 +43,7 @@ triangularMatrix <- function(factorLvls, output, statType) {
     } else if (statType == "ci") {
         count <- 1
         i <- count
-        
+
         if(condition) {
             values <- numeric(nrow(statsMatrix) * 2)
             while (count < nrow(statsMatrix) + 1) {
@@ -69,7 +69,7 @@ triangularMatrix <- function(factorLvls, output, statType) {
         for(i in 1:num) {
             if (i == 1) startAt <- 1
             stopAt <- (stopAt - i) + num
-            
+
             if (i == num) extra <- numeric(0)
             else extra <- values[startAt:stopAt]
 

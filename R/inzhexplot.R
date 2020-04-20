@@ -72,7 +72,12 @@ plot.inzhex <- function(obj, gen) {
 
     addGrid(x = TRUE, y = TRUE, gen = gen, opts = opts)
 
-    if (!is.null(obj$colby)) {
+    try_hextri <- function() {
+        if (requireNamespace("hextri", quietly = TRUE)) return(TRUE)
+        warning("Please install the `hextri` package to use colby with hexbins.")
+        FALSE
+    }
+    if (!is.null(obj$colby) && try_hextri()) {
         if (any(is.na(obj$colby))) {
             levels(obj$colby) <- c(levels(obj$colby), "missing")
             obj$colby[is.na(obj$colby)] <- "missing"

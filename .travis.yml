@@ -19,12 +19,16 @@ matrix:
       brew_packages: libgit2
   allow_failures:
     - os: osx
+    - r: devel
 
 env:
   global:
     - R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
     - _R_CHECK_SYSTEM_CLOCK_=FALSE
     - _R_CHECK_FORCE_SUGGESTS_=FALSE
+
+r_github_packages:
+  - iNZightVIT/iNZightTools@release/1.8.4
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo chown -R $(whoami) /usr/local/share; fi

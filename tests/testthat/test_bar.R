@@ -3,7 +3,8 @@ context("Bar plots (one way)")
 set.seed(251090)
 df <- data.frame(
     x = sample(LETTERS[1:3], 100, replace = TRUE, prob = c(0.5, 0.3, 0.2)),
-    y = rep(c("G1", "G2"), each = 50)
+    y = rep(c("G1", "G2"), each = 50),
+    stringsAsFactors = TRUE
 )
 tab <- table(df$x)
 pr <- tab / nrow(df)
@@ -86,4 +87,3 @@ test_that("Inference information is correct", {
     expect_null(bar2inf$all$all$inference.info)
     expect_null(bar2inf_counts$all$all$inference.info)
 })
-

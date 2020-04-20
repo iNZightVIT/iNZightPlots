@@ -356,7 +356,9 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
                     if (is.null(toplot[[t]]$x))
                         NULL
                     else
-                        data.frame(x = toplot[[t]]$x, y = t)
+                        data.frame(x = toplot[[t]]$x, y = t,
+                            stringsAsFactors = TRUE
+                        )
                 }
             )
         )
@@ -432,7 +434,9 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...)
                 ""
             )
 
-            means <- predict(fit, newdata = data.frame(y = levels(dat$y)))
+            means <- predict(fit,
+                newdata = data.frame(y = levels(dat$y), stringsAsFactors = TRUE)
+            )
             names(means) <- LEVELS <- levels(dat$y)
             diffMat <- outer(means, means, function(x, y) y - x)
             diffMat <- formatTriMat(diffMat, LEVELS)
@@ -938,7 +942,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
             tab <- object$tab
             dat <- data.frame(
                 x = rep(colnames(tab), times = colSums(tab)),
-                y = rep(rep(rownames(tab), times = ncol(tab)), tab)
+                y = rep(rep(rownames(tab), times = ncol(tab)), tab),
+                stringsAsFactors = TRUE
             )
 
             b <- boot(dat,
@@ -1078,7 +1083,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
             ## and hence match the output from this function.
 
             dat <- data.frame(
-                x = rep(names(object$tab), times = object$tab)
+                x = rep(names(object$tab), times = object$tab),
+                stringsAsFactors = TRUE
             )
             b <- boot(dat,
                 function(d, f) {
@@ -1229,7 +1235,8 @@ pDiffCI <- function(p1, p2, n1, n2, z = 1.96) {
 inference.inzscatter <- function(object, des, bs, nb, vn, ...) {
     d <- data.frame(
         x = object$x,
-        y = object$y
+        y = object$y,
+        stringsAsFactors = TRUE
     )
     trend <- object$trend
 
