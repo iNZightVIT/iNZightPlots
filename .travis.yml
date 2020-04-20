@@ -28,7 +28,7 @@ env:
     - _R_CHECK_FORCE_SUGGESTS_=FALSE
 
 r_github_packages:
-  - iNZightVIT/iNZightTools@dev
+  - iNZightVIT/iNZightTools@master
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo chown -R $(whoami) /usr/local/share; fi
