@@ -1,3 +1,6 @@
+# iNZightPlots 2.11.3
+- fix bug in exporting of a single numeric variable
+
 # iNZightPlots 2.11.2
 - fix a bug in the arguments of the getInfo() method causing exportHTML() to fail
 

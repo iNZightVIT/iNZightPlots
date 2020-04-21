@@ -799,7 +799,8 @@ varSelect <- function(varNames, pl, order, extra.vars, data, levels = FALSE) {
         colNum <- which(colnames(data) %in% selected)
 
         # format in order
-        tab <- data[order, colNum]
+        tab <- data[order, colNum, drop = FALSE]
+
         rownames(tab) <- 1:nrow(tab)
 
     } else {
