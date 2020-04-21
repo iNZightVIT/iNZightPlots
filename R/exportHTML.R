@@ -371,7 +371,7 @@ getInfo <- function(plot, x = NULL, data = NULL, extra.vars = NULL)  {
     UseMethod("getInfo")
 }
 
-getInfo.inzbar <- function(plot, x) {
+getInfo.inzbar <- function(plot, x, ...) {
     # generation of table of counts:
     # plot <- x$all$all
     prop <- plot$phat
@@ -427,7 +427,7 @@ getInfo.inzbar <- function(plot, x) {
         tab[2,] <- paste0(tab[2,], "%")
         colnames(tab)[ncol(tab)] <- "Total"
         rownames(tab) <- c("Counts", "Percent")
-        
+
         colnames(dt) <- c("othervar", "varx", "counts", "pct")
     }
 
@@ -478,7 +478,7 @@ getInfo.inzbar <- function(plot, x) {
     return(list(tbl = tableInfo, js = JSData))
 }
 
-getInfo.inzhist <- function(plot, x) {
+getInfo.inzhist <- function(plot, x, ...) {
     #plot <- x$all$all or plot <- x$all[[1]]
 
     toPlot <- plot$toplot$all
@@ -745,7 +745,7 @@ getInfo.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
     return(list(tbl = tbl, js = JSData))
 }
 
-getInfo.inzhex <- function(plot, x = NULL) {
+getInfo.inzhex <- function(plot, x = NULL, ...) {
     warning("No table available for hexbin plots.")
     tbl <- NULL
 
@@ -769,7 +769,7 @@ getInfo.inzhex <- function(plot, x = NULL) {
     return(list(tbl = tbl, js = JSData))
 }
 
-getInfo.default <- function(plot, x) {
+getInfo.default <- function(plot, x, ...) {
     warning("There may not be an interactive version of this plot yet...")
     return()
 }

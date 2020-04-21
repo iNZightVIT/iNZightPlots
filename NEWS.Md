@@ -1,3 +1,6 @@
+# iNZightPlots 2.11.2
+- fix a bug in the arguments of the getInfo() method causing exportHTML() to fail
+
 # iNZightPlots 2.11.1
 
 - fix formula interface to handle `colby`, etc.
