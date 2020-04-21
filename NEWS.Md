@@ -1,3 +1,6 @@
+# iNZightPlots 2.11.3
+- fix bug in exporting of a single numeric variable
+
 # iNZightPlots 2.11.2
 - fix a bug in the arguments of the getInfo() method causing exportHTML() to fail
 
@@ -6,7 +9,6 @@
 - fix formula interface to handle `colby`, etc.
 - fix FT plots for numeric/factor so either order displays the same plot (to match base iNZightPlots graphs)
 - Move Financial Times graph package dependencies to Suggests (from Imports)
-- Fix formula interface to handle `colby`, etc.
 - Specify `stringsAsFactors = TRUE` for upcoming R 4.0.0
 
 
