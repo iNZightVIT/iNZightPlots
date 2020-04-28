@@ -61,6 +61,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                                 test = match.arg(hypothesis.test),
                                 simulated.p.value = hypothesis.simulated.p.value
                            ),
+                           survey.options = list(),
                            width = 100,
                            ...) {
 
@@ -164,12 +165,14 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     ### Now we just loop over everything ...
 
-    summary(obj, summary.type, hypothesis, width = width)
+    summary(obj, summary.type, hypothesis, survey.options, width = width)
 }
 
 
 summary.inzplotoutput <- function(object, summary.type = "summary",
-                                  hypothesis = NULL, width = 100) {
+                                  hypothesis = NULL,
+                                  survey.options = list(),
+                                  width = 100) {
     if (length(summary.type) > 1) {
         warning("Only using the first element of `summary.type`")
         summary.type <- summary.type[1]
@@ -209,8 +212,8 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
 
     is.survey <- attr(obj, "inzclass") == "inz.survey"
 
-    #if (is.survey & summary.type == "inference")
-    #    return("Inference for Survey Designs not yet implemented.")
+    ## Handle survey options
+    survey.options <- modifyList(default.survey.options, survey.options)
 
     add(Hrule)
     add(
@@ -442,14 +445,16 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                     sapply(
                         switch(summary.type,
                             "summary" =
-                                summary(pl, vn = vnames, des = pl.design),
+                                summary(pl, vn = vnames, des = pl.design,
+                                    survey.options = survey.options),
                             "inference" =
                                 inference(pl, bs, inzclass,
                                     des = pl.design,
                                     width = width,
                                     vn = vnames,
                                     nb = attr(obj, "nboot"),
-                                    hypothesis = hypothesis
+                                    hypothesis = hypothesis,
+                                    survey.options = survey.options
                                 )
                         ),
                         add
@@ -766,3 +771,7 @@ iNZInference <- function(f, data = NULL, type = c("conf", "comp"), ...) {
         }
     }
 }
+
+default.survey.options <- list(
+    deff = FALSE
+)

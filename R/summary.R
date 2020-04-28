@@ -1,4 +1,4 @@
-summary.inzdot <- function(object, des, ...) {
+summary.inzdot <- function(object, des, survey.options, ...) {
     ## Generate summary information:
 
     ## Produce a matrix of the required summary:
@@ -307,11 +307,11 @@ summary.inzdot <- function(object, des, ...) {
     out
 }
 
-summary.inzhist <- function(object, des, ...)
+summary.inzhist <- function(object, des, survey.options, ...)
     summary.inzdot(object, des, ...)
 
 
-summary.inzbar <- function(object, des, ...) {
+summary.inzbar <- function(object, des, survey.options, ...) {
     tab <- round(object$tab)
     perc <- object$phat * 100
 
@@ -473,7 +473,7 @@ summary.inzbar <- function(object, des, ...) {
 
 
 
-summary.inzscatter <- function(object, vn, des, ...) {
+summary.inzscatter <- function(object, vn, des, survey.options, ...) {
     x <- object$x
     y <- object$y
     trend <- object$trend
@@ -624,8 +624,8 @@ summary.inzscatter <- function(object, vn, des, ...) {
 
     out
 }
-summary.inzgrid <- function(object, vn, des, ...)
+summary.inzgrid <- function(object, vn, des, survey.options, ...)
     summary.inzscatter(object, vn, des, ...)
 
-summary.inzhex <- function(object, vn, des, ...)
+summary.inzhex <- function(object, vn, des, survey.options, ...)
     summary.inzscatter(object, vn, des, ...)

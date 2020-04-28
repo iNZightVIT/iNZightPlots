@@ -1,7 +1,7 @@
 context("Survey designs")
 
 data(api, package = "survey")
-dclus1 <- svydesign(id = ~dnum, weights = ~pw, 
+dclus1 <- svydesign(id = ~dnum, weights = ~pw,
     data = apiclus1, fpc = ~fpc)
 
 test_that("Survey designs work", {
@@ -20,7 +20,7 @@ test_that("Summary information is correct - dot plot", {
         round(scan(textConnection(xpe), quiet = TRUE)),
         round(c(
             as.numeric(
-                svyquantile(~enroll, 
+                svyquantile(~enroll,
                     design = dclus1, quantiles = c(0.25, 0.5, 0.75)
                 )
             ),
@@ -40,23 +40,23 @@ test_that("Summary information is correct - dot plot", {
     xse <- gsub("\\|", "", x[se])
     expect_equivalent(
         round(
-            scan(text = xse, quiet = TRUE), 
+            scan(text = xse, quiet = TRUE),
             c(2, 2, 2, 2, 2, 0, 0)
         ),
         round(
             c(
-                SE(svyquantile(~enroll, 
+                SE(svyquantile(~enroll,
                     design = dclus1, quantiles = c(0.25, 0.5, 0.75),
                     se = TRUE
                 )),
                 SE(svymean(~enroll, design = dclus1)),
                 sqrt(
-                    vcov(svyvar(~enroll, dclus1)) / 
+                    vcov(svyvar(~enroll, dclus1)) /
                         4 / coef(svyvar(~enroll, dclus1))
                 ),
                 SE(svytotal(~enroll, design = dclus1)),
                 SE(svytotal(cbind(rep(1, nrow(dclus1$variables))), dclus1))
-            ), 
+            ),
             c(2, 2, 2, 2, 2, 0, 0)
         )
     )
@@ -89,7 +89,7 @@ test_that("Summary information is correct - dot plot (by factor)", {
     xse <- gsub("\\||[A-Z]", "", x[se])
     expect_equivalent(
         do.call(rbind,
-            lapply(xse, function(z) 
+            lapply(xse, function(z)
                 round(
                     scan(text = z, quiet = TRUE),
                     c(2, 2, 2, 2, 2, 0, 1)
@@ -98,7 +98,7 @@ test_that("Summary information is correct - dot plot (by factor)", {
         ),
         as.matrix(cbind(
             suppressWarnings(
-                round(SE(svyby(~enroll, ~stype, dclus1, svyquantile, 
+                round(SE(svyby(~enroll, ~stype, dclus1, svyquantile,
                     ci = TRUE, se = TRUE,
                     quantiles = c(0.25, 0.5, 0.75))), 2)
             ),
@@ -114,4 +114,7 @@ test_that("Summary information is correct - dot plot (by factor)", {
     )
 })
 
-
+test_that("Design effects are included", {
+    x <- getPlotSummary(enroll, stype, design = dclus1,
+        survey.options = list(deff = TRUE))
+})
