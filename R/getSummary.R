@@ -774,5 +774,5 @@ iNZInference <- function(f, data = NULL, type = c("conf", "comp"), ...) {
 }
 
 default.survey.options <- list(
-    deff = FALSE
+    deff = TRUE
 )
