@@ -114,7 +114,33 @@ test_that("Summary information is correct - dot plot (by factor)", {
     )
 })
 
-test_that("Design effects are included", {
-    x <- getPlotSummary(api00, design = dclus1,
+test_that("Design effects are included - numeric", {
+    x <- getPlotSummary(enroll, design = dclus1,
         survey.options = list(deff = TRUE))
+    de <- which(grepl("Design effects", x)) + 2
+    xde <- gsub("\\||[A-Z]", "", x[de])
+    expect_equivalent(
+        round(scan(textConnection(xde), quiet = TRUE)),
+        round(c(
+            mean=deff(svymean(~enroll, dclus1, deff = TRUE)),
+            total=deff(svytotal(~enroll, dclus1, deff = TRUE))
+        ))
+    )
+})
+
+test_that("Design effects are included - numeric x categorical", {
+    x <- getPlotSummary(enroll, stype, design = dclus1,
+        survey.options = list(deff = TRUE))
+    de <- which(grepl("Design effects", x)) + 2:4
+    xde <- gsub("\\||[A-Z]", "", x[de])
+    expect_equivalent(
+        round(do.call(
+            rbind,
+            lapply(xde, function(z) round(scan(textConnection(z), quiet = TRUE)))
+        )),
+        round(cbind(
+            mean=deff(svyby(~enroll, ~stype, dclus1, svymean, deff = TRUE)),
+            total=deff(svyby(~enroll, ~stype, dclus1, svytotal, deff = TRUE))
+        ))
+    )
 })
