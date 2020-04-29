@@ -35,6 +35,7 @@
 #' @param hypothesis.test in some cases (currently just two-samples) can perform multiple tests (t-test or ANOVA)
 #' @param hypothesis.simulated.p.value also calculate (where available) the simulated p-value
 #' @param hypothesis either NULL for no test, or missing (in which case above arguments are used)
+#' @param survey.options additional options passed to survey methods
 #' @param width width for the output, default is 100 characters
 #' @param ... additional arguments, see \code{inzpar}
 #' @return an \code{inzight.plotsummary} object with a print method
