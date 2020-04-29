@@ -144,3 +144,38 @@ test_that("Design effects are included - numeric x categorical", {
         ))
     )
 })
+
+
+# test_that("Design effects are included - numeric x numeric", {
+#     x <- getPlotSummary(api00, api99, design = dclus1,
+#         trend = "linear",
+#         survey.options = list(deff = TRUE))
+#     # de <- which(grepl("Design effects", x)) + 2:4
+#     # xde <- gsub("\\||[A-Z]", "", x[de])
+#     # expect_equivalent(
+#     #     round(do.call(
+#     #         rbind,
+#     #         lapply(xde, function(z) round(scan(textConnection(z), quiet = TRUE)))
+#     #     )),
+#     #     round(cbind(
+#     #         mean=deff(svyby(~enroll, ~stype, dclus1, svymean, deff = TRUE)),
+#     #         total=deff(svyby(~enroll, ~stype, dclus1, svytotal, deff = TRUE))
+#     #     ))
+#     # )
+# })
+
+
+test_that("Design effects are included - categorical", {
+    x <- getPlotSummary(stype, design = dclus1,
+        survey.options = list(deff = TRUE))
+    de <- which(grepl("Design effects", x)) + 2
+    xde <- gsub("\\||[A-Z]", "", x[de])
+    expect_equivalent(
+        round(scan(textConnection(xde), quiet = TRUE)),
+        round(
+            (function(x) rbind(100*coef(x), 100*SE(x), deff(x)) )(
+                svymean(~stype, dclus1, deff = TRUE)
+            )
+        )
+    )
+})
