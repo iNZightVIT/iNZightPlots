@@ -385,14 +385,11 @@ summary.inzbar <- function(object, des, survey.options, ...) {
         )
 
         if (is.survey) {
-            mat <- format(
-                SE(
-                    svyby(~x, ~y, des, svymean,
-                        drop.empty.groups = FALSE
-                    )
-                ) * 100,
-                digits = 4
+            smry_mean <- svyby(~x, ~y, des, svymean,
+                deff = survey.options$deff,
+                drop.empty.groups = FALSE
             )
+            mat <- format(SE(smry_mean) * 100, digits = 4)
             mat <- cbind(
                 c("", rownames(tab)),
                 rbind(colnames(tab), mat)
@@ -416,6 +413,28 @@ summary.inzbar <- function(object, des, survey.options, ...) {
                 "",
                 mat
             )
+
+            if (!isFALSE(survey.options$deff)) {
+                mat <- format(deff(smry_mean), digits = 3)
+                mat <- cbind(
+                    c("", rownames(tab)),
+                    rbind(colnames(tab), mat)
+                )
+                mat <- matrix(
+                    apply(mat, 2,
+                        function(col) {
+                            format(col, justify = "right")
+                        }
+                    ),
+                    nrow = nrow(mat)
+                )
+                mat[grep("NA", mat)] <- ""
+                mat <- apply(mat, 1,
+                    function(x) paste0("   ", paste(x, collapse = "   "))
+                )
+
+                out <- c(out, "", "Design effects:", "", mat)
+            }
         }
         return(out)
     } else {
@@ -430,14 +449,15 @@ summary.inzbar <- function(object, des, survey.options, ...) {
 
         mat <- cbind(c("", "Count ", "Percent "), mat)
         if (is.survey) {
+            smry_mean <- svymean(~x, des, deff = survey.options$deff)
             mat <- rbind(
                 mat[1:2, ],
                 "",
                 mat[3, ],
                 c(
-                    "  std err",
+                    "  std err ",
                     paste0(
-                        format(round(SE(svymean(~x, des)) * 100, 2),
+                        format(round(SE(smry_mean) * 100, 2),
                             nsmall = 2
                         ),
                         "%"
@@ -445,6 +465,21 @@ summary.inzbar <- function(object, des, survey.options, ...) {
                     NA
                 )
             )
+            if (!isFALSE(survey.options$deff)) {
+                mat <- rbind(mat,
+                    "",
+                    c(
+                        "Design effects ",
+                        paste0(
+                            format(round(deff(smry_mean), 2),
+                                nsmall = 2
+                            ),
+                            ""
+                        ),
+                        NA
+                    )
+                )
+            }
         }
 
         mat <- matrix(
