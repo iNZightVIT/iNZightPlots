@@ -115,6 +115,6 @@ test_that("Summary information is correct - dot plot (by factor)", {
 })
 
 test_that("Design effects are included", {
-    x <- getPlotSummary(enroll, stype, design = dclus1,
+    x <- getPlotSummary(api00, design = dclus1,
         survey.options = list(deff = TRUE))
 })
