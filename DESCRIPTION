@@ -32,7 +32,7 @@ Suggests:
     hextri,
     viridis,
     RColorBrewer,
-    gridSVG,
+    gridSVG (>= 1.7-2),
     knitr,
     jsonlite,
     testthat,
