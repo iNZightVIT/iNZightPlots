@@ -1,3 +1,6 @@
+# iNZightPlots 2.11.3.9000
+- fix bug that causes incorrect interactive map labels due to multipolygon regions 
+
 # iNZightPlots 2.11.3
 - fix bug in exporting of a single numeric variable
 
