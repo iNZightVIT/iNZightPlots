@@ -70,7 +70,7 @@
 #'
 #' @import stats grid grDevices boot survey quantreg survey hexbin iNZightMR
 #'         colorspace dichromat
-#' @importFrom utils capture.output browseURL capture.output
+#' @importFrom utils capture.output browseURL capture.output modifyList
 #' @importFrom iNZightTools is_num is_cat is_dt is_survey is_svydesign is_svyrep
 #' @author Tom Elliott
 #' @export
@@ -243,7 +243,7 @@ iNZightPlot <- function(x,
             if ("y" %in% names(m) && !("y" %in% names(varnames))) {
                 varnames[["y"]] <- as.character(m[["y"]])
             }
-          
+
             # If Y is num, X is cat, flip
             if ("y" %in% names(m) &&
                 is_num(df$data[["x"]]) &&
