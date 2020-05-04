@@ -1,3 +1,5 @@
+- provide design effects for survey summaries
+
 # iNZightPlots 2.11.4
 - fix bug that causes incorrect interactive map labels due to multipolygon regions 
 
