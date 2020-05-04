@@ -1,4 +1,5 @@
-makeTitle <- function(names, types, g1.level = NULL, g2.level = NULL) {
+makeTitle <- function(names, types, g1.level = NULL, g2.level = NULL,
+                      template = NULL) {
   # creates the title text for the plot
     varnames <- names(names)
     if (types$x == "factor") {
@@ -55,7 +56,15 @@ makeTitle <- function(names, types, g1.level = NULL, g2.level = NULL) {
     } else {
         title5 <- ""
     }
-    title <- paste0(title1, title2, title3, title4, title5)
+
+    if (is.null(template))
+        return(paste0(title1, title2, title3, title4, title5))
+
+    ## Replace %subset% in template by title3, title4
+    title <- gsub("%subset%", paste0(title3, title4), template)
+
+    ## Replace %sizeby% in template by title5
+    title <- gsub("%sizeby%", title5, title)
 
     title
 }

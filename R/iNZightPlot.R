@@ -757,7 +757,10 @@ iNZightPlot <- function(x,
 
         titles <- list()
         titles$main <-
-            if (!is.null(dots$main)) dots$main
+            if (!is.null(dots$main))
+                makeTitle(varnames, VT, g1.level, g2.level,
+                    template = dots$main
+                )
             else makeTitle(varnames, VT, g1.level, g2.level)
         titles$xlab <- xlab
         if (!ynull) {
