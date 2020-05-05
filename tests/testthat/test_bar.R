@@ -70,17 +70,11 @@ test_that("Y axis limits computed correctly", {
 })
 
 test_that("Y axis is labelled correctly", {
-    # either
+    iNZightPlot(x, data = df)
     expect_equal(grid.get("inz-ylab")$label, "Percentage (%)")
     expect_equal(
         grid.get("inz-yaxis-left.1.1")$label,
-        seq(10, 50, by = 10)
-    )
-    # or
-    expect_equal(grid.get("inz-ylab")$label, "Proportion")
-    expect_equal(
-        grid.get("inz-yaxis-left.1.1")$label,
-        seq(0.1, 0.5, by = 0.1)
+        format(seq(10, 50, by = 10))
     )
 })
 

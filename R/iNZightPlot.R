@@ -766,10 +766,10 @@ iNZightPlot <- function(x,
         if (!ynull) {
             titles$ylab <-
                 if (xfact & yfact)
-                    ifelse(opts$bar.counts, "Count", "Proportion (%)")
+                    ifelse(opts$bar.counts, "Count", "Percentage (%)")
                 else ylab
         } else if (xfact) {
-            titles$ylab <- ifelse(opts$bar.counts, "Count", "Proportion (%)")
+            titles$ylab <- ifelse(opts$bar.counts, "Count", "Percentage (%)")
         }
         if ("colby" %in% df.vs) titles$legend <- varnames$colby
 
@@ -1213,8 +1213,8 @@ iNZightPlot <- function(x,
             opts$rot <- rot
 
             # transform?
-            # opts$transform$y <-
-            #     ifelse(opts$bar.counts, "bar_counts", "bar_percentage")
+            opts$transform$y <-
+                ifelse(opts$bar.counts, "bar_counts", "bar_percentage")
             if (opts$bar.counts) {
                 opts$bar.n <- nrow(df$data)
             }

@@ -198,7 +198,8 @@ transform_axes <- function(x, which, opts, label) {
                 breaks <- log10(breaks)
             },
             "bar_percentage" = {
-                # breaks <- scales::pretty_breaks()(100 * xt)
+                breaks <- scales::pretty_breaks()(xt)
+                names(breaks) <- breaks * 100
             },
             "bar_counts" = {
                 # breaks <- scales::pretty_breaks()(xt * opts$bar.nmax)
