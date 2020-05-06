@@ -10,10 +10,14 @@ convert.to.factor(x)
 \item{x}{a numeric vector}
 }
 \value{
-a factor vector
+a factor variable
 }
 \description{
 Convert a numeric variable in to a factor with four levels.
+}
+\examples{
+f <- convert.to.factor(runif(100, 0, 10))
+levels(f)
 }
 \author{
 Tom Elliott

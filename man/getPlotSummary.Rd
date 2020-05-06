@@ -105,6 +105,20 @@ Generate summary or inference information for an iNZight plot
 \details{
 Works much the same as \code{iNZightPlot}
 }
+\examples{
+getPlotSummary(Species, data = iris)
+getPlotSummary(Species, data = iris,
+    summary.type = "inference", inference.type = "conf")
+
+# perform hypothesis testing
+getPlotSummary(Sepal.Length, data = iris,
+    summary.type = "inference", inference.type = "conf",
+    hypothesis.value = 5)
+
+# if you prefer a formula interface
+iNZSummary(Sepal.Length ~ Species, data = iris)
+iNZInference(Sepal.Length ~ Species, data = iris)
+}
 \author{
 Tom Elliott
 }
