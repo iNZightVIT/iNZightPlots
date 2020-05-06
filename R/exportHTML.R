@@ -148,18 +148,7 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL,
         int <- d[which(d > 0)]
     }
     
-    ## Multipolygons
-    if (mapObj$multiple.obs) {
-        geo_types <- sf::st_geometry_type(mapObj$region.aggregate)
-        n_polygons <- numeric(length = length(geo_types))
-        n_polygons[geo_types == "POLYGON"] <- 1
-        n_polygons[geo_types == "MULTIPOLYGON"] <- lengths(sf::st_geometry(mapObj$region.aggregate))[geo_types == "MULTIPOLYGON"]
-    } else {
-        geo_types <- sf::st_geometry_type(mapObj$region.data)
-        n_polygons <- numeric(length = length(geo_types))
-        n_polygons[geo_types == "POLYGON"] <- 1
-        n_polygons[geo_types == "MULTIPOLYGON"] <- lengths(sf::st_geometry(mapObj$region.data))[geo_types == "MULTIPOLYGON"]
-    }
+    n_polygons <- mapObj$n_polygons
 
     chart <- list(
         type = mapObj$type,
