@@ -148,7 +148,7 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL,
         int <- d[which(d > 0)]
     }
     
-    n_polygons <- iNZightMaps::polygons_per_region(mapObj)
+    n_polygons <- mapObj$n_polygons
 
     chart <- list(
         type = mapObj$type,
