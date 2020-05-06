@@ -9,6 +9,8 @@
 0 errors | 0 warnings | 1 notes
 
 * This is a new submission
+  - no published resources related to the methods
+  - no additional system dependencies
 
 ## Downstream dependencies
 

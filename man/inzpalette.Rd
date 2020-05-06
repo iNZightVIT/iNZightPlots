@@ -3,20 +3,20 @@
 \name{inzpalette}
 \alias{inzpalette}
 \alias{cat_palette_names}
-\alias{const_palette_names}
+\alias{cont_palette_names}
 \title{iNZight colour palette}
 \usage{
 inzpalette(palette)
 
 cat_palette_names()
 
-const_palette_names()
+cont_palette_names()
 }
 \arguments{
 \item{palette}{the name of a palette}
 }
 \value{
-a colour palette function, with argument `n`
+a colour palette function with single argument `n`
 }
 \description{
 Used to obtain a colour palette of a given name.
@@ -27,9 +27,16 @@ A list of available palettes can be obtained by
 \itemize{
 \item \code{cat_palette_names}: List of categorical colour palettes
 
-\item \code{const_palette_names}: List of continuous  colour palettes
+\item \code{cont_palette_names}: List of continuous  colour palettes
 }}
 
+\examples{
+plot(1:5, pch = 19, col = inzpalette("bright")(5))
+
+# for a list of palette names
+cat_palette_names()
+cont_palette_names()
+}
 \author{
 Tom Elliott
 }
