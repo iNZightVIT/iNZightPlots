@@ -25,9 +25,11 @@ exportSVG.function <- function(x, file = 'inzightplot.svg',
     #set directory to temp directory
     tdir <- tempdir()
     setwd(tdir)
+    on.exit(setwd(curdir))
 
     #create pdf graphics device into here:
     pdf('tempfile.pdf', width = width, height = height, onefile = TRUE)
+    on.exit(file.remove('tempfile.pdf'), add = TRUE, after = FALSE)
 
     #do exporting:
     obj <- x()
@@ -35,13 +37,6 @@ exportSVG.function <- function(x, file = 'inzightplot.svg',
 
     #turn off device:
     dev.off()
-
-    #remove pdf:
-    file.remove('tempfile.pdf')
-
-    #reset back to original directory:
-    setwd(curdir)
-
 }
 
 #' @describeIn exportSVG method for an existing plot object
@@ -60,13 +55,11 @@ exportSVG.inzplotoutput <- function(x, file = 'inzightplot.svg', ...) {
     curdir <- getwd()
     #work in a temp directory
     setwd(tempdir())
+    on.exit(setwd(curdir))
 
     gridSVG::grid.export(file)
 
     #open in browser?
     browseURL(file.path(file))
-
-    #return:
-    setwd(curdir)
 
 }
