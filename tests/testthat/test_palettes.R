@@ -13,8 +13,9 @@ test_that("Names are valid", {
             "colourblind", "rainbow"
         )
     )
+    expect_warning(const_palette_names())
     expect_equal(
-        names(const_palette_names()),
+        names(cont_palette_names()),
         c(
             names(viridis_palette_names()),
             "rainbow", "blue", "green", "red",

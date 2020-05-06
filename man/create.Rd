@@ -2,7 +2,7 @@
 % Please edit documentation in R/createPlot.R
 \name{create}
 \alias{create}
-\title{Method for creating plots for iNZight}
+\title{Create plots for iNZight}
 \usage{
 create(obj)
 }
@@ -10,10 +10,13 @@ create(obj)
 \item{obj}{an object}
 }
 \value{
-a plotable object
+an iNZight plot object with class determined by data type
 }
 \description{
 Create a Plot Object
+}
+\details{
+This create method is used internally.
 }
 \author{
 Tom Elliott

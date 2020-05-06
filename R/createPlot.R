@@ -88,10 +88,11 @@ createPlot <- function(df, opts, xattr) {
 
 #' Create a Plot Object
 #'
-#' @title Method for creating plots for iNZight
+#' This create method is used internally.
+#'
+#' @title Create plots for iNZight
 #' @param obj an object
-#' @return a plotable object
+#' @return an iNZight plot object with class determined by data type
 #' @author Tom Elliott
-#' @export
 create <- function(obj)
     UseMethod("create")
