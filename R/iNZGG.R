@@ -788,8 +788,12 @@ iNZightPlotGG_violin <- function(data, x, y, fill = "darkgreen", main = sprintf(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y)) +
         ggplot2::geom_violin(fill = !!fill, !!!dots) +
         ggplot2::labs(title = !!main) +
-        ggplot2::xlab(!!xlab) +
-        ggplot2::ylab(!!ylab)
+        ggplot2::xlab("") +
+        ggplot2::ylab(!!ylab) +
+        ggplot2::theme(
+          axis.text.y = ggplot2::element_blank(),
+          axis.ticks.y = ggplot2::element_blank()
+        )
     )
   } else {
     x <- rlang::sym(x)
@@ -821,7 +825,11 @@ iNZightPlotGG_barcode <- function(data, x, y, fill = "darkgreen", main = sprintf
         ggplot2::geom_point(shape = "|", !!!dots) +
         ggplot2::labs(title = !!main) +
         ggplot2::xlab(!!xlab) +
-        ggplot2::ylab(!!ylab)
+        ggplot2::ylab("") +
+        ggplot2::theme(
+          axis.text.y = ggplot2::element_blank(),
+          axis.ticks.y = ggplot2::element_blank()
+        )
     )
   } else {
     x <- rlang::sym(x)
@@ -853,7 +861,11 @@ iNZightPlotGG_barcode2 <- function(data, x, y, fill = "darkgreen", main = sprint
         ggplot2::geom_tile(!!!dots) +
         ggplot2::labs(title = !!main) +
         ggplot2::xlab(!!xlab) +
-        ggplot2::ylab(!!ylab)
+        ggplot2::ylab("") +
+        ggplot2::theme(
+          axis.text.y = ggplot2::element_blank(),
+          axis.ticks.y = ggplot2::element_blank()
+        )
     )
   } else {
     x <- rlang::sym(x)
@@ -896,7 +908,11 @@ iNZightPlotGG_barcode3 <- function(data, x, y, fill = "darkgreen", main = sprint
         ggplot2::geom_spoke(angle = pi/2, position = ggplot2::position_nudge(y = -!!radius/2), !!!dots) +
         ggplot2::labs(title = !!main) +
         ggplot2::xlab(!!xlab) +
-        ggplot2::ylab(!!ylab)
+        ggplot2::ylab("") +
+        ggplot2::theme(
+          axis.text.y = ggplot2::element_blank(),
+          axis.ticks.y = ggplot2::element_blank()
+        )
     )
   } else {
     x <- rlang::sym(x)
@@ -927,8 +943,12 @@ iNZightPlotGG_boxplot <- function(data, x, y, fill = "darkgreen", main = sprintf
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y)) +
         ggplot2::geom_boxplot(fill = !!fill, !!!dots) +
         ggplot2::labs(title = !!main) +
-        ggplot2::xlab(!!xlab) +
-        ggplot2::ylab(!!ylab)
+        ggplot2::xlab("") +
+        ggplot2::ylab(!!ylab) +
+        ggplot2::theme(
+          axis.text.y = ggplot2::element_blank(),
+          axis.ticks.y = ggplot2::element_blank()
+        )
     )
   } else {
     x <- rlang::sym(x)
@@ -1189,7 +1209,11 @@ iNZightPlotGG_dotstrip <- function(data, x, y, fill = "darkgreen", main = sprint
         ggplot2::geom_point(!!!dots) +
         ggplot2::labs(title = !!main) +
         ggplot2::xlab(!!xlab) +
-        ggplot2::ylab(!!ylab)
+        ggplot2::ylab("") +
+        ggplot2::theme(
+          axis.text.y = ggplot2::element_blank(),
+          axis.ticks.y = ggplot2::element_blank()
+        )
     )
 
   } else {
@@ -1406,8 +1430,12 @@ iNZightPlotGG_beeswarm <- function(data, x, y, main = sprintf("Distribution of %
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y)) +
         ggbeeswarm::geom_beeswarm(!!!dots) +
         ggplot2::ggtitle(!!main) +
-        ggplot2::xlab(!!xlab) +
-        ggplot2::ylab(!!ylab)
+        ggplot2::xlab("") +
+        ggplot2::ylab(!!ylab) +
+        ggplot2::theme(
+          axis.text.y = ggplot2::element_blank(),
+          axis.ticks.y = ggplot2::element_blank()
+        )
     )
   } else {
     x <- rlang::sym(x)
@@ -1457,8 +1485,12 @@ iNZightPlotGG_quasirandom <- function(data, x, y, main = sprintf("Distribution o
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y)) +
         ggbeeswarm::geom_quasirandom(!!!dots) +
         ggplot2::ggtitle(!!main) +
-        ggplot2::xlab(!!xlab) +
-        ggplot2::ylab(!!ylab)
+        ggplot2::xlab("") +
+        ggplot2::ylab(!!ylab) +
+        ggplot2::theme(
+          axis.text.y = ggplot2::element_blank(),
+          axis.ticks.y = ggplot2::element_blank()
+        )
     )
   } else {
     x <- rlang::sym(x)
