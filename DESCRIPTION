@@ -50,8 +50,7 @@ Suggests:
     ggthemes,
     ggbeeswarm,
     ggridges,
-    plotly,
-    sf
+    plotly
 License: GPL-3
 Encoding: UTF-8
 Language: en-GB
