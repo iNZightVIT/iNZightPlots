@@ -37,7 +37,17 @@ inzDataframe <- function(m, data = NULL, names = list(),
     names <- names[!sapply(names, is.null)]
 
     # the variables we want to look for in argument list (m)
-    vars <- c("", "x", "y", "g1", "g2", "colby", "sizeby", "symbolby", "locate")
+    vars <- c(
+        "",
+        "x",
+        "y",
+        "g1",
+        "g2",
+        "colby",
+        "sizeby",
+        "symbolby",
+        "locate"
+    )
     mw <- names(m) %in% vars
     mw[1] <- FALSE  # the function name
     mw <- mw & !sapply(as.list(m), is.null)
@@ -54,7 +64,11 @@ inzDataframe <- function(m, data = NULL, names = list(),
     # e.g., in future we might want to add a TimeSeries data type ...
 
     if (is_survey(data)) {
-        df$data <- as.data.frame(lapply(m[mw], eval, data$variables, env))
+        # print(data$variables)
+        df$data <- as.data.frame(
+            lapply(m[mw], eval, data$variables, env),
+            stringsAsFactors = TRUE
+        )
         newDat <- cbind(data$variables, df$data)
         # newcall <- modifyCall(data$call, "data", "newDat")
         data$variables <- newDat
@@ -62,13 +76,17 @@ inzDataframe <- function(m, data = NULL, names = list(),
         class(df) <- "inz.survey"
     } else if ("freq" %in% names(m)) {
         df$data <- as.data.frame(
-            lapply(m[mw & names(m) != "sizeby"], eval, data, env)
+            lapply(m[mw & names(m) != "sizeby"], eval, data, env),
+            stringsAsFactors = TRUE
         )
         df$freq <- eval(m$freq, data, env)
         df$max.freq <- max(df$freq)
         class(df) <- "inz.freq"
     } else {
-        df$data <- as.data.frame(lapply(m[mw], eval, data, env))
+        df$data <- as.data.frame(
+            lapply(m[mw], eval, data, env),
+            stringsAsFactors = TRUE
+        )
         class(df) <- "inz.simple"
     }
 
@@ -163,7 +181,18 @@ inzDataframe <- function(m, data = NULL, names = list(),
             }
         }
     if (length(trans.extra)) trans$extra <- trans.extra
-    if (length(trans)) df$transformations <- trans
+    if (length(trans)) {
+        # switch x and y axis transform if x is factor and y is numeric
+        if (all(c("x", "y") %in% colnames(df$data))) {
+            if (is_cat(df$data$x) && is_num(df$data$y)) {
+                tr_x <- trans$x
+                trans$x <- trans$y
+                trans$y <- tr_x
+            }
+        }
+
+        df$transformations <- trans
+    }
 
     # convert any -Inf/Inf values to NA's
     # this is likely to occur if the user supplies a transformed value

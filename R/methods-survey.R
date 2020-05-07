@@ -46,9 +46,14 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
 
             missing$g2 <- sum(is.na(dd[, g2]))
             df1 <- lapply(g2l,
-                          function(l) {
-                              dft <- eval(parse(text = sprintf("subset(des, g2 == '%s')", l)))
-                          })
+                function(l) {
+                    dft <- eval(
+                        parse(
+                            text = sprintf("subset(des, g2 == '%s')", l)
+                        )
+                    )
+                }
+            )
             names(df1) <- g2l
         }
     } else {
@@ -69,7 +74,9 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
 
         if (is.numeric(g1.level)) {
             if (any(g1.level > length(levels(dd$g1)))) g1.level <- 0
-            g1.level <- if (any(g1.level == 0)) "_MULTI" else levels(dd$g1)[g1.level]
+            g1.level <-
+                if (any(g1.level == 0)) "_MULTI"
+                else levels(dd$g1)[g1.level]
         }
 
         if (any(g1.level == "_MULTI"))
@@ -92,17 +99,25 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
     oldcall <- df$design$call
 
 
-    df.list <- lapply(df1, function(df2) {
-        df3 <- lapply(g1l, function(x) {
-            if (x == "all") dfo <- df2
-            else dfo <- eval(parse(text = sprintf("subset(df2, g1 == '%s')", x)))
+    df.list <- lapply(df1,
+        function(df2) {
+            df3 <- lapply(g1l,
+                function(x) {
+                    if (x == "all") dfo <- df2
+                    else dfo <- eval(
+                        parse(
+                            text = sprintf("subset(df2, g1 == '%s')", x)
+                        )
+                    )
 
-            if (nrow(dfo$variables) >= 1) return(dfo)
-            else return(NULL)
-        })
-        names(df3) <- g1l
-        df3
-    })
+                    if (nrow(dfo$variables) >= 1) return(dfo)
+                    else return(NULL)
+                }
+            )
+            names(df3) <- g1l
+            df3
+        }
+    )
 
     ## sum up all of the missing values
     w.df <-
@@ -110,20 +125,39 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
         else if (g2.level == "_MULTI") 1:length(df.list)
         else g2.level
 
-    missing$x <- sum(sapply(df.list[w.df], function(df)
-                            sum(sapply(df, function(d)
-                                       if (!is.null(d))
-                                           sum(is.na(d$variables$x))  else 0))))
+    missing$x <- sum(
+        sapply(df.list[w.df],
+            function(df) sum(
+                sapply(df,
+                    function(d)
+                        if (!is.null(d)) sum(is.na(d$variables$x))
+                        else 0
+                )
+            )
+        )
+    )
 
     if ("y" %in% df.vs)
-        missing$y <- sum(sapply(df.list[w.df], function(df)
-            sum(sapply(df, function(d)
-                if (!is.null(d))
-                    sum(is.na(d$variables$y)) else 0))))
+        missing$y <- sum(
+            sapply(df.list[w.df],
+                function(df) sum(
+                    sapply(df,
+                        function(d)
+                            if (!is.null(d)) sum(is.na(d$variables$y))
+                            else 0
+                    )
+                )
+            )
+        )
 
     class(df.list) <- "inz.survey"
-    list(df = df.list, matrix = matrix.plot, missing = missing,
-         g1.level = g1.level, g2.level = g2.level)
+    list(
+        df = df.list,
+        matrix = matrix.plot,
+        missing = missing,
+        g1.level = g1.level,
+        g2.level = g2.level
+    )
 }
 
 
@@ -131,8 +165,16 @@ modifyData <- function(oldcall, data) {
     args <- names(oldcall)
     vals <- as.character(oldcall)
     vals[args == "data"] <- data
-    newcall <- paste0(vals[1], "(", paste(args[-1], vals[-1],
-                                          sep = " = ", collapse = ", "), ")", sep = "")
+    newcall <- paste0(
+        vals[1],
+        "(",
+        paste(args[-1], vals[-1],
+            sep = " = ",
+            collapse = ", "
+        ),
+        ")",
+        sep = ""
+    )
     newcall
 }
 
@@ -146,15 +188,15 @@ modifyCall <- function(oldcall, arg, val) {
         call[[1]] <- as.name(paste0("survey:::", call[[1]]))
 
     ## if it is an "as.svrepdesign" call, need to adjust data on the inner argument ...
-    
+
 
     gsub("`", "", as.character(as.expression(as.call(call))))
 }
 
 get_weights <- function(obj) {
-    if (is_svyrep(obj)) 
+    if (is_svyrep(obj))
         return(weights(obj, type = "sampling")[[1]])
-    
+
     if (is_survey(obj))
         return(weights(obj))
 

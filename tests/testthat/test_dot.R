@@ -1,5 +1,24 @@
 context("Dot plots")
 
+test_that("Colour by", {
+    expect_is(
+        iNZightPlot(Sepal.Width, colby = Species, data = iris),
+        "inzplotoutput"
+    )
+    expect_is(
+        iNZightPlot(Sepal.Width, colby = Petal.Width, data = iris),
+        "inzplotoutput"
+    )
+})
+
+test_that("Colour by with quantiles", {
+    expect_is(
+        iNZightPlot(Sepal.Width, colby = Petal.Width, col.method = "rank",
+            data = iris),
+        "inzplotoutput"
+    )
+})
+
 test_that("Inference information is correct", {
     set.seed(1)
     x <- rnorm(100, sd = 10)

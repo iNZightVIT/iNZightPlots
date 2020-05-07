@@ -70,16 +70,19 @@ createPlot <- function(df, opts, xattr) {
     # which will use the correct method, and create the required plot.
 
     pclass <- paste("inz", type, sep = ".")
-    obj <- structure(.Data = list(df = df, opts = opts, xattr = xattr),
-                     class = pclass)
+    obj <- structure(
+        .Data = list(df = df, opts = opts, xattr = xattr),
+        class = pclass
+    )
 
     tryCatch(create(obj),
-             error = function(e) {
-                 if (grepl('no applicable method for \'create\'', e))
-                     stop(paste0('No method available for plottype = "', plottype, '"'))
-                 else
-                     stop(e)
-             })
+        error = function(e) {
+            if (grepl('no applicable method for \'create\'', e))
+                stop(paste0('No method available for plottype = "', plottype, '"'))
+            else
+                stop(e)
+        }
+    )
 }
 
 

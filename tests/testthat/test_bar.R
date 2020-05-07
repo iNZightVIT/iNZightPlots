@@ -3,7 +3,8 @@ context("Bar plots (one way)")
 set.seed(251090)
 df <- data.frame(
     x = sample(LETTERS[1:3], 100, replace = TRUE, prob = c(0.5, 0.3, 0.2)),
-    y = rep(c("G1", "G2"), each = 50)
+    y = rep(c("G1", "G2"), each = 50),
+    stringsAsFactors = TRUE
 )
 tab <- table(df$x)
 pr <- tab / nrow(df)
@@ -68,6 +69,15 @@ test_that("Y axis limits computed correctly", {
     expect_equal(bar2inf_counts$all$all$ylim, c(0, max(pr) * nrow(df)))
 })
 
+test_that("Y axis is labelled correctly", {
+    iNZightPlot(x, data = df)
+    expect_equal(grid.get("inz-ylab")$label, "Percentage (%)")
+    expect_equal(
+        grid.get("inz-yaxis-left.1.1")$label,
+        format(seq(10, 50, by = 10))
+    )
+})
+
 test_that("Inference information is correct", {
     inf <- list(
         lower = unclass(t(pr - wd)),
@@ -86,4 +96,3 @@ test_that("Inference information is correct", {
     expect_null(bar2inf$all$all$inference.info)
     expect_null(bar2inf_counts$all$all$inference.info)
 })
-

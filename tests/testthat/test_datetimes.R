@@ -126,6 +126,12 @@ test_that("Summaries provide a reasonable summary", {
             nrow(quakes)
         )
     )
+})
 
+test_that("Axes switched correctly for dt/factor", {
+    p1 <- iNZightPlot(time, felt, data = quakes)
+    p2 <- iNZightPlot(felt, time, data = quakes)
 
+    expect_equal(p1$gen$opts$transform$x, "time")
+    expect_equal(p2$gen$opts$transform$x, "time")
 })
