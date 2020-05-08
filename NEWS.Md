@@ -4,6 +4,7 @@
 - allow `main` to include templates for `%subet%` and `%sizeby%`
 - fix y-axis to correctly display percentages (as percentages)
 - rename `const_palette_names()` to `cont_palette_names()` (originally misspelled)
+- fix bug in checking design call is not `as.svrepdeign`
 
 ## iNZightPlots 2.11.4
 - fix bug that causes incorrect interactive map labels due to multipolygon regions

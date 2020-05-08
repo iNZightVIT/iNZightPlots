@@ -178,7 +178,7 @@ iNZightPlot <- function(x,
     ## getSummary and other wrappers will pass an inz.data object
     if (missing(df)) {
         if (!is.null(design)) {
-            if (grepl("as.svrepdesign", design$call[[1]]))
+            if (any(grepl("as.svrepdesign", design$call[[1]], fixed = TRUE)))
                 stop("Objects created with `as.svrepdesign` not yet supported.")
             md <- eval(m$design, env)
         } else {
