@@ -149,6 +149,8 @@ iNZightPlot <- function(x,
 
     # grab the arguments and the data frame is supplied:
     m <- match.call(expand.dots = FALSE)
+    print(m)
+    plot_code <- paste(capture.output(m), collapse = "\n")
 
     ## getSummary and other wrappers will pass an inz.data object
     if (missing(df)) {
@@ -1683,8 +1685,7 @@ iNZightPlot <- function(x,
                                "native", valueOnly = TRUE), 5)
     }
 
-    plot_code <- capture.output(m)
-    plot_code <- gsub("iNZightPlot(x = ", "iNZightPlot(", 
+    plot_code <- gsub("iNZightPlot(x = ", "iNZightPlot(",
         plot_code, fixed = TRUE)
     attr(plot.list, "code") <- plot_code
 
