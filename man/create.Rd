@@ -16,7 +16,9 @@ an iNZight plot object with class determined by data type
 Create a Plot Object
 }
 \details{
-This create method is used internally.
+This create method is to be used by packages extending 'iNZightPlots',
+and should not be used by users. The resulting object should have
+an associated \code{plot} method.
 }
 \author{
 Tom Elliott
