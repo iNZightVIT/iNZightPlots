@@ -41,7 +41,7 @@ iNZPlot <- function(f, data = NULL, ..., env = parent.frame()) {
                 iNZightPlot(x = !!f,
                     data = !!match.call()[["data"]],
                     !!!dots,
-                    env = e
+                    env = env
                 )
             )
         )
@@ -59,7 +59,7 @@ iNZPlot <- function(f, data = NULL, ..., env = parent.frame()) {
                     iNZightPlot(x = !!f.list[[3]], y = !!f.list[[2]],
                         data = !!match.call()[["data"]],
                         !!!dots,
-                        env = e
+                        env = env
                     )
                 )
             )
@@ -78,7 +78,7 @@ iNZPlot <- function(f, data = NULL, ..., env = parent.frame()) {
                             g1 = !!f.list2[[3]],
                             data = !!match.call()[["data"]],
                             !!!dots,
-                            env = e
+                            env = env
                         )
                     )
                 )
@@ -93,7 +93,7 @@ iNZPlot <- function(f, data = NULL, ..., env = parent.frame()) {
                             g2 = !!f.list3[[3]],
                             data = !!match.call()[["data"]],
                             !!!dots,
-                            env = e
+                            env = env
                         )
                     )
                 )
