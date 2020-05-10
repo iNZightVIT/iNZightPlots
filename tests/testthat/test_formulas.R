@@ -14,6 +14,11 @@ test_that("Formula interface works", {
         iNZPlot(Sepal.Width ~ Sepal.Length | Species, data = iris),
         "inzplotoutput"
     )
+
+    expression(
+        iNZPlot(Sepal.Width ~ . | Species, data = iris),
+        "inzplotoutput"
+    )
 })
 
 test_that("Formula yields same results", {
