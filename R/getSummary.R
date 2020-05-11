@@ -658,30 +658,46 @@ centerText <- function(x, width) {
 
 #' @describeIn iNZPlot Wrapper for getPlotSummary to obtain summary information about a plot
 #' @export
-iNZSummary <- function(f, data = NULL, ...) {
+iNZSummary <- function(f, data = NULL, ..., env = parent.frame()) {
     f <- match.call()[["f"]]
+    dots <- rlang::enexprs(...)
+
     if (!rlang::is_formula(f)) {
         eval(
             rlang::expr(
-                getPlotSummary(x = !!f,  data = !!match.call()[["data"]], ...)
+                getPlotSummary(
+                    x = !!f,
+                    data = !!match.call()[["data"]],
+                    !!!dots,
+                    env = !!env
+                )
             )
         )
     } else {
         f.list <- as.list(f)
 
         if (lengths(f.list)[3] == 1) {
+            if (f.list[[3]] == ".") {
+                f.list[[3]] <- f.list[[2]]
+                f.list[2] <- list(NULL)
+            }
             eval(
                 rlang::expr(
                     getPlotSummary(
                         x = !!f.list[[3]],
                         y = !!f.list[[2]],
                         data = !!match.call()[["data"]],
-                        ...
+                        !!!dots,
+                        env = !!env
                     )
                 )
             )
         } else {
             f.list2 <- as.list(f.list[[3]])
+            if (f.list2[[2]] == ".") {
+                f.list2[[2]] <- f.list[[2]]
+                f.list[2] <- list(NULL)
+            }
             if (lengths(f.list2)[3] == 1) {
                 eval(
                     rlang::expr(
@@ -690,7 +706,8 @@ iNZSummary <- function(f, data = NULL, ...) {
                             y = !!f.list[[2]],
                             g1 = !!f.list2[[3]],
                             data = !!match.call()[["data"]],
-                            ...
+                            !!!dots,
+                            env = !!env
                         )
                     )
                 )
@@ -704,7 +721,8 @@ iNZSummary <- function(f, data = NULL, ...) {
                             g1 = !!f.list3[[2]],
                             g2 = !!f.list3[[3]],
                             data = !!match.call()[["data"]],
-                            ...
+                            !!!dots,
+                            env = !!env
                         )
                     )
                 )
@@ -718,9 +736,12 @@ iNZSummary <- function(f, data = NULL, ...) {
 #' @param type Type type of inference to obtain, one of 'conf' or 'comp'
 #'             for confidence intervals and comparison intervals, respectively
 #'             (currently ignored).
-iNZInference <- function(f, data = NULL, type = c("conf", "comp"), ...) {
+iNZInference <- function(f, data = NULL, type = c("conf", "comp"), ...,
+                         env = parent.frame()) {
     type <- match.arg(type)
     f <- match.call()[["f"]]
+    dots <- rlang::enexprs(...)
+
     if (!rlang::is_formula(f)) {
         eval(
             rlang::expr(
@@ -729,7 +750,8 @@ iNZInference <- function(f, data = NULL, type = c("conf", "comp"), ...) {
                     data = !!match.call()[["data"]],
                     summary.type = "inference",
                     inference.type = type,
-                    ...
+                    !!!dots,
+                    env = !!env
                 )
             )
         )
@@ -737,6 +759,10 @@ iNZInference <- function(f, data = NULL, type = c("conf", "comp"), ...) {
         f.list <- as.list(f)
 
         if (lengths(f.list)[3] == 1) {
+            if (f.list[[3]] == ".") {
+                f.list[[3]] <- f.list[[2]]
+                f.list[2] <- list(NULL)
+            }
             eval(
                 rlang::expr(
                     getPlotSummary(
@@ -745,12 +771,17 @@ iNZInference <- function(f, data = NULL, type = c("conf", "comp"), ...) {
                         data = !!match.call()[["data"]],
                         summary.type = "inference",
                         inference.type = type,
-                        ...
+                        !!!dots,
+                        env = !!env
                     )
                 )
             )
         } else {
             f.list2 <- as.list(f.list[[3]])
+            if (f.list2[[2]] == ".") {
+                f.list2[[2]] <- f.list[[2]]
+                f.list[2] <- list(NULL)
+            }
             if (lengths(f.list2)[3] == 1) {
                 eval(
                     rlang::expr(
@@ -761,7 +792,8 @@ iNZInference <- function(f, data = NULL, type = c("conf", "comp"), ...) {
                             data = !!match.call()[["data"]],
                             summary.type = "inference",
                             inference.type = type,
-                            ...
+                            !!!dots,
+                            env = !!env
                         )
                     )
                 )
@@ -777,7 +809,8 @@ iNZInference <- function(f, data = NULL, type = c("conf", "comp"), ...) {
                             data = !!match.call()[["data"]],
                             summary.type = "inference",
                             inference.type = type,
-                            ...
+                            !!!dots,
+                            env = !!env
                         )
                     )
                 )
