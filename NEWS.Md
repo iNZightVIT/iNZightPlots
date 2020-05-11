@@ -1,3 +1,5 @@
+
+
 ## iNZightPlots 2.11.5
 - provide design effects for survey summaries
 - fix bug where regions cannot be selected in interactive sparkline plots due to id issue
