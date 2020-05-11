@@ -41,6 +41,19 @@
 #' @return an \code{inzight.plotsummary} object with a print method
 #' @author Tom Elliott
 #' @export
+#' @examples
+#' getPlotSummary(Species, data = iris)
+#' getPlotSummary(Species, data = iris,
+#'     summary.type = "inference", inference.type = "conf")
+#'
+#' # perform hypothesis testing
+#' getPlotSummary(Sepal.Length, data = iris,
+#'     summary.type = "inference", inference.type = "conf",
+#'     hypothesis.value = 5)
+#'
+#' # if you prefer a formula interface
+#' iNZSummary(Sepal.Length ~ Species, data = iris)
+#' iNZInference(Sepal.Length ~ Species, data = iris)
 getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            g2 = NULL, g2.level = NULL, varnames = list(),
                            colby = NULL, sizeby = NULL,

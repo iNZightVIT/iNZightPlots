@@ -19,7 +19,6 @@ matrix:
       brew_packages: libgit2
   allow_failures:
     - os: osx
-    - r: devel
 
 env:
   global:

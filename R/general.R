@@ -90,9 +90,12 @@ shade <- Vectorize(Shade)
 #'
 #' @title Convert to Factor
 #' @param x a numeric vector
-#' @return a factor vector
+#' @return a factor variable
 #' @author Tom Elliott
 #' @export
+#' @examples
+#' f <- convert.to.factor(runif(100, 0, 10))
+#' levels(f)
 convert.to.factor <- function(x) {
     if (is_cat(x)) {
         # to simplify coding elsewhere, allow convert to factor to simply return

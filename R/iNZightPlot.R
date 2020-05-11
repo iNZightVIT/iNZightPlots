@@ -3,7 +3,13 @@
 #' It also provides facilities to add inference information to plots, colour-
 #' and size-by variables, and can handle survey data.
 #'
-#' Some details here ...
+#' The main goal of 'iNZightPlots' is to make it easy to beginners to
+#' explore a dataset graphically, using a suite of simple arguments
+#' to add features to their graph.
+#'
+#' The second use of this function is within the companion software
+#' 'iNZight', providing a single function call with arguments
+#' controlled by the user through a GUI.
 #'
 #' @title iNZight Plot
 #' @param x a vector (numeric or factor), or the name of a column in the
@@ -74,6 +80,25 @@
 #' @importFrom iNZightTools is_num is_cat is_dt is_survey is_svydesign is_svyrep
 #' @author Tom Elliott
 #' @export
+#' @examples
+#' iNZightPlot(Species, data = iris)
+#' iNZightPlot(Petal.Width, g1 = Species, data = iris)
+#'
+#' iNZightPlot(Sepal.Length, Sepal.Width, data = iris,
+#'     colby = Species)
+#' iNZightPlot(Sepal.Length, Sepal.Width, data = iris,
+#'     colby = Species, trend = c("linear", "quadratic"),
+#'     trend.by = TRUE, trend.parallel = FALSE)
+#'
+#' # add inference information
+#' iNZightPlot(Petal.Width, data = iris,
+#'     inference.type = "conf", inference.par = "mean")
+#' iNZightPlot(Petal.Width, data = iris,
+#'     inference.type = "conf", inference.par = "mean",
+#'     bootstrap = TRUE)
+#'
+#' # alternatively, use the formula interface
+#' iNZPlot(Sepal.Length ~ Sepal.Width | Species, data = iris)
 iNZightPlot <- function(x,
                         y = NULL,
                         g1 = NULL,
@@ -155,7 +180,7 @@ iNZightPlot <- function(x,
     ## getSummary and other wrappers will pass an inz.data object
     if (missing(df)) {
         if (!is.null(design)) {
-            if (grepl("as.svrepdesign", design$call[[1]]))
+            if (any(grepl("as.svrepdesign", design$call[[1]], fixed = TRUE)))
                 stop("Objects created with `as.svrepdesign` not yet supported.")
             md <- eval(m$design, env)
         } else {
@@ -200,7 +225,7 @@ iNZightPlot <- function(x,
                 "In order to use this (and other) plot types, you must install\n",
                 "the following packages:"
             )
-            cat(
+            message(
                 "\n    ",
                 paste(
                     gg_pkgs_needed,
@@ -210,7 +235,7 @@ iNZightPlot <- function(x,
             )
 
             message("You can do this by running the following command:")
-            cat(
+            message(
                 sprintf(
                     "\n    install.packages(c(%s))\n\n",
                     paste("\"", gg_pkgs_needed, "\"",

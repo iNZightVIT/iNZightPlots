@@ -46,6 +46,9 @@ will be tagged as such; this is just a helper to check for
 the necessary attribute.
 }}
 
+\examples{
+can.interact(iNZightPlot(Sepal.Length, data = iris))
+}
 \author{
 Tom Elliott, Yu Han Soh
 }

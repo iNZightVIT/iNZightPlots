@@ -17,7 +17,7 @@ exploreAllSummaries(data, ...)
 \item{x}{an \code{allSummaries} object}
 }
 \value{
-allSummaries object
+allSummaries object, a concatenation of summaries from all variables
 }
 \description{
 Allows easy access to a summary for every variable in the data set.
@@ -27,6 +27,9 @@ Allows easy access to a summary for every variable in the data set.
 \item \code{print}: print method for allSummaries object
 }}
 
+\examples{
+exploreAllSummaries(iris)
+}
 \author{
 Tom Elliott
 }

@@ -23,6 +23,10 @@ a colour palette, with one level emphasized (or range for numeric)
 \description{
 Emphasize a level or interval of a colour palette
 }
+\examples{
+pal <- inzpalette("bright")
+plot(1:5, pch = 19, col = emphasize_pal_colour(5, 2, fn = pal))
+}
 \author{
 Tom Elliott
 }
