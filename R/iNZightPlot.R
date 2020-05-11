@@ -1710,10 +1710,10 @@ iNZightPlot <- function(x,
                                "native", valueOnly = TRUE), 5)
     }
 
-    plot_code <- paste(capture.output(m), collapse = "\n")
-    plot_code <- gsub("iNZightPlot(x = ", "iNZightPlot(",
-        plot_code, fixed = TRUE)
-    attr(plot.list, "code") <- plot_code
+    # plot_code <- paste(capture.output(m), collapse = "\n")
+    # plot_code <- gsub("iNZightPlot(x = ", "iNZightPlot(",
+    #     plot_code, fixed = TRUE)
+    # attr(plot.list, "code") <- plot_code
 
     class(plot.list) <- "inzplotoutput"
     return(invisible(plot.list))
