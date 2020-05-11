@@ -38,6 +38,7 @@
 #' @param survey.options additional options passed to survey methods
 #' @param width width for the output, default is 100 characters
 #' @param ... additional arguments, see \code{inzpar}
+#' @param env compatibility argument
 #' @return an \code{inzight.plotsummary} object with a print method
 #' @author Tom Elliott
 #' @export
@@ -77,7 +78,8 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            ),
                            survey.options = list(),
                            width = 100,
-                           ...) {
+                           ...,
+                           env = parent.frame()) {
 
     # if (inherits(x, "data.frame")) {
     if (missing(x)) {
@@ -88,7 +90,6 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     ## Grab a plot object!
     m <- match.call(expand.dots = FALSE)
-    env <- parent.frame()
 
     if ("design" %in% names(m)) {
         md <- eval(m$design, env)
@@ -174,7 +175,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         colby = NULL, sizeby = NULL,
         data = data, design = design, freq = freq,
         missing.info = missing.info, inzpars = inzpars,
-        plot = FALSE, df = df, ...
+        plot = FALSE, df = df, env = env, ...
     )
 
     ### Now we just loop over everything ...
@@ -661,6 +662,8 @@ centerText <- function(x, width) {
 iNZSummary <- function(f, data = NULL, ..., env = parent.frame()) {
     f <- match.call()[["f"]]
     dots <- rlang::enexprs(...)
+
+    print(ls(envir = env, all.names = TRUE))
 
     if (!rlang::is_formula(f)) {
         eval(
