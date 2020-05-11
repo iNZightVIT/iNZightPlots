@@ -1,10 +1,16 @@
-#' Allows easy viewing of every variable in the data set.
+#' Explore all Univariate Plots
 #'
-#' @title Explore all Univariate Plots
+#' Allows easy viewing of every variable in the data set.
+#' The user will be prompted to see the next variable.
+#'
 #' @param data a data frame
 #' @return NULL
 #' @author Tom Elliott
 #' @export
+#' @examples
+#' if (interactive())
+#'     exploreAllPlots(iris)
+#'
 exploreAllPlots <- function(data) {
     ## Runs iNZightPlot on all of the variables, with a click-for-next thing.
 
@@ -12,7 +18,7 @@ exploreAllPlots <- function(data) {
     pushViewport(viewport())
 
     # Title window:
-    grid.text(paste("Click the next button to see next plot."))
+    grid.text(paste("Click to see next plot."))
 
     oask <- devAskNewPage(TRUE)
     on.exit(devAskNewPage(oask))

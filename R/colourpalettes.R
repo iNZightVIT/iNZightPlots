@@ -5,9 +5,15 @@
 #' `cat_palette_names()` and `cont_palette_names()`.
 #'
 #' @param palette the name of a palette
-#' @return a colour palette function, with argument `n`
+#' @return a colour palette function with single argument `n`
 #' @author Tom Elliott
 #' @export
+#' @examples
+#' plot(1:5, pch = 19, col = inzpalette("bright")(5))
+#'
+#' # for a list of palette names
+#' cat_palette_names()
+#' cont_palette_names()
 inzpalette <- function(palette) {
     switch(palette,
         "contrast" = function(n) {
@@ -105,6 +111,9 @@ inzpalette <- function(palette) {
 #' @return a colour palette, with one level emphasized (or range for numeric)
 #' @author Tom Elliott
 #' @export
+#' @examples
+#' pal <- inzpalette("bright")
+#' plot(1:5, pch = 19, col = emphasize_pal_colour(5, 2, fn = pal))
 emphasize_pal_colour <- function(n, k, cat = TRUE, ncat = 5, fn) {
     if (missing(fn)) {
         fn <- inzpar()$col.default[[ifelse(cat, "cat", "cont")]]
@@ -145,7 +154,7 @@ cat_palette_names <- function() {
 
 #' @describeIn inzpalette List of continuous  colour palettes
 #' @export
-const_palette_names <- function() {
+cont_palette_names <- function() {
     pals <- list()
 
     if (requireNamespace("viridis", quietly = TRUE))
@@ -165,6 +174,20 @@ const_palette_names <- function() {
     ))
 
     pals
+}
+
+#' An incorrectly spelled function - deprecated
+#'
+#' This function was misspelled in earlier versions
+#' and has been corrected to \code{cont_palette_names},
+#' which should be used instead.
+#'
+#' @return a list of continuous colour palettes
+#' @seealso \code{\link{cont_palette_names}}
+#' @export
+const_palette_names <- function() {
+    warning("Function renamed to 'cont_palette_names()'")
+    cont_palette_names()
 }
 
 viridis_palette_names <- function() {

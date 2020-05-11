@@ -60,7 +60,10 @@ Additional parameters for scatterplots and dotplots only:}
 \item{mapObj}{iNZightMap object (from iNZightMaps)}
 }
 \value{
-HTML file of \code{x} with filename \code{file} in the browser
+an inzHTML object consisting of a link to an HTML rendering
+ of \code{x} with filename \code{file},
+ which can be loaded in the browser (for example using \code{browseURL},
+ or calling the \code{print()} method of the returned object.
 }
 \description{
 \code{exportHTML} is designed to export the iNZight plot as a dynamic, interactive HTML page.
