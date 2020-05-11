@@ -102,7 +102,11 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL,
     if (mapObj$type != "dotdensity") {
         dt <- as.data.frame(plot[[1]])
     } else {
-        dt <- as.data.frame(mapObj$region.data)
+        if (mapObj$multiple.obs) {
+            dt <- as.data.frame(mapObj$region.aggregate)
+        } else {
+            dt <- as.data.frame(mapObj$region.data)
+        }
     }
     spark <- NULL
     lineType <- NULL
@@ -127,6 +131,9 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL,
         colby <- lab$colour
         sizeby <- lab$size
         varNames <- c(mapObj$region.var, colby, sizeby)
+        
+        dt <- dt[order(dt[[mapObj$region.var]]), ]
+        rownames(dt) <- 1:nrow(dt)
     } else {
         ## for sparklines
         colby <- lab$colour
