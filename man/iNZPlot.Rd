@@ -10,7 +10,7 @@ iNZSummary(f, data = NULL, ...)
 
 iNZInference(f, data = NULL, type = c("conf", "comp"), ...)
 
-iNZPlot(f, data = NULL, ...)
+iNZPlot(f, data = NULL, ..., env = parent.frame())
 }
 \arguments{
 \item{f}{A formula in the form of \code{y ~ x | g}. See Details.}
@@ -22,6 +22,8 @@ iNZPlot(f, data = NULL, ...)
 \item{type}{Type type of inference to obtain, one of 'conf' or 'comp'
 for confidence intervals and comparison intervals, respectively
 (currently ignored).}
+
+\item{env}{the parent environment to pass to the plot function}
 }
 \value{
 An \code{inzightplotoutput} object, which contains the information
