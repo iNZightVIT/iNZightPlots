@@ -119,6 +119,10 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL,
         colby <- lab$colour
         sizeby <- lab$size
         varNames <- c(mapObj$region.var, colby, sizeby)
+    } else if (mapObj$type == "dotdensity") {
+        colby <- lab$colour
+        sizeby <- lab$size
+        varNames <- c(mapObj$region.var, colby, sizeby)
     } else {
         ## for sparklines
         colby <- lab$colour
@@ -166,6 +170,14 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL,
         sparkline_type = lineType,
         n_polygons = rep(1:length(n_polygons), n_polygons)
     )
+    
+    if (mapObj$type == "dotdensity") {
+        chart$point_counts <- rep(
+            1:length(mapObj$n_polygons),
+            attr(plot$layers[[2]]$data, "point_counts")
+        )
+    }
+    
     tbl <- list(tab = tab, includeRow = TRUE, cap = "Data")
     mapsJS <- paste(
         readLines(system.file("maps.js", package = "iNZightPlots")),

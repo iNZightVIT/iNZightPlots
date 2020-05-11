@@ -701,6 +701,10 @@ $(function() {
     case "sparklines":
     plot = new SparkMap(chart);
     break;
+    
+    case "dotdensity":
+    plot = new DotDensityMap(chart);
+    break;
 
     default:
     return;

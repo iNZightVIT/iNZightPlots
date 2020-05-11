@@ -20,6 +20,11 @@ class Inzmap {
     this.seqVar = chart.seqVar[0];
     this.int = chart.int[0];
     this.n_polygons = chart.n_polygons;
+    
+    if (this.type === 'dotdensity') {
+      this.point_counts = chart.point_counts;
+    }
+    
     // identify which elements represent regions and split if necessary:
     // selecting 'use' and 'path' as some maps have circles that represent regions (world thematic map)
     // Note that for centroid maps, the circles will get selected too, so will need to split nodelist
@@ -198,7 +203,7 @@ class Inzmap {
         for (var j = 0; j < p; j++) {
             var w = names[j] + ": <span>";
             var t = data[ind][names[j]] + "</span> <br />";
-            var g = w + t + g;
+            g = w + t + g;
         }
 
         // region + specific variables:
@@ -216,6 +221,7 @@ class Inzmap {
       var selected = this;
       var ind = [];
       var dd = [];
+      var selectedID = this.getAttribute('id');
 
       d3.selectAll('.region')
         .attr("class", function(d, i) {
@@ -289,6 +295,32 @@ class Inzmap {
               }
             });
           }
+        }
+        
+        if (chartType === "dotdensity") {
+          d3.selectAll('.regiondot')
+            .attr("class", function(d, i) {
+              //if the shift key is down, accumulate:
+              let currID = this.getAttribute('id');
+              if(d3.event.shiftKey) {
+                    if(this.getAttribute('class') === "regiondot selected") {
+                      if (currID === selectedID)  {
+                        return "regiondot none";
+                      }
+                      return "regiondot selected";
+                    } else if (currID === selectedID) {
+                        return "regiondot selected";
+                    } else {
+                        return "regiondot none";
+                    }
+            } else {
+                if(currID === selectedID) {
+                    return "regiondot selected";
+                } else {
+                    return "regiondot none";
+                }
+              }
+            });
         }
 
         if (chart.multi[0] == false && chart.type !== "region") {
@@ -442,6 +474,9 @@ class Inzmap {
 
     d3.selectAll('.centroid')
     .classed('.centroid none', false);
+    
+    d3.selectAll('.regiondot')
+    .classed('.regiondot none', false);
 
     // clear table
     let table = this.tbl;
@@ -1391,4 +1426,41 @@ class SparkPlot {
     this.update();
   }
 
+}
+
+class DotDensityMap extends Inzmap {
+  constructor(props) {
+    super(props);
+  }
+  
+  setPoints() {
+    let data = this.data;
+    let names = this.names;
+    let n_polygons = this.n_polygons;
+    let point_counts = this.point_counts;
+    
+    d3.selectAll(this.extraElements)
+      .attr("class", "regiondot")
+      .attr("id", (d, i) => {
+        let j = point_counts[i] - 1;
+        return(data[j][names[0]] + "." + j);
+      });
+  }
+  
+  init() {
+    //initialized table
+    var tbl = new Table(this.type);
+    tbl.init();
+    this.tbl = tbl.DT;
+
+    this.gen();
+
+    this.setPoints();
+
+    //add time slider:
+    if (this.multi) {
+      this.addSlider();
+      this.setTable();
+    }
+  }
 }
