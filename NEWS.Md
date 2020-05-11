@@ -1,3 +1,4 @@
+- add interactive functionality to dot density maps
 
 
 ## iNZightPlots 2.11.5
