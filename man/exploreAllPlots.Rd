@@ -11,6 +11,12 @@ exploreAllPlots(data)
 }
 \description{
 Allows easy viewing of every variable in the data set.
+The user will be prompted to see the next variable.
+}
+\examples{
+if (interactive())
+    exploreAllPlots(iris)
+
 }
 \author{
 Tom Elliott

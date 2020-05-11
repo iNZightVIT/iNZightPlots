@@ -29,6 +29,7 @@ getPlotSummary(
   hypothesis = list(value = hypothesis.value, alternative = match.arg(hypothesis.alt),
     var.equal = hypothesis.var.equal, use.exact = hypothesis.use.exact, test =
     match.arg(hypothesis.test), simulated.p.value = hypothesis.simulated.p.value),
+  survey.options = list(),
   width = 100,
   ...
 )
@@ -89,6 +90,8 @@ displayed in the plot}
 
 \item{hypothesis}{either NULL for no test, or missing (in which case above arguments are used)}
 
+\item{survey.options}{additional options passed to survey methods}
+
 \item{width}{width for the output, default is 100 characters}
 
 \item{...}{additional arguments, see \code{inzpar}}
@@ -101,6 +104,20 @@ Generate summary or inference information for an iNZight plot
 }
 \details{
 Works much the same as \code{iNZightPlot}
+}
+\examples{
+getPlotSummary(Species, data = iris)
+getPlotSummary(Species, data = iris,
+    summary.type = "inference", inference.type = "conf")
+
+# perform hypothesis testing
+getPlotSummary(Sepal.Length, data = iris,
+    summary.type = "inference", inference.type = "conf",
+    hypothesis.value = 5)
+
+# if you prefer a formula interface
+iNZSummary(Sepal.Length ~ Species, data = iris)
+iNZInference(Sepal.Length ~ Species, data = iris)
 }
 \author{
 Tom Elliott

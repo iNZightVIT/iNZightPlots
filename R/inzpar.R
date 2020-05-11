@@ -118,6 +118,18 @@
 #' the default list is returned.
 #' @return an object of class \code{inzpar.list}
 #' @export
+#' @examples
+#' # arguments can be passed directly to \code{iNZightPlot}
+#' iNZightPlot(Sepal.Length, data = iris, col.pt = "red",
+#'     box.col = "blue", box.fill = "green")
+#'
+#' # or stored and passed to it (only pars relevant to the current
+#' # plot are used)
+#' mypar <- inzpar(col.pt = "red", box.col = "blue", box.fill = "green",
+#'     trend = "linear", trend.by = TRUE)
+#' iNZPlot(Sepal.Length ~ Species, data = iris, inzpar = mypar)
+#' iNZightPlot(Sepal.Length, Sepal.Width, data = iris, inzpar = mypar,
+#'     colby = Species)
 inzpar <- function(...,
                    .viridis = requireNamespace("viridis", quietly = TRUE)) {
     dots <- list(...)
@@ -192,8 +204,8 @@ inzpar <- function(...,
         lty.trend =
             list(
                 linear = 1,
-                quadratic = 1,
-                cubic = 1
+                quadratic = 2,
+                cubic = 3
             ),
         trend.by       = FALSE,
         trend.parallel = TRUE,

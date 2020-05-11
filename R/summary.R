@@ -1,4 +1,4 @@
-summary.inzdot <- function(object, des, ...) {
+summary.inzdot <- function(object, des, survey.options, ...) {
     ## Generate summary information:
 
     ## Produce a matrix of the required summary:
@@ -80,34 +80,38 @@ summary.inzdot <- function(object, des, ...) {
         dv <- des$variables
         ones <- cbind(rep(1, nrow(dv)))
         if ("y" %in% colnames(dv)) {
-            mat <- cbind(
-                svyby(~x, ~y, des, svyquantile,
+            suppressWarnings(
+                smry_q <- svyby(~x, ~y, des, svyquantile,
                     quantiles = c(0.25, 0.5, 0.75),
+                    ci = TRUE,
+                    se = TRUE,
                     na.rm = TRUE,
-                    keep.var = FALSE,
+                    keep.var = TRUE,
                     drop.empty.groups = FALSE
-                )[, -1],
-                coef(
-                    svyby(~x, ~y, des, svymean,
-                        na.rm = TRUE,
-                        drop.empty.groups = FALSE
-                    )
-                ),
-                sqrt(
-                    coef(
-                        svyby(~x, ~y, des, svyvar,
-                            na.rm = TRUE,
-                            drop.empty.groups = FALSE
-                        )
-                    )
-                ),
-                coef(
-                    svyby(~x, ~y, des, svytotal,
-                        na.rm = TRUE,
-                        drop.empty.groups = FALSE
-                    )
-                ),
-                coef(svytotal(~y, des)),
+                )
+            )
+            smry_mean <- svyby(~x, ~y, des, svymean,
+                na.rm = TRUE,
+                deff = survey.options$deff,
+                drop.empty.groups = FALSE,
+            )
+            smry_var <- svyby(~x, ~y, des, svyvar,
+                na.rm = TRUE,
+                drop.empty.groups = FALSE
+            )
+            smry_total <- svyby(~x, ~y, des, svytotal,
+                na.rm = TRUE,
+                deff = survey.options$deff,
+                drop.empty.groups = FALSE
+            )
+            smry_popsize <- svytotal(~y, des)
+
+            mat <- cbind(
+                smry_q[, 2:4],
+                coef(smry_mean),
+                sqrt(coef(smry_var)),
+                coef(smry_total),
+                coef(smry_popsize),
                 NaN,
                 as.vector(table(dv$y)),
                 tapply(dv$x, dv$y, min, na.rm = TRUE),
@@ -115,38 +119,14 @@ summary.inzdot <- function(object, des, ...) {
             )
 
             semat <- cbind(
-                suppressWarnings(
-                    SE(
-                        svyby(~x, ~y, des, svyquantile,
-                            quantiles = c(0.25, 0.5, 0.75),
-                            ci = TRUE,
-                            se = TRUE,
-                            na.rm = TRUE,
-                            drop.empty.groups = FALSE
-                        )
-                    )
-                ),
-                SE(
-                    svyby(~x, ~y, des, svymean,
-                        na.rm = TRUE,
-                        drop.empty.groups = FALSE
-                    )
-                ),
+                suppressWarnings(SE(smry_q)),
+                SE(smry_mean),
                 {
-                    vv <- svyby(~x, ~y, des, svyvar,
-                        na.rm = TRUE,
-                        drop.empty.groups = FALSE
-                    )
-                    vc <- suppressWarnings(diag(vcov(vv)))
-                    sqrt(vc / 4 / coef(vv))
+                    vc <- suppressWarnings(diag(vcov(smry_var)))
+                    sqrt(vc / 4 / coef(smry_var))
                 },
-                SE(
-                    svyby(~x, ~y, des, svytotal,
-                        na.rm = TRUE,
-                        drop.empty.groups = FALSE
-                    )
-                ),
-                SE(svytotal(~y, des)),
+                SE(smry_total),
+                SE(smry_popsize),
                 NA,
                 NA,
                 NA,
@@ -155,35 +135,43 @@ summary.inzdot <- function(object, des, ...) {
 
             dimnames(semat) <- dimnames(mat)
             mat <- rbind(mat, semat)
+
+            # returns TRUE for TRUE and "replace"
+            if (!isFALSE(survey.options$deff)) {
+                deffmat <- cbind(
+                    NA, NA, NA,
+                    deff(smry_mean),
+                    NA,
+                    deff(smry_total),
+                    NA, NA, NA, NA, NA
+                )
+                colnames(deffmat) <- colnames(mat)
+                mat <- rbind(mat, deffmat)
+            }
         } else {
+            smry_q <- svyquantile(~x, des,
+                na.rm = TRUE,
+                quantiles = c(0.25, 0.5, 0.75),
+                a.rm = TRUE,
+                se = TRUE
+            )
+            smry_mean <- svymean(~x, des, na.rm = TRUE,
+                deff = survey.options$deff)
+            smry_var <- svyvar(~x, des, na.rm = TRUE)
+            smry_total <- svytotal(~x, des, na.rm = TRUE,
+                deff = survey.options$deff)
+            smry_popsize <- svytotal(ones, des, na.rm = TRUE)
+
             mat <- cbind(
                 if (is_svyrep(des)) {
-                    t(
-                        rbind(
-                            coef(
-                                svyquantile(~x, des,
-                                    na.rm = TRUE,
-                                    quantiles = c(0.25, 0.5, 0.75)
-                                )
-                            )
-                        )
-                    )
+                    t(rbind(coef(smry_q)))
                 } else {
-                    svyquantile(~x, des,
-                        na.rm = TRUE,
-                        quantiles = c(0.25, 0.5, 0.75)
-                    )
+                    rbind(coef(smry_q))
                 },
-                coef(
-                    svymean(~x, des, na.rm = TRUE)
-                ),
-                sqrt(
-                    coef(
-                        svyvar(~x, des, na.rm = TRUE)
-                    )
-                ),
-                coef(svytotal(~x, des, na.rm = TRUE)),
-                coef(svytotal(ones, des, na.rm = TRUE)),
+                coef(smry_mean),
+                sqrt(coef(smry_var)),
+                coef(smry_total),
+                coef(smry_popsize),
                 NaN,
                 nrow(dv),
                 min(dv$x, na.rm = TRUE),
@@ -192,35 +180,14 @@ summary.inzdot <- function(object, des, ...) {
 
             semat <- cbind(
                 if (is_svyrep(des)) {
-                    t(
-                        rbind(
-                            SE(
-                                svyquantile(~x, des,
-                                    quantiles = c(0.25, 0.5, 0.75),
-                                    a.rm = TRUE,
-                                    se = TRUE
-                                )
-                            )
-                        )
-                    )
+                    t(rbind(SE(smry_q)))
                 } else {
-                    rbind(
-                        SE(
-                            svyquantile(~x, des,
-                                quantiles = c(0.25, 0.5, 0.75),
-                                na.rm = TRUE,
-                                se = TRUE
-                            )
-                        )
-                    )
+                    rbind(SE(smry_q))
                 },
-                SE(svymean(~x, des, na.rm = TRUE)),
-                {
-                    vv <- svyvar(~x, des, na.rm = TRUE)
-                    sqrt(vcov(vv) / 4 / coef(vv))
-                },
-                SE(svytotal(~x, des, na.rm = TRUE)),
-                SE(svytotal(ones, des, na.rm = TRUE)),
+                SE(smry_mean),
+                sqrt(vcov(smry_var) / 4 / coef(smry_var)),
+                SE(smry_total),
+                SE(smry_popsize),
                 NA,
                 NA,
                 NA,
@@ -228,6 +195,19 @@ summary.inzdot <- function(object, des, ...) {
             )
 
             mat <- rbind(mat, semat)
+
+            # returns TRUE for TRUE and "replace"
+            if (!isFALSE(survey.options$deff)) {
+                deffmat <- cbind(
+                    NA, NA, NA,
+                    deff(smry_mean),
+                    NA,
+                    deff(smry_total),
+                    NA, NA, NA, NA, NA
+                )
+                colnames(deffmat) <- colnames(mat)
+                mat <- rbind(mat, deffmat)
+            }
         }
         rns <- c(
             "25%", "Median", "75%", "Mean", "SD", "Total", "Est. Pop. Size",
@@ -242,7 +222,7 @@ summary.inzdot <- function(object, des, ...) {
     mat <- matrix(
         apply(mat, 2,
             function(col) {
-                format(col, digits = 4)
+                format(col, digits = 4, scientific = FALSE)
             }
         ),
         nrow = nrow(mat)
@@ -263,7 +243,10 @@ summary.inzdot <- function(object, des, ...) {
                 "",
                 rep(
                     names(toplot),
-                    ifelse(exists("semat"), 2, 1)
+                    ifelse(exists("semat"),
+                        ifelse(exists("deffmat"), 3, 2),
+                        1
+                    )
                 )
             ),
             mat
@@ -284,7 +267,24 @@ summary.inzdot <- function(object, des, ...) {
         function(x) paste0("   ", paste(x, collapse = "   "))
     )
 
-    if (exists("semat")) {
+    if (exists("semat") & exists("deffmat")) {
+        top <- 1:((length(mat)-1)/3+1)
+        mid <- ((length(mat)-1)/3+2):(2*(length(mat)-1)/3+1)
+        bot <- (2*(length(mat)-1)/3+2):length(mat)
+        out <- c(
+            ifelse(is.null(des), "Estimates", "Population estimates:"),
+            "",
+            mat[top],
+            "",
+            "Standard error of estimates:",
+            "",
+            mat[mid],
+            "",
+            "Design effects:",
+            "",
+            mat[bot]
+        )
+    } else if (exists("semat")) {
         top <- 1:((length(mat)-1)/2+1)
         bot <- ((length(mat)-1)/2+2):length(mat)
         out <- c(
@@ -307,11 +307,11 @@ summary.inzdot <- function(object, des, ...) {
     out
 }
 
-summary.inzhist <- function(object, des, ...)
-    summary.inzdot(object, des, ...)
+summary.inzhist <- function(object, des, survey.options, ...)
+    summary.inzdot(object, des, survey.options, ...)
 
 
-summary.inzbar <- function(object, des, ...) {
+summary.inzbar <- function(object, des, survey.options, ...) {
     tab <- round(object$tab)
     perc <- object$phat * 100
 
@@ -385,14 +385,11 @@ summary.inzbar <- function(object, des, ...) {
         )
 
         if (is.survey) {
-            mat <- format(
-                SE(
-                    svyby(~x, ~y, des, svymean,
-                        drop.empty.groups = FALSE
-                    )
-                ) * 100,
-                digits = 4
+            smry_mean <- svyby(~x, ~y, des, svymean,
+                deff = survey.options$deff,
+                drop.empty.groups = FALSE
             )
+            mat <- format(SE(smry_mean) * 100, digits = 4)
             mat <- cbind(
                 c("", rownames(tab)),
                 rbind(colnames(tab), mat)
@@ -416,6 +413,28 @@ summary.inzbar <- function(object, des, ...) {
                 "",
                 mat
             )
+
+            if (!isFALSE(survey.options$deff)) {
+                mat <- format(deff(smry_mean), digits = 3)
+                mat <- cbind(
+                    c("", rownames(tab)),
+                    rbind(colnames(tab), mat)
+                )
+                mat <- matrix(
+                    apply(mat, 2,
+                        function(col) {
+                            format(col, justify = "right")
+                        }
+                    ),
+                    nrow = nrow(mat)
+                )
+                mat[grep("NA", mat)] <- ""
+                mat <- apply(mat, 1,
+                    function(x) paste0("   ", paste(x, collapse = "   "))
+                )
+
+                out <- c(out, "", "Design effects:", "", mat)
+            }
         }
         return(out)
     } else {
@@ -430,14 +449,15 @@ summary.inzbar <- function(object, des, ...) {
 
         mat <- cbind(c("", "Count ", "Percent "), mat)
         if (is.survey) {
+            smry_mean <- svymean(~x, des, deff = survey.options$deff)
             mat <- rbind(
                 mat[1:2, ],
                 "",
                 mat[3, ],
                 c(
-                    "  std err",
+                    "  std err ",
                     paste0(
-                        format(round(SE(svymean(~x, des)) * 100, 2),
+                        format(round(SE(smry_mean) * 100, 2),
                             nsmall = 2
                         ),
                         "%"
@@ -445,6 +465,21 @@ summary.inzbar <- function(object, des, ...) {
                     NA
                 )
             )
+            if (!isFALSE(survey.options$deff)) {
+                mat <- rbind(mat,
+                    "",
+                    c(
+                        "Design effects ",
+                        paste0(
+                            format(round(deff(smry_mean), 2),
+                                nsmall = 2
+                            ),
+                            ""
+                        ),
+                        NA
+                    )
+                )
+            }
         }
 
         mat <- matrix(
@@ -473,7 +508,7 @@ summary.inzbar <- function(object, des, ...) {
 
 
 
-summary.inzscatter <- function(object, vn, des, ...) {
+summary.inzscatter <- function(object, vn, des, survey.options, ...) {
     x <- object$x
     y <- object$y
     trend <- object$trend
@@ -624,8 +659,8 @@ summary.inzscatter <- function(object, vn, des, ...) {
 
     out
 }
-summary.inzgrid <- function(object, vn, des, ...)
+summary.inzgrid <- function(object, vn, des, survey.options, ...)
     summary.inzscatter(object, vn, des, ...)
 
-summary.inzhex <- function(object, vn, des, ...)
+summary.inzhex <- function(object, vn, des, survey.options, ...)
     summary.inzscatter(object, vn, des, ...)

@@ -1,7 +1,7 @@
 context("Survey designs")
 
 data(api, package = "survey")
-dclus1 <- svydesign(id = ~dnum, weights = ~pw, 
+dclus1 <- svydesign(id = ~dnum, weights = ~pw,
     data = apiclus1, fpc = ~fpc)
 
 test_that("Survey designs work", {
@@ -20,7 +20,7 @@ test_that("Summary information is correct - dot plot", {
         round(scan(textConnection(xpe), quiet = TRUE)),
         round(c(
             as.numeric(
-                svyquantile(~enroll, 
+                svyquantile(~enroll,
                     design = dclus1, quantiles = c(0.25, 0.5, 0.75)
                 )
             ),
@@ -40,23 +40,23 @@ test_that("Summary information is correct - dot plot", {
     xse <- gsub("\\|", "", x[se])
     expect_equivalent(
         round(
-            scan(text = xse, quiet = TRUE), 
+            scan(text = xse, quiet = TRUE),
             c(2, 2, 2, 2, 2, 0, 0)
         ),
         round(
             c(
-                SE(svyquantile(~enroll, 
+                SE(svyquantile(~enroll,
                     design = dclus1, quantiles = c(0.25, 0.5, 0.75),
                     se = TRUE
                 )),
                 SE(svymean(~enroll, design = dclus1)),
                 sqrt(
-                    vcov(svyvar(~enroll, dclus1)) / 
+                    vcov(svyvar(~enroll, dclus1)) /
                         4 / coef(svyvar(~enroll, dclus1))
                 ),
                 SE(svytotal(~enroll, design = dclus1)),
                 SE(svytotal(cbind(rep(1, nrow(dclus1$variables))), dclus1))
-            ), 
+            ),
             c(2, 2, 2, 2, 2, 0, 0)
         )
     )
@@ -89,7 +89,7 @@ test_that("Summary information is correct - dot plot (by factor)", {
     xse <- gsub("\\||[A-Z]", "", x[se])
     expect_equivalent(
         do.call(rbind,
-            lapply(xse, function(z) 
+            lapply(xse, function(z)
                 round(
                     scan(text = z, quiet = TRUE),
                     c(2, 2, 2, 2, 2, 0, 1)
@@ -98,7 +98,7 @@ test_that("Summary information is correct - dot plot (by factor)", {
         ),
         as.matrix(cbind(
             suppressWarnings(
-                round(SE(svyby(~enroll, ~stype, dclus1, svyquantile, 
+                round(SE(svyby(~enroll, ~stype, dclus1, svyquantile,
                     ci = TRUE, se = TRUE,
                     quantiles = c(0.25, 0.5, 0.75))), 2)
             ),
@@ -114,4 +114,84 @@ test_that("Summary information is correct - dot plot (by factor)", {
     )
 })
 
+test_that("Design effects are included - numeric", {
+    x <- getPlotSummary(enroll, design = dclus1,
+        survey.options = list(deff = TRUE))
+    de <- which(grepl("Design effects", x)) + 2
+    xde <- gsub("\\||[A-Z]", "", x[de])
+    expect_equivalent(
+        round(scan(textConnection(xde), quiet = TRUE)),
+        round(c(
+            mean=deff(svymean(~enroll, dclus1, deff = TRUE)),
+            total=deff(svytotal(~enroll, dclus1, deff = TRUE))
+        ))
+    )
+})
 
+test_that("Design effects are included - numeric x categorical", {
+    x <- getPlotSummary(enroll, stype, design = dclus1,
+        survey.options = list(deff = TRUE))
+    de <- which(grepl("Design effects", x)) + 2:4
+    xde <- gsub("\\||[A-Z]", "", x[de])
+    expect_equivalent(
+        round(do.call(
+            rbind,
+            lapply(xde, function(z) round(scan(textConnection(z), quiet = TRUE)))
+        )),
+        round(cbind(
+            mean=deff(svyby(~enroll, ~stype, dclus1, svymean, deff = TRUE)),
+            total=deff(svyby(~enroll, ~stype, dclus1, svytotal, deff = TRUE))
+        ))
+    )
+})
+
+
+# test_that("Design effects are included - numeric x numeric", {
+#     x <- getPlotSummary(api00, api99, design = dclus1,
+#         trend = "linear",
+#         survey.options = list(deff = TRUE))
+#     # de <- which(grepl("Design effects", x)) + 2:4
+#     # xde <- gsub("\\||[A-Z]", "", x[de])
+#     # expect_equivalent(
+#     #     round(do.call(
+#     #         rbind,
+#     #         lapply(xde, function(z) round(scan(textConnection(z), quiet = TRUE)))
+#     #     )),
+#     #     round(cbind(
+#     #         mean=deff(svyby(~enroll, ~stype, dclus1, svymean, deff = TRUE)),
+#     #         total=deff(svyby(~enroll, ~stype, dclus1, svytotal, deff = TRUE))
+#     #     ))
+#     # )
+# })
+
+
+test_that("Design effects are included - categorical", {
+    x <- getPlotSummary(stype, design = dclus1,
+        survey.options = list(deff = TRUE))
+    de <- which(grepl("Design effects", x))
+    xde <- gsub("\\||Design effects", "", x[de])
+    expect_equivalent(
+        round(scan(textConnection(xde), quiet = TRUE), 2),
+        round(
+            deff(svymean(~stype, dclus1, deff = TRUE)),
+            2
+        )
+    )
+})
+
+test_that("Design effects are included - categorical x categorical", {
+    x <- getPlotSummary(stype, awards, design = dclus1,
+            survey.options = list(deff = TRUE))
+    de <- which(grepl("Design effects", x)) + 3:4
+    xde <- gsub("\\||[A-Za-z]", "", x[de])
+    expect_equivalent(
+        round(do.call(
+            rbind,
+            lapply(xde, function(z)
+                round(scan(textConnection(z), quiet = TRUE), 2))
+        ), 2),
+        round(as.matrix(
+            deff(svyby(~stype, ~awards, dclus1, svymean, deff=T))
+        ), 2)
+    )
+})

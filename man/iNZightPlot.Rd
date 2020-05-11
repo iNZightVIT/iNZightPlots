@@ -148,7 +148,33 @@ It also provides facilities to add inference information to plots, colour-
 and size-by variables, and can handle survey data.
 }
 \details{
-Some details here ...
+The main goal of 'iNZightPlots' is to make it easy to beginners to
+explore a dataset graphically, using a suite of simple arguments
+to add features to their graph.
+
+The second use of this function is within the companion software
+'iNZight', providing a single function call with arguments
+controlled by the user through a GUI.
+}
+\examples{
+iNZightPlot(Species, data = iris)
+iNZightPlot(Petal.Width, g1 = Species, data = iris)
+
+iNZightPlot(Sepal.Length, Sepal.Width, data = iris,
+    colby = Species)
+iNZightPlot(Sepal.Length, Sepal.Width, data = iris,
+    colby = Species, trend = c("linear", "quadratic"),
+    trend.by = TRUE, trend.parallel = FALSE)
+
+# add inference information
+iNZightPlot(Petal.Width, data = iris,
+    inference.type = "conf", inference.par = "mean")
+iNZightPlot(Petal.Width, data = iris,
+    inference.type = "conf", inference.par = "mean",
+    bootstrap = TRUE)
+
+# alternatively, use the formula interface
+iNZPlot(Sepal.Length ~ Sepal.Width | Species, data = iris)
 }
 \author{
 Tom Elliott

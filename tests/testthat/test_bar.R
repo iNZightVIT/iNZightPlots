@@ -69,6 +69,15 @@ test_that("Y axis limits computed correctly", {
     expect_equal(bar2inf_counts$all$all$ylim, c(0, max(pr) * nrow(df)))
 })
 
+test_that("Y axis is labelled correctly", {
+    iNZightPlot(x, data = df)
+    expect_equal(grid.get("inz-ylab")$label, "Percentage (%)")
+    expect_equal(
+        grid.get("inz-yaxis-left.1.1")$label,
+        format(seq(10, 50, by = 10))
+    )
+})
+
 test_that("Inference information is correct", {
     inf <- list(
         lower = unclass(t(pr - wd)),

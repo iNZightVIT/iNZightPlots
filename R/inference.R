@@ -1,8 +1,9 @@
-inference <- function(object, ...)
+inference <- function(object, survey.options, ...)
     UseMethod("inference")
 
 
-inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis, ...) {
+inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
+                             survey.options, ...) {
     toplot <- object$toplot
     inf <- object$inference.info
 
@@ -613,12 +614,15 @@ formatMat <- function(mat, digits = 4) {
 
     mat
 }
-inference.inzhist <- function(object, des, bs, class, width, vn, hypothesis, ...)
-    inference.inzdot(object, des, bs, class, width, vn, hypothesis, ...)
+inference.inzhist <- function(object, des, bs, class, width, vn, hypothesis,
+                              survey.options, ...)
+    inference.inzdot(object, des, bs, class, width, vn, hypothesis,
+        survey.options, ...)
 
 
 
-inference.inzbar <- function(object, des, bs, nb, vn, hypothesis, ...) {
+inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
+                             survey.options, ...) {
     phat <- object$phat
     inf <- object$inference.info
     is.survey <- !is.null(des)
@@ -1232,7 +1236,7 @@ pDiffCI <- function(p1, p2, n1, n2, z = 1.96) {
 }
 
 
-inference.inzscatter <- function(object, des, bs, nb, vn, ...) {
+inference.inzscatter <- function(object, des, bs, nb, vn, survey.options, ...) {
     d <- data.frame(
         x = object$x,
         y = object$y,
@@ -1366,8 +1370,8 @@ inference.inzscatter <- function(object, des, bs, nb, vn, ...) {
 
     out
 }
-inference.inzgrid <- function(object, bs, nboot, vn, ...)
-    inference.inzscatter(object, bs, nboot, vn, ...)
+inference.inzgrid <- function(object, bs, nboot, vn, survey.options, ...)
+    inference.inzscatter(object, bs, nboot, vn, survey.options, ...)
 
-inference.inzhex <- function(object, bs, nboot, vn, ...)
-    inference.inzscatter(object, bs, nboot, vn, ...)
+inference.inzhex <- function(object, bs, nboot, vn, survey.options, ...)
+    inference.inzscatter(object, bs, nboot, vn, survey.options, ...)

@@ -3,9 +3,11 @@
 #' @title Explore all Univariate Summaries
 #' @param data a data set
 #' @param ... additional arguments passed to getPlotSummary()
-#' @return allSummaries object
+#' @return allSummaries object, a concatenation of summaries from all variables
 #' @author Tom Elliott
 #' @export
+#' @examples
+#' exploreAllSummaries(iris)
 exploreAllSummaries <- function(data, ...) {
     ## Runs getPlotSummary() on all variables.
 

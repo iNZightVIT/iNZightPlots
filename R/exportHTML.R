@@ -14,7 +14,10 @@
 #' @param mapObj iNZightMap object (from iNZightMaps)
 #' @param ... extra arguments
 #'
-#' @return HTML file of \code{x} with filename \code{file} in the browser
+#' @return an inzHTML object consisting of a link to an HTML rendering
+#'  of \code{x} with filename \code{file},
+#'  which can be loaded in the browser (for example using \code{browseURL},
+#'  or calling the \code{print()} method of the returned object.
 #'
 #' @examples
 #' \dontrun{
@@ -42,7 +45,7 @@ exportHTML.function <- function(x, file = 'index.html', data = NULL,
 
     #set to temp directory
     tdir <- tempdir()
-    setwd(tdir)
+    setwd(tdir) # on.exit above will restore
     pdf(NULL, width = width, height = height, onefile = TRUE)
     cdev <- dev.cur()
     on.exit(dev.off(cdev), add = TRUE)
@@ -93,7 +96,7 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL,
         )
     }
 
-    print(x)
+    # print(x)
     mapObj <- mapObj
     plot <- x
     dt <- as.data.frame(plot[[1]])
@@ -147,19 +150,8 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL,
         d <- unique(diff(tab[,seqVar]))
         int <- d[which(d > 0)]
     }
-    
-    ## Multipolygons
-    if (mapObj$multiple.obs) {
-        geo_types <- sf::st_geometry_type(mapObj$region.aggregate)
-        n_polygons <- numeric(length = length(geo_types))
-        n_polygons[geo_types == "POLYGON"] <- 1
-        n_polygons[geo_types == "MULTIPOLYGON"] <- lengths(sf::st_geometry(mapObj$region.aggregate))[geo_types == "MULTIPOLYGON"]
-    } else {
-        geo_types <- sf::st_geometry_type(mapObj$region.data)
-        n_polygons <- numeric(length = length(geo_types))
-        n_polygons[geo_types == "POLYGON"] <- 1
-        n_polygons[geo_types == "MULTIPOLYGON"] <- lengths(sf::st_geometry(mapObj$region.data))[geo_types == "MULTIPOLYGON"]
-    }
+
+    n_polygons <- mapObj$n_polygons
 
     chart <- list(
         type = mapObj$type,
@@ -283,6 +275,7 @@ createHTML <- function(tbl, js, file = "index.html", local = FALSE) {
 
     curdir <- getwd()
     setwd(tempdir())
+    on.exit(setwd(curdir))
 
     if (local) {
         assets <- system.file("assets.zip", package = "iNZightPlots")
@@ -348,7 +341,6 @@ createHTML <- function(tbl, js, file = "index.html", local = FALSE) {
     url <- normalizePath(file)
     class(url) <- "inzHTML"
 
-    setwd(curdir)
     return(url)
 }
 
@@ -867,6 +859,8 @@ varSelect <- function(varNames, pl, order, extra.vars, data, levels = FALSE) {
 #' @return Logical to identify if there is an interactive version
 #' @export
 #' @author Tom Elliott, Yu Han Soh
+#' @examples
+#' can.interact(iNZightPlot(Sepal.Length, data = iris))
 can.interact <- function(x) {
     UseMethod("can.interact")
 }

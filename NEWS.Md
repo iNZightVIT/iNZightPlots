@@ -1,13 +1,21 @@
-# iNZightPlots 2.11.4
-- fix bug that causes incorrect interactive map labels due to multipolygon regions 
+## iNZightPlots 2.11.5
+- provide design effects for survey summaries
+- fix bug where regions cannot be selected in interactive sparkline plots due to id issue
+- allow `main` to include templates for `%subet%` and `%sizeby%`
+- fix y-axis to correctly display percentages (as percentages)
+- rename `const_palette_names()` to `cont_palette_names()` (originally misspelled)
+- fix bug in checking design call is not `as.svrepdeign`
 
-# iNZightPlots 2.11.3
+## iNZightPlots 2.11.4
+- fix bug that causes incorrect interactive map labels due to multipolygon regions
+
+## iNZightPlots 2.11.3
 - fix bug in exporting of a single numeric variable
 
-# iNZightPlots 2.11.2
+## iNZightPlots 2.11.2
 - fix a bug in the arguments of the getInfo() method causing exportHTML() to fail
 
-# iNZightPlots 2.11.1
+## iNZightPlots 2.11.1
 
 - fix formula interface to handle `colby`, etc.
 - fix FT plots for numeric/factor so either order displays the same plot (to match base iNZightPlots graphs)
