@@ -99,7 +99,11 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL,
     # print(x)
     mapObj <- mapObj
     plot <- x
-    dt <- as.data.frame(plot[[1]])
+    if (mapObj$type != "dotdensity") {
+        dt <- as.data.frame(plot[[1]])
+    } else {
+        dt <- as.data.frame(mapObj$region.data)
+    }
     spark <- NULL
     lineType <- NULL
     timeData <- data.frame(mapObj$region.data)
@@ -174,7 +178,7 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL,
     if (mapObj$type == "dotdensity") {
         chart$point_counts <- rep(
             1:length(mapObj$n_polygons),
-            attr(plot$layers[[2]]$data, "point_counts")
+            attr(plot$data, "point_counts")
         )
     }
     
