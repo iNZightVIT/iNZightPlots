@@ -435,6 +435,11 @@ span {
   stroke-width: 0.5;
 }
 
+/* dot density points */
+.regiondot {
+  pointer-events: none;
+}
+
 /* time slider */
 .slider-div {
   width: 100%;
