@@ -663,8 +663,6 @@ iNZSummary <- function(f, data = NULL, ..., env = parent.frame()) {
     f <- match.call()[["f"]]
     dots <- rlang::enexprs(...)
 
-    print(ls(envir = env, all.names = TRUE))
-
     if (!rlang::is_formula(f)) {
         eval(
             rlang::expr(
