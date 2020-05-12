@@ -175,8 +175,6 @@ iNZightPlot <- function(x,
     # grab the arguments and the data frame is supplied:
     m <- match.call(expand.dots = FALSE)
 
-    # print(ls(envir = env))
-
     ## getSummary and other wrappers will pass an inz.data object
     if (missing(df)) {
         if (!is.null(design)) {
