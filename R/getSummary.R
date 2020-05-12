@@ -705,10 +705,12 @@ iNZSummary <- function(f, data = NULL, ..., env = parent.frame()) {
                 f.list2[[2]] <- f.list[[2]]
                 f.list[2] <- list(NULL)
             } else {
-                varx <- data[[f.list[[3]]]]
+                varx <- data[[f.list2[[2]]]]
                 vary <- data[[f.list[[2]]]]
+
                 if ((is_cat(varx) || is_cat(vary))) {
-                    f.list <- f.list[c(1, 3:2)]
+                    f.list2[[2]] <- f.list[[2]]
+                    f.list[[2]] <- f.list[[3]][[2]]
                 }
             }
             if (lengths(f.list2)[3] == 1) {
@@ -801,10 +803,12 @@ iNZInference <- function(f, data = NULL, type = c("conf", "comp"), ...,
                 f.list2[[2]] <- f.list[[2]]
                 f.list[2] <- list(NULL)
             } else {
-                varx <- data[[f.list[[3]]]]
+                varx <- data[[f.list2[[2]]]]
                 vary <- data[[f.list[[2]]]]
+
                 if ((is_cat(varx) || is_cat(vary))) {
-                    f.list <- f.list[c(1, 3:2)]
+                    f.list2[[2]] <- f.list[[2]]
+                    f.list[[2]] <- f.list[[3]][[2]]
                 }
             }
             if (lengths(f.list2)[3] == 1) {

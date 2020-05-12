@@ -179,4 +179,12 @@ test_that("iNZInference gives the same output", {
             data = iris, trend = "linear", width = 80,
             summary.type = "inference")
     )
+
+    expect_equal(
+        iNZInference(Sepal.Length ~ Species | Sepal.Width,
+            data = iris, width = 80),
+        getPlotSummary(Sepal.Length, Species, g1 = Sepal.Width,
+            data = iris, width = 80, inference.type = "conf",
+            summary.type = "inference")
+    )
 })
