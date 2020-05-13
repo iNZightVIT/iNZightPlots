@@ -9,27 +9,29 @@
 #' @return Opens up an SVG file of \code{x} with filename \code{file} in a web browser
 #' @author Yu Han Soh
 #' @export
-exportSVG <- function(x, file, ...)
+exportSVG <- function(x, file = tempfile(fileext = ".svg"), ...)
     UseMethod('exportSVG')
 
 #' @describeIn exportSVG method for functions
 #' @param width the width of the plot device
 #' @param height the height of the plot device
-exportSVG.function <- function(x, file = 'inzightplot.svg',
+exportSVG.function <- function(x, file = tempfile(fileext = ".svg"),
                                width = dev.size()[1],
                                height = dev.size()[2], ...) {
 
     #get current directory
-    curdir <- getwd()
+    # curdir <- getwd()
 
     #set directory to temp directory
-    tdir <- tempdir()
-    setwd(tdir)
-    on.exit(setwd(curdir))
+    # tdir <- tempdir()
+    # setwd(tdir)
+    # on.exit(setwd(curdir))
 
     #create pdf graphics device into here:
-    pdf('tempfile.pdf', width = width, height = height, onefile = TRUE)
-    on.exit(file.remove('tempfile.pdf'), add = TRUE, after = FALSE)
+    pf <- tempfile(fileext = ".pdf")
+    on.exit(file.remove(pf))
+    pdf(pf, width = width, height = height, onefile = TRUE)
+    # on.exit(file.remove('tempfile.pdf'), add = TRUE, after = FALSE)
 
     #do exporting:
     obj <- x()
@@ -40,7 +42,7 @@ exportSVG.function <- function(x, file = 'inzightplot.svg',
 }
 
 #' @describeIn exportSVG method for an existing plot object
-exportSVG.inzplotoutput <- function(x, file = 'inzightplot.svg', ...) {
+exportSVG.inzplotoutput <- function(x, file = tempfile(fileext = ".svg"), ...) {
 
     #suggest gridSVG:
     if(!requireNamespace("gridSVG", quietly = TRUE)) {
@@ -52,10 +54,10 @@ exportSVG.inzplotoutput <- function(x, file = 'inzightplot.svg', ...) {
         )
     }
 
-    curdir <- getwd()
+    # curdir <- getwd()
     #work in a temp directory
-    setwd(tempdir())
-    on.exit(setwd(curdir))
+    # setwd(tempdir())
+    # on.exit(setwd(curdir))
 
     gridSVG::grid.export(file)
 

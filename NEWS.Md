@@ -1,3 +1,5 @@
+- refactors exportHTML() and exportSVG() to writing file to (by default)
+  a temporary directory, and without changing directories in the process
 
 
 ## iNZightPlots 2.11.5
