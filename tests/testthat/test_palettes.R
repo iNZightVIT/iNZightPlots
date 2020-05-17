@@ -48,3 +48,15 @@ test_that("Emphasize works", {
     expect_equal(cols[2], ecols[2])
     expect_equal(as.character(shade(cols[-2], 0.7)), ecols[-2])
 })
+
+test_that("Plot function handles strings", {
+    p <- iNZightPlot(Sepal.Width, data = iris, colby = Species, col.fun = "contrast")
+    expect_equivalent(
+        p$gen$col.args$f.cols,
+        inzpalette("contrast")(3)
+    )
+    expect_warning(
+        iNZightPlot(Sepal.Width, data = iris, colby = Species, col.fun = "none"),
+        "Invalid palette name"
+    )
+})

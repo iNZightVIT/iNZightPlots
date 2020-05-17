@@ -429,6 +429,20 @@ iNZightPlot <- function(x,
             df$data$colby <- ranks * 100 / max(ranks, na.rm = TRUE)
             rm(ranks)
         }
+
+        # colour-by function
+        if (is.character(opts$col.fun)) {
+            cpal <- opts$col.fun
+            cfun <- try({
+                inzpalette(opts$col.fun)
+            }, silent = TRUE)
+            if (inherits(cfun, "try-error")) {
+                warning("Invalid palette name, please supply a palette listed in 'inzpalette()'")
+                opts$col.fun <- NULL
+            } else {
+                opts$col.fun <- cfun
+            }
+        }
     }
 
     ## out of previous if() for case of barplots

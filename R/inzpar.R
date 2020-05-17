@@ -10,7 +10,9 @@
 #' \item{'pch'}{the plotting symbol to be used; default is `1` (empty circle)}
 #' \item{'col.pt'}{the colour of points. this can either be a single value, or a vector of
 #' colours if \code{colby} is specified}
-#' \item{'col.fun'}{a function to use for colouring points, etc.}
+#' \item{'col.fun'}{a function to use for colouring points, etc., or the name of a palette,
+#'  see \code{inzpalette}
+#' }
 #' \item{'col.default'}{the default colour functions, containing a list with entries for 'cat' and 'cont' variables}
 #' \item{'col.missing'}{the colour for missing values; default is a light grey}
 #' \item{'reverse.palette'}{logical, if \code{TRUE} the palette will be reversed}
