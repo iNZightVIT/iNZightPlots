@@ -443,6 +443,29 @@ iNZightPlot <- function(x,
                 opts$col.fun <- cfun
             }
         }
+
+        # emphasize
+        if (!is.null(opts$col.emph)) {
+            if (is.character(opts$col.emph)) {
+                opts$col.emph <- levels(df$data$colby)[opts$col.emph]
+            }
+            if (!is.na(opts$col.emph) && opts$col.emph > 0L &&
+                (opts$col.emph <= length(levels(df$data$colby)) ||
+                 opts$col.emph <= opts$col.emphn)) {
+                opts$col.fun <- eval(
+                    rlang::expr(
+                        function(n) {
+                            emphasize_pal_colour(n,
+                                opts$col.emph,
+                                !!is.factor(df$data$colby),
+                                !!opts$col.emphn,
+                                !!opts$col.fun
+                            )
+                        }
+                    )
+                )
+            }
+        }
     }
 
     ## out of previous if() for case of barplots

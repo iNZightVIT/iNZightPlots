@@ -59,4 +59,15 @@ test_that("Plot function handles strings", {
         iNZightPlot(Sepal.Width, data = iris, colby = Species, col.fun = "none"),
         "Invalid palette name"
     )
+
+    p <- iNZightPlot(Sepal.Width, data = iris, colby = Species,
+        col.fun = "contrast", col.emph = 2)
+    expect_equivalent(
+        p$gen$col.args$f.cols,
+        emphasize_pal_colour(3L, 2L, TRUE, 3L, inzpalette("contrast"))
+    )
+
+    p <- iNZightPlot(Sepal.Width, data = iris, colby = Sepal.Length,
+        col.fun = "viridis", col.emph = 2, col.emphn = 5)
+    expect_equal(length(p$gen$col.args$n.cols), 200L)
 })
