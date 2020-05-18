@@ -419,6 +419,20 @@ iNZightPlot <- function(x,
     ## apply transformations
     df <- inztransform(df, opts$transform)
 
+    # colour-by function
+    if (!is.null(opts$col.fun) && is.character(opts$col.fun)) {
+        cpal <- opts$col.fun
+        cfun <- try({
+            inzpalette(opts$col.fun)
+        }, silent = TRUE)
+        if (inherits(cfun, "try-error")) {
+            warning("Invalid palette name, please supply a palette listed in 'inzpalette()'")
+            opts$col.fun <- NULL
+        } else {
+            opts$col.fun <- cfun
+        }
+    }
+
     ## --- colour by
     if (!is.null(df$data$colby)) {
         if (!is.numeric(df$data$colby))
@@ -428,20 +442,6 @@ iNZightPlot <- function(x,
             ranks <- rank(df$data$colby, na.last = "keep") - 1
             df$data$colby <- ranks * 100 / max(ranks, na.rm = TRUE)
             rm(ranks)
-        }
-
-        # colour-by function
-        if (is.character(opts$col.fun)) {
-            cpal <- opts$col.fun
-            cfun <- try({
-                inzpalette(opts$col.fun)
-            }, silent = TRUE)
-            if (inherits(cfun, "try-error")) {
-                warning("Invalid palette name, please supply a palette listed in 'inzpalette()'")
-                opts$col.fun <- NULL
-            } else {
-                opts$col.fun <- cfun
-            }
         }
 
         # emphasize
