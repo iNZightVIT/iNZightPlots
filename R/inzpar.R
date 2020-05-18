@@ -140,7 +140,7 @@ inzpar <- function(...,
     dots <- list(...)
 
     ip <- list(
-        pch            = 21,
+        pch            = 21L,
         col.pt         = "grey50",
         col.fun        = NULL,
         col.emph       = 0L,
