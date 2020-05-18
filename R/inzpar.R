@@ -7,7 +7,7 @@
 #' @details
 #'
 #' \describe{
-#' \item{'pch'}{the plotting symbol to be used; default is `1` (empty circle)}
+#' \item{'pch'}{the plotting symbol to be used; default is `21` (circle with fill)}
 #' \item{'col.pt'}{the colour of points. this can either be a single value, or a vector of
 #' colours if \code{colby} is specified}
 #' \item{'col.fun'}{a function to use for colouring points, etc., or the name of a palette,
@@ -140,7 +140,7 @@ inzpar <- function(...,
     dots <- list(...)
 
     ip <- list(
-        pch            = 1,
+        pch            = 21,
         col.pt         = "grey50",
         col.fun        = NULL,
         col.emph       = 0L,
