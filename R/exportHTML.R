@@ -4,9 +4,11 @@
 #' Currently only handles single panel plots. Coloured hex plots are currently not available yet.
 #'
 #' @param x An iNZight plot object that captures iNZight environment
-#' @param file Name of temporary HTML file generated
+#' @param file Name of temporary HTML file generated (defaults to `index.html`
+#' in a temporary directory, or other as specified using `assets_dir`)
 #' @param local Logical for creating local files for offline use (default to false)
-#' Additional parameters for scatterplots and dotplots only:
+#' @param assets_dir Directory to store results (defaults to `tempdir()`)
+# Additional parameters for scatterplots and dotplots only:
 #' @param data dataset/dataframe that you wish to investigate and export more variables from
 #' @param extra.vars extra variables specified by the user to be exported
 #' @param width the desired width of the SVG plot
@@ -30,22 +32,19 @@
 #'
 #' @author Yu Han Soh
 #' @export
-exportHTML <- function(x, file, data, local = FALSE, extra.vars, ...)
+exportHTML <- function(x, file = file.path(assets_dir, "index.html"), data,
+                       local = FALSE, assets_dir = tempdir(), extra.vars, ...)
     UseMethod("exportHTML")
 
 #' @describeIn exportHTML method for an iNZightPlot-generating function
 #' @export
-exportHTML.function <- function(x, file = 'index.html', data = NULL,
-                                local = FALSE, extra.vars = NULL,
+exportHTML.function <- function(x, file = file.path(assets_dir, "index.html"),
+                                data = NULL,
+                                local = FALSE,
+                                assets_dir = tempdir(),
+                                extra.vars = NULL,
                                 width = dev.size()[1], height = dev.size()[2],
                                 ...) {
-    #get current directory
-    curdir <- getwd()
-    on.exit(setwd(curdir))
-
-    #set to temp directory
-    tdir <- tempdir()
-    setwd(tdir) # on.exit above will restore
     pdf(NULL, width = width, height = height, onefile = TRUE)
     cdev <- dev.cur()
     on.exit(dev.off(cdev), add = TRUE)
@@ -60,8 +59,11 @@ exportHTML.function <- function(x, file = 'index.html', data = NULL,
 
 #' @describeIn exportHTML method for iNZightMaps or other supported ggplot graphs
 #' @export
-exportHTML.ggplot <- function(x, file = 'index.html', data = NULL,
-                              local = FALSE, extra.vars = NULL, mapObj,
+exportHTML.ggplot <- function(x, file = file.path(assets_dir, "index.html"),
+                              data = NULL,
+                              local = FALSE,
+                              assets_dir = tempdir(),
+                              extra.vars = NULL, mapObj,
                               ...) {
     if (missing(mapObj)) {
         if (!requireNamespace("plotly", quietly = TRUE)) {
@@ -180,8 +182,11 @@ exportHTML.ggplot <- function(x, file = 'index.html', data = NULL,
 
 #' @describeIn exportHTML method for output from iNZightPlot
 #' @export
-exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL,
-                                     local = FALSE, extra.vars = NULL, ...) {
+exportHTML.inzplotoutput <- function(x, file = file.path(assets_dir, "index.html"),
+                                     data = NULL,
+                                     local = FALSE,
+                                     assets_dir = tempdir(),
+                                     extra.vars = NULL, ...) {
 
     #suggest gridSVG, jsonlite, xtable:
     if( !requireNamespace("gridSVG",  quietly = TRUE) ||
@@ -231,8 +236,10 @@ exportHTML.inzplotoutput <- function(x, file = 'index.html', data = NULL,
 ## @param js - list with javascript information
 ## @param file - filename for HTML file created
 ## @param local - logical if it's to be made in a folder with source files
+## @param assets_dir - directory to save files
 ## @return url object of class inzHTML
-createHTML <- function(tbl, js, file = "index.html", local = FALSE) {
+createHTML <- function(tbl, js, file = file.path(assets_dir, "index.html"),
+                       local = FALSE, assets_dir = tempdir()) {
 
     # load templates
     HTMLtemplate <- readLines(system.file("template.html", package = "iNZightPlots"))
@@ -273,15 +280,12 @@ createHTML <- function(tbl, js, file = "index.html", local = FALSE) {
     chartLine <- grep("chart.json", HTMLtemplate)
     tableLineOne <- grep("<!-- insert table -->", HTMLtemplate)
 
-    curdir <- getwd()
-    setwd(tempdir())
-    on.exit(setwd(curdir))
-
     if (local) {
         assets <- system.file("assets.zip", package = "iNZightPlots")
         ## if local = TRUE, create directories
-        utils::unzip(assets, exdir = "iNZight_interactive_plot")
-        setwd("./iNZight_interactive_plot/assets")
+        # outdir <- file.path(dirname(file), "iNZight_interactive_plot")
+        utils::unzip(assets, exdir = assets_dir)
+        assets <- file.path(assets_dir, "assets")
 
         vendorCSS <- c("bootstrap.min.css", "dataTables.bootstrap.min.css")
         HTMLtemplate[9:10] <- paste0(
@@ -303,17 +307,17 @@ createHTML <- function(tbl, js, file = "index.html", local = FALSE) {
         )
 
         # create files
-        write(styles, "main.css")
-        write(chartCode, "chart.js")
-        write(inzJS, "inzplot.js")
-        write(jsCode, "main.js")
+        write(styles, file.path(assets, "main.css"))
+        write(chartCode, file.path(assets, "chart.js"))
+        write(inzJS, file.path(assets, "inzplot.js"))
+        write(jsCode, file.path(assets, "main.js"))
 
         HTMLtemplate[cssLine] <- "<link rel='stylesheet' href='assets/main.css'>"
         HTMLtemplate[chartLine] <- "<script src='assets/chart.js'></script>"
         HTMLtemplate[inzplotLine] <- "<script src='assets/inzplot.js'></script>"
         HTMLtemplate[jsLine] <- "<script src='assets/main.js'></script>"
 
-        setwd("../")
+        # setwd("../")
 
     } else {
 
@@ -335,9 +339,6 @@ createHTML <- function(tbl, js, file = "index.html", local = FALSE) {
     write(HTMLtemplate, file)
 
     # Store url:
-    # url <- file.path(getwd(), file)
-    ## 'file.html' -> '/tmp/path/to/file.html'
-    ## '/absolute/path/to/file.html' -> '/absolute/path/to/file.html'
     url <- normalizePath(file)
     class(url) <- "inzHTML"
 
