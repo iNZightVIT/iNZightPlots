@@ -206,7 +206,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                 }
             } else {
                 ttest <- t.test(toplot[[1]]$x, toplot[[2]]$x,
-                    var.equal = hypothesis$var.equal
+                    var.equal = if (is.null(hypothesis)) TRUE else hypothesis$var.equal
                 )
                 mat <- rbind(
                     c("Lower", "Mean", "Upper"),
