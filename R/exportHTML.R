@@ -51,7 +51,7 @@ exportHTML.function <- function(x, file = file.path(assets_dir, "index.html"),
 
     #do exporting:
     obj <- x()
-    url <- exportHTML(obj, file, data = data, extra.vars = extra.vars)
+    url <- exportHTML(obj, file, data = data, local = local, extra.vars = extra.vars)
 
     ## pass URL from exportHTML.inzplotoutput
     invisible(url)
