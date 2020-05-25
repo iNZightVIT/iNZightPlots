@@ -311,14 +311,16 @@ createHTML <- function(tbl, js, file = file.path(assets_dir, "index.html"),
         write(chartCode, file.path(assets, "chart.js"))
         write(inzJS, file.path(assets, "inzplot.js"))
         write(jsCode, file.path(assets, "main.js"))
+        file.copy(
+            system.file("inzight_transp.png", package = "iNZightPlots"),
+            file.path(assets, "inzight_transp.png")
+        )
 
         HTMLtemplate[cssLine] <- "<link rel='stylesheet' href='assets/main.css'>"
         HTMLtemplate[chartLine] <- "<script src='assets/chart.js'></script>"
         HTMLtemplate[inzplotLine] <- "<script src='assets/inzplot.js'></script>"
         HTMLtemplate[jsLine] <- "<script src='assets/main.js'></script>"
-
-        # setwd("../")
-
+        HTMLtemplate <- gsub("INZIGHT_LOGO", "assets/inzight_transp.png", HTMLtemplate)
     } else {
 
         ## insert inline JS, CSS
@@ -328,7 +330,8 @@ createHTML <- function(tbl, js, file = file.path(assets_dir, "index.html"),
             paste("<script type='text/javascript'>", chartCode, collapse = "\n")
         HTMLtemplate[inzplotLine] <- inzJS
         HTMLtemplate[jsLine] <- paste(jsCode, "</script>", collapse = "\n")
-
+        logourl <- "https://www.stat.auckland.ac.nz/~wild/iNZight/img/inzight_transp.png"
+        HTMLtemplate <- gsub("INZIGHT_LOGO", logourl, HTMLtemplate)
     }
 
     # insert table and SVG
