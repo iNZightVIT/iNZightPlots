@@ -419,6 +419,27 @@ iNZightPlot <- function(x,
     ## apply transformations
     df <- inztransform(df, opts$transform)
 
+    if (!is.null(opts$transform)) {
+        if (!is.null(opts$transform$x)) {
+            if (!is.null(xlim)) {
+                xlim <- switch(opts$transform$x,
+                    "log" = log(xlim),
+                    "log10" = log10(xlim),
+                    xlim
+                )
+            }
+        }
+        if (!is.null(opts$transform$y)) {
+            if (!is.null(ylim)) {
+                ylim <- switch(opts$transform$y,
+                    "log" = log(ylim),
+                    "log10" = log10(ylim),
+                    ylim
+                )
+            }
+        }
+    }
+
     # colour-by function
     if (!is.null(opts$col.fun) && is.character(opts$col.fun)) {
         cpal <- opts$col.fun
