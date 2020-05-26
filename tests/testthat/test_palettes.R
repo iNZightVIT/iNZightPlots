@@ -49,6 +49,15 @@ test_that("Emphasize works", {
     expect_equal(as.character(shade(cols[-2], 0.7)), ecols[-2])
 })
 
+test_that("Emphasized points on top", {
+    p <- iNZPlot(Sepal.Width ~ Sepal.Length, data = iris, colby = Species,
+        pch = 19, col.fun = inzpalette("bright"), col.emph = 2L, plot = interactive())
+    expect_equal(
+        p$gen$opts$plot.features$order.first,
+        which(iris$Species == unique(iris$Species)[2])
+    )
+})
+
 test_that("Plot function handles strings", {
     p <- iNZightPlot(Sepal.Width, data = iris, colby = Species, col.fun = "contrast")
     expect_equivalent(
@@ -67,7 +76,7 @@ test_that("Plot function handles strings", {
         emphasize_pal_colour(3L, 2L, TRUE, 3L, inzpalette("contrast"))
     )
 
-    p <- iNZightPlot(Sepal.Width, data = iris, colby = Sepal.Length,
-        col.fun = "viridis", col.emph = 2, col.emphn = 5)
+    p <- iNZightPlot(Sepal.Width, Sepal.Length, data = iris, colby = Sepal.Length,
+        col.fun = "viridis", col.emph = 2, col.emphn = 5, pch = 19)
     expect_equal(length(p$gen$col.args$n.cols), 200L)
 })

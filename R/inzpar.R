@@ -16,6 +16,7 @@
 #' \item{'col.emph', 'col.emphn'}{emphasize the chosen level of a colour by variable. For numeric
 #'  colour by, \code{col.emphn} specifies the number of quantiles to use.
 #' }
+#' \item{'emph.on.top'}{if \code{TRUE}, emphasised points will be positioned on top}
 #' \item{'col.default'}{the default colour functions, containing a list with entries for 'cat' and 'cont' variables}
 #' \item{'col.missing'}{the colour for missing values; default is a light grey}
 #' \item{'reverse.palette'}{logical, if \code{TRUE} the palette will be reversed}
@@ -145,6 +146,7 @@ inzpar <- function(...,
         col.fun        = NULL,
         col.emph       = 0L,
         col.emphn      = 4L,
+        emph.on.top    = TRUE,
         col.default    =
             list(
                 cat  =
