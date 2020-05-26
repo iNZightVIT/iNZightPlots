@@ -485,21 +485,28 @@ iNZightPlot <- function(x,
                         }
                     )
                 )
-                print(opts$col.fun)
-                print(opts$plot.features)
-                print(head(df$data$colby))
                 if (opts$emph.on.top) {
                     if (is.null(opts$plot.features$order.first) ||
                         length(opts$plot.features$order.first) == 0) {
                         ## set point order so emphasised are on top (at bottom of data)
-                        ord1st <- which(as.integer(df$data$colby) == opts$col.emph)
+                        cby <- df$data$colby
+                        if (is_num(cby)) {
+                            Qs <- seq(min(cby, na.rm = TRUE), max(cby, na.rm = TRUE),
+                                length = opts$col.emphn + 1
+                            )
+                            ord1st <- which(
+                                cby >= Qs[opts$col.emph] &
+                                cby < Qs[opts$col.emph + 1]
+                            )
+                        } else {
+                            ord1st <- which(as.integer(df$data$colby) == opts$col.emph)
+                        }
                         opts$plot.features <- modifyList(
                             opts$plot.features,
                             list(order.first = ord1st)
                         )
                     }
                 }
-                print(opts$plot.features)
             }
         }
     }
