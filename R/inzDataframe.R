@@ -100,6 +100,7 @@ inzDataframe <- function(m, data = NULL, names = list(),
             label[eval(m$locate.id)] <- paste(" ")
         } else {
             locVar <- as.character(df$data$locate)
+            if (all(locVar == "id")) locVar <- as.character(seq_len(nrow(df$data)))
             locVar[is.na(locVar)] <- "missing"
             label[eval(m$locate.id)] <- locVar[eval(m$locate.id)]
         }
