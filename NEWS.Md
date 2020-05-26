@@ -1,6 +1,8 @@
 - refactors exportHTML() and exportSVG() to writing file to (by default)
   a temporary directory, and without changing directories in the process
-
+- handle `col.emph`, `col.emphn`, and (by default) plot emphasized points on top
+- allow `col.fun` to be a character palette name
+- fix handling of env argument
 
 ## iNZightPlots 2.11.5
 - provide design effects for survey summaries
