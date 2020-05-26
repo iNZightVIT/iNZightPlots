@@ -1,5 +1,9 @@
 context("Colour palettes")
 
+f <- tempfile()
+pdf(f)
+on.exit(unlink(f))
+
 test_that("Names are valid", {
     expect_equal(
         names(viridis_palette_names()),
@@ -51,7 +55,7 @@ test_that("Emphasize works", {
 
 test_that("Emphasized points on top", {
     p <- iNZPlot(Sepal.Width ~ Sepal.Length, data = iris, colby = Species,
-        pch = 19, col.fun = inzpalette("bright"), col.emph = 2L, plot = interactive())
+        pch = 19, col.fun = inzpalette("bright"), col.emph = 2L)
     expect_equal(
         p$gen$opts$plot.features$order.first,
         which(iris$Species == unique(iris$Species)[2])
