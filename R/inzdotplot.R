@@ -174,8 +174,10 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         if ("extreme.label" %in% v) {
             eLab <- as.character(d$extreme.label)[order(x)]
 
-            nx <- rep(xattr$nextreme, length = 2)
+            nx <- rep(xattr$nextreme, length = 2L)
+
             if (sum(nx) >= nrow(d)) {
+                # just label all the points!
                 text.labels <- eLab
                 ret$extreme.ids <- d$pointIDs[order(x)]
             } else {
@@ -189,8 +191,16 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
                     text.labels[max] <- eLab[max]
 
                 pointIDs <- d$pointIDs[order(x)]
-
-                ret$extreme.ids <- pointIDs[text.labels != ""]
+                # now - are we labelling points with same-level-of??
+                if (!is.null(d$locate.same.level)) {
+                    w <- which(text.labels != "")
+                    loc.lvls <- as.character(unique(d$locate.same.level[order(x)][w]))
+                    wi <- d$locate.same.level[order(x)] %in% loc.lvls
+                    text.labels <- ifelse(wi, eLab, "")
+                    ret$extreme.ids <- d$pointIDs[order(x)][wi]
+                } else {
+                    ret$extreme.ids <- pointIDs[text.labels != ""]
+                }
             }
         } else {
             text.labels <- as.character(d$locate)[order(x)]

@@ -30,6 +30,23 @@ test_that("Points with same level of X are identified", {
 })
 
 test_that("Locating extreme points", {
-    p <- iNZPlot(Sepal.Width, data = iris, locate.extreme = c(1, 0),
-        locate = Species, locate.same.level = Species, plot = FALSE)
+    p <- iNZPlot(Sepal.Width, data = iris, colby = Species, locate.extreme = c(1, 4),
+        locate = Species, plot = FALSE)
+    expect_equal(p$all$all$toplot$all$extreme.ids, c(61, 15, 33, 34, 16))
+    expect_equal(
+        p$all$all$toplot$all$text.labels,
+        c("versicolor", rep("", 145), rep("setosa", 4))
+    )
+
+    p <- iNZPlot(Sepal.Width, data = iris, colby = Species,
+        locate.extreme = c(1, 0), locate = Species, locate.same.level = Species,
+        plot = FALSE, locate.col = "red")
+    expect_equal(
+        sort(p$all$all$toplot$all$extreme.ids),
+        which(iris$Species == "versicolor")
+    )
+    expect_equal(
+        p$all$all$toplot$all$text.labels,
+        ifelse(iris$Species == "versicolor", "versicolor", "")[order(iris$Sepal.Width)]
+    )
 })
