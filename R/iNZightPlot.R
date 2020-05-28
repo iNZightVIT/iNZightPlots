@@ -860,9 +860,9 @@ iNZightPlot <- function(x,
             }
         }
 
-        if (is.null(xlab))iNZPlot(Sepal.Length ~ Sepal.Width, data = iris, locate = "id",
-        locate.id = 1:5, locate.same.level = "Species",
-        plot.features = list(order.first = -1), plot = FALSE)
+        if (is.null(xlab))
+            xlab <- varnames$x
+        if (is.null(ylab))
             ylab <- varnames$y
 
         titles <- list()
