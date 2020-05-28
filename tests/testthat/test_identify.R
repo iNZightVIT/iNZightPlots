@@ -1,6 +1,14 @@
 context("Identify points")
 
 test_that("Points can be labelled by another variable", {
+    p <- iNZPlot(Sepal.Width, data = iris, locate = Species, locate.id = c(1, 100),
+        plot = FALSE)
+    expect_equal(
+        p$all$all$toplot$all$text.labels,
+        ifelse(1:nrow(iris) %in% c(1, 100),
+            as.character(iris$Species), "")[order(iris$Sepal.Width)]
+    )
+
     p <- iNZPlot(Sepal.Length ~ Sepal.Width, data = iris, locate = Species,
         locate.id = 1:5, plot.features = list(order.first = -1), plot = FALSE)
     expect_equal(
@@ -10,6 +18,12 @@ test_that("Points can be labelled by another variable", {
 })
 
 test_that("Points can be labelled by their row id", {
+    p <- iNZPlot(Sepal.Width, data = iris, locate = "id", locate.id = 1:5, plot = FALSE)
+    expect_equal(
+        p$all$all$toplot$all$text.labels,
+        ifelse(1:nrow(iris) > 5, "", as.character(1:nrow(iris)))[order(iris$Sepal.Width)]
+    )
+
     p <- iNZPlot(Sepal.Length ~ Sepal.Width, data = iris, locate = "id",
         locate.id = 1:5, plot.features = list(order.first = -1), plot = FALSE)
     expect_equal(
@@ -19,6 +33,14 @@ test_that("Points can be labelled by their row id", {
 })
 
 test_that("Points with same level of X are identified", {
+    p <- iNZPlot(Sepal.Width, data = iris, locate = NULL,
+        locate.id = 1, locate.same.level = Species,
+        locate.col = "red", highlight = 1, plot = FALSE)
+    expect_equal(
+        p$all$all$toplot$all$text.labels,
+        ifelse(iris$Species == "setosa", " ", "")[order(iris$Sepal.Width)]
+    )
+
     p <- iNZPlot(Sepal.Length ~ Sepal.Width, data = iris, locate = NULL,
         locate.id = c(1), locate.same.level = Species,
         locate.col = "red", highlight = 1,
@@ -30,6 +52,7 @@ test_that("Points with same level of X are identified", {
 })
 
 test_that("Locating extreme points", {
+    # dot plot
     p <- iNZPlot(Sepal.Width, data = iris, colby = Species, locate.extreme = c(1, 4),
         locate = Species, plot = FALSE)
     expect_equal(p$all$all$toplot$all$extreme.ids, c(61, 15, 33, 34, 16))
@@ -48,5 +71,26 @@ test_that("Locating extreme points", {
     expect_equal(
         p$all$all$toplot$all$text.labels,
         ifelse(iris$Species == "versicolor", "versicolor", "")[order(iris$Sepal.Width)]
+    )
+
+    # scatter plot
+    p <- iNZPlot(Sepal.Width ~ Sepal.Length, data = iris,
+        colby = Species, locate.extreme = c(3),
+        locate = Species, plot = T, plot.features = list(order.first = -1))
+    px <- c(132, 16, 118)
+    expect_equal(p$all$all$extreme.ids, px)
+    expect_equal(
+        p$all$all$text.labels[px],
+        c("virginica", "setosa", "virginica")
+    )
+    expect_equal(p$all$all$text.labels[-px], rep("", 147))
+
+    p <- iNZPlot(Sepal.Width ~ Sepal.Length, data = iris,
+        colby = Species, locate.extreme = 1, locate.same.level = Species,
+        locate = Species, plot = T, plot.features = list(order.first = -1))
+    expect_equal(p$all$all$extreme.ids, which(iris$Species == "virginica"))
+    expect_equal(
+        p$all$all$text.labels,
+        ifelse(iris$Species == "virginica", "virginica", "")
     )
 })

@@ -87,6 +87,10 @@ create.inz.scatterplot <- function(obj) {
             o <- order(dist, decreasing = TRUE)
             text.labels <- eLab
             ext.ids <- o[1:min(sum(!is.na(dist)), xattr$nextreme)]
+            if (!is.null(df$locate.same.level)) {
+                loc.lvls <- as.character(unique(df$locate.same.level[ext.ids]))
+                ext.ids <- which(df$locate.same.level %in% loc.lvls)
+            }
             text.labels[-ext.ids] <- ""
             ext.ids <- df$pointIDs[ext.ids]
         } else {
