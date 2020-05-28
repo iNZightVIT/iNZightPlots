@@ -32,6 +32,15 @@ test_that("Points can be labelled by their row id", {
     )
 })
 
+test_that("Points identified by an expression", {
+    p <- iNZPlot(Sepal.Width, data = iris, locate = Species,
+        locate.id = Species == "setosa", plot = FALSE)
+    expect_equal(
+        p$all$all$toplot$all$text.labels,
+        ifelse(iris$Species == "setosa", "setosa", "")[order(iris$Sepal.Width)]
+    )
+})
+
 test_that("Points with same level of X are identified", {
     p <- iNZPlot(Sepal.Width, data = iris, locate = NULL,
         locate.id = 1, locate.same.level = Species,

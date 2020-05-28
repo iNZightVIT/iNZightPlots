@@ -38,7 +38,8 @@
 #' @param extra.vars the names of any additional variables to be passed through
 #'        the internal functions to the create and plot methods.
 #' @param locate variable to label points
-#' @param locate.id id of points (row numbers) to label
+#' @param locate.id id of points (row numbers) to label, or
+#'        an expression that evaluates as a logical vector (e.g., \code{x > 5})
 #' @param locate.col the colour to locate points if a variable is not specified
 #' @param locate.extreme \code{numeric}, the number of extreme points to label
 #'        (using Mahalanobis' distance)

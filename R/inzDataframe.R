@@ -92,9 +92,11 @@ inzDataframe <- function(m, data = NULL, names = list(),
     }
 
     if (!is.null(m$locate.id)) {
+        m$locate.id <- eval(m$locate.id, envir = data, env)
+        if (is.logical(m$locate.id)) m$locate.id <- which(m$locate.id)
         label <- character(nrow(df$data))
         if (!is.null(m$locate.same.level)) {
-            loc.lvls <- unique(df$data$locate.same.level[eval(m$locate.id)])
+            loc.lvls <- unique(df$data$locate.same.level[m$locate.id])
             m$locate.id <- which(df$data$locate.same.level %in% loc.lvls)
         }
         if (is.null(df$data[["locate"]])) {
@@ -107,7 +109,7 @@ inzDataframe <- function(m, data = NULL, names = list(),
             locVar <- as.character(df$data$locate)
             if (all(locVar == "id")) locVar <- as.character(seq_len(nrow(df$data)))
             locVar[is.na(locVar)] <- "missing"
-            label[eval(m$locate.id)] <- locVar[eval(m$locate.id)]
+            label[eval(m$locate.id)] <- locVar[m$locate.id]
         }
         df$data$locate <- label
     } else if (!is.null(m$locate.extreme)) {
