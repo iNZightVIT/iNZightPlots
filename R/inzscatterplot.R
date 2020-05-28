@@ -121,7 +121,7 @@ create.inz.scatterplot <- function(obj) {
     if (xattr$class == "inz.survey")
         out$svy <- obj$df
     if ("highlight" %in% colnames(df))
-        out$highlight <- df$highlight
+        out$highlight <- as.logical(df$highlight)
 
     class(out) <- "inzscatter"
 

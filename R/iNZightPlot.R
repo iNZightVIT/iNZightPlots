@@ -42,6 +42,8 @@
 #' @param locate.col the colour to locate points if a variable is not specified
 #' @param locate.extreme \code{numeric}, the number of extreme points to label
 #'        (using Mahalanobis' distance)
+#' @param locate.same.level name of a variable to lable points with same level
+#'        of as those specified with `locate.id`
 #' @param highlight \code{numeric} vector consisting of the row numbers/IDs of
 #'        points to highlight
 #' @param data the name of a data set
@@ -114,6 +116,7 @@ iNZightPlot <- function(x,
                         locate.id = NULL,
                         locate.col = NULL,
                         locate.extreme = NULL,
+                        locate.same.level = NULL,
                         highlight = NULL,
                         data = NULL,
                         design = NULL,
@@ -568,6 +571,7 @@ iNZightPlot <- function(x,
     if (!is.null(df$max.freq))
         xattr$max.freq <- df$max.freq
     if (!is.null(locate.extreme)) xattr$nextreme <- locate.extreme
+
     if (!is.null(zoombars)) xattr$zoom <- zoombars
 
     if (inherits(df.list, "inz.survey")) {
@@ -855,9 +859,9 @@ iNZightPlot <- function(x,
             }
         }
 
-        if (is.null(xlab))
-            xlab <- varnames$x
-        if (is.null(ylab))
+        if (is.null(xlab))iNZPlot(Sepal.Length ~ Sepal.Width, data = iris, locate = "id",
+        locate.id = 1:5, locate.same.level = "Species",
+        plot.features = list(order.first = -1), plot = FALSE)
             ylab <- varnames$y
 
         titles <- list()

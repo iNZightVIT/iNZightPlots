@@ -46,7 +46,8 @@ inzDataframe <- function(m, data = NULL, names = list(),
         "colby",
         "sizeby",
         "symbolby",
-        "locate"
+        "locate",
+        "locate.same.level"
     )
     mw <- names(m) %in% vars
     mw[1] <- FALSE  # the function name
@@ -92,7 +93,11 @@ inzDataframe <- function(m, data = NULL, names = list(),
 
     if (!is.null(m$locate.id)) {
         label <- character(nrow(df$data))
-        if (is.null(df$data$locate)) {
+        if (!is.null(m$locate.same.level)) {
+            loc.lvls <- unique(df$data$locate.same.level[eval(m$locate.id)])
+            m$locate.id <- which(df$data$locate.same.level %in% loc.lvls)
+        }
+        if (is.null(df$data[["locate"]])) {
             if (is.null(m$locate.col))
                 locCol <- "default"
             else
@@ -119,7 +124,7 @@ inzDataframe <- function(m, data = NULL, names = list(),
     }
 
     if (!is.null(m$highlight)) {
-        df$data$highlight <- (1:nrow(df$data)) %in% m$highlight
+        df$data$highlight <- as.logical((1:nrow(df$data)) %in% eval(m$highlight))
     }
 
 
