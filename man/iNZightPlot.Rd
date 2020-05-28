@@ -82,7 +82,8 @@ the internal functions to the create and plot methods.}
 
 \item{locate}{variable to label points}
 
-\item{locate.id}{id of points (row numbers) to label}
+\item{locate.id}{id of points (row numbers) to label, or
+an expression that evaluates as a logical vector (e.g., \code{x > 5})}
 
 \item{locate.col}{the colour to locate points if a variable is not specified}
 
