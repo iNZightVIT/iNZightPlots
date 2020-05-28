@@ -20,6 +20,7 @@ iNZightPlot(
   locate.id = NULL,
   locate.col = NULL,
   locate.extreme = NULL,
+  locate.same.level = NULL,
   highlight = NULL,
   data = NULL,
   design = NULL,
@@ -87,6 +88,9 @@ the internal functions to the create and plot methods.}
 
 \item{locate.extreme}{\code{numeric}, the number of extreme points to label
 (using Mahalanobis' distance)}
+
+\item{locate.same.level}{name of a variable to lable points with same level
+of as those specified with `locate.id`}
 
 \item{highlight}{\code{numeric} vector consisting of the row numbers/IDs of
 points to highlight}
