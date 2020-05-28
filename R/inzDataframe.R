@@ -121,6 +121,8 @@ inzDataframe <- function(m, data = NULL, names = list(),
         }
         df$data$extreme.label <- label
         df$data$pointIDs <- 1:nrow(df$data)
+    } else {
+        df$data$locate.same.level <- NULL
     }
 
     if (!is.null(m$highlight)) {

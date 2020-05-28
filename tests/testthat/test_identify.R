@@ -94,3 +94,11 @@ test_that("Locating extreme points", {
         ifelse(iris$Species == "virginica", "virginica", "")
     )
 })
+
+test_that("No IDs = no labels", {
+    p <- iNZPlot(Sepal.Width, data = iris, locate.same.level = Species, plot = FALSE)
+    expect_equal(
+        p$all$all$toplot$all$text.labels,
+        rep(NA_character_, nrow(iris))
+    )
+})
