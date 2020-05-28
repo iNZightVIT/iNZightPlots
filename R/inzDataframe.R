@@ -121,6 +121,18 @@ inzDataframe <- function(m, data = NULL, names = list(),
         }
         df$data$extreme.label <- label
         df$data$pointIDs <- 1:nrow(df$data)
+    } else {
+        df$data$locate.same.level <- NULL
+    }
+
+    if (!is.null(df$data$locate.same.level)) {
+        df$data$locate.same.level <- as.factor(
+            ifelse(
+                is.na(df$data$locate.same.level),
+                "missing",
+                df$data$locate.same.level
+            )
+        )
     }
 
     if (!is.null(m$highlight)) {
