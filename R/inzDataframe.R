@@ -125,6 +125,16 @@ inzDataframe <- function(m, data = NULL, names = list(),
         df$data$locate.same.level <- NULL
     }
 
+    if (!is.null(df$data$locate.same.level)) {
+        df$data$locate.same.level <- as.factor(
+            ifelse(
+                is.na(df$data$locate.same.level),
+                "missing",
+                df$data$locate.same.level
+            )
+        )
+    }
+
     if (!is.null(m$highlight)) {
         df$data$highlight <- as.logical((1:nrow(df$data)) %in% eval(m$highlight))
     }

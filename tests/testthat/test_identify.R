@@ -102,3 +102,14 @@ test_that("No IDs = no labels", {
         rep(NA_character_, nrow(iris))
     )
 })
+
+test_that("Missing values in locate same level", {
+    iris$Species2 <- NA_character_
+    p <- iNZPlot(Sepal.Width ~ Sepal.Length, data = iris,
+        colby = Species, locate.extreme = 1, locate.same.level = Species,
+        locate = Species2, plot = T, plot.features = list(order.first = -1))
+    expect_equal(
+        p$all$all$text.labels,
+        c(rep("", 100), rep("missing", 50))
+    )
+})
