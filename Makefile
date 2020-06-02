@@ -1,7 +1,9 @@
 R := R
 RCMD := $(R) --slave
 
-document:
+data := data/plot_types.rda
+
+document: $(data)
 	@$(RCMD) -e "devtools::document()"
 
 check:
@@ -15,11 +17,14 @@ crancheck:
 	@$(RCMD) CMD build .
 	@$(RCMD) CMD check *.tar.gz
 
-install:
+install: $(data)
 	$(R) CMD INSTALL ./
 
 clean:
 	@rm -rf *.tar.gz *.Rcheck revdep
 
-test:
+test: $(data)
 	@$(RCMD) -e "devtools::test()"
+
+data/plot_types.rda: data-raw/plot_types.csv
+	@$(RCMD) -f data-raw/plot_types.R

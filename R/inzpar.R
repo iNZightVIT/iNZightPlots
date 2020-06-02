@@ -267,3 +267,16 @@ inzpar <- function(...,
     class(ip) <- "inzpar.list"
     ip
 }
+
+# Used internally
+valid_par <- function(par, plot_type, what = c("plot", "summary", "inference")) {
+    what <- substr(match.arg(what), 1, 1)
+    res <- rep(TRUE, length(par))
+    if (! plot_type %in% colnames(plot_types) ) {
+        warning("Invalid or unknown plot type")
+        return(res)
+    }
+    v <- par %in% rownames(plot_types)
+    res[v] <- grepl(what, plot_types[par[v], plot_type])
+    res
+}
