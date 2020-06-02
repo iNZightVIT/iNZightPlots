@@ -50,9 +50,9 @@ boxplot,p,p,,,,
 box.lwd,p,p,,,,
 box.col,p,p,,,,
 box.fill,p,p,,,,
-bar.lwd,,,,,,p
-bar.col,,,,,,p
-bar.fill,,,,,,p
+bar.lwd,,p,,,,p
+bar.col,,p,,,,p
+bar.fill,,p,,,,p
 bar.counts,,,,,,p
 full.height,,,,,,p
 inf.lwd.comp,,,,,,p
