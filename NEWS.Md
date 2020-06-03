@@ -1,5 +1,8 @@
 
 
+## iNZightPlots 2.11.6
+- fix bug resulting in an invalid p-value being displayed for some two sided tests
+
 ## iNZightPlots 2.11.5
 - provide design effects for survey summaries
 - fix bug where regions cannot be selected in interactive sparkline plots due to id issue
