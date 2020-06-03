@@ -10,8 +10,15 @@ locate.same.level,p,,p,,,,
 highlight,p,,p,,,,
 xlim,p,p,p,p,p,,
 ylim,,,p,p,p,p,p
-zoombars,,,,,,,
-hide.legend,,,,,,,
+zoombars,,,,,,p,p
+hide.legend,p,,p,,p,p,p
+hypothesis.value,i,i,,,,,
+hypothesis.alt,i,i,,,,,
+hypothesis.var.equal,i,i,,,,,
+hypothesis.use.exact,,,,,,i,
+hypothesis.test,i,i,,,,i,i
+hypothesis.simulated.p.value,,,,,,i,i
+hypothesis,i,i,,,,i,i
 pch,p,,p,,,,
 col.pt,p,,p,,p,,
 col.fun,p,,p,,p,p,p
