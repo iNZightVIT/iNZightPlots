@@ -4,6 +4,7 @@
 [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/iNZightVIT/iNZightPlots?branch=dev&svg=true)](https://ci.appveyor.com/project/iNZightVIT/iNZightPlots)
 [![codecov](https://codecov.io/gh/iNZightVIT/iNZightPlots/branch/dev/graph/badge.svg)](https://codecov.io/gh/iNZightVIT/iNZightPlots)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
+[![CRAN](https://www.r-pkg.org/badges/version/iNZightPlots)](https://CRAN.R-project.org/package=iNZightPlots)
 
 
 Graphics functions which provide a simple, easy-to-learn interface, allowing beginners to explore and visualize data easily.

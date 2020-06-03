@@ -52,7 +52,7 @@ d <- data.frame(
     stringsAsFactors = TRUE
 )
 ptest <- list(
-    p.value = pnorm(
+    p.value = 2 * pnorm(
         abs((table(d$x)[[1]] / 100 - 0.5) / 0.05),
         lower.tail = FALSE
     )
