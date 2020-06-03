@@ -653,7 +653,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                         prtest <- list(
                             statistic = Z,
                             p.value = switch(hypothesis$alternative,
-                                "two.sided" = pnorm(abs(Z), lower.tail = FALSE),
+                                "two.sided" = 2 * pnorm(abs(Z), lower.tail = FALSE),
                                 "less" = pnorm(Z, lower.tail = TRUE),
                                 "greater" = pnorm(Z, lower.tail = FALSE)
                             )
@@ -709,7 +709,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                             prtest <- list(
                                 statistic = Z,
                                 p.value = switch(hypothesis$alternative,
-                                    "two.sided" = pnorm(abs(Z), lower.tail = FALSE),
+                                    "two.sided" = 2 * pnorm(abs(Z), lower.tail = FALSE),
                                     "less" = pnorm(Z, lower.tail = TRUE),
                                     "greater" = pnorm(Z, lower.tail = FALSE)
                                 )
