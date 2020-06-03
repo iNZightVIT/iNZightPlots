@@ -188,7 +188,7 @@ test_that("Single proportion survey (binary variable)", {
     svy_prop <- svymean(~awards, dclus1)
     svy_ci <- confint(svy_prop)
     svy_Z <- (coef(svy_prop)[[1]] - 0.25) / SE(svy_prop)[[1]]
-    svy_p <- pnorm(abs(svy_Z), lower.tail = FALSE)
+    svy_p <- 2 * pnorm(abs(svy_Z), lower.tail = FALSE)
 
     inz_test <- capture.output(
         getPlotSummary(awards,
