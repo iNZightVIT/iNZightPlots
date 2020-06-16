@@ -115,6 +115,7 @@ addTrend <- function(x, y, order, xlim, col, bs, inf, opts) {
             ),
             silent = TRUE
         )
+        yy <- list(fit = as.numeric(yy), se.fit = attr(yy, "var"))
     } else {
         yy <- try(
             c(
@@ -206,6 +207,7 @@ addParTrend <- function(x, y, by, order, xlim, cols, inf, bs, opts) {
                 ),
                 silent = TRUE
             )
+            yy <- list(fit = as.numeric(yy), se.fit = attr(yy, "var"))
         }
     } else {
         yy <- try(
