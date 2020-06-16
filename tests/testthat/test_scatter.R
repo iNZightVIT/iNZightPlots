@@ -17,3 +17,44 @@ test_that("Colour by works", {
         "inzplotoutput"
     )
 })
+
+test_that("Adding inference information", {
+    p <- iNZightPlot(Sepal.Width, Sepal.Length, data = iris,
+        trend = c("linear", "quadratic", "cubic"),
+        inference.type = "conf"
+    )
+    expect_is(p, "inzplotoutput")
+
+    p <- iNZightPlot(Sepal.Width, Sepal.Length, data = iris,
+        colby = Species,
+        trend = "linear",
+        trend.by = TRUE, trend.parallel = FALSE,
+        inference.type = "conf"
+    )
+    expect_is(p, "inzplotoutput")
+
+    p <- iNZightPlot(Sepal.Width, Sepal.Length, data = iris,
+        colby = Species,
+        trend = "linear",
+        trend.by = TRUE, trend.parallel = TRUE,
+        inference.type = "conf"
+    )
+    expect_is(p, "inzplotoutput")
+
+
+    p <- iNZightPlot(Sepal.Width, Sepal.Length, data = iris,
+        trend = "linear",
+        inference.type = "conf",
+        bs.inference = TRUE
+    )
+    expect_is(p, "inzplotoutput")
+
+    p <- iNZightPlot(Sepal.Width, Sepal.Length, data = iris,
+        colby = Species,
+        trend = "linear",
+        trend.by = TRUE, trend.parallel = FALSE,
+        inference.type = "conf",
+        bs.inference = TRUE
+    )
+    expect_is(p, "inzplotoutput")
+})

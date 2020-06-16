@@ -2,6 +2,7 @@
 - allow `col.fun` to be a character palette name
 - fix handling of env argument
 - handle "id" value for `locate` argument
+- add normal inference to scatter plot trend lines
 
 ## iNZightPlots 2.11.6
 - fix bug resulting in an invalid p-value being displayed for some two sided tests

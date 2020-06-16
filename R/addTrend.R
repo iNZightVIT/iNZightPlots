@@ -42,6 +42,7 @@ addXYtrend <- function(obj, opts, col.args, xlim, ylim) {
                         order = order,
                         xlim = xlim,
                         col = opts$col.trend[[o]],
+                        inf = !is.null(opts$inference.type) && opts$inference.type == "conf",
                         bs = opts$bs.inference,
                         opts = opts
                     )
@@ -56,6 +57,8 @@ addXYtrend <- function(obj, opts, col.args, xlim, ylim) {
                         order = order,
                         xlim = xlim,
                         cols = col.args$f.cols,
+                        inf = !is.null(opts$inference.type) && opts$inference.type == "conf",
+                        bs = opts$bs.inference,
                         opts = opts
                     )
                 }
@@ -80,6 +83,7 @@ addXYtrend <- function(obj, opts, col.args, xlim, ylim) {
                         addTrend(xtmp[[b]], ytmp[[b]],
                             order = order, xlim = xlim,
                             col = col.args$f.cols[b],
+                            inf = !is.null(opts$inference.type) && opts$inference.type == "conf",
                             bs = opts$bs.inference,
                             opts = opts
                         )
@@ -90,7 +94,7 @@ addXYtrend <- function(obj, opts, col.args, xlim, ylim) {
     }
 }
 
-addTrend <- function(x, y, order, xlim, col, bs, opts) {
+addTrend <- function(x, y, order, xlim, col, bs, inf, opts) {
     xx <- seq(xlim[1], xlim[2], length = 1001)
     is.svy <- is_survey(x)
 
@@ -106,7 +110,8 @@ addTrend <- function(x, y, order, xlim, col, bs, opts) {
         yy <- try(
             predict(
                 svyglm(expr, design = svy),
-                data.frame(x = xx, stringsAsFactors = TRUE)
+                data.frame(x = xx, stringsAsFactors = TRUE),
+                se = TRUE
             ),
             silent = TRUE
         )
@@ -115,7 +120,8 @@ addTrend <- function(x, y, order, xlim, col, bs, opts) {
             c(
                 predict(
                     lm(y ~ poly(x, order)),
-                    data.frame(x = xx, stringsAsFactors = TRUE)
+                    data.frame(x = xx, stringsAsFactors = TRUE),
+                    se = TRUE
                 )
             ),
             silent = TRUE
@@ -125,51 +131,63 @@ addTrend <- function(x, y, order, xlim, col, bs, opts) {
 
     # Sometimes, there might not be enough data points do run poly(),
     # so in this case simply don't draw.
-    if (!inherits(yy, "try-error")) {
-        grid.lines(xx, yy,
+    if (inherits(yy, "try-error")) return()
+
+    if (inf && !bs && !any(is.na(yy$se.fit))) {
+        # add shaded region
+        se_x <- c(xx, rev(xx))
+        se_y <- c(qnorm(0.025, yy$fit, yy$se.fit), rev(qnorm(0.975, yy$fit, yy$se.fit)))
+        grid.polygon(se_x, se_y,
             default.units = "native",
-            gp = gpar(col = col, lwd = 2 * opts$lwd, lty = opts$lty.trend[[ord]]),
-            name = paste(paste0("inz-trend-", ord), opts$rowNum, opts$colNum, sep = ".")
+            gp = gpar(fill = col, alpha = 0.2, lwd = 0),
+            name = paste(paste0("inz-trend-se-", ord), opts$rowNum, opts$colNum, sep = ".")
         )
+    }
 
-        if (bs) {
-            bs.lines <- vector("list", 30)
+    yy <- yy$fit
+    grid.lines(xx, yy,
+        default.units = "native",
+        gp = gpar(col = col, lwd = 2 * opts$lwd, lty = opts$lty.trend[[ord]]),
+        name = paste(paste0("inz-trend-", ord), opts$rowNum, opts$colNum, sep = ".")
+    )
 
-            if (is.svy)
-                return(NULL)
+    if (bs) {
+        bs.lines <- vector("list", 30)
 
-            for (i in 1:30) {
-                ## User wants bootstrap inference for this line.
-                id <- sample(1:length(x), replace = TRUE)
-                x2 <- x[id]
-                y2 <- y[id]
+        if (is.svy)
+            return(NULL)
 
-                yy <- try(
-                    predict(
-                        lm(y2 ~ poly(x2, order)),
-                        data.frame(x2 = xx, stringsAsFactors = TRUE)
-                    ),
-                    silent = TRUE
-                )
+        for (i in 1:30) {
+            ## User wants bootstrap inference for this line.
+            id <- sample(1:length(x), replace = TRUE)
+            x2 <- x[id]
+            y2 <- y[id]
 
-                ## Some bootstraps can have less than `order` unique points:
-                if (inherits(yy, "try-error")) next
-
-                bs.lines[[i]] <- cbind(xx, yy, rep(i, length(yy)))
-            }
-
-            all.lines <- do.call(rbind, bs.lines)
-            grid.polyline(all.lines[, 1], all.lines[, 2],
-                id = all.lines[, 3],
-                default.units = "native",
-                gp = gpar(col = col, lwd = 1 * opts$lwd, lty = 3),
-                name = paste(paste0("inz-bs-", ord), opts$rowNum, opts$colNum, sep = ".")
+            yy <- try(
+                predict(
+                    lm(y2 ~ poly(x2, order)),
+                    data.frame(x2 = xx, stringsAsFactors = TRUE)
+                ),
+                silent = TRUE
             )
+
+            ## Some bootstraps can have less than `order` unique points:
+            if (inherits(yy, "try-error")) next
+
+            bs.lines[[i]] <- cbind(xx, yy, rep(i, length(yy)))
         }
+
+        all.lines <- do.call(rbind, bs.lines)
+        grid.polyline(all.lines[, 1], all.lines[, 2],
+            id = all.lines[, 3],
+            default.units = "native",
+            gp = gpar(col = col, lwd = 1 * opts$lwd, lty = 3),
+            name = paste(paste0("inz-bs-", ord), opts$rowNum, opts$colNum, sep = ".")
+        )
     }
 }
 
-addParTrend <- function(x, y, by, order, xlim, cols, opts) {
+addParTrend <- function(x, y, by, order, xlim, cols, inf, bs, opts) {
     lby <- levels(by)
     xx <- rep(seq(xlim[1], xlim[2], length = 1001), length(lby))
     byy <- rep(lby, each = 1001)
@@ -183,7 +201,8 @@ addParTrend <- function(x, y, by, order, xlim, cols, opts) {
             )
             yy <- try(
                 predict(LM <- svyglm(expr, design = svy),
-                    data.frame(x = xx, colby = byy, stringsAsFactors = TRUE)
+                    data.frame(x = xx, colby = byy, stringsAsFactors = TRUE),
+                    se = TRUE
                 ),
                 silent = TRUE
             )
@@ -193,7 +212,8 @@ addParTrend <- function(x, y, by, order, xlim, cols, opts) {
             c(
                 predict(
                     LM <- lm(y ~ poly(x, order) + by),
-                    data.frame(x = xx, by = byy, stringsAsFactors = TRUE)
+                    data.frame(x = xx, by = byy, stringsAsFactors = TRUE),
+                    se = TRUE
                 )
             ),
             silent = TRUE
@@ -203,18 +223,42 @@ addParTrend <- function(x, y, by, order, xlim, cols, opts) {
 
     # Sometimes, there might not be enough data points do run poly(),
     # so in this case simply don't draw.
-    if (!inherits(yy, "try-error")) {
+    if (inherits(yy, "try-error")) return()
+
+    if (inf && !bs && !any(is.na(yy$se.fit))) {
+        # add shaded region
         for (i in 1:length(lby)) {
-            grid.lines(xx[byy == lby[i]], yy[byy == lby[i]],
+            se_x <- c(xx[byy == lby[i]], rev(xx[byy == lby[i]]))
+            se_y <- c(
+                qnorm(0.025, yy$fit[byy == lby[i]], yy$se.fit[byy == lby[i]]),
+                rev(
+                    qnorm(0.975, yy$fit[byy == lby[i]], yy$se.fit[byy == lby[i]])
+                )
+            )
+            grid.polygon(se_x, se_y,
                 default.units = "native",
-                gp = gpar(col = (cols[i]), lwd = 2 * opts$lwd, lty = opts$lty.trend[[ord]]),
+                gp = gpar(fill = cols[i], alpha = 0.2, lwd = 0),
                 name = paste(
-                    paste0("inz-par-trend-", ord),
+                    paste0("inz-par-trend-se-", ord),
                     opts$rowNum,
                     opts$colNum,
                     sep = "."
                 )
             )
         }
+    }
+    yy <- yy$fit
+
+    for (i in 1:length(lby)) {
+        grid.lines(xx[byy == lby[i]], yy[byy == lby[i]],
+            default.units = "native",
+            gp = gpar(col = (cols[i]), lwd = 2 * opts$lwd, lty = opts$lty.trend[[ord]]),
+            name = paste(
+                paste0("inz-par-trend-", ord),
+                opts$rowNum,
+                opts$colNum,
+                sep = "."
+            )
+        )
     }
 }
