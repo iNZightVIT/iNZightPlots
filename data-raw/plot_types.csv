@@ -79,7 +79,7 @@ inf.lwd.comp,,,,,,p,p
 inf.lwd.conf,,,,,,p,p
 inf.col.comp,p,p,,,,p,p
 inf.col.conf,p,p,,,,p,p
-inference.type,p,p,,,,p,p
+inference.type,p,p,p,p,p,p,p
 inference.par,p,p,,,,,
 bs.inference,pi,pi,pi,pi,pi,pi,pi
 min.count,,,,,,psi,psi
