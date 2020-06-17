@@ -23,9 +23,11 @@ test_that("Inference information is correct", {
     set.seed(1)
     x <- rnorm(100, sd = 10)
     pl <- iNZightPlot(x,
-        plot = FALSE,
+        plot = interactive(),
         inference.par = "mean",
-        inference.type = "conf"
+        inference.type = "conf",
+        mean_indicator = FALSE,
+        boxplot = TRUE
     )
     xbar <- mean(x)
     wd <- qt(0.975, length(x) - 1) * sd(x) / sqrt(length(x))
@@ -33,11 +35,18 @@ test_that("Inference information is correct", {
         as.numeric(pl$all$all$inference.info$mean$conf),
         c(xbar - wd, xbar + wd, xbar)
     )
+    expect_equal(
+        pl$all$all$meaninfo$all$mean,
+        mean(x)
+    )
+    expect_null(pl$all$all$boxinfo)
 
     pl <- iNZightPlot(x,
-        plot = FALSE,
+        plot = interactive(),
         inference.par = "median",
-        inference.type = "conf"
+        inference.type = "conf",
+        mean_indicator = TRUE,
+        boxplot = FALSE
     )
     # 1.5 * IQR / sqrt(N)
     xbar <- median(x)
@@ -45,6 +54,11 @@ test_that("Inference information is correct", {
     expect_equal(
         as.numeric(pl$all$all$inference.info$median$conf),
         c(xbar - wd, xbar + wd, xbar)
+    )
+    expect_null(pl$all$all$meaninfo)
+    expect_equal(
+        pl$all$all$boxinfo$all$quantiles,
+        quantile(x, c(0.25, 0.5, 0.75))
     )
 
     ### Bootstraps

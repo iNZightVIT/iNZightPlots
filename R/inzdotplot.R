@@ -15,6 +15,16 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
 
     boxplot <- opts$boxplot
     mean_indicator <- opts$mean_indicator
+    if (!is.null(opts$inference.par) && !is.null(opts$inference.type)) {
+        if (opts$inference.par == "mean") {
+            boxplot <- FALSE
+            mean_indicator <- TRUE
+        }
+        if (opts$inference.par == "median") {
+            boxplot <- TRUE
+            mean_indicator <- FALSE
+        }
+    }
 
     v <- colnames(df)
     vn <- xattr$varnames
@@ -358,10 +368,8 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
     mcex <- gen$mcex
     col.args <- gen$col.args
     boxplot <- opts$boxplot
-    mean_indicator <- ifelse(!is.null(opts$mean_indicator),
-        opts$mean_indicator,
-        FALSE
-    )
+    mean_indicator <- !is.null(obj$meaninfo)
+
     expand.points <- 1# if (is.null(opts$expand.points)) 1 else opts$expand.points
 
     addGrid(x = TRUE, gen = gen, opts = opts)
@@ -379,7 +387,8 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
             clip = "on"
         )
     )
-    Hgts <- if (boxplot || mean_indicator) c(3, 1) else c(1, 0)
+    Hgts <- if (!is.null(boxinfo) || !is.null(meaninfo) || !is.null(inflist)) c(3, 1)
+        else c(1, 0)
     dpLayout <- grid.layout(nrow = 2, heights = unit(Hgts, "null"))
 
     # we need to make the dots stack nicely, if they fit
