@@ -661,7 +661,7 @@ addMean <- function(x, opts, i) {
     grid.points(unit(x$mean, "native"), unit(0.4, "npc"),
         gp = gpar(
             fill = "black",
-            cex = opts$cex.dotpt * 1.5
+            cex = opts$cex * 0.75
         ),
         pch = 24,
         name = paste("inz-mean", r, c, i, sep = ".")

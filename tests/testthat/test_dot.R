@@ -19,6 +19,14 @@ test_that("Colour by with quantiles", {
     )
 })
 
+test_that("Mean indicator", {
+    pl <- iNZightPlot(Sepal.Width, data = iris, mean_indicator = TRUE)
+    pl <- iNZightPlot(Sepal.Width, data = iris, mean_indicator = TRUE,
+        plottype = "hist",
+        cex.dotpt = 5
+    )
+})
+
 test_that("Inference information is correct", {
     set.seed(1)
     x <- rnorm(100, sd = 10)
