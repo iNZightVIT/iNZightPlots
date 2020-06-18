@@ -252,19 +252,6 @@ addParTrend <- function(x, y, by, order, xlim, cols, inf, bs, opts) {
     }
     yy <- yy$fit
 
-    for (i in 1:length(lby)) {
-        grid.lines(xx[byy == lby[i]], yy[byy == lby[i]],
-            default.units = "native",
-            gp = gpar(col = (cols[i]), lwd = 2 * opts$lwd, lty = opts$lty.trend[[ord]]),
-            name = paste(
-                paste0("inz-par-trend-", ord),
-                opts$rowNum,
-                opts$colNum,
-                sep = "."
-            )
-        )
-    }
-
     if (bs) {
         bs.lines <- vector("list", 30)
 
@@ -275,7 +262,7 @@ addParTrend <- function(x, y, by, order, xlim, cols, inf, bs, opts) {
         for (i in 1:30) {
             ## User wants bootstrap inference for this line.
             # sample within each group, proportional to size
-            id <- c(sapply(tbl, sample, replace = TRUE)) + rep(cumsum(tbl) - min(tbl), tbl)
+            id <- as.numeric(unlist(tapply(seq_along(by), by, sample, replace = TRUE)))
             x2 <- x[id]
             y2 <- y[id]
             by2 <- by[id]
@@ -310,4 +297,18 @@ addParTrend <- function(x, y, by, order, xlim, cols, inf, bs, opts) {
             )
         }
     }
+
+    for (i in 1:length(lby)) {
+        grid.lines(xx[byy == lby[i]], yy[byy == lby[i]],
+            default.units = "native",
+            gp = gpar(col = (cols[i]), lwd = 2 * opts$lwd, lty = opts$lty.trend[[ord]]),
+            name = paste(
+                paste0("inz-par-trend-", ord),
+                opts$rowNum,
+                opts$colNum,
+                sep = "."
+            )
+        )
+    }
+
 }
