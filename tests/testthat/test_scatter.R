@@ -57,4 +57,13 @@ test_that("Adding inference information", {
         bs.inference = TRUE
     )
     expect_is(p, "inzplotoutput")
+
+    p <- iNZightPlot(Sepal.Width, Sepal.Length, data = iris,
+        colby = Species,
+        trend = "linear",
+        trend.by = TRUE, trend.parallel = TRUE,
+        inference.type = "conf",
+        bs.inference = TRUE
+    )
+    expect_is(p, "inzplotoutput")
 })

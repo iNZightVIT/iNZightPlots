@@ -192,7 +192,8 @@ addParTrend <- function(x, y, by, order, xlim, cols, inf, bs, opts) {
     lby <- levels(by)
     xx <- rep(seq(xlim[1], xlim[2], length = 1001), length(lby))
     byy <- rep(lby, each = 1001)
-    if (is_survey(x)) {
+    is.svy <- is_survey(x)
+    if (is.svy) {
         if (length(order) == 1) {
             svy <- x
             expr <- switch(order,
@@ -262,5 +263,51 @@ addParTrend <- function(x, y, by, order, xlim, cols, inf, bs, opts) {
                 sep = "."
             )
         )
+    }
+
+    if (bs) {
+        bs.lines <- vector("list", 30)
+
+        if (is.svy)
+            return(NULL)
+
+        tbl <- table(by)
+        for (i in 1:30) {
+            ## User wants bootstrap inference for this line.
+            # sample within each group, proportional to size
+            id <- c(sapply(tbl, sample, replace = TRUE)) + rep(cumsum(tbl) - min(tbl), tbl)
+            x2 <- x[id]
+            y2 <- y[id]
+            by2 <- by[id]
+
+            gr <- expand.grid(
+                x2 = xx,
+                by2 = lby,
+                stringsAsFactors = TRUE
+            )
+            yy <- try(
+                predict(
+                    lm(y2 ~ poly(x2, order) + by2),
+                    gr
+                ),
+                silent = TRUE
+            )
+
+            ## Some bootstraps can have less than `order` unique points:
+            if (inherits(yy, "try-error")) next
+
+            bs.lines[[i]] <- cbind(gr, yy, rep(i, length(yy)))
+        }
+
+        all.lines <- do.call(rbind, bs.lines)
+        for (b in lby) {
+            bi <- which(all.lines[, 2] == b)
+            grid.polyline(all.lines[bi, 1], all.lines[bi, 3],
+                id = all.lines[bi, 4],
+                default.units = "native",
+                gp = gpar(col = cols[b], lwd = 1 * opts$lwd, lty = 3),
+                name = paste(paste0("inz-bs-", ord), opts$rowNum, opts$colNum, sep = ".")
+            )
+        }
     }
 }
