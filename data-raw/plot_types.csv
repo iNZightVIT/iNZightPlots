@@ -38,7 +38,7 @@ cex.main,p,p,p,p,p,p,p,,,,,,,,,,,,,,,,,,,,,
 cex.text,p,p,p,p,p,p,p,,,,,,,,,,,,,,,,,,,,,
 resize.method,,,p,,,,,,,,,,,,,,,,,,,,,,,,,
 alpha,p,,p,,,,,p,p,,,,,,,,,p,p,,,p,p,,p,,,
-bg,p,p,p,p,p,p,p,,,,,,,,,,,,,,,,,,,,,
+bg,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,,p,p
 grid.lines,p,p,p,p,p,p,p,,,,,,,,,,,,,,,,,,,,,
 col.grid,p,p,p,p,p,p,p,,,,,,,,,,,,,,,,,,,,,
 fill.pt,p,,p,,,,,,,,,,,,,,,,,,,,,,,,,
@@ -106,3 +106,10 @@ gg_perN,,,,,,,,,,,,,,,,,,,,,,,,,,p,,
 gg_swarmwidth,,,,,,,,,,,,,,,,,,,,,,,,,,,p,
 gg_method,,,,,,,,,,,,,,,,,,,,,,,,,,,p,
 gg_cutpoint,,,,,,,,,,,,,,,,,,,,,,,,,,,,p
+gg_theme,,,,,,,,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p
+fill_colour,,,,,,,,p,p,p,p,p,,p,,,p,p,p,,,p,p,p,p,,p,
+rotation,,,,,,,,p,p,p,p,,p,p,,,p,p,p,p,p,p,p,p,p,p,p,p
+rotate_labels,,,,,,,,p,p,p,p,,p,p,,,p,p,p,p,p,p,p,p,p,,p,p
+caption,,,,,,,,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p
+desc,,,,,,,,,,,,,p,p,p,p,,,,,,,,,,,,
+palette,,,,,,,,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,P
