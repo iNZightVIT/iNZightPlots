@@ -5,6 +5,8 @@
 - add normal inference to scatter plot trend lines
 - when dot plots show inference, override `boxplot` and `mean_indicator` (depending on specification of `inference.par`)
 - mean indicator scales with overall plot scale, not dot point size
+- refactors exportHTML() and exportSVG() to writing file to (by default) a temporary directory, and without changing directories in the process
+- fix handling of `local` argument (for exportHTML())
 
 ## iNZightPlots 2.11.6
 - fix bug resulting in an invalid p-value being displayed for some two sided tests
