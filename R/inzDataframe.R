@@ -46,7 +46,8 @@ inzDataframe <- function(m, data = NULL, names = list(),
         "colby",
         "sizeby",
         "symbolby",
-        "locate"
+        "locate",
+        "locate.same.level"
     )
     mw <- names(m) %in% vars
     mw[1] <- FALSE  # the function name
@@ -91,8 +92,14 @@ inzDataframe <- function(m, data = NULL, names = list(),
     }
 
     if (!is.null(m$locate.id)) {
+        m$locate.id <- eval(m$locate.id, envir = data, env)
+        if (is.logical(m$locate.id)) m$locate.id <- which(m$locate.id)
         label <- character(nrow(df$data))
-        if (is.null(df$data$locate)) {
+        if (!is.null(m$locate.same.level)) {
+            loc.lvls <- unique(df$data$locate.same.level[m$locate.id])
+            m$locate.id <- which(df$data$locate.same.level %in% loc.lvls)
+        }
+        if (is.null(df$data[["locate"]])) {
             if (is.null(m$locate.col))
                 locCol <- "default"
             else
@@ -100,8 +107,9 @@ inzDataframe <- function(m, data = NULL, names = list(),
             label[eval(m$locate.id)] <- paste(" ")
         } else {
             locVar <- as.character(df$data$locate)
+            if (all(locVar == "id")) locVar <- as.character(seq_len(nrow(df$data)))
             locVar[is.na(locVar)] <- "missing"
-            label[eval(m$locate.id)] <- locVar[eval(m$locate.id)]
+            label[eval(m$locate.id)] <- locVar[m$locate.id]
         }
         df$data$locate <- label
     } else if (!is.null(m$locate.extreme)) {
@@ -115,10 +123,22 @@ inzDataframe <- function(m, data = NULL, names = list(),
         }
         df$data$extreme.label <- label
         df$data$pointIDs <- 1:nrow(df$data)
+    } else {
+        df$data$locate.same.level <- NULL
+    }
+
+    if (!is.null(df$data$locate.same.level)) {
+        df$data$locate.same.level <- as.factor(
+            ifelse(
+                is.na(df$data$locate.same.level),
+                "missing",
+                df$data$locate.same.level
+            )
+        )
     }
 
     if (!is.null(m$highlight)) {
-        df$data$highlight <- (1:nrow(df$data)) %in% m$highlight
+        df$data$highlight <- as.logical((1:nrow(df$data)) %in% eval(m$highlight))
     }
 
 

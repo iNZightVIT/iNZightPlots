@@ -31,7 +31,8 @@ getPlotSummary(
     match.arg(hypothesis.test), simulated.p.value = hypothesis.simulated.p.value),
   survey.options = list(),
   width = 100,
-  ...
+  ...,
+  env = parent.frame()
 )
 }
 \arguments{
@@ -95,6 +96,8 @@ displayed in the plot}
 \item{width}{width for the output, default is 100 characters}
 
 \item{...}{additional arguments, see \code{inzpar}}
+
+\item{env}{compatibility argument}
 }
 \value{
 an \code{inzight.plotsummary} object with a print method

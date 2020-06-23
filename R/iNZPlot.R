@@ -3,6 +3,7 @@
 #' @param f A formula in the form of \code{y ~ x | g}. See Details.
 #' @param data Dataset to plot
 #' @param ... Any arguments to pass to \code{\link{iNZightPlot}}
+#' @param env the parent environment to pass to the plot function
 #'
 #' @details
 #' \code{iNZPlot} is a simple wrapper around the \code{\link{iNZightPlot}} function.
@@ -30,7 +31,7 @@
 #' iNZPlot(uptake ~ Treatment | Type, data = CO2)
 #' iNZPlot(uptake ~ Treatment | Type,
 #' data = CO2, g1.level = "Quebec")
-iNZPlot <- function(f, data = NULL, ...) {
+iNZPlot <- function(f, data = NULL, ..., env = parent.frame()) {
     f <- match.call()[["f"]]
     dots <- rlang::enexprs(...)
 
@@ -39,31 +40,45 @@ iNZPlot <- function(f, data = NULL, ...) {
             rlang::expr(
                 iNZightPlot(x = !!f,
                     data = !!match.call()[["data"]],
-                    !!!dots
+                    !!!dots,
+                    env = !!env
                 )
             )
         )
     } else {
         f.list <- as.list(f)
+        # print(f.list)
 
         if (lengths(f.list)[3] == 1) {
+            if (f.list[[3]] == ".") {
+                f.list[[3]] <- f.list[[2]]
+                f.list[2] <- list(NULL)
+            }
             eval(
                 rlang::expr(
                     iNZightPlot(x = !!f.list[[3]], y = !!f.list[[2]],
                         data = !!match.call()[["data"]],
-                        !!!dots
+                        !!!dots,
+                        env = !!env
                     )
                 )
             )
         } else {
             f.list2 <- as.list(f.list[[3]])
+            if (f.list2[[2]] == ".") {
+                f.list2[[2]] <- f.list[[2]]
+                f.list[2] <- list(NULL)
+            }
             if (lengths(f.list2)[3] == 1) {
                 eval(
                     rlang::expr(
-                        iNZightPlot(x = !!f.list2[[2]], y = !!f.list[[2]],
+                        iNZightPlot(
+                            x = !!f.list2[[2]],
+                            y = !!f.list[[2]],
                             g1 = !!f.list2[[3]],
                             data = !!match.call()[["data"]],
-                            !!!dots
+                            !!!dots,
+                            env = !!env
                         )
                     )
                 )
@@ -71,11 +86,14 @@ iNZPlot <- function(f, data = NULL, ...) {
                 f.list3 <- as.list(f.list2[[3]])
                 eval(
                     rlang::expr(
-                        iNZightPlot(x = !!f.list2[[2]], y = !!f.list[[2]],
+                        iNZightPlot(
+                            x = !!f.list2[[2]],
+                            y = !!f.list[[2]],
                             g1 = !!f.list3[[2]],
                             g2 = !!f.list3[[3]],
                             data = !!match.call()[["data"]],
-                            !!!dots
+                            !!!dots,
+                            env = !!env
                         )
                     )
                 )

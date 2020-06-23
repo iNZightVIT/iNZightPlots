@@ -15,6 +15,16 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
 
     boxplot <- opts$boxplot
     mean_indicator <- opts$mean_indicator
+    if (!is.null(opts$inference.par) && !is.null(opts$inference.type)) {
+        if (opts$inference.par == "mean") {
+            boxplot <- FALSE
+            mean_indicator <- TRUE
+        }
+        if (opts$inference.par == "median") {
+            boxplot <- TRUE
+            mean_indicator <- FALSE
+        }
+    }
 
     v <- colnames(df)
     vn <- xattr$varnames
@@ -174,8 +184,10 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         if ("extreme.label" %in% v) {
             eLab <- as.character(d$extreme.label)[order(x)]
 
-            nx <- rep(xattr$nextreme, length = 2)
+            nx <- rep(xattr$nextreme, length = 2L)
+
             if (sum(nx) >= nrow(d)) {
+                # just label all the points!
                 text.labels <- eLab
                 ret$extreme.ids <- d$pointIDs[order(x)]
             } else {
@@ -189,8 +201,16 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
                     text.labels[max] <- eLab[max]
 
                 pointIDs <- d$pointIDs[order(x)]
-
-                ret$extreme.ids <- pointIDs[text.labels != ""]
+                # now - are we labelling points with same-level-of??
+                if (!is.null(d$locate.same.level)) {
+                    w <- which(text.labels != "")
+                    loc.lvls <- as.character(unique(d$locate.same.level[order(x)][w]))
+                    wi <- d$locate.same.level[order(x)] %in% loc.lvls
+                    text.labels <- ifelse(wi, eLab, "")
+                    ret$extreme.ids <- d$pointIDs[order(x)][wi]
+                } else {
+                    ret$extreme.ids <- pointIDs[text.labels != ""]
+                }
             }
         } else {
             text.labels <- as.character(d$locate)[order(x)]
@@ -348,10 +368,8 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
     mcex <- gen$mcex
     col.args <- gen$col.args
     boxplot <- opts$boxplot
-    mean_indicator <- ifelse(!is.null(opts$mean_indicator),
-        opts$mean_indicator,
-        FALSE
-    )
+    mean_indicator <- !is.null(obj$meaninfo)
+
     expand.points <- 1# if (is.null(opts$expand.points)) 1 else opts$expand.points
 
     addGrid(x = TRUE, gen = gen, opts = opts)
@@ -369,7 +387,8 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
             clip = "on"
         )
     )
-    Hgts <- if (boxplot || mean_indicator) c(3, 1) else c(1, 0)
+    Hgts <- if (!is.null(boxinfo) || !is.null(meaninfo) || !is.null(inflist)) c(3, 1)
+        else c(1, 0)
     dpLayout <- grid.layout(nrow = 2, heights = unit(Hgts, "null"))
 
     # we need to make the dots stack nicely, if they fit
@@ -642,7 +661,7 @@ addMean <- function(x, opts, i) {
     grid.points(unit(x$mean, "native"), unit(0.4, "npc"),
         gp = gpar(
             fill = "black",
-            cex = opts$cex.dotpt * 1.5
+            cex = opts$cex * 0.75
         ),
         pch = 24,
         name = paste("inz-mean", r, c, i, sep = ".")

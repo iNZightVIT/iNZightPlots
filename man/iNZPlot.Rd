@@ -6,11 +6,17 @@
 \alias{iNZPlot}
 \title{iNZightPlot Formula Interface}
 \usage{
-iNZSummary(f, data = NULL, ...)
+iNZSummary(f, data = NULL, ..., env = parent.frame())
 
-iNZInference(f, data = NULL, type = c("conf", "comp"), ...)
+iNZInference(
+  f,
+  data = NULL,
+  type = c("conf", "comp"),
+  ...,
+  env = parent.frame()
+)
 
-iNZPlot(f, data = NULL, ...)
+iNZPlot(f, data = NULL, ..., env = parent.frame())
 }
 \arguments{
 \item{f}{A formula in the form of \code{y ~ x | g}. See Details.}
@@ -18,6 +24,8 @@ iNZPlot(f, data = NULL, ...)
 \item{data}{Dataset to plot}
 
 \item{...}{Any arguments to pass to \code{\link{iNZightPlot}}}
+
+\item{env}{the parent environment to pass to the plot function}
 
 \item{type}{Type type of inference to obtain, one of 'conf' or 'comp'
 for confidence intervals and comparison intervals, respectively
