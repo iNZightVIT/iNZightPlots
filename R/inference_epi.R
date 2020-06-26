@@ -174,12 +174,13 @@ calculate_rd <- function(table, conf.level = 0.95) {
     
     chi.stat <- est / se
     p <- unname(2 * (1 - pnorm(abs(chi.stat))))
-  } else {
-    est    <- NA
-    ci.lwr <- NA
-    ci.upr <- NA
-    p      <- NA
   }
+  # else {
+  #   est    <- NA
+  #   ci.lwr <- NA
+  #   ci.upr <- NA
+  #   p      <- NA
+  # }
   
   c(
     estimate = est, 
