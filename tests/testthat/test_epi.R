@@ -1,5 +1,19 @@
 context("Epidemiological inference functions")
 
+test_that("epidemiological summary is output if requested and appropriate", {
+  mtcars.test <- mtcars
+  mtcars.test$am <- factor(mtcars$am)
+  mtcars.test$cyl <- factor(mtcars$cyl)
+  
+  summary.out <- capture.output(
+    getPlotSummary(am, cyl, data = mtcars.test, summary.type = "inference", inference.type = "conf", epi.out = TRUE)
+  )
+  
+  expect_match(summary.out, "### Odds Ratio estimates for am = 1", all = FALSE)
+  expect_match(summary.out, "### Risk Ratio estimates for am = 1", all = FALSE)
+  expect_match(summary.out, "### Risk Difference estimates for am = 1", all = FALSE)
+})
+
 ## All `test.mat` are based on examples from the following
 ## Boston University School of Public Health CI online course:
 ## https://sphweb.bumc.bu.edu/otlt/MPH-Modules/BS/BS704_Confidence_Intervals/index.html
@@ -37,4 +51,32 @@ test_that("all 2x2 table functions throw appropriate errors", {
   expect_error(calculate_or(test.mat), "2x2")
   expect_error(calculate_rr(test.mat), "2x2")
   expect_error(calculate_rd(test.mat), "2x2")
+})
+
+test_that("epidemiological summary tables are formatted correctly", {
+  test.mat <- matrix(
+    c(
+      0.28125000,  0.03804859,  2.07896160,  0.33220211, 
+      0.062500000, 0.008455243, 0.461991467, 0.005138646,
+      NA,          NA,          NA,          NA
+    ), 
+    nrow = 4,
+    dimnames = list(c("estimate", "ci.lwr", "ci.upr", "p"))
+  )
+  
+  formatted.tab <- epi.format(test.mat, label = "OR", names = letters[1:4], 1)
+  
+  expect_match(trimws(formatted.tab[1]), "^OR")
+  expect_match(trimws(formatted.tab[2]), "^a")
+  
+  ## a row should have [name] [estimate] [CI] [p-value]
+  expect_match(
+    trimws(formatted.tab[3]),
+    "^[A-z] +[0-9]+\\.[0-9]+ +\\(.+,.+\\) +[0-1]\\.[0-9]+$"
+  )
+  
+  expect_match(formatted.tab[5], "OR cannot be estimated")
+  
+  ## baseline should have the value of first.val argument
+  expect_match(trimws(formatted.tab[2]), "1\\.00")
 })
