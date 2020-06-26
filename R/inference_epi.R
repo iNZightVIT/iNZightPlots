@@ -46,36 +46,6 @@ epi.format <- function(ratio.tab, label = "", names = rep("", nrow(ratio.tab)), 
   ratio.format
 }
 
-
-calculate_or_fisher <- function(table, conf.level = 0.95) {
-  if (!all(dim(table) == 2)) {
-    stop("Table should be 2x2")
-  }
-  
-  tab.fisher <- fisher.test(table, conf.level = conf.level)
-  est <- unname(tab.fisher$estimate)
-  
-  ## Only calculate CI/p-value if RR is defined
-  if (is.finite(est)) {
-    
-    ci.lwr <- tab.fisher$conf.int[1]
-    ci.upr <- tab.fisher$conf.int[2]
-    p <- tab.fisher$p.value
-  } else {
-    est    <- NA
-    ci.lwr <- NA
-    ci.upr <- NA
-    p      <- NA
-  }
-  
-  c(
-    estimate = est, 
-    ci.lwr = ci.lwr,
-    ci.upr = ci.upr,
-    p = p
-  )
-}
-
 calculate_or <- function(table, conf.level = 0.95) {
   if (!all(dim(table) == 2)) {
     stop("Table should be 2x2")
