@@ -622,7 +622,7 @@ inference.inzhist <- function(object, des, bs, class, width, vn, hypothesis,
 
 
 inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
-                             survey.options, ...) {
+                             survey.options, epi.out = FALSE, ...) {
     phat <- object$phat
     inf <- object$inference.info
     is.survey <- !is.null(des)
@@ -1030,6 +1030,113 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                 )
             }
         }
+        
+        ##### EPI CALCS #####
+        if (epi.out && ncol(object$tab) == 2) {
+            or.mat <- vapply(
+                2:nrow(object$tab),
+                function(i) {
+                    calculate_or(object$tab[c(1, i), ])
+                },
+                FUN.VALUE = numeric(4)
+            )
+            
+            or.mat <- t(or.mat)
+            
+            or.mat <- rbind(
+                c(1, NA, NA, NA),
+                or.mat
+            )
+            
+            or.method <- "fisher"
+            or.method.full <- c(
+                "midp" = "median-unbiased estimation",
+                "fisher" = "conditional maximum likelihood",
+                "small" = "small sample adjustment"
+            )
+
+            hypo.mat <- matrix(
+                c(
+                    "Null Hypothesis:", "true odds ratio is equal to 1",
+                    "Alternative Hypothesis:", "true odds ratio is not equal to 1"
+                ),
+                byrow = TRUE,
+                ncol = 2
+            )
+            hypo.mat <- apply(hypo.mat, 2, function(x) format(x, justify = "right"))
+            hypo.mat <- apply(hypo.mat, MARGIN = 1, paste0, collapse = " ")
+            hypo.mat <- paste0("   ", hypo.mat)
+            
+            out <- c(
+                out,
+                "",
+                "",
+                sprintf("### Odds Ratio estimates for %s = %s", vn$x, dn[[2]][2]),
+                sprintf("  (baseline: %s = %s)", vn$y, dn[[1]][1]),
+                sprintf("  Using conditional maximum likelihood estimation"),
+                "",
+                "  For each line:",
+                hypo.mat,
+                "",
+                epi.format(or.mat, "OR", names = rownames(object$tab))
+            )
+        
+            #### RISK RATIO ####
+
+            rr.mat <- vapply(
+                2:nrow(object$tab),
+                function(i) {
+                    calculate_rr(object$tab[c(1, i), ])
+                },
+                FUN.VALUE = numeric(4)
+            )
+            
+            rr.mat <- t(rr.mat)
+            
+            rr.mat <- rbind(
+                c(1, NA, NA, NA),
+                rr.mat
+            )
+        
+            out <- c(
+                out,
+                "",
+                "",
+                sprintf("### Risk Ratio estimates for %s = %s", vn$x, dn[[2]][2]),
+                sprintf("  (baseline: %s = %s)", vn$y, dn[[1]][1]),
+                "",
+                epi.format(rr.mat, "RR", names = rownames(object$tab))
+            )
+            
+            #### RISK DIFF ####
+            
+            rd.mat <- vapply(
+                2:nrow(object$tab),
+                function(i) {
+                    calculate_rd(object$tab[c(1, i), ])
+                },
+                FUN.VALUE = numeric(4)
+            )
+            
+            rd.mat <- t(rd.mat)
+            
+            rd.mat <- rbind(
+                c(0, NA, NA, NA),
+                rd.mat
+            )
+            
+            out <- c(
+                out,
+                "",
+                "",
+                sprintf("### Risk Difference estimates for %s = %s", vn$x, dn[[2]][2]),
+                sprintf("  (baseline: %s = %s)", vn$y, dn[[1]][1]),
+                "",
+                epi.format(rd.mat, "RD", names = rownames(object$tab))
+            )
+        }
+        ##### END CALCS #####
+        
     } else { ## one-way table
         mat <- t(rbind(inf$conf$lower, inf$conf$estimate, inf$conf$upper))
 

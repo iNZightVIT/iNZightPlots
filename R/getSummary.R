@@ -77,6 +77,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                                 simulated.p.value = hypothesis.simulated.p.value
                            ),
                            survey.options = list(),
+                           epi.out = FALSE,
                            width = 100,
                            ...,
                            env = parent.frame()) {
@@ -180,14 +181,14 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     ### Now we just loop over everything ...
 
-    summary(obj, summary.type, hypothesis, survey.options, width = width)
+    summary(obj, summary.type, hypothesis, survey.options, width = width, epi.out = epi.out)
 }
 
 
 summary.inzplotoutput <- function(object, summary.type = "summary",
                                   hypothesis = NULL,
                                   survey.options = list(),
-                                  width = 100) {
+                                  width = 100, ...) {
     if (length(summary.type) > 1) {
         warning("Only using the first element of `summary.type`")
         summary.type <- summary.type[1]
@@ -469,7 +470,8 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                                     vn = vnames,
                                     nb = attr(obj, "nboot"),
                                     hypothesis = hypothesis,
-                                    survey.options = survey.options
+                                    survey.options = survey.options,
+                                    ...
                                 )
                         ),
                         add
