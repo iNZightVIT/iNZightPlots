@@ -25,6 +25,10 @@ test_that("odds ratios are calculated correctly", {
   expect_equivalent(round(test.or["estimate"], 2), 6.65)
   expect_equivalent(round(test.or["ci.lwr"], 2), 1.85)
   expect_equivalent(round(test.or["ci.upr"], 2), 23.94)
+  
+  test.mat <- matrix(c(10, 10, 0, 2), ncol = 2)
+  test.or2 <- calculate_or(test.mat)
+  expect_equivalent(test.or2, rep(NA, 4))
 })
 
 test_that("risk ratios are calculated correctly", {
@@ -34,6 +38,10 @@ test_that("risk ratios are calculated correctly", {
   expect_equivalent(round(test.rr["estimate"], 2), 0.44)
   expect_equivalent(round(test.rr["ci.lwr"], 2), 0.22)
   expect_equivalent(round(test.rr["ci.upr"], 2), 0.87)
+  
+  test.mat <- matrix(c(10, 10, 0, 2), ncol = 2)
+  test.rr2 <- calculate_rr(test.mat)
+  expect_equivalent(test.rr2, rep(NA, 4))
 })
 
 test_that("risk differences are calculated correctly", {
