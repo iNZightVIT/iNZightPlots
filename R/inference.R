@@ -1041,13 +1041,6 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                 FUN.VALUE = numeric(4)
             )
             
-            or.mat <- t(or.mat)
-            
-            or.mat <- rbind(
-                c(1, NA, NA, NA),
-                or.mat
-            )
-            
             or.method <- "fisher"
             or.method.full <- c(
                 "midp" = "median-unbiased estimation",
@@ -1090,13 +1083,6 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                 },
                 FUN.VALUE = numeric(4)
             )
-            
-            rr.mat <- t(rr.mat)
-            
-            rr.mat <- rbind(
-                c(1, NA, NA, NA),
-                rr.mat
-            )
         
             out <- c(
                 out,
@@ -1118,13 +1104,6 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                 FUN.VALUE = numeric(4)
             )
             
-            rd.mat <- t(rd.mat)
-            
-            rd.mat <- rbind(
-                c(0, NA, NA, NA),
-                rd.mat
-            )
-            
             out <- c(
                 out,
                 "",
@@ -1132,7 +1111,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                 sprintf("### Risk Difference estimates for %s = %s", vn$x, dn[[2]][2]),
                 sprintf("  (baseline: %s = %s)", vn$y, dn[[1]][1]),
                 "",
-                epi.format(rd.mat, "RD", names = rownames(object$tab))
+                epi.format(rd.mat, "RD", names = rownames(object$tab), 0)
             )
         }
         ##### END CALCS #####

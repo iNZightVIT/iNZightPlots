@@ -1,4 +1,11 @@
-epi.format <- function(ratio.tab, label = "", names = rep("", nrow(ratio.tab))) {
+epi.format <- function(ratio.tab, label = "", names = rep("", nrow(ratio.tab)), first.val = 1) {
+  ratio.tab <- t(ratio.tab)
+  
+  ratio.tab <- rbind(
+    c(first.val, NA, NA, NA),
+    ratio.tab
+  )
+  
   ratio.format <- matrix("", ncol = 5, nrow = nrow(ratio.tab))
   
   ratio.format[, 1] <- names
