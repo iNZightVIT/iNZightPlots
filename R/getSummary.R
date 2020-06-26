@@ -37,6 +37,7 @@
 #' @param hypothesis either NULL for no test, or missing (in which case above arguments are used)
 #' @param survey.options additional options passed to survey methods
 #' @param width width for the output, default is 100 characters
+#' @param epi.out logical, if \code{TRUE}, then odds/rate ratios and rate differences are printed when appropriate (\code{y} with 2 levels)
 #' @param ... additional arguments, see \code{inzpar}
 #' @param env compatibility argument
 #' @return an \code{inzight.plotsummary} object with a print method
@@ -77,8 +78,8 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                                 simulated.p.value = hypothesis.simulated.p.value
                            ),
                            survey.options = list(),
-                           epi.out = FALSE,
                            width = 100,
+                           epi.out = FALSE,
                            ...,
                            env = parent.frame()) {
 
