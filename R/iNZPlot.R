@@ -53,6 +53,12 @@ iNZPlot <- function(f, data = NULL, ..., env = parent.frame()) {
             if (f.list[[3]] == ".") {
                 f.list[[3]] <- f.list[[2]]
                 f.list[2] <- list(NULL)
+            } else {
+                varx <- data[[f.list[[3]]]]
+                vary <- data[[f.list[[2]]]]
+                if ((is_cat(varx) || is_cat(vary))) {
+                    f.list <- f.list[c(1, 3:2)]
+                }
             }
             eval(
                 rlang::expr(
@@ -68,6 +74,14 @@ iNZPlot <- function(f, data = NULL, ..., env = parent.frame()) {
             if (f.list2[[2]] == ".") {
                 f.list2[[2]] <- f.list[[2]]
                 f.list[2] <- list(NULL)
+            } else {
+                varx <- data[[f.list2[[2]]]]
+                vary <- data[[f.list[[2]]]]
+
+                if ((is_cat(varx) || is_cat(vary))) {
+                    f.list2[[2]] <- f.list[[2]]
+                    f.list[[2]] <- f.list[[3]][[2]]
+                }
             }
             if (lengths(f.list2)[3] == 1) {
                 eval(
