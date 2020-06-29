@@ -255,7 +255,8 @@ inzpar <- function(...,
         xlim           = NULL,
         ylim           = NULL,
         transform      = list(),
-        plot.features  = list()
+        plot.features  = list(),
+        epi.out        = FALSE
     )
 
     # update any user has specified
