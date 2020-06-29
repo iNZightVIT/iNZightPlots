@@ -31,6 +31,7 @@ getPlotSummary(
     match.arg(hypothesis.test), simulated.p.value = hypothesis.simulated.p.value),
   survey.options = list(),
   width = 100,
+  epi.out = FALSE,
   ...,
   env = parent.frame()
 )
@@ -94,6 +95,8 @@ displayed in the plot}
 \item{survey.options}{additional options passed to survey methods}
 
 \item{width}{width for the output, default is 100 characters}
+
+\item{epi.out}{logical, if \code{TRUE}, then odds/rate ratios and rate differences are printed when appropriate (\code{y} with 2 levels)}
 
 \item{...}{additional arguments, see \code{inzpar}}
 
