@@ -28,7 +28,7 @@ test_that("Formula yields same results", {
     )
     expect_equal(
         iNZPlot(Sepal.Width ~ Species, data = iris),
-        iNZightPlot(Species, Sepal.Width, data = iris)
+        iNZightPlot(Sepal.Width, Species, data = iris)
     )
     expect_equal(
         iNZPlot(Sepal.Width ~ Sepal.Length | Species, data = iris,
