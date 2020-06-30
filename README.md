@@ -1,7 +1,5 @@
 # iNZightPlots
-
-[![Travis-CI Build Status](https://travis-ci.org/iNZightVIT/iNZightPlots.svg?branch=dev)](https://travis-ci.org/iNZightVIT/iNZightPlots)
-[![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/iNZightVIT/iNZightPlots?branch=dev&svg=true)](https://ci.appveyor.com/project/iNZightVIT/iNZightPlots)
+![R-CMD-check](https://github.com/iNZightVIT/iNZightPlots/workflows/R-CMD-check/badge.svg)
 [![codecov](https://codecov.io/gh/iNZightVIT/iNZightPlots/branch/dev/graph/badge.svg)](https://codecov.io/gh/iNZightVIT/iNZightPlots)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 [![CRAN](https://www.r-pkg.org/badges/version/iNZightPlots)](https://CRAN.R-project.org/package=iNZightPlots)
