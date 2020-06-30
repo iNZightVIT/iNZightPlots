@@ -56,10 +56,10 @@ jobs:
           sudo -s eval "$sysreqs"
 
       - name: Install dependencies
-        # run: |
+        run: Rscript ./.github/install_deps.R
         #   remotes::install_deps(dependencies = TRUE)
         #   remotes::install_cran("rcmdcheck")
-        shell: Rscript ./.github/install_deps.R
+        shell: bash
 
       - name: Check
         env:
