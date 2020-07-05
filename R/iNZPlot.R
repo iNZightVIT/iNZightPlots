@@ -31,7 +31,7 @@
 #' iNZPlot(uptake ~ Treatment | Type, data = CO2)
 #' iNZPlot(uptake ~ Treatment | Type,
 #' data = CO2, g1.level = "Quebec")
-iNZPlot <- function(f, data = NULL, ..., env = parent.frame()) {
+iNZPlot <- function(f, data = NULL, design = NULL, ..., env = parent.frame()) {
     f <- match.call()[["f"]]
     dots <- rlang::enexprs(...)
 
@@ -40,10 +40,12 @@ iNZPlot <- function(f, data = NULL, ..., env = parent.frame()) {
             rlang::expr(
                 iNZightPlot(x = !!f,
                     data = !!match.call()[["data"]],
+                    design = !!match.call()[["design"]],
                     !!!dots,
                     env = !!env
                 )
-            )
+            ),
+            envir = env
         )
     } else {
         f.list <- as.list(f)
@@ -64,10 +66,12 @@ iNZPlot <- function(f, data = NULL, ..., env = parent.frame()) {
                 rlang::expr(
                     iNZightPlot(x = !!f.list[[3]], y = !!f.list[[2]],
                         data = !!match.call()[["data"]],
+                        design = !!match.call()[["design"]],
                         !!!dots,
                         env = !!env
                     )
-                )
+                ),
+                envir = env
             )
         } else {
             f.list2 <- as.list(f.list[[3]])
@@ -91,10 +95,12 @@ iNZPlot <- function(f, data = NULL, ..., env = parent.frame()) {
                             y = !!f.list[[2]],
                             g1 = !!f.list2[[3]],
                             data = !!match.call()[["data"]],
+                            design = !!match.call()[["design"]],
                             !!!dots,
                             env = !!env
                         )
-                    )
+                    ),
+                    envir = env
                 )
             } else {
                 f.list3 <- as.list(f.list2[[3]])
@@ -106,10 +112,12 @@ iNZPlot <- function(f, data = NULL, ..., env = parent.frame()) {
                             g1 = !!f.list3[[2]],
                             g2 = !!f.list3[[3]],
                             data = !!match.call()[["data"]],
+                            design = !!match.call()[["design"]],
                             !!!dots,
                             env = !!env
                         )
-                    )
+                    ),
+                    envir = env
                 )
             }
         }
