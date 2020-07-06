@@ -44,7 +44,7 @@ test_that("Additional variables are parsed correctly", {
         iNZightPlot(Species, data = iris, colby = Species)
     )
     expect_is(
-        iNZPlot(Sepal.Length, Sepal.Width,
+        iNZPlot(Sepal.Length ~ Sepal.Width,
             data = iris,
             sizeby = Petal.Length,
             colby = Species,

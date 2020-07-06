@@ -49,7 +49,6 @@ iNZPlot <- function(f, data = NULL, design = NULL, ..., env = parent.frame()) {
         )
     } else {
         f.list <- as.list(f)
-        # print(f.list)
 
         if (lengths(f.list)[3] == 1) {
             if (f.list[[3]] == ".") {
