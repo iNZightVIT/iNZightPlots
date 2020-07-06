@@ -10,7 +10,7 @@ if (.Platform$OS.type == "windows" && getRversion() < numeric_version("4")) {
         "https://cran.r-project.org/bin/windows/contrib/3.6/XML_3.99-0.3.zip",
         "xml.zip"
     )
-    unzip("xml.zip", .libPaths())
+    unzip("xml.zip", exdir = .libPaths())
     unlink("xml.zip")
 }
 
