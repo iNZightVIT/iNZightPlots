@@ -24,6 +24,8 @@ iNZPlot(f, data = NULL, design = NULL, ..., env = parent.frame())
 
 \item{data}{Dataset to plot}
 
+\item{design}{A survey design to use}
+
 \item{...}{Any arguments to pass to \code{\link{iNZightPlot}}}
 
 \item{env}{the parent environment to pass to the plot function}

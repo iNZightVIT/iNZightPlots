@@ -2,6 +2,7 @@
 #'
 #' @param f A formula in the form of \code{y ~ x | g}. See Details.
 #' @param data Dataset to plot
+#' @param design A survey design to use
 #' @param ... Any arguments to pass to \code{\link{iNZightPlot}}
 #' @param env the parent environment to pass to the plot function
 #'
