@@ -6,17 +6,18 @@
 \alias{iNZPlot}
 \title{iNZightPlot Formula Interface}
 \usage{
-iNZSummary(f, data = NULL, ..., env = parent.frame())
+iNZSummary(f, data = NULL, design = NULL, ..., env = parent.frame())
 
 iNZInference(
   f,
   data = NULL,
+  design = NULL,
   type = c("conf", "comp"),
   ...,
   env = parent.frame()
 )
 
-iNZPlot(f, data = NULL, ..., env = parent.frame())
+iNZPlot(f, data = NULL, design = NULL, ..., env = parent.frame())
 }
 \arguments{
 \item{f}{A formula in the form of \code{y ~ x | g}. See Details.}

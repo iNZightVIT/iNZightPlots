@@ -93,7 +93,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ## Grab a plot object!
     m <- match.call(expand.dots = FALSE)
 
-    if ("design" %in% names(m)) {
+    if ("design" %in% names(m) && !is.null(m$design)) {
         md <- eval(m$design, env)
     } else {
         md <- eval(m$data, env)
@@ -662,7 +662,7 @@ centerText <- function(x, width) {
 
 #' @describeIn iNZPlot Wrapper for getPlotSummary to obtain summary information about a plot
 #' @export
-iNZSummary <- function(f, data = NULL, ..., env = parent.frame()) {
+iNZSummary <- function(f, data = NULL, design = NULL, ..., env = parent.frame()) {
     f <- match.call()[["f"]]
     dots <- rlang::enexprs(...)
 
@@ -672,10 +672,12 @@ iNZSummary <- function(f, data = NULL, ..., env = parent.frame()) {
                 getPlotSummary(
                     x = !!f,
                     data = !!match.call()[["data"]],
+                    design = !!match.call()[["design"]],
                     !!!dots,
                     env = !!env
                 )
-            )
+            ),
+            envir = env
         )
     } else {
         f.list <- as.list(f)
@@ -697,10 +699,12 @@ iNZSummary <- function(f, data = NULL, ..., env = parent.frame()) {
                         x = !!f.list[[3]],
                         y = !!f.list[[2]],
                         data = !!match.call()[["data"]],
+                        design = !!match.call()[["design"]],
                         !!!dots,
                         env = !!env
                     )
-                )
+                ),
+                envir = env
             )
         } else {
             f.list2 <- as.list(f.list[[3]])
@@ -724,10 +728,12 @@ iNZSummary <- function(f, data = NULL, ..., env = parent.frame()) {
                             y = !!f.list[[2]],
                             g1 = !!f.list2[[3]],
                             data = !!match.call()[["data"]],
+                            design = !!match.call()[["design"]],
                             !!!dots,
                             env = !!env
                         )
-                    )
+                    ),
+                    envir = env
                 )
             } else {
                 f.list3 <- as.list(f.list2[[3]])
@@ -739,10 +745,12 @@ iNZSummary <- function(f, data = NULL, ..., env = parent.frame()) {
                             g1 = !!f.list3[[2]],
                             g2 = !!f.list3[[3]],
                             data = !!match.call()[["data"]],
+                            design = !!match.call()[["design"]],
                             !!!dots,
                             env = !!env
                         )
-                    )
+                    ),
+                    envir = env
                 )
             }
         }
@@ -754,7 +762,7 @@ iNZSummary <- function(f, data = NULL, ..., env = parent.frame()) {
 #' @param type Type type of inference to obtain, one of 'conf' or 'comp'
 #'             for confidence intervals and comparison intervals, respectively
 #'             (currently ignored).
-iNZInference <- function(f, data = NULL, type = c("conf", "comp"), ...,
+iNZInference <- function(f, data = NULL, design = NULL, type = c("conf", "comp"), ...,
                          env = parent.frame()) {
     type <- match.arg(type)
     f <- match.call()[["f"]]
@@ -766,12 +774,14 @@ iNZInference <- function(f, data = NULL, type = c("conf", "comp"), ...,
                 getPlotSummary(
                     x = !!f,
                     data = !!match.call()[["data"]],
+                    design = !!match.call()[["design"]],
                     summary.type = "inference",
-                    inference.type = type,
+                    inference.type = !!type,
                     !!!dots,
                     env = !!env
                 )
-            )
+            ),
+            envir = env
         )
     } else {
         f.list <- as.list(f)
@@ -793,12 +803,14 @@ iNZInference <- function(f, data = NULL, type = c("conf", "comp"), ...,
                         x = !!f.list[[3]],
                         y = !!f.list[[2]],
                         data = !!match.call()[["data"]],
+                        design = !!match.call()[["design"]],
                         summary.type = "inference",
-                        inference.type = type,
+                        inference.type = !!type,
                         !!!dots,
                         env = !!env
                     )
-                )
+                ),
+                envir = env
             )
         } else {
             f.list2 <- as.list(f.list[[3]])
@@ -822,12 +834,14 @@ iNZInference <- function(f, data = NULL, type = c("conf", "comp"), ...,
                             y = !!f.list[[2]],
                             g1 = !!f.list2[[3]],
                             data = !!match.call()[["data"]],
+                            design = !!match.call()[["design"]],
                             summary.type = "inference",
-                            inference.type = type,
+                            inference.type = !!type,
                             !!!dots,
                             env = !!env
                         )
-                    )
+                    ),
+                    envir = env
                 )
             } else {
                 f.list3 <- as.list(f.list2[[3]])
@@ -839,12 +853,14 @@ iNZInference <- function(f, data = NULL, type = c("conf", "comp"), ...,
                             g1 = !!f.list3[[2]],
                             g2 = !!f.list3[[3]],
                             data = !!match.call()[["data"]],
+                            design = !!match.call()[["design"]],
                             summary.type = "inference",
-                            inference.type = type,
+                            inference.type = !!type,
                             !!!dots,
                             env = !!env
                         )
-                    )
+                    ),
+                    envir = env
                 )
             }
         }
