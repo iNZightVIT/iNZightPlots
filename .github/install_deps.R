@@ -5,13 +5,19 @@ github_deps <- c(
 
 options(repos = c(CRAN = "https://cloud.r-project.org"))
 
-if (.Platform$OS.type == "windows" && getRversion() < numeric_version("4")) {
-    download.file(
-        "https://cran.r-project.org/bin/windows/contrib/3.6/XML_3.99-0.3.zip",
-        "xml.zip"
-    )
-    unzip("xml.zip", exdir = .libPaths()[1])
-    unlink("xml.zip")
+if (.Platform$OS.type == "windows") {
+    utils::install.packages("XML")
+    if (!requireNamespace("XML")) {
+        download.file(
+            sprintf(
+                "https://cran.r-project.org/bin/windows/contrib/%s/XML_3.99-0.3.zip",
+                paste(strsplit(as.character(getRversion()), "\\.")[[1]][1:2], collapse = ".")
+            ),
+            "xml.zip"
+        )
+        unzip("xml.zip", exdir = .libPaths()[1])
+        unlink("xml.zip")
+    }
 }
 
 remotes::install_github(github_deps)
