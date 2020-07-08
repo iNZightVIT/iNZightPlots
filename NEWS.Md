@@ -7,6 +7,7 @@ This release mainly consists of compatibility changes to accompany 'iNZight' 4.0
 - allow `col.fun` to be a character palette name
 - when dot plots show inference, override `boxplot` and `mean_indicator` (depending on specification of `inference.par`)
 - add normal inference to scatter plot trend lines
+- (survey) pop size estimates shown even if weights seem odd
 
 ## Bug fixes
 - fix handling of env argument

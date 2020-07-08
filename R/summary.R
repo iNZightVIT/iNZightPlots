@@ -213,10 +213,10 @@ summary.inzdot <- function(object, des, survey.options, ...) {
             "25%", "Median", "75%", "Mean", "SD", "Total", "Est. Pop. Size",
             "|", "Sample Size", "Min", "Max"
         )
-        if (!all(get_weights(des) == 0 | get_weights(des) >= 1)) {
-            mat <- mat[, -(6:7)]
-            rns <- rns[-(6:7)]
-        }
+        # if (!all(get_weights(des) == 0 | get_weights(des) >= 1)) {
+        #     mat <- mat[, -(6:7)]
+        #     rns <- rns[-(6:7)]
+        # }
     }
 
     mat <- matrix(
