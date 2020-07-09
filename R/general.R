@@ -233,10 +233,11 @@ colourPoints <- function(x, col.args, opts = inzpar()) {
 #' @param settings a list of plot settings, similar to `inzpar()`
 #' @param vartypes a list of variables types (numeric, factor)
 #' @param data a data set to pass to the call
-#' @param desing a survey design (can be NULL)
+#' @param design a survey design (can be NULL)
 #' @param what the type of call to produce
 #' @return a plot/summary/inference call
 #' @md
+#' @importFrom iNZightTools "%notin%"
 construct_call <- function(settings, vartypes,
                            data = quote(.dataset),
                            design = quote(.design),
@@ -445,10 +446,7 @@ construct_call <- function(settings, vartypes,
 mend_call <- function(call, data, design_name, plot) {
     # adjust name
     dname <- attr(data, "name", exact = TRUE)
-    if (is.null(dname) || dname == "")
-        dname <- sprintf("data%s",
-            ifelse(activeDoc == 1, "", activeDoc)
-        )
+    if (is.null(dname) || dname == "") dname <- "data"
     dname <- iNZightTools::create_varname(dname)
 
     if (is.expression(call) && as.character(call[[1]])[1] != "getPlotSummary") {

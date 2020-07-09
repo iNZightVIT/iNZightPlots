@@ -19,9 +19,9 @@ construct_call(
 
 \item{data}{a data set to pass to the call}
 
-\item{what}{the type of call to produce}
+\item{design}{a survey design (can be NULL)}
 
-\item{desing}{a survey design (can be NULL)}
+\item{what}{the type of call to produce}
 }
 \value{
 a plot/summary/inference call
