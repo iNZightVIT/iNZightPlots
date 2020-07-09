@@ -286,7 +286,7 @@ construct_call <- function(settings, vartypes,
     )
     ## set the data
     settings$data <- data
-    if (!is.null(!!design)) {
+    if (!is.null(design)) {
         settings$data <- NULL
         settings$design <- design
     }
