@@ -54,8 +54,8 @@
 #'     hypothesis.value = 5)
 #'
 #' # if you prefer a formula interface
-#' iNZSummary(Sepal.Length ~ Species, data = iris)
-#' iNZInference(Sepal.Length ~ Species, data = iris)
+#' inzsummary(Sepal.Length ~ Species, data = iris)
+#' inzinference(Sepal.Length ~ Species, data = iris)
 getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            g2 = NULL, g2.level = NULL, varnames = list(),
                            colby = NULL, sizeby = NULL,
@@ -660,9 +660,9 @@ centerText <- function(x, width) {
 }
 
 
-#' @describeIn iNZPlot Wrapper for getPlotSummary to obtain summary information about a plot
+#' @describeIn inzplot Wrapper for getPlotSummary to obtain summary information about a plot
 #' @export
-iNZSummary <- function(f, data = NULL, design = NULL, ..., env = parent.frame()) {
+inzsummary <- function(f, data = NULL, design = NULL, ..., env = parent.frame()) {
     f <- match.call()[["f"]]
     dots <- rlang::enexprs(...)
 
@@ -757,12 +757,12 @@ iNZSummary <- function(f, data = NULL, design = NULL, ..., env = parent.frame())
     }
 }
 
-#' @describeIn iNZPlot Wrapper for getPlotSummary to obtain inference information about a plot
+#' @describeIn inzplot Wrapper for getPlotSummary to obtain inference information about a plot
 #' @export
 #' @param type Type type of inference to obtain, one of 'conf' or 'comp'
 #'             for confidence intervals and comparison intervals, respectively
 #'             (currently ignored).
-iNZInference <- function(f, data = NULL, design = NULL, type = c("conf", "comp"), ...,
+inzinference <- function(f, data = NULL, design = NULL, type = c("conf", "comp"), ...,
                          env = parent.frame()) {
     type <- match.arg(type)
     f <- match.call()[["f"]]

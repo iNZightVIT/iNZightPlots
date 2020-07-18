@@ -7,7 +7,7 @@
 #' @param env the parent environment to pass to the plot function
 #'
 #' @details
-#' \code{iNZPlot} is a simple wrapper around the \code{\link{iNZightPlot}} function.
+#' \code{inzplot} is a simple wrapper around the \code{\link{iNZightPlot}} function.
 #'
 #' There are four options for the formula passed in:
 #'
@@ -27,12 +27,12 @@
 #'
 #' @examples
 #' data("CO2")
-#' iNZPlot(uptake, data = CO2)
-#' iNZPlot(uptake ~ Treatment, data = CO2)
-#' iNZPlot(uptake ~ Treatment | Type, data = CO2)
-#' iNZPlot(uptake ~ Treatment | Type,
+#' inzplot(uptake, data = CO2)
+#' inzplot(uptake ~ Treatment, data = CO2)
+#' inzplot(uptake ~ Treatment | Type, data = CO2)
+#' inzplot(uptake ~ Treatment | Type,
 #' data = CO2, g1.level = "Quebec")
-iNZPlot <- function(f, data = NULL, design = NULL, ..., env = parent.frame()) {
+inzplot <- function(f, data = NULL, design = NULL, ..., env = parent.frame()) {
     f <- match.call()[["f"]]
     dots <- rlang::enexprs(...)
 

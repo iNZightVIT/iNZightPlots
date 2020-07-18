@@ -163,9 +163,9 @@ test_that("Simulated p-value is included when requested", {
 
 
 
-test_that("iNZInference gives the same output", {
+test_that("inzinference gives the same output", {
     expect_equal(
-        iNZInference(Sepal.Length ~ Sepal.Width,
+        inzinference(Sepal.Length ~ Sepal.Width,
             data = iris, trend = "linear", width = 80),
         getPlotSummary(Sepal.Width, Sepal.Length,
             data = iris, trend = "linear", width = 80,
@@ -173,7 +173,7 @@ test_that("iNZInference gives the same output", {
     )
 
     expect_equal(
-        iNZInference(Sepal.Length ~ Sepal.Width | Species,
+        inzinference(Sepal.Length ~ Sepal.Width | Species,
             data = iris, trend = "linear", width = 80),
         getPlotSummary(Sepal.Width, Sepal.Length, g1 =  Species,
             data = iris, trend = "linear", width = 80,
@@ -181,7 +181,7 @@ test_that("iNZInference gives the same output", {
     )
 
     expect_equal(
-        iNZInference(Sepal.Length ~ Species | Sepal.Width,
+        inzinference(Sepal.Length ~ Species | Sepal.Width,
             data = iris, width = 80),
         getPlotSummary(Sepal.Length, Species, g1 = Sepal.Width,
             data = iris, width = 80, inference.type = "conf",

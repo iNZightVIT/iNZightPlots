@@ -425,9 +425,9 @@ construct_call <- function(settings, vartypes,
 
     call <- capture.output(dput(settings))
     fn <- switch(what,
-        plot = "iNZPlot",
-        summary = "iNZSummary",
-        inference = "iNZInference"
+        plot = "inzplot",
+        summary = "inzsummary",
+        inference = "inzinference"
     )
     call <- gsub("^list", fn, call)
     call <- gsub(".DROP = ", "", call)
@@ -440,7 +440,7 @@ construct_call <- function(settings, vartypes,
 #' @param call a plot call string, or expression
 #' @param data the dataset
 #' @param design_name name of the design, if any
-#' @param plot the result of `iNZPlot`, `iNZSummary`, or `iNZInference`
+#' @param plot the result of `inzplot`, `inzsummary`, or `inzinference`
 #' @return a plot call with extraneous arguments removed
 #' @md
 mend_call <- function(call, data, design_name, plot) {
@@ -467,9 +467,9 @@ mend_call <- function(call, data, design_name, plot) {
             cnames,
             ptype,
             switch(as.character(call[[1]])[1],
-                "iNZPlot" = "plot",
-                "iNZSummary" = "summary",
-                "iNZInference" = "inference"
+                "inzplot" = "plot",
+                "inzsummary" = "summary",
+                "inzinference" = "inference"
             )
         )
         call[[1]] <- call[[1]][keep]

@@ -146,7 +146,7 @@ iNZightPlot(Sepal.Length, data = iris, col.pt = "red",
 # plot are used)
 mypar <- inzpar(col.pt = "red", box.col = "blue", box.fill = "green",
     trend = "linear", trend.by = TRUE)
-iNZPlot(Sepal.Length ~ Species, data = iris, inzpar = mypar)
+inzplot(Sepal.Length ~ Species, data = iris, inzpar = mypar)
 iNZightPlot(Sepal.Length, Sepal.Width, data = iris, inzpar = mypar,
     colby = Species)
 }

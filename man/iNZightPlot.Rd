@@ -179,7 +179,7 @@ iNZightPlot(Petal.Width, data = iris,
     bootstrap = TRUE)
 
 # alternatively, use the formula interface
-iNZPlot(Sepal.Length ~ Sepal.Width | Species, data = iris)
+inzplot(Sepal.Length ~ Sepal.Width | Species, data = iris)
 }
 \author{
 Tom Elliott

@@ -13,7 +13,7 @@ mend_call(call, data, design_name, plot)
 
 \item{design_name}{name of the design, if any}
 
-\item{plot}{the result of \code{iNZPlot}, \code{iNZSummary}, or \code{iNZInference}}
+\item{plot}{the result of \code{inzplot}, \code{inzsummary}, or \code{inzinference}}
 }
 \value{
 a plot call with extraneous arguments removed
