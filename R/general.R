@@ -339,7 +339,7 @@ construct_call <- function(settings, vartypes,
                 fmla <- paste(fmla, "|", gfm)
         }
         if (grepl(" ~ \\.$", fmla)) {
-            fmla <- settings$x
+            fmla <- eval(parse(text = paste("~", settings$x)))
         } else {
             fmla <- eval(parse(text = fmla))
         }
