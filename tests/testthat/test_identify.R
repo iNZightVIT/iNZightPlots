@@ -1,7 +1,7 @@
 context("Identify points")
 
 test_that("Points can be labelled by another variable", {
-    p <- inzplot(Sepal.Width, data = iris, locate = Species, locate.id = c(1, 100),
+    p <- inzplot(~Sepal.Width, data = iris, locate = Species, locate.id = c(1, 100),
         plot = FALSE)
     expect_equal(
         p$all$all$toplot$all$text.labels,
@@ -18,7 +18,7 @@ test_that("Points can be labelled by another variable", {
 })
 
 test_that("Points can be labelled by their row id", {
-    p <- inzplot(Sepal.Width, data = iris, locate = "id", locate.id = 1:5, plot = FALSE)
+    p <- inzplot(~Sepal.Width, data = iris, locate = "id", locate.id = 1:5, plot = FALSE)
     expect_equal(
         p$all$all$toplot$all$text.labels,
         ifelse(1:nrow(iris) > 5, "", as.character(1:nrow(iris)))[order(iris$Sepal.Width)]
@@ -33,7 +33,7 @@ test_that("Points can be labelled by their row id", {
 })
 
 test_that("Points identified by an expression", {
-    p <- inzplot(Sepal.Width, data = iris, locate = Species,
+    p <- inzplot(~Sepal.Width, data = iris, locate = Species,
         locate.id = Species == "setosa", plot = FALSE)
     expect_equal(
         p$all$all$toplot$all$text.labels,
@@ -42,7 +42,7 @@ test_that("Points identified by an expression", {
 })
 
 test_that("Points with same level of X are identified", {
-    p <- inzplot(Sepal.Width, data = iris, locate = NULL,
+    p <- inzplot(~Sepal.Width, data = iris, locate = NULL,
         locate.id = 1, locate.same.level = Species,
         locate.col = "red", highlight = 1, plot = FALSE)
     expect_equal(
@@ -62,7 +62,7 @@ test_that("Points with same level of X are identified", {
 
 test_that("Locating extreme points", {
     # dot plot
-    p <- inzplot(Sepal.Width, data = iris, colby = Species, locate.extreme = c(1, 4),
+    p <- inzplot(~Sepal.Width, data = iris, colby = Species, locate.extreme = c(1, 4),
         locate = Species, plot = FALSE)
     expect_equal(p$all$all$toplot$all$extreme.ids, c(61, 15, 33, 34, 16))
     expect_equal(
@@ -70,7 +70,7 @@ test_that("Locating extreme points", {
         c("versicolor", rep("", 145), rep("setosa", 4))
     )
 
-    p <- inzplot(Sepal.Width, data = iris, colby = Species,
+    p <- inzplot(~Sepal.Width, data = iris, colby = Species,
         locate.extreme = c(1, 0), locate = Species, locate.same.level = Species,
         plot = FALSE, locate.col = "red")
     expect_equal(
@@ -105,7 +105,7 @@ test_that("Locating extreme points", {
 })
 
 test_that("No IDs = no labels", {
-    p <- inzplot(Sepal.Width, data = iris, locate.same.level = Species, plot = FALSE)
+    p <- inzplot(~Sepal.Width, data = iris, locate.same.level = Species, plot = FALSE)
     expect_equal(
         p$all$all$toplot$all$text.labels,
         rep(NA_character_, nrow(iris))

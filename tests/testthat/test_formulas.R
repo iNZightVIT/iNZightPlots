@@ -2,7 +2,7 @@ context("Formula interface")
 
 test_that("Formula interface works", {
     expect_is(
-        inzplot(Sepal.Width, data = iris),
+        inzplot(~Sepal.Width, data = iris),
         "inzplotoutput"
     )
     expect_is(
@@ -23,7 +23,7 @@ test_that("Formula interface works", {
 
 test_that("Formula yields same results", {
     expect_equal(
-        inzplot(Species, data = iris),
+        inzplot(~Species, data = iris),
         iNZightPlot(Species, data = iris)
     )
     expect_equal(
@@ -40,7 +40,7 @@ test_that("Formula yields same results", {
 
 test_that("Additional variables are parsed correctly", {
     expect_equal(
-        inzplot(Species, data = iris, colby = Species),
+        inzplot(~Species, data = iris, colby = Species),
         iNZightPlot(Species, data = iris, colby = Species)
     )
     expect_is(

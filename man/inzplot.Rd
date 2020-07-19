@@ -4,7 +4,8 @@
 \alias{inzsummary}
 \alias{inzinference}
 \alias{inzplot}
-\title{iNZightPlot Formula Interface}
+\alias{inzplot.formula}
+\title{iNZight Plot Method}
 \usage{
 inzsummary(f, data = NULL, design = NULL, ..., env = parent.frame())
 
@@ -17,12 +18,12 @@ inzinference(
   env = parent.frame()
 )
 
-inzplot(f, data = NULL, design = NULL, ..., env = parent.frame())
+inzplot(x, ..., env = parent.frame())
+
+\method{inzplot}{formula}(x, data = NULL, design = NULL, ..., env = parent.frame())
 }
 \arguments{
-\item{f}{A formula in the form of \code{y ~ x | g}. See Details.}
-
-\item{data}{Dataset to plot}
+\item{data}{Dataset to plotq}
 
 \item{design}{A survey design to use}
 
@@ -33,13 +34,18 @@ inzplot(f, data = NULL, design = NULL, ..., env = parent.frame())
 \item{type}{Type type of inference to obtain, one of 'conf' or 'comp'
 for confidence intervals and comparison intervals, respectively
 (currently ignored).}
+
+\item{x}{A formula in the form of \code{y ~ x | g}. See Details.}
 }
 \value{
+The output depends on the type of input, but is usually called for
+        the side-effect of producing a plot.
+
 An \code{inzightplotoutput} object, which contains the information
         displayed in the plot
 }
 \description{
-iNZightPlot Formula Interface
+A generic function used to plot objects within the iNZight ecosystem.
 }
 \details{
 \code{inzplot} is a simple wrapper around the \code{\link{iNZightPlot}} function.

@@ -343,12 +343,14 @@ construct_call <- function(settings, vartypes,
         } else {
             fmla <- eval(parse(text = fmla))
         }
-        settings <- c(list(f = fmla), settings)
-        settings$x <- NULL
-        settings$y <- NULL
-        settings$g1 <- NULL
-        settings$g2 <- NULL
+    } else {
+        fmla <- paste("~", as.character(settings$x))
     }
+    settings <- c(list(f = fmla), settings)
+    settings$x <- NULL
+    settings$y <- NULL
+    settings$g1 <- NULL
+    settings$g2 <- NULL
 
     ## plot.features
     if (!is.null(settings$plot.features)) {
