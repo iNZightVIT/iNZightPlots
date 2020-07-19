@@ -43,7 +43,7 @@ inzplot.default <- function(x, ..., env = parent.frame())
 #'
 #' @examples
 #' data("CO2")
-#' inzplot(uptake, data = CO2)
+#' inzplot(~uptake, data = CO2)
 #' inzplot(uptake ~ Treatment, data = CO2)
 #' inzplot(uptake ~ Treatment | Type, data = CO2)
 #' inzplot(uptake ~ Treatment | Type,

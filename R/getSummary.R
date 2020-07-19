@@ -662,14 +662,16 @@ centerText <- function(x, width) {
 
 #' @describeIn inzplot Wrapper for getPlotSummary to obtain summary information about a plot
 #' @export
-inzsummary <- function(f, data = NULL, design = NULL, ..., env = parent.frame()) {
-    f <- match.call()[["f"]]
+inzsummary <- function(x, data = NULL, design = NULL, ..., env = parent.frame()) {
+    type <- match.arg(type)
     dots <- rlang::enexprs(...)
+    f.list <- as.list(x)
 
-    if (!rlang::is_formula(f)) {
+    if (length(f.list) == 2) {
         eval(
             rlang::expr(
                 getPlotSummary(
+                    x = !!f.list[[2]],
                     x = !!f,
                     data = !!match.call()[["data"]],
                     design = !!match.call()[["design"]],
@@ -679,25 +681,51 @@ inzsummary <- function(f, data = NULL, design = NULL, ..., env = parent.frame())
             ),
             envir = env
         )
-    } else {
-        f.list <- as.list(f)
-
-        if (lengths(f.list)[3] == 1) {
-            if (f.list[[3]] == ".") {
-                f.list[[3]] <- f.list[[2]]
-                f.list[2] <- list(NULL)
-            } else {
-                varx <- data[[f.list[[3]]]]
-                vary <- data[[f.list[[2]]]]
-                if ((is_cat(varx) || is_cat(vary))) {
-                    f.list <- f.list[c(1, 3:2)]
-                }
+    } else if (lengths(f.list)[3] == 1) {
+        if (f.list[[3]] == ".") {
+            f.list[[3]] <- f.list[[2]]
+            f.list[2] <- list(NULL)
+        } else {
+            varx <- data[[f.list[[3]]]]
+            vary <- data[[f.list[[2]]]]
+            if ((is_cat(varx) || is_cat(vary))) {
+                f.list <- f.list[c(1, 3:2)]
             }
+        }
+        eval(
+            rlang::expr(
+                getPlotSummary(
+                    x = !!f.list[[3]],
+                    y = !!f.list[[2]],
+                    data = !!match.call()[["data"]],
+                    design = !!match.call()[["design"]],
+                    !!!dots,
+                    env = !!env
+                )
+            ),
+            envir = env
+        )
+    } else {
+        f.list2 <- as.list(f.list[[3]])
+        if (f.list2[[2]] == ".") {
+            f.list2[[2]] <- f.list[[2]]
+            f.list[2] <- list(NULL)
+        } else {
+            varx <- data[[f.list2[[2]]]]
+            vary <- data[[f.list[[2]]]]
+
+            if ((is_cat(varx) || is_cat(vary))) {
+                f.list2[[2]] <- f.list[[2]]
+                f.list[[2]] <- f.list[[3]][[2]]
+            }
+        }
+        if (lengths(f.list2)[3] == 1) {
             eval(
                 rlang::expr(
                     getPlotSummary(
-                        x = !!f.list[[3]],
+                        x = !!f.list2[[2]],
                         y = !!f.list[[2]],
+                        g1 = !!f.list2[[3]],
                         data = !!match.call()[["data"]],
                         design = !!match.call()[["design"]],
                         !!!dots,
@@ -707,52 +735,22 @@ inzsummary <- function(f, data = NULL, design = NULL, ..., env = parent.frame())
                 envir = env
             )
         } else {
-            f.list2 <- as.list(f.list[[3]])
-            if (f.list2[[2]] == ".") {
-                f.list2[[2]] <- f.list[[2]]
-                f.list[2] <- list(NULL)
-            } else {
-                varx <- data[[f.list2[[2]]]]
-                vary <- data[[f.list[[2]]]]
-
-                if ((is_cat(varx) || is_cat(vary))) {
-                    f.list2[[2]] <- f.list[[2]]
-                    f.list[[2]] <- f.list[[3]][[2]]
-                }
-            }
-            if (lengths(f.list2)[3] == 1) {
-                eval(
-                    rlang::expr(
-                        getPlotSummary(
-                            x = !!f.list2[[2]],
-                            y = !!f.list[[2]],
-                            g1 = !!f.list2[[3]],
-                            data = !!match.call()[["data"]],
-                            design = !!match.call()[["design"]],
-                            !!!dots,
-                            env = !!env
-                        )
-                    ),
-                    envir = env
-                )
-            } else {
-                f.list3 <- as.list(f.list2[[3]])
-                eval(
-                    rlang::expr(
-                        getPlotSummary(
-                            x = !!f.list2[[2]],
-                            y = !!f.list[[2]],
-                            g1 = !!f.list3[[2]],
-                            g2 = !!f.list3[[3]],
-                            data = !!match.call()[["data"]],
-                            design = !!match.call()[["design"]],
-                            !!!dots,
-                            env = !!env
-                        )
-                    ),
-                    envir = env
-                )
-            }
+            f.list3 <- as.list(f.list2[[3]])
+            eval(
+                rlang::expr(
+                    getPlotSummary(
+                        x = !!f.list2[[2]],
+                        y = !!f.list[[2]],
+                        g1 = !!f.list3[[2]],
+                        g2 = !!f.list3[[3]],
+                        data = !!match.call()[["data"]],
+                        design = !!match.call()[["design"]],
+                        !!!dots,
+                        env = !!env
+                    )
+                ),
+                envir = env
+            )
         }
     }
 }
@@ -762,17 +760,43 @@ inzsummary <- function(f, data = NULL, design = NULL, ..., env = parent.frame())
 #' @param type Type type of inference to obtain, one of 'conf' or 'comp'
 #'             for confidence intervals and comparison intervals, respectively
 #'             (currently ignored).
-inzinference <- function(f, data = NULL, design = NULL, type = c("conf", "comp"), ...,
+inzinference <- function(x, data = NULL, design = NULL, type = c("conf", "comp"), ...,
                          env = parent.frame()) {
     type <- match.arg(type)
-    f <- match.call()[["f"]]
     dots <- rlang::enexprs(...)
+    f.list <- as.list(x)
 
-    if (!rlang::is_formula(f)) {
+    if (length(f.list) == 2) {
         eval(
             rlang::expr(
                 getPlotSummary(
-                    x = !!f,
+                    x = !!f.list[[2]],
+                    data = !!match.call()[["data"]],
+                    design = !!match.call()[["design"]],
+                    summary.type = "inference",
+                    inference.type = !!type,
+                    !!!dots,
+                    env = !!env
+                )
+            ),
+            envir = env
+        )
+    } else if (lengths(f.list)[3] == 1) {
+        if (f.list[[3]] == ".") {
+            f.list[[3]] <- f.list[[2]]
+            f.list[2] <- list(NULL)
+        } else {
+            varx <- data[[f.list[[3]]]]
+            vary <- data[[f.list[[2]]]]
+            if ((is_cat(varx) || is_cat(vary))) {
+                f.list <- f.list[c(1, 3:2)]
+            }
+        }
+        eval(
+            rlang::expr(
+                getPlotSummary(
+                    x = !!f.list[[3]],
+                    y = !!f.list[[2]],
                     data = !!match.call()[["data"]],
                     design = !!match.call()[["design"]],
                     summary.type = "inference",
@@ -784,24 +808,26 @@ inzinference <- function(f, data = NULL, design = NULL, type = c("conf", "comp")
             envir = env
         )
     } else {
-        f.list <- as.list(f)
+        f.list2 <- as.list(f.list[[3]])
+        if (f.list2[[2]] == ".") {
+            f.list2[[2]] <- f.list[[2]]
+            f.list[2] <- list(NULL)
+        } else {
+            varx <- data[[f.list2[[2]]]]
+            vary <- data[[f.list[[2]]]]
 
-        if (lengths(f.list)[3] == 1) {
-            if (f.list[[3]] == ".") {
-                f.list[[3]] <- f.list[[2]]
-                f.list[2] <- list(NULL)
-            } else {
-                varx <- data[[f.list[[3]]]]
-                vary <- data[[f.list[[2]]]]
-                if ((is_cat(varx) || is_cat(vary))) {
-                    f.list <- f.list[c(1, 3:2)]
-                }
+            if ((is_cat(varx) || is_cat(vary))) {
+                f.list2[[2]] <- f.list[[2]]
+                f.list[[2]] <- f.list[[3]][[2]]
             }
+        }
+        if (lengths(f.list2)[3] == 1) {
             eval(
                 rlang::expr(
                     getPlotSummary(
-                        x = !!f.list[[3]],
+                        x = !!f.list2[[2]],
                         y = !!f.list[[2]],
+                        g1 = !!f.list2[[3]],
                         data = !!match.call()[["data"]],
                         design = !!match.call()[["design"]],
                         summary.type = "inference",
@@ -813,56 +839,24 @@ inzinference <- function(f, data = NULL, design = NULL, type = c("conf", "comp")
                 envir = env
             )
         } else {
-            f.list2 <- as.list(f.list[[3]])
-            if (f.list2[[2]] == ".") {
-                f.list2[[2]] <- f.list[[2]]
-                f.list[2] <- list(NULL)
-            } else {
-                varx <- data[[f.list2[[2]]]]
-                vary <- data[[f.list[[2]]]]
-
-                if ((is_cat(varx) || is_cat(vary))) {
-                    f.list2[[2]] <- f.list[[2]]
-                    f.list[[2]] <- f.list[[3]][[2]]
-                }
-            }
-            if (lengths(f.list2)[3] == 1) {
-                eval(
-                    rlang::expr(
-                        getPlotSummary(
-                            x = !!f.list2[[2]],
-                            y = !!f.list[[2]],
-                            g1 = !!f.list2[[3]],
-                            data = !!match.call()[["data"]],
-                            design = !!match.call()[["design"]],
-                            summary.type = "inference",
-                            inference.type = !!type,
-                            !!!dots,
-                            env = !!env
-                        )
-                    ),
-                    envir = env
-                )
-            } else {
-                f.list3 <- as.list(f.list2[[3]])
-                eval(
-                    rlang::expr(
-                        getPlotSummary(
-                            x = !!f.list2[[2]],
-                            y = !!f.list[[2]],
-                            g1 = !!f.list3[[2]],
-                            g2 = !!f.list3[[3]],
-                            data = !!match.call()[["data"]],
-                            design = !!match.call()[["design"]],
-                            summary.type = "inference",
-                            inference.type = !!type,
-                            !!!dots,
-                            env = !!env
-                        )
-                    ),
-                    envir = env
-                )
-            }
+            f.list3 <- as.list(f.list2[[3]])
+            eval(
+                rlang::expr(
+                    getPlotSummary(
+                        x = !!f.list2[[2]],
+                        y = !!f.list[[2]],
+                        g1 = !!f.list3[[2]],
+                        g2 = !!f.list3[[3]],
+                        data = !!match.call()[["data"]],
+                        design = !!match.call()[["design"]],
+                        summary.type = "inference",
+                        inference.type = !!type,
+                        !!!dots,
+                        env = !!env
+                    )
+                ),
+                envir = env
+            )
         }
     }
 }
