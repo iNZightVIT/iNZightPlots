@@ -762,7 +762,6 @@ inzsummary <- function(x, data = NULL, design = NULL, ..., env = parent.frame())
 #'             (currently ignored).
 inzinference <- function(x, data = NULL, design = NULL, type = c("conf", "comp"), ...,
                          env = parent.frame()) {
-    type <- match.arg(type)
     dots <- rlang::enexprs(...)
     f.list <- as.list(x)
 

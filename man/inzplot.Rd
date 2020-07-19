@@ -7,10 +7,10 @@
 \alias{inzplot.formula}
 \title{iNZight Plot Method}
 \usage{
-inzsummary(f, data = NULL, design = NULL, ..., env = parent.frame())
+inzsummary(x, data = NULL, design = NULL, ..., env = parent.frame())
 
 inzinference(
-  f,
+  x,
   data = NULL,
   design = NULL,
   type = c("conf", "comp"),
@@ -23,6 +23,8 @@ inzplot(x, ..., env = parent.frame())
 \method{inzplot}{formula}(x, data = NULL, design = NULL, ..., env = parent.frame())
 }
 \arguments{
+\item{x}{A formula in the form of \code{y ~ x | g}. See Details.}
+
 \item{data}{Dataset to plotq}
 
 \item{design}{A survey design to use}
@@ -34,8 +36,6 @@ inzplot(x, ..., env = parent.frame())
 \item{type}{Type type of inference to obtain, one of 'conf' or 'comp'
 for confidence intervals and comparison intervals, respectively
 (currently ignored).}
-
-\item{x}{A formula in the form of \code{y ~ x | g}. See Details.}
 }
 \value{
 The output depends on the type of input, but is usually called for
@@ -69,7 +69,7 @@ There are four options for the formula passed in:
 
 \examples{
 data("CO2")
-inzplot(uptake, data = CO2)
+inzplot(~uptake, data = CO2)
 inzplot(uptake ~ Treatment, data = CO2)
 inzplot(uptake ~ Treatment | Type, data = CO2)
 inzplot(uptake ~ Treatment | Type,
