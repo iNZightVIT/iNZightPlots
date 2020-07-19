@@ -6,6 +6,7 @@
 #' @param ... an environment to evaluate things
 #' @return The output depends on the type of input, but is usually called for
 #'         the side-effect of producing a plot.
+#' @export
 inzplot <- function(x, ..., env = parent.frame())
     UseMethod("inzplot")
 

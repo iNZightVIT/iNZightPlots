@@ -344,7 +344,7 @@ construct_call <- function(settings, vartypes,
             fmla <- eval(parse(text = fmla))
         }
     } else {
-        fmla <- paste("~", as.character(settings$x))
+        fmla <- eval(parse(text = paste("~", as.character(settings$x))))
     }
     settings <- c(list(f = fmla), settings)
     settings$x <- NULL
