@@ -663,7 +663,6 @@ centerText <- function(x, width) {
 #' @describeIn inzplot Wrapper for getPlotSummary to obtain summary information about a plot
 #' @export
 inzsummary <- function(x, data = NULL, design = NULL, ..., env = parent.frame()) {
-    type <- match.arg(type)
     dots <- rlang::enexprs(...)
     f.list <- as.list(x)
 
@@ -672,7 +671,6 @@ inzsummary <- function(x, data = NULL, design = NULL, ..., env = parent.frame())
             rlang::expr(
                 getPlotSummary(
                     x = !!f.list[[2]],
-                    x = !!f,
                     data = !!match.call()[["data"]],
                     design = !!match.call()[["design"]],
                     !!!dots,
@@ -762,6 +760,7 @@ inzsummary <- function(x, data = NULL, design = NULL, ..., env = parent.frame())
 #'             (currently ignored).
 inzinference <- function(x, data = NULL, design = NULL, type = c("conf", "comp"), ...,
                          env = parent.frame()) {
+    type <- match.arg(type)
     dots <- rlang::enexprs(...)
     f.list <- as.list(x)
 
