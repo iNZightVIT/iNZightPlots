@@ -7,8 +7,9 @@
 #' @return The output depends on the type of input, but is usually called for
 #'         the side-effect of producing a plot.
 #' @export
-inzplot <- function(x, ..., env = parent.frame())
+inzplot <- function(x, ..., env = parent.frame()) {
     UseMethod("inzplot")
+}
 
 inzplot.default <- function(x, ..., env = parent.frame())
     stop("That type of object is not supported.")
@@ -81,5 +82,5 @@ inzplot.formula <- function(x, data = NULL, design = NULL, ..., env = parent.fra
     if (is.null(fmla$g1)) exp$g1 <- NULL
     if (is.null(fmla$g2)) exp$g2 <- NULL
 
-    eval(exp)
+    eval(exp, envir = env)
 }

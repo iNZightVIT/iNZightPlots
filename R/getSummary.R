@@ -695,7 +695,7 @@ inzsummary <- function(x, data = NULL, design = NULL, ..., env = parent.frame())
     if (is.null(fmla$g1)) exp$g1 <- NULL
     if (is.null(fmla$g2)) exp$g2 <- NULL
 
-    eval(exp)
+    eval(exp, envir = env)
 }
 
 #' @describeIn inzplot Wrapper for getPlotSummary to obtain inference information about a plot
@@ -740,7 +740,7 @@ inzinference <- function(x, data = NULL, design = NULL, type = c("conf", "comp")
     if (is.null(fmla$g1)) exp$g1 <- NULL
     if (is.null(fmla$g2)) exp$g2 <- NULL
 
-    eval(exp)
+    eval(exp, envir = env)
 }
 
 default.survey.options <- list(
