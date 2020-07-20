@@ -313,7 +313,7 @@ construct_call <- function(settings, vartypes,
         if (!is.null(settings$y)) {
             fmla <- paste(fmla, as.character((settings$y)), sep = " ~ ")
         } else {
-            fmla <- paste(fmla, ".", sep = " ~ ")
+            fmla <- paste("~", fmla)
         }
         if (!is.null(settings$g1) || !is.null(settings$g2)) {
             if (is.null(settings$g1)) {
@@ -487,4 +487,39 @@ mend_call <- function(call, data, design_name, plot) {
         )
     }
     code
+}
+
+parse_formula <- function(fmla) {
+    ## Parse the formula
+    x <- NULL
+    y <- NULL
+    g1 <- NULL
+    g2 <- NULL
+
+    f.list <- as.list(fmla)
+    if (length(f.list) == 3) {
+        # there is a y specified
+        y <- f.list[[2]]
+        f.list2 <- as.list(f.list[[3]])
+    } else {
+        f.list2 <- as.list(f.list[[2]])
+    }
+
+    if (length(f.list2) == 1) {
+        # no grouping vars
+        x <- f.list2[[1]]
+    } else {
+        # grouping vars
+        x <- f.list2[[2]]
+
+        f.list3 <- as.list(f.list2[[3]])
+        if (length(f.list3) == 1) {
+            g1 <- f.list3[[1]]
+        } else {
+            g1 <- f.list3[[2]]
+            g2 <- f.list3[[3]]
+        }
+    }
+
+    list(x = x, y = y, g1 = g1, g2 = g2)
 }

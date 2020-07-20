@@ -50,91 +50,36 @@ inzplot.default <- function(x, ..., env = parent.frame())
 #' data = CO2, g1.level = "Quebec")
 inzplot.formula <- function(x, data = NULL, design = NULL, ..., env = parent.frame()) {
     dots <- rlang::enexprs(...)
-    f.list <- as.list(x)
+    fmla <- parse_formula(x)
 
-    if (length(f.list) == 2) {
-        ## formula: ~ x
-        eval(
-            rlang::expr(
-                iNZightPlot(x = !!f.list[[2]],
-                    data = !!match.call()[["data"]],
-                    design = !!match.call()[["design"]],
-                    !!!dots,
-                    env = !!env
-                )
-            ),
-            envir = env
-        )
-    } else if (lengths(f.list)[3] == 1) {
-        ## formula: y ~ x
-        if (f.list[[3]] == ".") {
-            f.list[[3]] <- f.list[[2]]
-            f.list[2] <- list(NULL)
-        } else {
-            varx <- data[[f.list[[3]]]]
-            vary <- data[[f.list[[2]]]]
-            if ((is_cat(varx) || is_cat(vary))) {
-                f.list <- f.list[c(1, 3:2)]
-            }
-        }
-        eval(
-            rlang::expr(
-                iNZightPlot(x = !!f.list[[3]], y = !!f.list[[2]],
-                    data = !!match.call()[["data"]],
-                    design = !!match.call()[["design"]],
-                    !!!dots,
-                    env = !!env
-                )
-            ),
-            envir = env
-        )
-    } else {
-        ## formula: y ~ x | g1 (+ g2)
-        f.list2 <- as.list(f.list[[3]])
-        if (f.list2[[2]] == ".") {
-            f.list2[[2]] <- f.list[[2]]
-            f.list[2] <- list(NULL)
-        } else {
-            varx <- data[[f.list2[[2]]]]
-            vary <- data[[f.list[[2]]]]
-
-            if ((is_cat(varx) || is_cat(vary))) {
-                f.list2[[2]] <- f.list[[2]]
-                f.list[[2]] <- f.list[[3]][[2]]
-            }
-        }
-        if (lengths(f.list2)[3] == 1) {
-            eval(
-                rlang::expr(
-                    iNZightPlot(
-                        x = !!f.list2[[2]],
-                        y = !!f.list[[2]],
-                        g1 = !!f.list2[[3]],
-                        data = !!match.call()[["data"]],
-                        design = !!match.call()[["design"]],
-                        !!!dots,
-                        env = !!env
-                    )
-                ),
-                envir = env
-            )
-        } else {
-            f.list3 <- as.list(f.list2[[3]])
-            eval(
-                rlang::expr(
-                    iNZightPlot(
-                        x = !!f.list2[[2]],
-                        y = !!f.list[[2]],
-                        g1 = !!f.list3[[2]],
-                        g2 = !!f.list3[[3]],
-                        data = !!match.call()[["data"]],
-                        design = !!match.call()[["design"]],
-                        !!!dots,
-                        env = !!env
-                    )
-                ),
-                envir = env
-            )
+    if (!is.null(fmla$y)) {
+        varx <- data[[fmla$x]]
+        vary <- data[[fmla$y]]
+        if (is_cat(varx) || is_cat(vary)) {
+            # need to do a switch-a-roo
+            xx <- fmla$x
+            fmla$x <- fmla$y
+            fmla$y <- xx
+            rm("xx")
         }
     }
+
+    exp <- rlang::expr(
+        iNZightPlot(
+            x = !!fmla$x,
+            y = !!fmla$y,
+            g1 = !!fmla$g1,
+            g2 = !!fmla$g2,
+            data = !!match.call()[["data"]],
+            design = !!match.call()[["design"]],
+            !!!dots,
+            env = !!env
+        )
+    )
+
+    if (is.null(fmla$y)) exp$y <- NULL
+    if (is.null(fmla$g1)) exp$g1 <- NULL
+    if (is.null(fmla$g2)) exp$g2 <- NULL
+
+    eval(exp)
 }
