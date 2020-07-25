@@ -57,7 +57,7 @@ jobs:
         shell: bash
 
       - name: Test coverage
-        continue_on_error: true
+        continue-on-error: true
         uses: nick-invision/retry@v1
         with:
           timeout_minutes: 10
