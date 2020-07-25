@@ -54,13 +54,12 @@ jobs:
 
       - name: Install dependencies
         run: Rscript ./.github/install_deps.R
-        #   remotes::install_deps(dependencies = TRUE)
-        #   remotes::install_cran("rcmdcheck")
         shell: bash
 
       - name: Test coverage
+        continue_on_error: true
         uses: nick-invision/retry@v1
         with:
           timeout_minutes: 10
-          max_attempts: 3
+          max_attempts: 5
           command: Rscript -e "covr::codecov()"

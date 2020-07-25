@@ -4,10 +4,10 @@ github_deps <- c(
     "iNZightVIT/iNZightMR@2.2.5"
 )
 
-options(repos = c(CRAN = "https://cloud.r-project.org"))
-if (.Platform$OS.type == "windows") {
-    utils::install.packages("XML", type = "binary")
-}
+options(
+    repos = c(CRAN = "https://cloud.r-project.org"),
+    install.packages.compile.from.source = "never"
+)
 
 remotes::install_github(github_deps)
 remotes::install_deps(dependencies = TRUE)
