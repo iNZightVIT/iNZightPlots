@@ -101,7 +101,7 @@
 #'     bootstrap = TRUE)
 #'
 #' # alternatively, use the formula interface
-#' iNZPlot(Sepal.Length ~ Sepal.Width | Species, data = iris)
+#' inzplot(Sepal.Length ~ Sepal.Width | Species, data = iris)
 iNZightPlot <- function(x,
                         y = NULL,
                         g1 = NULL,

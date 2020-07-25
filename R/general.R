@@ -228,3 +228,298 @@ colourPoints <- function(x, col.args, opts = inzpar()) {
         }
     )
 }
+
+#' Construct plot call from settings list
+#' @param settings a list of plot settings, similar to `inzpar()`
+#' @param vartypes a list of variables types (numeric, factor)
+#' @param data a data set to pass to the call
+#' @param design a survey design (can be NULL)
+#' @param what the type of call to produce
+#' @return a plot/summary/inference call
+#' @md
+#' @importFrom iNZightTools "%notin%"
+construct_call <- function(settings, vartypes,
+                           data = quote(.dataset),
+                           design = quote(.design),
+                           what = c("plot", "summary", "inference")) {
+    if (is.null(settings$x)) {
+        settings <- list(data = data)
+        call <- capture.output(dput(settings))
+        call <- gsub("^list", "getPlotSummary", call)
+        call <- gsub(".DROP = ", "", call)
+
+        return(parse(text = paste(call, collapse = "\n")))
+    }
+
+    what <- match.arg(what)
+
+    ## remove names:
+    rem_names <- c("pch")
+    for (n in rem_names) {
+        names(settings[[n]]) <- NULL
+    }
+
+    ## remove options
+    rmv_args <- c("locate.settings")
+    settings <- settings[names(settings) %notin% rmv_args]
+
+    # go through settings and compare to default settings
+    default_args <- formals(iNZightPlot)
+    inz_args <- inzpar()
+    gg_args <- gg_defaults
+    if (what %in% c("summary", "inference")) {
+        smry_args <- formals(getPlotSummary)
+        smry_args <- smry_args[names(smry_args) %notin% names(default_args)]
+        default_args <- c(default_args, smry_args)
+    }
+    defaults <- c(default_args, inz_args, gg_args)
+
+    lapply(names(settings),
+        function(s_name) {
+            is_same <- identical(
+                settings[[s_name]],
+                defaults[[s_name]],
+                ignore.bytecode = TRUE,
+                ignore.environment = TRUE
+            )
+            if (is_same) settings[[s_name]] <<- NULL
+        }
+    )
+    ## set the data
+    settings$data <- data
+    if (!is.null(design)) {
+        settings$data <- NULL
+        settings$design <- design
+    }
+
+    ## order of list
+    name_order <- c(names(default_args),  names(inz_args))
+    name_order <- name_order[name_order %in% names(settings)]
+
+    ## missing args
+    missing <-
+        names(settings) %notin% name_order &
+        names(settings) %notin% c("data_name")
+    if (any(missing)) {
+        name_miss <- names(settings)[missing]
+        name_order <- c(name_order, name_miss)
+    }
+
+    settings <- settings[name_order]
+
+    # formula
+    if (!is.null(settings$y) || !is.null(settings$g1) || !is.null(settings$g2)) {
+        fmla <- as.character(settings$x)
+        if (!is.null(settings$y)) {
+            fmla <- paste(fmla, as.character((settings$y)), sep = " ~ ")
+        } else {
+            fmla <- paste("~", fmla)
+        }
+        if (!is.null(settings$g1) || !is.null(settings$g2)) {
+            if (is.null(settings$g1)) {
+                if (settings$g2.level == "_ALL") {
+                    gfm <- NULL
+                    settings$g2.level <- NULL
+                } else {
+                    gfm <- as.character(settings$g2)
+                    settings$g1.level <- settings$g2.level
+                    settings$g2.level <- NULL
+                }
+            } else if (is.null(settings$g2) || settings$g2.level == "_ALL") {
+                gfm <- as.character(settings$g1)
+            } else {
+                gfm <- paste(
+                    as.character(settings$g1),
+                    as.character(settings$g2),
+                    sep = " + "
+                )
+            }
+
+            if (!is.null(gfm))
+                fmla <- paste(fmla, "|", gfm)
+        }
+        if (grepl(" ~ \\.$", fmla)) {
+            fmla <- eval(parse(text = paste("~", settings$x)))
+        } else {
+            fmla <- eval(parse(text = fmla))
+        }
+    } else {
+        fmla <- eval(parse(text = paste("~", as.character(settings$x))))
+    }
+    settings <- c(list(f = fmla), settings)
+    settings$x <- NULL
+    settings$y <- NULL
+    settings$g1 <- NULL
+    settings$g2 <- NULL
+
+    ## plot.features
+    if (!is.null(settings$plot.features)) {
+        if (length(settings$plot.features))
+            settings$plot.features <- modifyList(list(), as.list(settings$plot.features))
+        if (length(settings$plot.features) == 0)
+            settings$plot.features <- NULL
+    }
+
+    ## transformations
+    if (!is.null(settings$transform)) {
+        settings$transform <- modifyList(list(), settings$transform)
+        if (length(settings$transform) == 0)
+            settings$transform <- NULL
+    }
+
+    # only include overwritten varnames
+    # vnames <- settings$varnames
+    # for (vn in names(vnames)) {
+    #     if (is.null(settings[[vn]]) ||
+    #         is.null(vnames[[vn]]) ||
+    #         settings[[vn]] == vnames[[vn]])
+    #         vnames[[vn]] <- NULL
+    # }
+    # settings$varnames <- if (length(vnames)) vnames else NULL
+    settings$varnames <- NULL
+
+    ## remove names:
+    rem_names <- c("pch")
+    for (n in rem_names) {
+        names(settings[[n]]) <- NULL
+    }
+
+    ## g1.level/g2.level
+    if (isTRUE(settings$g1.level == "_MULTI")) settings$g1.level <- NULL
+    if (isTRUE(settings$g2.level == "_ALL")) settings$g2.level <- NULL
+
+    ## fix "inference.type"
+    if (vartypes$x == "num" && !is.null(vartypes$y) && vartypes$y == "num") {
+        if ("conf" %in% settings$inference.type)
+            settings$inference.type <- "conf"
+    }
+
+    if (what == "plot") {
+        ## things unique to plots
+
+    } else {
+        ## things unique to summary/inference
+        settings$plot.features <- NULL
+        settings$plottype <- NULL
+
+        if (what == "summary") {
+            ## things unique to summary
+
+        }
+        if (what == "inference") {
+            ## things unique to inference
+
+        }
+    }
+
+    ## remove any NULLs
+    settings <- modifyList(list(), settings)
+    settings <- lapply(settings,
+        function(x)
+            if (is.null(x) || (is.character(x) && all(x == "NULL"))) NULL else x
+    )
+
+    ## drop "x = " and "y = "
+    names(settings) <- ifelse(names(settings) %in% c("f", "x", "y"),
+        paste0(names(settings), "DROP"),
+        names(settings)
+    )
+
+    call <- capture.output(dput(settings))
+    fn <- switch(what,
+        plot = "inzplot",
+        summary = "inzsummary",
+        inference = "inzinference"
+    )
+    call <- gsub("^list", fn, call)
+    call <- gsub(".DROP = ", "", call)
+
+    parse(text = paste(call, collapse = "\n"))
+}
+
+
+#' Mend a plot call based on valid parameters
+#' @param call a plot call string, or expression
+#' @param data the dataset
+#' @param design_name name of the design, if any
+#' @param plot the result of `inzplot`, `inzsummary`, or `inzinference`
+#' @return a plot call with extraneous arguments removed
+#' @md
+mend_call <- function(call, data, design_name, plot) {
+    # adjust name
+    dname <- attr(data, "name", exact = TRUE)
+    if (is.null(dname) || dname == "") dname <- "data"
+    dname <- iNZightTools::create_varname(dname)
+
+    if (is.expression(call) && as.character(call[[1]])[1] != "getPlotSummary") {
+        ## and remove invalid vars (for plot_type/method combination)
+        cnames <- names(call[[1]])
+        ptype <- attr(plot, "plottype")
+        if (ptype == "bar") {
+            vnames <- attr(plot, "varnames")
+            vtypes <- attr(plot, "vartypes")
+            xcat <- vtypes[[vnames$x]] == "factor"
+            ycat <- !is.null(vnames$y) && vtypes[[vnames$y]] == "factor"
+            if (xcat && ycat)
+                ptype <- "bar2"
+            else if (length(levels(data[[vnames$x]])) == 2L)
+                ptype <- "barBinary"
+        }
+        keep <- valid_par(
+            cnames,
+            ptype,
+            switch(as.character(call[[1]])[1],
+                "inzplot" = "plot",
+                "inzsummary" = "summary",
+                "inzinference" = "inference"
+            )
+        )
+        call[[1]] <- call[[1]][keep]
+    }
+
+    code <- as.character(call)
+    code <- gsub(".dataset", dname, code, fixed = TRUE)
+    if (any(grepl(".design", code, fixed = TRUE))) {
+        code <- gsub(".design", ".design", code, fixed = TRUE)
+        code <- gsub(".design", design_name,
+            code,
+            fixed = TRUE
+        )
+    }
+    code
+}
+
+parse_formula <- function(fmla) {
+    ## Parse the formula
+    x <- NULL
+    y <- NULL
+    g1 <- NULL
+    g2 <- NULL
+
+    f.list <- as.list(fmla)
+    if (length(f.list) == 3) {
+        # there is a y specified
+        y <- f.list[[2]]
+        f.list2 <- as.list(f.list[[3]])
+    } else {
+        f.list2 <- as.list(f.list[[2]])
+    }
+
+    if (length(f.list2) == 1) {
+        # no grouping vars
+        x <- f.list2[[1]]
+    } else {
+        # grouping vars
+        x <- f.list2[[2]]
+
+        f.list3 <- as.list(f.list2[[3]])
+        if (length(f.list3) == 1) {
+            g1 <- f.list3[[1]]
+        } else {
+            g1 <- f.list3[[2]]
+            g2 <- f.list3[[3]]
+        }
+    }
+
+    list(x = x, y = y, g1 = g1, g2 = g2)
+}

@@ -122,8 +122,8 @@ getPlotSummary(Sepal.Length, data = iris,
     hypothesis.value = 5)
 
 # if you prefer a formula interface
-iNZSummary(Sepal.Length ~ Species, data = iris)
-iNZInference(Sepal.Length ~ Species, data = iris)
+inzsummary(Sepal.Length ~ Species, data = iris)
+inzinference(Sepal.Length ~ Species, data = iris)
 }
 \author{
 Tom Elliott
