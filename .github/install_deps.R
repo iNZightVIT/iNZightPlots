@@ -1,6 +1,6 @@
 # R script
 github_deps <- c(
-    "iNZightVIT/iNZightTools@release/1.9"
+    "iNZightVIT/iNZightTools@1.9"
 )
 
 options(repos = c(CRAN = "https://cloud.r-project.org"))
