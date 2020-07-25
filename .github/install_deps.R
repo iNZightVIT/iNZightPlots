@@ -5,7 +5,6 @@ github_deps <- c(
 )
 
 options(repos = c(CRAN = "https://cloud.r-project.org"))
-
 if (.Platform$OS.type == "windows") {
     utils::install.packages("XML", type = "binary")
 }
