@@ -26,10 +26,16 @@ The parameters include both plot type, style, and appearance.
 
 
 \describe{
-\item{'pch'}{the plotting symbol to be used; default is `1` (empty circle)}
+\item{'pch'}{the plotting symbol to be used; default is `21` (circle with fill)}
 \item{'col.pt'}{the colour of points. this can either be a single value, or a vector of
 colours if \code{colby} is specified}
-\item{'col.fun'}{a function to use for colouring points, etc.}
+\item{'col.fun'}{a function to use for colouring points, etc., or the name of a palette,
+ see \code{inzpalette}
+}
+\item{'col.emph', 'col.emphn'}{emphasize the chosen level of a colour by variable. For numeric
+ colour by, \code{col.emphn} specifies the number of quantiles to use.
+}
+\item{'emph.on.top'}{if \code{TRUE}, emphasised points will be positioned on top}
 \item{'col.default'}{the default colour functions, containing a list with entries for 'cat' and 'cont' variables}
 \item{'col.missing'}{the colour for missing values; default is a light grey}
 \item{'reverse.palette'}{logical, if \code{TRUE} the palette will be reversed}
@@ -140,7 +146,7 @@ iNZightPlot(Sepal.Length, data = iris, col.pt = "red",
 # plot are used)
 mypar <- inzpar(col.pt = "red", box.col = "blue", box.fill = "green",
     trend = "linear", trend.by = TRUE)
-iNZPlot(Sepal.Length ~ Species, data = iris, inzpar = mypar)
+inzplot(Sepal.Length ~ Species, data = iris, inzpar = mypar)
 iNZightPlot(Sepal.Length, Sepal.Width, data = iris, inzpar = mypar,
     colby = Species)
 }

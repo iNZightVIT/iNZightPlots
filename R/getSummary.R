@@ -37,7 +37,9 @@
 #' @param hypothesis either NULL for no test, or missing (in which case above arguments are used)
 #' @param survey.options additional options passed to survey methods
 #' @param width width for the output, default is 100 characters
+#' @param epi.out logical, if \code{TRUE}, then odds/rate ratios and rate differences are printed when appropriate (\code{y} with 2 levels)
 #' @param ... additional arguments, see \code{inzpar}
+#' @param env compatibility argument
 #' @return an \code{inzight.plotsummary} object with a print method
 #' @author Tom Elliott
 #' @export
@@ -52,8 +54,8 @@
 #'     hypothesis.value = 5)
 #'
 #' # if you prefer a formula interface
-#' iNZSummary(Sepal.Length ~ Species, data = iris)
-#' iNZInference(Sepal.Length ~ Species, data = iris)
+#' inzsummary(Sepal.Length ~ Species, data = iris)
+#' inzinference(Sepal.Length ~ Species, data = iris)
 getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            g2 = NULL, g2.level = NULL, varnames = list(),
                            colby = NULL, sizeby = NULL,
@@ -77,7 +79,9 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            ),
                            survey.options = list(),
                            width = 100,
-                           ...) {
+                           epi.out = FALSE,
+                           ...,
+                           env = parent.frame()) {
 
     # if (inherits(x, "data.frame")) {
     if (missing(x)) {
@@ -88,9 +92,8 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     ## Grab a plot object!
     m <- match.call(expand.dots = FALSE)
-    env <- parent.frame()
 
-    if ("design" %in% names(m)) {
+    if ("design" %in% names(m) && !is.null(m$design)) {
         md <- eval(m$design, env)
     } else {
         md <- eval(m$data, env)
@@ -174,19 +177,19 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         colby = NULL, sizeby = NULL,
         data = data, design = design, freq = freq,
         missing.info = missing.info, inzpars = inzpars,
-        plot = FALSE, df = df, ...
+        plot = FALSE, df = df, env = env, ...
     )
 
     ### Now we just loop over everything ...
 
-    summary(obj, summary.type, hypothesis, survey.options, width = width)
+    summary(obj, summary.type, hypothesis, survey.options, width = width, epi.out = epi.out)
 }
 
 
 summary.inzplotoutput <- function(object, summary.type = "summary",
                                   hypothesis = NULL,
                                   survey.options = list(),
-                                  width = 100) {
+                                  width = 100, ...) {
     if (length(summary.type) > 1) {
         warning("Only using the first element of `summary.type`")
         summary.type <- summary.type[1]
@@ -468,7 +471,8 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                                     vn = vnames,
                                     nb = attr(obj, "nboot"),
                                     hypothesis = hypothesis,
-                                    survey.options = survey.options
+                                    survey.options = survey.options,
+                                    ...
                                 )
                         ),
                         add
@@ -656,134 +660,87 @@ centerText <- function(x, width) {
 }
 
 
-#' @describeIn iNZPlot Wrapper for getPlotSummary to obtain summary information about a plot
+#' @describeIn inzplot Wrapper for getPlotSummary to obtain summary information about a plot
 #' @export
-iNZSummary <- function(f, data = NULL, ...) {
-    f <- match.call()[["f"]]
-    if (!rlang::is_formula(f)) {
-        eval(
-            rlang::expr(
-                getPlotSummary(x = !!f,  data = !!match.call()[["data"]], ...)
-            )
-        )
-    } else {
-        f.list <- as.list(f)
+inzsummary <- function(x, data = NULL, design = NULL, ..., env = parent.frame()) {
+    dots <- rlang::enexprs(...)
+    fmla <- parse_formula(x)
 
-        if (lengths(f.list)[3] == 1) {
-            eval(
-                rlang::expr(
-                    getPlotSummary(
-                        x = !!f.list[[3]],
-                        y = !!f.list[[2]],
-                        data = !!match.call()[["data"]],
-                        ...
-                    )
-                )
-            )
-        } else {
-            f.list2 <- as.list(f.list[[3]])
-            if (lengths(f.list2)[3] == 1) {
-                eval(
-                    rlang::expr(
-                        getPlotSummary(
-                            x = !!f.list2[[2]],
-                            y = !!f.list[[2]],
-                            g1 = !!f.list2[[3]],
-                            data = !!match.call()[["data"]],
-                            ...
-                        )
-                    )
-                )
-            } else {
-                f.list3 <- as.list(f.list2[[3]])
-                eval(
-                    rlang::expr(
-                        getPlotSummary(
-                            x = !!f.list2[[2]],
-                            y = !!f.list[[2]],
-                            g1 = !!f.list3[[2]],
-                            g2 = !!f.list3[[3]],
-                            data = !!match.call()[["data"]],
-                            ...
-                        )
-                    )
-                )
-            }
+    if (!is.null(fmla$y)) {
+        varx <- data[[fmla$x]]
+        vary <- data[[fmla$y]]
+        if (is_cat(varx) || is_cat(vary)) {
+            # need to do a switch-a-roo
+            xx <- fmla$x
+            fmla$x <- fmla$y
+            fmla$y <- xx
+            rm("xx")
         }
     }
+
+    exp <- rlang::expr(
+        getPlotSummary(
+            x = !!fmla$x,
+            y = !!fmla$y,
+            g1 = !!fmla$g1,
+            g2 = !!fmla$g2,
+            data = !!match.call()[["data"]],
+            design = !!match.call()[["design"]],
+            !!!dots,
+            env = !!env
+        )
+    )
+
+    if (is.null(fmla$y)) exp$y <- NULL
+    if (is.null(fmla$g1)) exp$g1 <- NULL
+    if (is.null(fmla$g2)) exp$g2 <- NULL
+
+    eval(exp, envir = env)
 }
 
-#' @describeIn iNZPlot Wrapper for getPlotSummary to obtain inference information about a plot
+#' @describeIn inzplot Wrapper for getPlotSummary to obtain inference information about a plot
 #' @export
 #' @param type Type type of inference to obtain, one of 'conf' or 'comp'
 #'             for confidence intervals and comparison intervals, respectively
 #'             (currently ignored).
-iNZInference <- function(f, data = NULL, type = c("conf", "comp"), ...) {
+inzinference <- function(x, data = NULL, design = NULL, type = c("conf", "comp"), ...,
+                         env = parent.frame()) {
+    dots <- rlang::enexprs(...)
+    fmla <- parse_formula(x)
     type <- match.arg(type)
-    f <- match.call()[["f"]]
-    if (!rlang::is_formula(f)) {
-        eval(
-            rlang::expr(
-                getPlotSummary(
-                    x = !!f,
-                    data = !!match.call()[["data"]],
-                    summary.type = "inference",
-                    inference.type = type,
-                    ...
-                )
-            )
-        )
-    } else {
-        f.list <- as.list(f)
 
-        if (lengths(f.list)[3] == 1) {
-            eval(
-                rlang::expr(
-                    getPlotSummary(
-                        x = !!f.list[[3]],
-                        y = !!f.list[[2]],
-                        data = !!match.call()[["data"]],
-                        summary.type = "inference",
-                        inference.type = type,
-                        ...
-                    )
-                )
-            )
-        } else {
-            f.list2 <- as.list(f.list[[3]])
-            if (lengths(f.list2)[3] == 1) {
-                eval(
-                    rlang::expr(
-                        getPlotSummary(
-                            x = !!f.list2[[2]],
-                            y = !!f.list[[2]],
-                            g1 = !!f.list2[[3]],
-                            data = !!match.call()[["data"]],
-                            summary.type = "inference",
-                            inference.type = type,
-                            ...
-                        )
-                    )
-                )
-            } else {
-                f.list3 <- as.list(f.list2[[3]])
-                eval(
-                    rlang::expr(
-                        getPlotSummary(
-                            x = !!f.list2[[2]],
-                            y = !!f.list[[2]],
-                            g1 = !!f.list3[[2]],
-                            g2 = !!f.list3[[3]],
-                            data = !!match.call()[["data"]],
-                            summary.type = "inference",
-                            inference.type = type,
-                            ...
-                        )
-                    )
-                )
-            }
+    if (!is.null(fmla$y)) {
+        varx <- data[[fmla$x]]
+        vary <- data[[fmla$y]]
+        if (is_cat(varx) || is_cat(vary)) {
+            # need to do a switch-a-roo
+            xx <- fmla$x
+            fmla$x <- fmla$y
+            fmla$y <- xx
+            rm("xx")
         }
     }
+
+    exp <- rlang::expr(
+        getPlotSummary(
+            x = !!fmla$x,
+            y = !!fmla$y,
+            g1 = !!fmla$g1,
+            g2 = !!fmla$g2,
+            data = !!match.call()[["data"]],
+            design = !!match.call()[["design"]],
+            summary.type = "inference",
+            inference.type = !!type,
+            !!!dots,
+            env = !!env
+        )
+    )
+
+    if (is.null(fmla$y)) exp$y <- NULL
+    if (is.null(fmla$g1)) exp$g1 <- NULL
+    if (is.null(fmla$g2)) exp$g2 <- NULL
+
+    eval(exp, envir = env)
 }
 
 default.survey.options <- list(

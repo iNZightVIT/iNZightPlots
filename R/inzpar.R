@@ -7,10 +7,16 @@
 #' @details
 #'
 #' \describe{
-#' \item{'pch'}{the plotting symbol to be used; default is `1` (empty circle)}
+#' \item{'pch'}{the plotting symbol to be used; default is `21` (circle with fill)}
 #' \item{'col.pt'}{the colour of points. this can either be a single value, or a vector of
 #' colours if \code{colby} is specified}
-#' \item{'col.fun'}{a function to use for colouring points, etc.}
+#' \item{'col.fun'}{a function to use for colouring points, etc., or the name of a palette,
+#'  see \code{inzpalette}
+#' }
+#' \item{'col.emph', 'col.emphn'}{emphasize the chosen level of a colour by variable. For numeric
+#'  colour by, \code{col.emphn} specifies the number of quantiles to use.
+#' }
+#' \item{'emph.on.top'}{if \code{TRUE}, emphasised points will be positioned on top}
 #' \item{'col.default'}{the default colour functions, containing a list with entries for 'cat' and 'cont' variables}
 #' \item{'col.missing'}{the colour for missing values; default is a light grey}
 #' \item{'reverse.palette'}{logical, if \code{TRUE} the palette will be reversed}
@@ -127,7 +133,7 @@
 #' # plot are used)
 #' mypar <- inzpar(col.pt = "red", box.col = "blue", box.fill = "green",
 #'     trend = "linear", trend.by = TRUE)
-#' iNZPlot(Sepal.Length ~ Species, data = iris, inzpar = mypar)
+#' inzplot(Sepal.Length ~ Species, data = iris, inzpar = mypar)
 #' iNZightPlot(Sepal.Length, Sepal.Width, data = iris, inzpar = mypar,
 #'     colby = Species)
 inzpar <- function(...,
@@ -135,9 +141,12 @@ inzpar <- function(...,
     dots <- list(...)
 
     ip <- list(
-        pch            = 1,
+        pch            = 21L,
         col.pt         = "grey50",
         col.fun        = NULL,
+        col.emph       = 0L,
+        col.emphn      = 4L,
+        emph.on.top    = TRUE,
         col.default    =
             list(
                 cat  =
@@ -246,7 +255,8 @@ inzpar <- function(...,
         xlim           = NULL,
         ylim           = NULL,
         transform      = list(),
-        plot.features  = list()
+        plot.features  = list(),
+        epi.out        = FALSE
     )
 
     # update any user has specified
@@ -258,3 +268,39 @@ inzpar <- function(...,
     class(ip) <- "inzpar.list"
     ip
 }
+
+# Used internally
+valid_par <- function(par, plot_type, what = c("plot", "summary", "inference")) {
+    what <- substr(match.arg(what), 1, 1)
+    res <- rep(TRUE, length(par))
+    if (! plot_type %in% colnames(plot_types) ) {
+        warning("Invalid or unknown plot type")
+        return(res)
+    }
+    v <- par %in% rownames(plot_types)
+    res[v] <- grepl(what, plot_types[par[v], plot_type])
+    res
+}
+
+gg_defaults <- list(
+    adjust = 1,
+    alpha_densitygroup = 0.6,
+    gg_lwd = 1,
+    gg_size = 6,
+    ordered = FALSE,
+    gg_barSize = 16,
+    gg_bins = 30,
+    gg_height = 0.5,
+    gg_width = 1,
+    gg_perN = NULL,
+    gg_swarmwidth = 0.4,
+    gg_method = "quasirandom",
+    gg_cutpoint = "Default",
+    gg_theme = "grey",
+    fill_colour = "",
+    rotation = FALSE,
+    rotate_labels = list(x = FALSE, y = FALSE),
+    caption = "",
+    desc = FALSE,
+    palette = "default"
+)

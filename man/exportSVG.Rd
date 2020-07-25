@@ -6,17 +6,17 @@
 \alias{exportSVG.inzplotoutput}
 \title{Export iNZightPlots as an SVG}
 \usage{
-exportSVG(x, file, ...)
+exportSVG(x, file = tempfile(fileext = ".svg"), ...)
 
 \method{exportSVG}{`function`}(
   x,
-  file = "inzightplot.svg",
+  file = tempfile(fileext = ".svg"),
   width = dev.size()[1],
   height = dev.size()[2],
   ...
 )
 
-\method{exportSVG}{inzplotoutput}(x, file = "inzightplot.svg", ...)
+\method{exportSVG}{inzplotoutput}(x, file = tempfile(fileext = ".svg"), ...)
 }
 \arguments{
 \item{x}{iNZight plot object or function that captures iNZight environment}

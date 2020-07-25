@@ -8,3 +8,5 @@
 ^.lintr$
 
 ^cran-comments\.md$
+^data-raw$
+^.github$

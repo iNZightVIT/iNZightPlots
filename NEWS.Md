@@ -1,3 +1,24 @@
+# iNZightPlots 2.12
+This release mainly consists of compatibility changes to accompany 'iNZight' 4.0.
+
+## Breaking changes
+- New `inzplot`, `inzsummary`, and `inzinference` replace `iNZPlot`, `iNZSummary`, and `iNZInference`, providing a better interface to the package which better first the R ecosystem.
+
+## Minor changes
+- refactors exportHTML() and exportSVG() to writing file to (by default) a temporary directory, and without changing directories in the process
+- handle `col.emph`, `col.emphn`, and (by default) plot emphasized points on top
+- allow `col.fun` to be a character palette name
+- when dot plots show inference, override `boxplot` and `mean_indicator` (depending on specification of `inference.par`)
+- add normal inference to scatter plot trend lines
+- (survey) pop size estimates shown even if weights seem odd
+
+## Bug fixes
+- fix handling of env argument
+- handle "id" value for `locate` argument
+- mean indicator scales with overall plot scale, not dot point size
+- fix handling of `local` argument (for exportHTML())
+
+***
 ## iNZightPlots 2.11.6
 - fix bug resulting in an invalid p-value being displayed for some two sided tests
 

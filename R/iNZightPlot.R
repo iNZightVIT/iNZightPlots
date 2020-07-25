@@ -38,10 +38,13 @@
 #' @param extra.vars the names of any additional variables to be passed through
 #'        the internal functions to the create and plot methods.
 #' @param locate variable to label points
-#' @param locate.id id of points (row numbers) to label
+#' @param locate.id id of points (row numbers) to label, or
+#'        an expression that evaluates as a logical vector (e.g., \code{x > 5})
 #' @param locate.col the colour to locate points if a variable is not specified
 #' @param locate.extreme \code{numeric}, the number of extreme points to label
 #'        (using Mahalanobis' distance)
+#' @param locate.same.level name of a variable to lable points with same level
+#'        of as those specified with `locate.id`
 #' @param highlight \code{numeric} vector consisting of the row numbers/IDs of
 #'        points to highlight
 #' @param data the name of a data set
@@ -98,7 +101,7 @@
 #'     bootstrap = TRUE)
 #'
 #' # alternatively, use the formula interface
-#' iNZPlot(Sepal.Length ~ Sepal.Width | Species, data = iris)
+#' inzplot(Sepal.Length ~ Sepal.Width | Species, data = iris)
 iNZightPlot <- function(x,
                         y = NULL,
                         g1 = NULL,
@@ -114,6 +117,7 @@ iNZightPlot <- function(x,
                         locate.id = NULL,
                         locate.col = NULL,
                         locate.extreme = NULL,
+                        locate.same.level = NULL,
                         highlight = NULL,
                         data = NULL,
                         design = NULL,
@@ -419,6 +423,41 @@ iNZightPlot <- function(x,
     ## apply transformations
     df <- inztransform(df, opts$transform)
 
+    if (!is.null(opts$transform)) {
+        if (!is.null(opts$transform$x)) {
+            if (!is.null(xlim)) {
+                xlim <- switch(opts$transform$x,
+                    "log" = log(xlim),
+                    "log10" = log10(xlim),
+                    xlim
+                )
+            }
+        }
+        if (!is.null(opts$transform$y)) {
+            if (!is.null(ylim)) {
+                ylim <- switch(opts$transform$y,
+                    "log" = log(ylim),
+                    "log10" = log10(ylim),
+                    ylim
+                )
+            }
+        }
+    }
+
+    # colour-by function
+    if (!is.null(opts$col.fun) && is.character(opts$col.fun)) {
+        cpal <- opts$col.fun
+        cfun <- try({
+            inzpalette(opts$col.fun)
+        }, silent = TRUE)
+        if (inherits(cfun, "try-error")) {
+            warning("Invalid palette name, please supply a palette listed in 'inzpalette()'")
+            opts$col.fun <- NULL
+        } else {
+            opts$col.fun <- cfun
+        }
+    }
+
     ## --- colour by
     if (!is.null(df$data$colby)) {
         if (!is.numeric(df$data$colby))
@@ -428,6 +467,51 @@ iNZightPlot <- function(x,
             ranks <- rank(df$data$colby, na.last = "keep") - 1
             df$data$colby <- ranks * 100 / max(ranks, na.rm = TRUE)
             rm(ranks)
+        }
+
+        # emphasize
+        if (!is.null(opts$col.emph)) {
+            if (is.character(opts$col.emph)) {
+                opts$col.emph <- levels(df$data$colby)[opts$col.emph]
+            }
+            if (!is.na(opts$col.emph) && opts$col.emph > 0L &&
+                (opts$col.emph <= length(levels(df$data$colby)) ||
+                 opts$col.emph <= opts$col.emphn)) {
+                opts$col.fun <- eval(
+                    rlang::expr(
+                        function(n) {
+                            emphasize_pal_colour(n,
+                                opts$col.emph,
+                                !!is.factor(df$data$colby),
+                                !!opts$col.emphn,
+                                !!opts$col.fun
+                            )
+                        }
+                    )
+                )
+                if (opts$emph.on.top) {
+                    if (is.null(opts$plot.features$order.first) ||
+                        length(opts$plot.features$order.first) == 0) {
+                        ## set point order so emphasised are on top (at bottom of data)
+                        cby <- df$data$colby
+                        if (is_num(cby)) {
+                            Qs <- seq(min(cby, na.rm = TRUE), max(cby, na.rm = TRUE),
+                                length = opts$col.emphn + 1
+                            )
+                            ord1st <- which(
+                                cby >= Qs[opts$col.emph] &
+                                cby < Qs[opts$col.emph + 1]
+                            )
+                        } else {
+                            ord1st <- which(as.integer(df$data$colby) == opts$col.emph)
+                        }
+                        opts$plot.features <- modifyList(
+                            opts$plot.features,
+                            list(order.first = ord1st)
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -488,6 +572,7 @@ iNZightPlot <- function(x,
     if (!is.null(df$max.freq))
         xattr$max.freq <- df$max.freq
     if (!is.null(locate.extreme)) xattr$nextreme <- locate.extreme
+
     if (!is.null(zoombars)) xattr$zoom <- zoombars
 
     if (inherits(df.list, "inz.survey")) {
@@ -1707,6 +1792,11 @@ iNZightPlot <- function(x,
             round(convertWidth(unit(opts$cex.dotpt, "char"),
                                "native", valueOnly = TRUE), 5)
     }
+
+    # plot_code <- paste(capture.output(m), collapse = "\n")
+    # plot_code <- gsub("iNZightPlot(x = ", "iNZightPlot(",
+    #     plot_code, fixed = TRUE)
+    # attr(plot.list, "code") <- plot_code
 
     class(plot.list) <- "inzplotoutput"
     return(invisible(plot.list))

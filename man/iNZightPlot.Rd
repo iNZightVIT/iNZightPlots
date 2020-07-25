@@ -20,6 +20,7 @@ iNZightPlot(
   locate.id = NULL,
   locate.col = NULL,
   locate.extreme = NULL,
+  locate.same.level = NULL,
   highlight = NULL,
   data = NULL,
   design = NULL,
@@ -81,12 +82,16 @@ the internal functions to the create and plot methods.}
 
 \item{locate}{variable to label points}
 
-\item{locate.id}{id of points (row numbers) to label}
+\item{locate.id}{id of points (row numbers) to label, or
+an expression that evaluates as a logical vector (e.g., \code{x > 5})}
 
 \item{locate.col}{the colour to locate points if a variable is not specified}
 
 \item{locate.extreme}{\code{numeric}, the number of extreme points to label
 (using Mahalanobis' distance)}
+
+\item{locate.same.level}{name of a variable to lable points with same level
+of as those specified with `locate.id`}
 
 \item{highlight}{\code{numeric} vector consisting of the row numbers/IDs of
 points to highlight}
@@ -174,7 +179,7 @@ iNZightPlot(Petal.Width, data = iris,
     bootstrap = TRUE)
 
 # alternatively, use the formula interface
-iNZPlot(Sepal.Length ~ Sepal.Width | Species, data = iris)
+inzplot(Sepal.Length ~ Sepal.Width | Species, data = iris)
 }
 \author{
 Tom Elliott
