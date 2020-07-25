@@ -27,7 +27,7 @@ Imports:
     dichromat,
     chron,
     scales,
-    iNZightMR (>= 2.2.4),
+    iNZightMR (>= 2.2.5),
     iNZightTools (>= 1.9),
     rlang,
     magrittr,
