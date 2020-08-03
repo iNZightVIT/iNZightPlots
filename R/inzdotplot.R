@@ -640,10 +640,16 @@ meanSummary <- function(obj, opts) {
     lapply(obj,
         function(o) {
             if (is.null(o))
-            return(NULL)
+                return(NULL)
+
+            if (is_survey((o))) {
+                xhat <- svymean(~x, o, na.rm = TRUE)
+            } else {
+                xhat <- mean(o$x, na.rm = TRUE)
+            }
 
             list(
-                mean = mean(o$x, na.rm = TRUE),
+                mean = xhat,
                 opts = opts
             )
         }
