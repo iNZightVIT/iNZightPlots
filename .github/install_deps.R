@@ -9,6 +9,9 @@ options(
     install.packages.compile.from.source = "never"
 )
 
+if (!requireNamespace("XML", quietly = TRUE))
+    install.packages("XML", type = "binary")
+
 remotes::install_github(github_deps)
 remotes::install_deps(dependencies = TRUE)
 remotes::install_cran("rcmdcheck")

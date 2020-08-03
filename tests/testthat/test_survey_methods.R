@@ -28,3 +28,10 @@ test_that("Survey calls are correctly modified", {
     )
 })
 
+test_that("Mean indicator uses correct weights", {
+    expect_is(
+        p <- inzplot(~api00, design = dclus2, mean_indicator = TRUE, plot = FALSE),
+        "inzplotoutput"
+    )
+    expect_equivalent(p$all$all$meaninfo$all$mean, svymean(~api00, dclus2))
+})
