@@ -289,11 +289,15 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
                     )
                 )
             )
-            bins <- seq(
-                min(xx) - 0.5 * mdiff,
-                max(xx) + 0.5 * mdiff,
-                by = mdiff
-            )
+            if (mdiff == 0) {
+                bins <- xx[1]
+            } else {
+                bins <- seq(
+                    min(xx) - 0.5 * mdiff,
+                    max(xx) + 0.5 * mdiff,
+                    by = mdiff
+                )
+            }
         } else {
             wd <- xattr$symbol.width * 1.2
 
