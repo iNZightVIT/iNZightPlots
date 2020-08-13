@@ -4,11 +4,6 @@ github_deps <- c(
     "iNZightVIT/iNZightMR@2.2.5"
 )
 
-options(
-    repos = c(CRAN = "https://cloud.r-project.org"),
-    install.packages.compile.from.source = "never"
-)
-
 OS <- Sys.getenv("OS_TYPE")
 options(
     repos = c(
