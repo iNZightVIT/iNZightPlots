@@ -14,7 +14,7 @@ options(
 )
 
 if (OS != "Linux" && !requireNamespace("XML", quietly = TRUE))
-    try(install.packages("XML", type = "binary"))
+    install.packages("XML", type = "binary")
 
 remotes::install_github(github_deps)
 remotes::install_deps(dependencies = TRUE)

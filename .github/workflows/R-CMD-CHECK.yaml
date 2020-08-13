@@ -55,9 +55,9 @@ jobs:
           sudo -s eval "$sysreqs"
 
       - name: Install dependencies
+        env:
+          OS_TYPE: ${{ runner.os }}
         run: Rscript ./.github/install_deps.R
-        #   remotes::install_deps(dependencies = TRUE)
-        #   remotes::install_cran("rcmdcheck")
         shell: bash
 
       - name: Check
