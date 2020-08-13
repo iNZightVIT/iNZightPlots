@@ -9,7 +9,16 @@ options(
     install.packages.compile.from.source = "never"
 )
 
-if (!requireNamespace("XML", quietly = TRUE))
+OS <- Sys.getenv("OS_TYPE")
+options(
+    repos = c(
+        if (OS == "Linux") RSPM = Sys.getenv("RSPM"),
+        CRAN = "https://cloud.r-project.org"
+    ),
+    install.packages.compile.from.source = "never"
+)
+
+if (OS != "Linux" && !requireNamespace("XML", quietly = TRUE))
     install.packages("XML", type = "binary")
 
 remotes::install_github(github_deps)
