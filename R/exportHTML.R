@@ -22,7 +22,7 @@
 #'  or calling the \code{print()} method of the returned object.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' x <- iNZightPlot(Petal.Width, Petal.Length, data = iris, colby = Species)
 #' exportHTML(x, "index.html")
 #'

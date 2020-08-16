@@ -92,7 +92,7 @@ Currently only handles single panel plots. Coloured hex plots are currently not 
 }}
 
 \examples{
-\dontrun{
+\donttest{
 x <- iNZightPlot(Petal.Width, Petal.Length, data = iris, colby = Species)
 exportHTML(x, "index.html")
 

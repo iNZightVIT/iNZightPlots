@@ -222,6 +222,8 @@ transform_axes <- function(x, which, opts, label) {
     }
     xl <- current.viewport()[[switch(which, "x" = "xscale", y = "yscale")]]
     breaks <- breaks[breaks > xl[1] & breaks < xl[2]]
+    if (length(breaks) == 0)
+        breaks <- seq(min(xl), max(xl), by = 1)
     at <- as.numeric(breaks)
     labs <- FALSE
     if (label) labs <- if (!is.null(names(breaks))) names(breaks) else at

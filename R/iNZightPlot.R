@@ -663,12 +663,20 @@ iNZightPlot <- function(x,
         allX <- if (xfact) df$data$y else df$data$x
         allX <- allX[!is.na(allX)]
         diffs <- diff(sort(allX))
-        diffs <- diffs[diffs > 0]
-        mdiff <- min(diffs)
-        fdiff <- diffs / mdiff
-        isDiscrete <- all(round(fdiff) == fdiff)
-        xr <- diff(range(allX, na.rm = TRUE))
-        mult.width <- ifelse(isDiscrete, 1, 1.2)
+        if (all(diffs == 0)) {
+            diffs <- 1L
+            mdiff <- 1L
+            xr <- 1L
+            isDiscrete = TRUE
+            mult.width = 1L
+        } else {
+            diffs <- diffs[diffs > 0]
+            mdiff <- min(diffs)
+            fdiff <- diffs / mdiff
+            isDiscrete <- all(round(fdiff) == fdiff)
+            xr <- diff(range(allX, na.rm = TRUE))
+            mult.width <- ifelse(isDiscrete, 1, 1.2)
+        }
 
         xattr$dotplotstuff <- list(
             mdiff = mdiff,
@@ -765,6 +773,13 @@ iNZightPlot <- function(x,
         BARPLOT.N <- lapply(plot.list,
             function(x) lapply(x, function(y) y$ntotal)
         )
+    }
+
+    if (diff(range(xlim)) == 0) {
+        xlim <- xlim + c(-1, 1)
+    }
+    if (diff(range(ylim)) == 0) {
+        ylim <- ylim + c(-1, 1)
     }
 
     maxcnt <- NULL
