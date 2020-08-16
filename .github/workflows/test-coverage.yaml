@@ -53,6 +53,8 @@ jobs:
           sudo -s eval "$sysreqs"
 
       - name: Install dependencies
+        env:
+          OS_TYPE: ${{ runner.os }}
         run: Rscript ./.github/install_deps.R
         shell: bash
 
