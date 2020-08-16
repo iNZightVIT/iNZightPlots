@@ -1,8 +1,8 @@
-## iNZightPlots 2.12.1
-
-* fix bug so mean indicator on dot plots works with surveys
+## iNZightPlots 2.12.2
 * fix bug in plots with axis range of zero (i.e., all x/y-values equal)
 
+## iNZightPlots 2.12.1
+* fix bug so mean indicator on dot plots works with surveys
 
 ***
 # iNZightPlots 2.12
