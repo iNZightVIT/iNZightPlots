@@ -52,6 +52,12 @@ test_that("One sample t-test", {
     ## test hypothesis vars are used
 })
 
+test_that("Two sample inference", {
+    smry <- inzinference(api00 ~ both, design = dclus1)
+    ciline <- smry[grepl("No - Yes", smry)]
+    expect_match(ciline, "-15.51", all = FALSE)
+})
+
 test_that("Two sample t-test", {
     svy_mean <- svyby(~api00, ~awards, dclus1, svymean)
     svy_ci <- confint(svy_mean)
