@@ -1,3 +1,7 @@
+## iNZightPlots 2.12.3
+- fix bug in survey inference where levels were the wrong way around (A - B instead of B - A)
+
+
 ## iNZightPlots 2.12.2
 * fix bug in plots with axis range of zero (i.e., all x/y-values equal)
 
