@@ -387,7 +387,8 @@ summary.inzbar <- function(object, des, survey.options, ...) {
         if (is.survey) {
             smry_mean <- svyby(~x, ~y, des, svymean,
                 deff = survey.options$deff,
-                drop.empty.groups = FALSE
+                drop.empty.groups = FALSE,
+                na.rm = TRUE
             )
             mat <- format(SE(smry_mean) * 100, digits = 4)
             mat <- cbind(
@@ -449,7 +450,7 @@ summary.inzbar <- function(object, des, survey.options, ...) {
 
         mat <- cbind(c("", "Count ", "Percent "), mat)
         if (is.survey) {
-            smry_mean <- svymean(~x, des, deff = survey.options$deff)
+            smry_mean <- svymean(~x, des, deff = survey.options$deff, na.rm = TRUE)
             mat <- rbind(
                 mat[1:2, ],
                 "",
@@ -633,7 +634,7 @@ summary.inzscatter <- function(object, vn, des, survey.options, ...) {
         ## rank.cor <- cov2cor(coef(svyvar(rank(y) ~ rank(x), design = des)))[1,2]
         if (!"linear" %in% trend) {
             cor <- round(
-                cov2cor(as.matrix(svyvar(y~x, design = des)))[1,2],
+                cov2cor(as.matrix(svyvar(y~x, design = des, na.rm = TRUE)))[1,2],
                 2
             )
             out <- c(
