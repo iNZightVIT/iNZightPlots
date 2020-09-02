@@ -585,7 +585,8 @@ boxSummary <- function(obj, opts) {
                 if (nrow(o$variables) < 5) return(NULL)
                 svyobj <- o
                 quant <- svyquantile(~x, svyobj,
-                    quantiles = c(0.25, 0.5, 0.75)
+                    quantiles = c(0.25, 0.5, 0.75),
+                    na.rm = TRUE
                 )
                 min <- min(svyobj$variables$x, na.rm = TRUE)
                 max <- max(svyobj$variables$x, na.rm = TRUE)
@@ -766,7 +767,8 @@ dotinference <- function(obj) {
                                                         design = dat,
                                                         svymean,
                                                         vartype = "ci",
-                                                        drop.empty.groups = FALSE
+                                                        drop.empty.groups = FALSE,
+                                                        na.rm = TRUE
                                                     )
                                                     ci <- ci[, 2:4]
                                                     dimnames(ci) <- list(
@@ -774,7 +776,7 @@ dotinference <- function(obj) {
                                                         c("mean", "lower", "upper")
                                                     )
                                                 } else {
-                                                    fit <- svymean(~x, dat)
+                                                    fit <- svymean(~x, dat, na.rm = TRUE)
                                                     ci <- rbind(c(fit[1], confint(fit)))
                                                     dimnames(ci) <- list("all", c("mean", "lower", "upper"))
                                                 }

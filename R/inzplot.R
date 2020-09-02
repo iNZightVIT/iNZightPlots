@@ -54,8 +54,13 @@ inzplot.formula <- function(x, data = NULL, design = NULL, ..., env = parent.fra
     fmla <- parse_formula(x)
 
     if (!is.null(fmla$y)) {
-        varx <- data[[fmla$x]]
-        vary <- data[[fmla$y]]
+        if (!is.null(design)) {
+            varx <- design$variables[[fmla$x]]
+            vary <- design$variables[[fmla$y]]
+        } else {
+            varx <- data[[fmla$x]]
+            vary <- data[[fmla$y]]
+        }
         if (is_cat(varx) || is_cat(vary)) {
             # need to do a switch-a-roo
             xx <- fmla$x
