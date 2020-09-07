@@ -197,11 +197,13 @@ test_that("Design effects are included - categorical x categorical", {
 })
 
 test_that("Scatter plots work for surveys", {
-    nhanes <- iNZightTools::smart_read("nhanes.csv") %>%
-        dplyr::mutate(
-            Gender.cat = ifelse(Gender == 1, "Male", "Female"),
-            Education.cat = as.factor(Education)
-        )
+    suppressWarnings(
+        nhanes <- iNZightTools::smart_read("nhanes.csv") %>%
+            dplyr::mutate(
+                Gender.cat = ifelse(Gender == 1, "Male", "Female"),
+                Education.cat = as.factor(Education)
+            )
+    )
     nhanes.svy <- svydesign(~SDMVPSU, strata = ~SDMVSTRA,
         weights = ~WTINT2YR, data = nhanes, nest = TRUE)
 
@@ -210,4 +212,10 @@ test_that("Scatter plots work for surveys", {
     sx <- nhanes.svy$variables$Height
     sx <- sx[!is.na(sx) & !is.na(nhanes.svy$variables$Weight)]
     expect_equal(px$all$all$x, sx)
+
+    expect_is(
+        inzplot(Weight ~ Height, design = nhanes.svy, plot = FALSE,
+            smooth = 0.8),
+        "inzplotoutput"
+    )
 })

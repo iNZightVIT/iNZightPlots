@@ -882,8 +882,10 @@ test_that("Post-strat designs - two way table", {
 })
 
 test_that("Missing values are handled appropriately", {
-    nhanes <- iNZightTools::smart_read("nhanes.csv") %>%
-        dplyr::mutate(Gender.cat = ifelse(Gender == 1, "Male", "Female"))
+    suppressWarnings(
+        nhanes <- iNZightTools::smart_read("nhanes.csv") %>%
+            dplyr::mutate(Gender.cat = ifelse(Gender == 1, "Male", "Female"))
+    )
     nhanes.svy <- svydesign(~SDMVPSU, strata = ~SDMVSTRA,
         weights = ~WTINT2YR, data = nhanes, nest = TRUE)
 
