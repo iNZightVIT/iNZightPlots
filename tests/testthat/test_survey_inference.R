@@ -880,3 +880,32 @@ test_that("Post-strat designs - two way table", {
     expect_is(z, "inzight.plotsummary")
     expect_output(print(z), "Chi-square test for equal distributions")
 })
+
+test_that("Missing values are handled appropriately", {
+    suppressWarnings(
+        nhanes <- iNZightTools::smart_read("nhanes.csv") %>%
+            dplyr::mutate(Gender.cat = ifelse(Gender == 1, "Male", "Female"))
+    )
+    nhanes.svy <- svydesign(~SDMVPSU, strata = ~SDMVSTRA,
+        weights = ~WTINT2YR, data = nhanes, nest = TRUE)
+
+    r <- svyby(~Weight, ~Gender.cat, nhanes.svy, svymean, na.rm = TRUE)
+    rci <- confint(r)
+    out <- inzinference(Weight ~ Gender.cat, design = nhanes.svy)
+    outi <- grep("Population Means", out) + 3:4
+    obs <- scan(textConnection(gsub("[a-zA-Z]", "", out[outi])))
+    exp <- cbind(rci[,1], coef(r), rci[,2])
+    exp <- round(c(exp[1, ], exp[2, ]), 2)
+
+    expect_equal(obs, exp)
+
+    # correlation
+    out <- inzsummary(Weight ~ Height, design = nhanes.svy)
+    r <- survey::svyvar(Weight ~ Height, design = nhanes.svy, na.rm = TRUE)
+    r <- cov2cor(as.matrix(r))[1,2]
+    expect_match(
+        out,
+        sprintf("Correlation: %.02f", r),
+        all = FALSE
+    )
+})

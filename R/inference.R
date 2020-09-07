@@ -190,7 +190,10 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
 
             if (is.survey) {
                 fmla <- if (is.numeric(des$variables$x)) x ~ y else y ~ x
-                ttest <- try(svyttest(fmla, design = des), silent = TRUE)
+                ttest <- try(
+                    svyttest(fmla, design = des, na.rm = TRUE),
+                    silent = TRUE
+                )
                 if (inherits(ttest, "try-error")) {
                     mat <- rbind(
                         c("Lower", "Mean", "Upper"),
@@ -265,7 +268,8 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                     test.out <- try(
                         svyttest(
                             if (is.numeric(des$variables$x)) x ~ y else y ~ x,
-                            des
+                            des,
+                            na.rm = TRUE
                         ),
                         silent = TRUE
                     )
@@ -500,7 +504,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
         ## hypothesis testing - one sample
         if (is.survey) {
             des <- eval(parse(text = "update(des, .h0 = x - hypothesis$value)"))
-            test.out <- svyttest(.h0 ~ 1, des)
+            test.out <- svyttest(.h0 ~ 1, des, na.rm = TRUE)
         } else {
             test.out <- t.test(toplot$all$x,
                 alternative = hypothesis$alternative,
@@ -648,7 +652,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                     HypOut <- NULL
                 } else if (is.survey) {
                     if (ncol(object$tab) == 2) {
-                        pr <- survey::svymean(~x, des)
+                        pr <- survey::svymean(~x, des, na.rm = TRUE)
                         phat <- coef(pr)[[1]]
                         p <- hypothesis$value
                         se <- SE(pr)[[1]]
@@ -770,7 +774,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
             "default" = {
                 chi2sim <- NULL
                 if (is.survey) {
-                    chi2 <- try(svychisq(~y+x, des), TRUE)
+                    chi2 <- try(svychisq(~y+x, des, na.rm = TRUE), TRUE)
                 } else {
                     chi2 <- suppressWarnings(chisq.test(object$tab))
                     # from experimenting, tables bigger than this

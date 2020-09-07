@@ -71,9 +71,8 @@ inzDataframe <- function(m, data = NULL, names = list(),
             stringsAsFactors = TRUE
         )
         newDat <- cbind(data$variables, df$data)
-        # newcall <- modifyCall(data$call, "data", "newDat")
         data$variables <- newDat
-        df$design <- data# (eval(parse(text = newcall)))
+        df$design <- data
         class(df) <- "inz.survey"
     } else if ("freq" %in% names(m)) {
         df$data <- as.data.frame(

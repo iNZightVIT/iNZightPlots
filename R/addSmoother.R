@@ -96,7 +96,9 @@ addXYsmoother <- function(obj, opts, col.args, xlim, ylim) {
 
 addSmoother <- function(x, y = NULL, f, col, bs, lty = 1, opts) {
     if (is.null(y) & is_survey(x)) {
-        sm <- svysmooth(y ~ x, design = x, method = "locpoly")[[1]]
+        xr <- range(x$variables$x, na.rm = TRUE)
+        bw <- f * sqrt(diff(xr))
+        sm <- svysmooth(y ~ x, design = x, method = "locpoly", bandwidth = bw)[[1]]
     } else {
         sm <- loess.smooth(x, y, span = f, family = "gaussian")
     }
