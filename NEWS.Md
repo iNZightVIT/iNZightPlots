@@ -1,5 +1,5 @@
 
-
+- add Mantel-Haenszel tests when `g1` is specified in `getPlotSummary`
 
 ## iNZightPlots 2.12.4
 - pass `na.rm = TRUE` to survey methods so summaries and inference show the necessary information
