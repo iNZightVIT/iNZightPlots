@@ -1,6 +1,5 @@
-- add Mantel-Haenszel tests when `g1` is specified in `getPlotSummary`
-
 ## iNZightPlots 2.12.5
+- add Mantel-Haenszel tests when `g1` is specified in `getPlotSummary`
 - fix ordering of anova output (col - row instead of row - col)
 
 ## iNZightPlots 2.12.4
