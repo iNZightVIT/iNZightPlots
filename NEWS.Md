@@ -1,3 +1,6 @@
+## iNZightPlots 2.12.5
+- fix ordering of anova output (col - row instead of row - col)
+
 ## iNZightPlots 2.12.4
 - pass `na.rm = TRUE` to survey methods so summaries and inference show the necessary information
 - fix bug in `inzplot()` causing axes to be the wrong way around in hex plots for surveys
