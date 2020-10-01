@@ -188,3 +188,9 @@ test_that("inzinference gives the same output", {
             summary.type = "inference")
     )
 })
+
+# anova
+test_that("ANOVA (one-way) output is the correct way around", {
+    inf <- inzinference(Sepal.Length ~ Species, data = iris)
+    expect_match(inf, "col group - row group", all = FALSE)
+})

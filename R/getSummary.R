@@ -402,6 +402,56 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                 add(Hrule)
                 add(ind("For the subset where ", 5), vnames$g2, " = ", this)
             }
+            
+            
+            if (!is.null(list(...)[["epi.out"]]) && list(...)[["epi.out"]] == TRUE && length(obj[[this]]) > 1) {
+                g1.tabs <- lapply(obj[[this]], "[[", "tab")
+                g1.arr <- array(
+                    as.numeric(unlist(g1.tabs)), 
+                    dim=c(nrow(g1.tabs[[1]]), ncol(g1.tabs[[2]]), length(g1.tabs))
+                )
+                
+                m <- mantelhaen.test(g1.arr)
+                
+                if (all(dim(g1.arr)[1:2] == 2)) {
+                    cmh.stat <- c(
+                        m$method,
+                        ":\n",
+                        sprintf(
+                            "  %s = %.2f, df = %d, p = %f\n", 
+                            names(m$statistic),
+                            m$statistic,
+                            m$parameter,
+                            m$p.value
+                        ),
+                        ifelse(
+                            m$estimate == 0,
+                            "  Common odds ratio unable to be estimated\n",
+                            sprintf(
+                                "  Common odds ratio: %.2f (95%% CI: %.2f, %.2f)\n",
+                                m$estimate,
+                                m$conf.int[1],
+                                m$conf.int[2]
+                            )
+                        )
+                        
+                    )
+                } else {
+                    cmh.stat <- c(
+                        m$method,
+                        ":\n",
+                        sprintf(
+                            "  %s = %.2f, df = %d, p = %f\n", 
+                            names(m$statistic),
+                            m$statistic,
+                            m$parameter,
+                            m$p.value
+                        )
+                    )
+                }
+                
+                add(cmh.stat)
+            }
 
             lapply(names(obj[[this]]),
                 function(o) {

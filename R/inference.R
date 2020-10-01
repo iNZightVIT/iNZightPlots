@@ -437,7 +437,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                 "",
                 "",
                 sprintf("### Difference in mean %s between %s groups", vn$x, vn$y),
-                "    (row group - col group)",
+                "    (col group - row group)",
                 ""
             )
 
@@ -446,7 +446,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
             )
             names(means) <- LEVELS <- levels(dat$y)
             diffMat <- outer(means, means, function(x, y) y - x)
-            if (is.survey) diffMat <- -diffMat
+            # if (is.survey) diffMat <- -diffMat
             diffMat <- formatTriMat(diffMat, LEVELS)
 
             out <- c(

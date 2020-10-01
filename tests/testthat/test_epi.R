@@ -88,3 +88,26 @@ test_that("epidemiological summary tables are formatted correctly", {
   ## baseline should have the value of first.val argument
   expect_match(trimws(formatted.tab[2]), "1\\.00")
 })
+
+test_that("Mantel-Haenszel tests work when requested", {
+  set.seed(2020-09-08)
+  test.df <- data.frame(
+    x1 <- sample(c("a", "b"), size = 1000, replace = TRUE),
+    x2 <- sample(c("o", "p"), size = 1000, replace = TRUE),
+    g <- sample(c("x", "y", "z"), size = 1000, replace = TRUE)
+  )
+  
+  summary.out <- capture.output(
+    getPlotSummary(x1, x2, g1 = g, data = test.df, summary.type = "inference", inference.type = "conf", epi.out = TRUE)
+  )
+  
+  expect_match(summary.out, "Mantel-Haenszel", all = FALSE)
+  
+  summary.out2 <- capture.output(
+    getPlotSummary(x1, g, g1 = x2, data = test.df, summary.type = "inference", inference.type = "conf", epi.out = TRUE)
+  )
+  
+  expect_match(summary.out2, "Cochran-Mantel-Haenszel", all = FALSE)
+  
+  
+})
