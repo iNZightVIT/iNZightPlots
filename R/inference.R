@@ -32,7 +32,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
     mat[grep("NA", mat)] <- ""
 
     ## Text formatting to return a character vector - each row of matrix
-    mat <- rbind(c("Lower", "Mean", "Upper"), mat)
+    mat <- rbind(c("Lower", "Estimate", "Upper"), mat)
     colnames(mat) <- NULL
 
     byFactor <- length(toplot) > 1
@@ -91,7 +91,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
         mat[grep("NA", mat)] <- ""
 
         ## Text formatting to return a character vector - each row of matrix
-        mat <- rbind(c("Lower", "Median", "Upper"), mat)
+        mat <- rbind(c("Lower", "Estimate", "Upper"), mat)
         colnames(mat) <- NULL
 
         byFactor <- length(toplot) > 1
@@ -144,7 +144,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
         mat[grep("NA", mat)] <- ""
 
         ## Text formatting to return a character vector - each row of matrix
-        mat <- rbind(c("Lower", "IQR", "Upper"), mat)
+        mat <- rbind(c("Lower", "Estimate", "Upper"), mat)
         colnames(mat) <- NULL
 
         byFactor <- length(toplot) > 1
@@ -196,7 +196,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                 )
                 if (inherits(ttest, "try-error")) {
                     mat <- rbind(
-                        c("Lower", "Mean", "Upper"),
+                        c("Lower", "Estimate", "Upper"),
                         rep(NA, 3)
                     )
                 } else {
@@ -204,7 +204,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                     ## rather than "level[1] - level[2]"
                     ci <- confint(ttest)
                     mat <- rbind(
-                        c("Lower", "Mean", "Upper"),
+                        c("Lower", "Estimate", "Upper"),
                         format(-c(ci[[2]], ttest$estimate[[1]], ci[[1]]), digits = 4)
                     )
                     colnames(mat) <- NULL
@@ -214,7 +214,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                     var.equal = if (is.null(hypothesis)) TRUE else hypothesis$var.equal
                 )
                 mat <- rbind(
-                    c("Lower", "Mean", "Upper"),
+                    c("Lower", "Estimate", "Upper"),
                     format(
                         c(
                             ttest$conf.int[1],
