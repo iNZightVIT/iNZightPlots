@@ -35,7 +35,7 @@ test_that("One sample t-test", {
         est_tbl,
         data.frame(
             Lower = round(svy_ci[[1]], 1),
-            Mean = round(svy_mean[[1]], 1),
+            Estimate = round(svy_mean[[1]], 1),
             Upper = round(svy_ci[[2]], 1),
             stringsAsFactors = TRUE
         )
@@ -89,7 +89,7 @@ test_that("Two sample t-test", {
         est_tbl,
         data.frame(
             Lower = round(svy_ci[,1], 1),
-            Mean = round(svy_mean[,2], 1),
+            Estimate = round(svy_mean[,2], 1),
             Upper = round(svy_ci[,2], 1),
             stringsAsFactors = TRUE
         )
@@ -137,7 +137,7 @@ test_that("ANOVA (equivalent)", {
         est_tbl,
         data.frame(
             Lower = round(svy_ci[,1], 2),
-            Mean = round(svy_mean[,2], 2),
+            Estimate = round(svy_mean[,2], 2),
             Upper = round(svy_ci[,2], 2),
             stringsAsFactors = TRUE
         )
@@ -339,7 +339,7 @@ test_that("Subset inference - one sample t-test", {
             svy_ci <- confint(svy_mean)
             data.frame(
                 Lower = round(svy_ci[[1]], 1),
-                Mean = round(svy_mean[[1]], 1),
+                Estimate = round(svy_mean[[1]], 1),
                 Upper = round(svy_ci[[2]], 1),
                 stringsAsFactors = TRUE
             )
@@ -407,7 +407,7 @@ test_that("Subset inference - two sample t-test", {
             svy_ci <- confint(svy_mean)
             data.frame(
                 Lower = round(svy_ci[,1], 1),
-                Mean = round(svy_mean[,2], 1),
+                Estimate = round(svy_mean[,2], 1),
                 Upper = round(svy_ci[,2], 1),
                 stringsAsFactors = TRUE
             )
@@ -487,7 +487,7 @@ test_that("Subset twice inference - one sample t-test", {
             svy_ci <- confint(svy_mean)
             data.frame(
                 Lower = round(svy_ci[[1]], 1),
-                Mean = round(svy_mean[[1]], 1),
+                Estimate = round(svy_mean[[1]], 1),
                 Upper = round(svy_ci[[2]], 1),
                 stringsAsFactors = TRUE
             )
@@ -558,7 +558,7 @@ test_that("Subset (only g2) inference - two sample t-test", {
             svy_ci <- confint(svy_mean)
             data.frame(
                 Lower = round(svy_ci[,1], 1),
-                Mean = round(svy_mean[,2], 1),
+                Estimate = round(svy_mean[,2], 1),
                 Upper = round(svy_ci[,2], 1),
                 stringsAsFactors = TRUE
             )

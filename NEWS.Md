@@ -1,3 +1,6 @@
+## iNZightPlots 2.12.6
+- fix wording in inference information output ('mean' -> 'estimate') (@tmelliott, #242)
+
 ## iNZightPlots 2.12.5
 - add Mantel-Haenszel tests when `g1` is specified in `getPlotSummary`
 - fix ordering of anova output (col - row instead of row - col)
