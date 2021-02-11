@@ -47,29 +47,9 @@ dchis <- suppressWarnings(svrepdesign(
 ))
 
 test_that("Subsetting replicate weight surveys is correct", {
-    dchis_male <- subset(dchis, sex=="male")
-    p0 <- inzplot(~race | sex, data = dchis, g1.level = "male")
-    p1 <- inzplot(~race, data = dchis_male)
+    dchis2 <- update(dchis, f = factor(rep("a", nrow(dchis$variables)), levels = c("a", "b")))
 
-    expect_equal(p0$all$male$tab, p1$all$all$tab)
+    expect_is(inzplot(~sex | f, data = dchis2), "inzplotoutput")
+    expect_is(inzplot(ab30 ~ ab22 | f, data = dchis2), "inzplotoutput")
+    expect_is(inzplot(ab30 ~ sex | f, data = dchis2), "inzplotoutput")
 })
-
-
-# ## Missing values:
-# apijk <- smart_read("apiclus2-jk1.csv")
-# # apijk <- iNZightTools::smart_read("tests/testthat/apiclus2-jk1.csv")
-
-# apides <- svrepdesign(weights = ~pw, repweights = "repw[0-9]+",
-#     data = apijk, type = "JK1")
-# svymean(~api00, des=apides)
-# svymean(~enroll, des=apides, na.rm = TRUE)
-
-# inzplot(~enroll, design = apides, inference.par="mean", inference.type="conf")
-
-# tt <- iNZightTools::import_survey("~/postdoc/data/tekupenga/TeKupenga.svydesign")
-# tt <- iNZightTools::convertToCat(tt$design, c("qTTTBeenToAncestral", "qTTTBeenToAncestral12Mths"))
-# inzplot(~qTTTBeenToAncestral12Mths.cat | qTTTBeenToAncestral.cat, design = tt)
-
-# table(tt$variables$qTTTBeenToAncestral.cat, tt$variables$qTTTBeenToAncestral12Mths.cat)
-
-# inzplot(~qTTTBeenToAncestral12Mths.cat | qTTTBeenToAncestral.cat, design = tt, g1.level = 1)
