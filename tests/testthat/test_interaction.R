@@ -36,6 +36,7 @@ test_that("FT plots return the correct response", {
 test_that("Files are written to temporary directory - one file", {
     curd <- getwd()
     p <- iNZightPlot(x, y)
+    skip_if(is.null(dev.list()))
     url <- exportHTML(p)
     on.exit(unlink(url))
     expect_is(url, "inzHTML")
@@ -48,6 +49,7 @@ test_that("Files are written to temporary directory - one file", {
 test_that("Files are written to temporary directory - mutliple files", {
     curd <- getwd()
     p <- iNZightPlot(x, y)
+    skip_if(is.null(dev.list()))
     url <- exportHTML(p, local = TRUE)
     on.exit(unlink(url))
     expect_is(url, "inzHTML")
