@@ -1,3 +1,5 @@
+
+
 ## iNZightPlots 2.12.6
 - fix wording in inference information output ('mean' -> 'estimate') (@tmelliott, #242)
 
