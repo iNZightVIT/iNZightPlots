@@ -43,7 +43,7 @@
 #' @param locate.col the colour to locate points if a variable is not specified
 #' @param locate.extreme \code{numeric}, the number of extreme points to label
 #'        (using Mahalanobis' distance)
-#' @param locate.same.level name of a variable to lable points with same level
+#' @param locate.same.level name of a variable to label points with same level
 #'        of as those specified with `locate.id`
 #' @param highlight \code{numeric} vector consisting of the row numbers/IDs of
 #'        points to highlight

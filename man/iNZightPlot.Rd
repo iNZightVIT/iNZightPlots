@@ -90,7 +90,7 @@ an expression that evaluates as a logical vector (e.g., \code{x > 5})}
 \item{locate.extreme}{\code{numeric}, the number of extreme points to label
 (using Mahalanobis' distance)}
 
-\item{locate.same.level}{name of a variable to lable points with same level
+\item{locate.same.level}{name of a variable to label points with same level
 of as those specified with `locate.id`}
 
 \item{highlight}{\code{numeric} vector consisting of the row numbers/IDs of
