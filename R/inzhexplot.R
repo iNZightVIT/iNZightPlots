@@ -20,27 +20,34 @@ create.inz.hexplot <- function(obj) {
     xbins <- opts$hex.bins
 
     ## hexbin returns an S4 object, so need to use the @ operator
-    hb <- hexbin(df$x, df$y, IDs = TRUE, xbins = xbins)
+    if (nrow(df) == 0) {
+        hb <- NULL
+    } else {
+        hb <- hexbin(df$x, df$y, IDs = TRUE, xbins = xbins)
 
-    cellid <- hb@cID
-    ## now manipulate the counts with the weight variable
-    W <- switch(xattr$class,
-        "inz.freq" = df$freq,
-        "inz.survey" = get_weights(obj$df)[!missing],
-        "inz.simple" = rep(1, nrow(df))
-    )
+        cellid <- hb@cID
+        ## now manipulate the counts with the weight variable
+        W <- switch(xattr$class,
+            "inz.freq" = df$freq,
+            "inz.survey" = get_weights(obj$df)[!missing],
+            "inz.simple" = rep(1, nrow(df))
+        )
 
-    hb@count <- as.vector(tapply(W, cellid, sum))
-    hb@xcm <- as.vector(
-        tapply(1:length(df$x), cellid,
-            function(i) weighted.mean(df$x[i], W[i])
+        hb@count <- as.vector(tapply(W, cellid, sum))
+        hb@xcm <- as.vector(
+            tapply(1:length(df$x), cellid,
+                function(i) weighted.mean(df$x[i], W[i])
+            )
         )
-    )
-    hb@ycm <- as.vector(
-        tapply(1:length(df$y), cellid,
-            function(i) weighted.mean(df$y[i], W[i])
+        hb@ycm <- as.vector(
+            tapply(1:length(df$y), cellid,
+                function(i) weighted.mean(df$y[i], W[i])
+            )
         )
-    )
+    }
+
+    xlim <- if (nrow(df) > 0) hb@xbnds else c(-Inf, Inf)
+    ylim <- if (nrow(df) > 0) hb@ybnds else c(-Inf, Inf)
 
     out <- list(
         hex = hb,
@@ -48,8 +55,8 @@ create.inz.hexplot <- function(obj) {
         svy = obj$df,
         colby = if("colby" %in% v) convert.to.factor(df$colby) else NULL,
         nacol = if ("colby" %in% v) any(is.na(df$colby)) else FALSE,
-        xlim = if (nrow(df) > 0) hb@xbnds else c(-Inf, Inf),
-        ylim = if (nrow(df) > 0) hb@ybnds else c(-Inf, Inf),
+        xlim = xlim,
+        ylim = ylim,
         x = df$x,
         y = df$y,
         n.bins = xbins,
@@ -71,6 +78,8 @@ plot.inzhex <- function(obj, gen) {
     col.args <- gen$col.args
 
     addGrid(x = TRUE, y = TRUE, gen = gen, opts = opts)
+
+    if (is.null(obj$hex)) return()
 
     try_hextri <- function() {
         if (requireNamespace("hextri", quietly = TRUE)) return(TRUE)

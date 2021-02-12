@@ -47,9 +47,13 @@ dchis <- suppressWarnings(svrepdesign(
 ))
 
 test_that("Subsetting replicate weight surveys is correct", {
-    dchis2 <- update(dchis, f = factor(rep("a", nrow(dchis$variables)), levels = c("a", "b")))
+    dchis2 <- update(dchis,
+        f = factor(ifelse(dchis$variables$sex == "male", dchis$variables$race, NA)),
+        n = ifelse(dchis$variables$sex == "male", rnorm(nrow(dchis$variables)), NA),
+        n2 = rnorm(nrow(dchis$variables))
+    )
 
-    expect_is(inzplot(~sex | f, data = dchis2), "inzplotoutput")
-    expect_is(inzplot(ab30 ~ ab22 | f, data = dchis2), "inzplotoutput")
-    expect_is(inzplot(ab30 ~ sex | f, data = dchis2), "inzplotoutput")
+    expect_is(inzplot(~f | sex, data = dchis2), "inzplotoutput")
+    expect_is(inzplot(ab30 ~ f | sex, data = dchis2), "inzplotoutput")
+    expect_is(inzplot(n2 ~ n | sex, data = dchis2), "inzplotoutput")
 })

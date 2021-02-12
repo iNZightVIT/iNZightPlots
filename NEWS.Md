@@ -1,4 +1,4 @@
-
+- fix bug where plots failed if there we no non-missing x/y values in a subset
 
 ## iNZightPlots 2.12.6
 - fix wording in inference information output ('mean' -> 'estimate') (@tmelliott, #242)
