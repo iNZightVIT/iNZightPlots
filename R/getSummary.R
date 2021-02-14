@@ -369,8 +369,10 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
 
     if (is.survey) {
         add(hrule)
-        sapply(capture.output(attr(object, "main.design")),
-            function(o) add(ind(o))
+        tmpdesign <- attr(object, "main.design")
+        tmpdesign$call <- NULL
+        sapply(capture.output(print(tmpdesign)),
+            function(o) if (o != "NULL") add(ind(gsub("Call: NULL", "Replicate weights design", o)))
         )
         design.list <- attr(object, "design")
     }
@@ -402,23 +404,23 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                 add(Hrule)
                 add(ind("For the subset where ", 5), vnames$g2, " = ", this)
             }
-            
-            
+
+
             if (!is.null(list(...)[["epi.out"]]) && list(...)[["epi.out"]] == TRUE && length(obj[[this]]) > 1) {
                 g1.tabs <- lapply(obj[[this]], "[[", "tab")
                 g1.arr <- array(
-                    as.numeric(unlist(g1.tabs)), 
+                    as.numeric(unlist(g1.tabs)),
                     dim=c(nrow(g1.tabs[[1]]), ncol(g1.tabs[[2]]), length(g1.tabs))
                 )
-                
+
                 m <- mantelhaen.test(g1.arr)
-                
+
                 if (all(dim(g1.arr)[1:2] == 2)) {
                     cmh.stat <- c(
                         m$method,
                         ":\n",
                         sprintf(
-                            "  %s = %.2f, df = %d, p = %f\n", 
+                            "  %s = %.2f, df = %d, p = %f\n",
                             names(m$statistic),
                             m$statistic,
                             m$parameter,
@@ -434,14 +436,14 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                                 m$conf.int[2]
                             )
                         )
-                        
+
                     )
                 } else {
                     cmh.stat <- c(
                         m$method,
                         ":\n",
                         sprintf(
-                            "  %s = %.2f, df = %d, p = %f\n", 
+                            "  %s = %.2f, df = %d, p = %f\n",
                             names(m$statistic),
                             m$statistic,
                             m$parameter,
@@ -449,7 +451,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                         )
                     )
                 }
-                
+
                 add(cmh.stat)
             }
 
