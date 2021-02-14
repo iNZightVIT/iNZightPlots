@@ -35,3 +35,27 @@ test_that("Mean indicator uses correct weights", {
     )
     expect_equivalent(p$all$all$meaninfo$all$mean, svymean(~api00, dclus2))
 })
+
+
+chis <- iNZightTools::smart_read("chis.csv")
+# chis <- iNZightTools::smart_read("tests/testthat/chis.csv")
+dchis <- suppressWarnings(svrepdesign(
+    data = chis,
+    repweights = "rakedw[1-9]",
+    weights = ~rakedw0,
+    type = "other", scale = 1, rscales = 1
+))
+
+test_that("Subsetting replicate weight surveys is correct", {
+    dchis2 <- update(dchis,
+        f = factor(ifelse(dchis$variables$sex == "male", dchis$variables$race, NA)),
+        n = ifelse(dchis$variables$sex == "male", rnorm(nrow(dchis$variables)), NA),
+        n2 = rnorm(nrow(dchis$variables)),
+        n3 = n
+    )
+
+    expect_is(inzplot(~f | sex, data = dchis2), "inzplotoutput")
+    expect_is(inzplot(ab30 ~ f | sex, data = dchis2), "inzplotoutput")
+    expect_is(inzplot(n2 ~ n | sex, data = dchis2), "inzplotoutput")
+    expect_is(inzplot(n3 ~ n | sex, data = dchis2), "inzplotoutput")
+})

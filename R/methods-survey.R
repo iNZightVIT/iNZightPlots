@@ -195,7 +195,7 @@ modifyCall <- function(oldcall, arg, val) {
 
 get_weights <- function(obj) {
     if (is_svyrep(obj))
-        return(weights(obj, type = "sampling")[[1]])
+        return(as.numeric(weights(obj, type = "sampling")))
 
     if (is_survey(obj))
         return(weights(obj))
