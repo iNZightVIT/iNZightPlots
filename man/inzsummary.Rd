@@ -12,7 +12,13 @@ inzsummary(x, ..., env = parent.frame())
 \arguments{
 \item{x}{An object}
 
-\item{...}{an environment to evaluate things}
+\item{...}{additional arguments for methods}
+
+\item{env}{an environment to evaluate things}
+
+\item{data}{Dataset to plotq}
+
+\item{design}{A survey design to use}
 }
 \value{
 The output depends on the type of input, and consists of a summary object with a \code{print} method.

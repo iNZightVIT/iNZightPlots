@@ -19,7 +19,13 @@ inzinference(x, ..., env = parent.frame())
 \arguments{
 \item{x}{An object}
 
-\item{...}{an environment to evaluate things}
+\item{...}{additional arguments for methods}
+
+\item{env}{an environment to evaluate things}
+
+\item{data}{Dataset to plotq}
+
+\item{design}{A survey design to use}
 
 \item{type}{Type type of inference to obtain, one of 'conf' or 'comp'
 for confidence intervals and comparison intervals, respectively

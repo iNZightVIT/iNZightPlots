@@ -3,7 +3,7 @@
 #' A generic function used to summarize objects within the iNZight ecosystem.
 #' @param x An object
 #' @param ... additional arguments for methods
-#' @param ... an environment to evaluate things
+#' @param env an environment to evaluate things
 #' @return The output depends on the type of input, and consists of a summary object with a `print` method.
 #' @export
 #' @md
@@ -15,6 +15,8 @@ inzsummary.default <- function(x, ..., env = parent.frame())
     stop("That type of object is not supported.")
 
 #' @describeIn inzsummary Wrapper for getPlotSummary to obtain summary information about a plot
+#' @param data Dataset to plotq
+#' @param design A survey design to use
 #' @export
 inzsummary.formula <- function(x, data = NULL, design = NULL, ..., env = parent.frame()) {
     dots <- rlang::enexprs(...)

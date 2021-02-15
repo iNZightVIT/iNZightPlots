@@ -3,7 +3,7 @@
 #' A generic function used to generate inferential information for objects within the iNZight ecosystem.
 #' @param x An object
 #' @param ... additional arguments for methods
-#' @param ... an environment to evaluate things
+#' @param env an environment to evaluate things
 #' @return The output depends on the type of input, and consists of a inference object with a `print` method.
 #' @export
 #' @md
@@ -16,6 +16,8 @@ inzinference.default <- function(x, ..., env = parent.frame())
 
 #' @describeIn inzinference Wrapper for getPlotSummary to obtain inference information about a plot
 #' @export
+#' @param data Dataset to plotq
+#' @param design A survey design to use
 #' @param type Type type of inference to obtain, one of 'conf' or 'comp'
 #'             for confidence intervals and comparison intervals, respectively
 #'             (currently ignored).
