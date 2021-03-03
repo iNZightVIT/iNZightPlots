@@ -26,6 +26,7 @@ Imports:
     colorspace,
     dichromat,
     chron,
+    hms,
     scales,
     iNZightMR (>= 2.2.5),
     iNZightTools (>= 1.9),
