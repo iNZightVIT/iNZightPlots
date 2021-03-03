@@ -1,5 +1,6 @@
 - fix bug where plots failed if there we no non-missing x/y values in a subset
 - replace `inzsummary` and `inzinference` with S3 methods
+- fix issue introduced by change in 'readr' package (uses 'hms' instead of 'time')
 
 ## iNZightPlots 2.12.6
 - fix wording in inference information output ('mean' -> 'estimate') (@tmelliott, #242)
