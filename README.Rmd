@@ -34,18 +34,38 @@ devtools::install_github("iNZightVIT/iNZightPlots")
 ## Usage
 
 `iNZightPlots` provides a simple interface to graphics, which are most easily produced using the following function:
-```{r load, out.width = "50%", fig.align = "center"}
+```{r test, load,eval=FALSE}
 library(iNZightPlots)
-
 inzplot(~Sepal.Length, data = iris)
 ```
 
+```{r demo, echo=FALSE, results="hide"}
+library(iNZightPlots)
+t <- file.path("man", "figures", "README-demo-1.png")
+png(t)
+inzplot(~Sepal.Length, data = iris)
+dev.off()
+```
+`r knitr::include_graphics(t)`
+
 From there, formula notation can be used to explore relationships between variables:
-```{r usage_notation, out.width = "30%", fig.ncol=3}
+```{r usage_notation, eval=FALSE}
 inzplot(Sepal.Length ~ Species, data = iris)
 inzplot(Sepal.Length ~ Sepal.Width, data = iris)
 inzplot(Sepal.Length ~ Sepal.Width | Species, data = iris)
 ```
+
+```{r demo_usage, echo=FALSE, results="hide"}
+t <- file.path("man", "figures", "README-demo-usage-%d.png")
+png(t)
+inzplot(~Sepal.Length, data = iris)
+inzplot(Sepal.Length ~ Sepal.Width, data = iris)
+inzplot(Sepal.Length ~ Sepal.Width | Species, data = iris)
+dev.off()
+```
+<img src="man/figures/README-demo-1.png" width="30%" />
+<img src="man/figures/README-demo-1.png" width="30%" />
+<img src="man/figures/README-demo-1.png" width="30%" />
 
 These functions all produce different graphs (dot plot and scatter plot), which means the focus is on exploring data, not on which type of graph to use. Subsetting works as expected, and can include up to two variables (e.g., `y ~ x | g1 + g2`).
 

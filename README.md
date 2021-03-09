@@ -26,24 +26,20 @@ devtools::install_github("iNZightVIT/iNZightPlots")
 
 ``` r
 library(iNZightPlots)
-
 inzplot(~Sepal.Length, data = iris)
 ```
 
-<img src="man/figures/README-load-1.png" width="50%" style="display: block; margin: auto;" />
+<img src="man/figures/README-demo-1.png" width="100%" />
 
 From there, formula notation can be used to explore relationships between variables:
 
 ``` r
 inzplot(Sepal.Length ~ Species, data = iris)
-```
-
-<img src="man/figures/README-usage_notation-1.png" width="30%" />
-
-``` r
 inzplot(Sepal.Length ~ Sepal.Width, data = iris)
 inzplot(Sepal.Length ~ Sepal.Width | Species, data = iris)
 ```
+
+<img src="man/figures/README-demo-1.png" width="30%" /> <img src="man/figures/README-demo-1.png" width="30%" /> <img src="man/figures/README-demo-1.png" width="30%" />
 
 These functions all produce different graphs (dot plot and scatter plot), which means the focus is on exploring data, not on which type of graph to use. Subsetting works as expected, and can include up to two variables (e.g., `y ~ x | g1 + g2`).
 
