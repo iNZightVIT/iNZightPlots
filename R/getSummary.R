@@ -375,6 +375,8 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
             function(o) if (o != "NULL") add(ind(gsub("Call: NULL", "Replicate weights design", o)))
         )
         design.list <- attr(object, "design")
+        if (!is.null(tmpdesign$postStrata))
+            add(ind("(calibrated)"))
     }
 
     add(Hrule)
