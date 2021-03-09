@@ -109,8 +109,9 @@ inzplot(Sepal.Length ~ Species, data = iris,
   inference.par = "mean"
 )
 dev.off()
-knitr::include_graphics(t)
 ```
+
+`r knitr::include_graphics(t)`
 
 For scatter plots, inference uses linear trends. You can add a bootstrap sample of trend estimates using the `bs.inference` argument:
 ```{r trends, fig.align = "center"}
