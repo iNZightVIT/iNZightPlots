@@ -29,7 +29,7 @@ library(iNZightPlots)
 inzplot(~Sepal.Length, data = iris)
 ```
 
-<img src="man/figures/README-demo-1.png" width="100%" />
+<img src="man/figures/README-demo-1.png" width="50%" />
 
 From there, formula notation can be used to explore relationships between variables:
 
@@ -39,7 +39,7 @@ inzplot(Sepal.Length ~ Sepal.Width, data = iris)
 inzplot(Sepal.Length ~ Sepal.Width | Species, data = iris)
 ```
 
-<img src="man/figures/README-demo-1.png" width="30%" /> <img src="man/figures/README-demo-1.png" width="30%" /> <img src="man/figures/README-demo-1.png" width="30%" />
+<img src="man/figures/README-demo-usage-2.png" width="30%" /> <img src="man/figures/README-demo-usage-3.png" width="30%" /> <img src="man/figures/README-demo-usage-4.png" width="30%" />
 
 These functions all produce different graphs (dot plot and scatter plot), which means the focus is on exploring data, not on which type of graph to use. Subsetting works as expected, and can include up to two variables (e.g., `y ~ x | g1 + g2`).
 
@@ -134,7 +134,7 @@ Probably the most common features to add to a graph, we have the `sizeby` and `c
 inzplot(Sepal.Length ~ Sepal.Width, data = iris, colby = Species)
 ```
 
-<img src="man/figures/README-colours-1.png" width="30%" style="display: block; margin: auto;" />
+<img src="man/figures/README-colours-1.png" width="50%" style="display: block; margin: auto;" />
 
 ### Inference lines
 
@@ -148,7 +148,7 @@ inzplot(Sepal.Length ~ Species, data = iris,
 )
 ```
 
-<img src="man/figures/README-inference-1.png" width="30%" style="display: block; margin: auto;" />
+<img src="man/figures/README-inference-1.png" width="50%" style="display: block; margin: auto;" />
 
 For scatter plots, inference uses linear trends. You can add a bootstrap sample of trend estimates using the `bs.inference` argument:
 
@@ -159,4 +159,4 @@ inzplot(Sepal.Length ~ Sepal.Width, data = iris,
 )
 ```
 
-<img src="man/figures/README-trends-1.png" width="30%" style="display: block; margin: auto;" />
+<img src="man/figures/README-trends-1.png" width="50%" style="display: block; margin: auto;" />

@@ -7,7 +7,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-",
-  out.width = "100%"
+  out.width = "50%"
 )
 ```
 
@@ -63,9 +63,9 @@ inzplot(Sepal.Length ~ Sepal.Width, data = iris)
 inzplot(Sepal.Length ~ Sepal.Width | Species, data = iris)
 dev.off()
 ```
-<img src="man/figures/README-demo-1.png" width="30%" />
-<img src="man/figures/README-demo-1.png" width="30%" />
-<img src="man/figures/README-demo-1.png" width="30%" />
+<img src="man/figures/README-demo-usage-2.png" width="30%" />
+<img src="man/figures/README-demo-usage-3.png" width="30%" />
+<img src="man/figures/README-demo-usage-4.png" width="30%" />
 
 These functions all produce different graphs (dot plot and scatter plot), which means the focus is on exploring data, not on which type of graph to use. Subsetting works as expected, and can include up to two variables (e.g., `y ~ x | g1 + g2`).
 
@@ -85,14 +85,14 @@ There are many, many features available in `iNZightPlots`, all of which are adde
 ### Colour and size
 
 Probably the most common features to add to a graph, we have the `sizeby` and `colby` arguments which map an additional variable to size and colour, respectively:
-```{r colours, out.width = "30%", fig.align = "center"}
+```{r colours, fig.align = "center"}
 inzplot(Sepal.Length ~ Sepal.Width, data = iris, colby = Species)
 ```
 
 ### Inference lines
 
 Usually you want to know if what you see has any statistical significance, and `iNZightPlots` makes this easy. We also provide __comparison intervals__ which can be, very simply, interpreted as "overlapping comparison intervals indicate no significant difference between groups".
-```{r inference, out.width = "30%", fig.align = "center"}
+```{r inference, fig.align = "center"}
 # Add confidence intervals
 inzplot(Sepal.Length ~ Species, data = iris,
   inference.type = c("conf", "comp"), # red and black, respectively
@@ -101,7 +101,7 @@ inzplot(Sepal.Length ~ Species, data = iris,
 ```
 
 For scatter plots, inference uses linear trends. You can add a bootstrap sample of trend estimates using the `bs.inference` argument:
-```{r trends, out.width = "30%", fig.align = "center"}
+```{r trends, fig.align = "center"}
 inzplot(Sepal.Length ~ Sepal.Width, data = iris,
   trend = "linear",
   bs.inference = TRUE
