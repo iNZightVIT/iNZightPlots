@@ -148,8 +148,6 @@ inzplot(Sepal.Length ~ Species, data = iris,
 )
 ```
 
-<img src="man/figures/README-inference-1.png" width="50%" style="display: block; margin: auto;" />
-
 For scatter plots, inference uses linear trends. You can add a bootstrap sample of trend estimates using the `bs.inference` argument:
 
 ``` r

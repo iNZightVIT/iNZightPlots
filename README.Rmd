@@ -3,6 +3,7 @@ output: github_document
 ---
 
 ```{r, include = FALSE}
+unlink("man/figures/*")
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -92,12 +93,23 @@ inzplot(Sepal.Length ~ Sepal.Width, data = iris, colby = Species)
 ### Inference lines
 
 Usually you want to know if what you see has any statistical significance, and `iNZightPlots` makes this easy. We also provide __comparison intervals__ which can be, very simply, interpreted as "overlapping comparison intervals indicate no significant difference between groups".
-```{r inference, fig.align = "center"}
+```{r inference, eval = FALSE}
 # Add confidence intervals
 inzplot(Sepal.Length ~ Species, data = iris,
   inference.type = c("conf", "comp"), # red and black, respectively
   inference.par = "mean"
 )
+```
+
+```{r inference-demo, echo = FALSE, results="hide"}
+t <- file.path("man", "figures", "README-demo-inf.png")
+png(t)
+inzplot(Sepal.Length ~ Species, data = iris,
+  inference.type = c("conf", "comp"), # red and black, respectively
+  inference.par = "mean"
+)
+dev.off()
+knitr::include_graphics(t)
 ```
 
 For scatter plots, inference uses linear trends. You can add a bootstrap sample of trend estimates using the `bs.inference` argument:
