@@ -135,3 +135,8 @@ test_that("Axes switched correctly for dt/factor", {
     expect_equal(p1$gen$opts$transform$x, "time")
     expect_equal(p2$gen$opts$transform$x, "time")
 })
+
+test_that("HMS time values supported", {
+    d <- data.frame(t = hms::parse_hms(c("12:00:00", "13:00:00")), x = 2:3)
+    expect_is(inzplot(x~t, data = d), "inzplotoutput")
+})

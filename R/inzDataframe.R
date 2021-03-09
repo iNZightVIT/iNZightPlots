@@ -179,7 +179,13 @@ inzDataframe <- function(m, data = NULL, names = list(),
                     df$data[[i]] <- as.numeric(df$data[[i]])
                 }
             } else if (inherits(df$data[[i]], "POSIXct") ||
-                       inherits(df$data[[i]], "times")) {
+                       inherits(df$data[[i]], "times") ||
+                       inherits(df$data[[i]], "hms")) {
+                if (inherits(df$data[[i]], "hms")) {
+                    df$data[[i]] <- chron::as.times(
+                        hms::hms(as.integer(df$data[[i]]) %% 86400)
+                    )
+                }
                 trans[[i]] <-
                     ifelse(
                         inherits(df$data[[i]], "POSIXct"),
