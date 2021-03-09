@@ -369,10 +369,14 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
 
     if (is.survey) {
         add(hrule)
-        sapply(capture.output(attr(object, "main.design")),
-            function(o) add(ind(o))
+        tmpdesign <- attr(object, "main.design")
+        tmpdesign$call <- NULL
+        sapply(capture.output(print(tmpdesign)),
+            function(o) if (o != "NULL") add(ind(gsub("Call: NULL", "Replicate weights design", o)))
         )
         design.list <- attr(object, "design")
+        if (!is.null(tmpdesign$postStrata))
+            add(ind("(calibrated)"))
     }
 
     add(Hrule)

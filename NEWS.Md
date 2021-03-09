@@ -1,4 +1,5 @@
 - fix bug where plots failed if there we no non-missing x/y values in a subset
+- only show survey information (exclude the full call) in summary/inference
 - replace `inzsummary` and `inzinference` with S3 methods
 - fix issue introduced by change in 'readr' package (uses 'hms' instead of 'time')
 
