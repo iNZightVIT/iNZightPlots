@@ -47,9 +47,9 @@
 #'        of as those specified with `locate.id`
 #' @param highlight \code{numeric} vector consisting of the row numbers/IDs of
 #'        points to highlight
-#' @param data the name of a data set
-#' @param design the name of a survey object, obtained from the \code{survey}
-#'        package
+#' @param data a data.frame, or the name of a table in `con`
+#' @param design a survey object, obtained from the \code{survey} package
+#' @param con a database connection
 #' @param freq the name of a frequency variable if the data are frequencies
 #' @param missing.info logical, if \code{TRUE}, information regarding
 #'        missingness is displayed in the plot
@@ -83,6 +83,7 @@
 #' @importFrom iNZightTools is_num is_cat is_dt is_survey is_svydesign is_svyrep
 #' @author Tom Elliott
 #' @export
+#' @md
 #' @examples
 #' iNZightPlot(Species, data = iris)
 #' iNZightPlot(Petal.Width, g1 = Species, data = iris)
@@ -121,6 +122,7 @@ iNZightPlot <- function(x,
                         highlight = NULL,
                         data = NULL,
                         design = NULL,
+                        con = NULL,
                         freq = NULL,
                         missing.info = TRUE,
                         xlab = varnames$x,
@@ -181,7 +183,9 @@ iNZightPlot <- function(x,
 
     ## getSummary and other wrappers will pass an inz.data object
     if (missing(df)) {
-        if (!is.null(design)) {
+        if (!is.null(con)) {
+            md <- dplyr::tbl(con, data)
+        } else if (!is.null(design)) {
             if (any(grepl("as.svrepdesign", design$call[[1]], fixed = TRUE)))
                 stop("Objects created with `as.svrepdesign` not yet supported.")
             md <- eval(m$design, env)
