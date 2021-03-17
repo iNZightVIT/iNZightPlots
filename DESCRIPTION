@@ -53,8 +53,7 @@ Suggests:
     ggridges,
     plotly,
     RSQLite,
-    dbplyr,
-    dplyr
+    dbplyr
 License: GPL-3
 Encoding: UTF-8
 Language: en-GB
