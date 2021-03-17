@@ -52,7 +52,9 @@ Suggests:
     ggbeeswarm,
     ggridges,
     plotly,
-    RSQLite
+    RSQLite,
+    dbplyr,
+    dplyr
 License: GPL-3
 Encoding: UTF-8
 Language: en-GB
