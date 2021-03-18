@@ -81,3 +81,7 @@ test_that("Inference information is correct", {
 test_that("Dot plot with single unique value", {
     expect_silent(inzplot(~x, data = data.frame(x = rep(10, 10))))
 })
+
+test_that("Transformations for dot plots", {
+    inzplot(~Sepal.Length, data = iris, transform = list(x = "log"))
+})
