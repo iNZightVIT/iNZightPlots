@@ -6,6 +6,8 @@
 ^\.travis\.yml$
 ^appveyor\.yml$
 ^.lintr$
-
 ^cran-comments\.md$
 ^data-raw$
+^.github$
+^CRAN-RELEASE$
+^README.Rmd$

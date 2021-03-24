@@ -36,7 +36,10 @@ test_that("FT plots return the correct response", {
 test_that("Files are written to temporary directory - one file", {
     curd <- getwd()
     p <- iNZightPlot(x, y)
-    url <- exportHTML(p)
+    expect_equal(length(dev.list()), 1L)
+    expect_is(p, "inzplotoutput")
+    url <- try(exportHTML(p), silent = TRUE)
+    skip_if(inherits(url, "try-error"))
     on.exit(unlink(url))
     expect_is(url, "inzHTML")
     expect_match(as.character(url), "te?mp")
@@ -48,7 +51,10 @@ test_that("Files are written to temporary directory - one file", {
 test_that("Files are written to temporary directory - mutliple files", {
     curd <- getwd()
     p <- iNZightPlot(x, y)
-    url <- exportHTML(p, local = TRUE)
+    expect_equal(length(dev.list()), 1L)
+    expect_is(p, "inzplotoutput")
+    url <- try(exportHTML(p, local = TRUE), silent = TRUE)
+    skip_if(inherits(url, "try-error"))
     on.exit(unlink(url))
     expect_is(url, "inzHTML")
     expect_match(as.character(url), "te?mp")

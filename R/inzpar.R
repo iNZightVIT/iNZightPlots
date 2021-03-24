@@ -133,7 +133,7 @@
 #' # plot are used)
 #' mypar <- inzpar(col.pt = "red", box.col = "blue", box.fill = "green",
 #'     trend = "linear", trend.by = TRUE)
-#' iNZPlot(Sepal.Length ~ Species, data = iris, inzpar = mypar)
+#' inzplot(Sepal.Length ~ Species, data = iris, inzpar = mypar)
 #' iNZightPlot(Sepal.Length, Sepal.Width, data = iris, inzpar = mypar,
 #'     colby = Species)
 inzpar <- function(...,
@@ -255,7 +255,8 @@ inzpar <- function(...,
         xlim           = NULL,
         ylim           = NULL,
         transform      = list(),
-        plot.features  = list()
+        plot.features  = list(),
+        epi.out        = FALSE
     )
 
     # update any user has specified
@@ -280,3 +281,26 @@ valid_par <- function(par, plot_type, what = c("plot", "summary", "inference")) 
     res[v] <- grepl(what, plot_types[par[v], plot_type])
     res
 }
+
+gg_defaults <- list(
+    adjust = 1,
+    alpha_densitygroup = 0.6,
+    gg_lwd = 1,
+    gg_size = 6,
+    ordered = FALSE,
+    gg_barSize = 16,
+    gg_bins = 30,
+    gg_height = 0.5,
+    gg_width = 1,
+    gg_perN = NULL,
+    gg_swarmwidth = 0.4,
+    gg_method = "quasirandom",
+    gg_cutpoint = "Default",
+    gg_theme = "grey",
+    fill_colour = "",
+    rotation = FALSE,
+    rotate_labels = list(x = FALSE, y = FALSE),
+    caption = "",
+    desc = FALSE,
+    palette = "default"
+)

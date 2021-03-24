@@ -41,9 +41,12 @@ create.inz.barplot <- function(obj) {
 
     SEG <- FALSE
     if (ynull) {
-        if (!is.null(svy)) {
+        if (nrow(df) == 0) {
+            tab <- table(df$x)
+            phat <- matrix(tab, nrow = 1)
+        } else if (!is.null(svy)) {
             tab <- svytable(~x, design = svy)
-            phat <- matrix(svymean(~x, design = svy), nrow = 1)
+            phat <- matrix(svymean(~x, design = svy, na.rm = TRUE), nrow = 1)
         } else if (!is.null(df$freq)) {
             tab <- xtabs(df$freq ~ df$x)
             phat <- matrix(tab / sum(tab), nrow = 1)
@@ -71,9 +74,13 @@ create.inz.barplot <- function(obj) {
             p2 <- sweep(tab2, 2, colSums(tab2), "/")
         }
     } else {
-        if (!is.null(svy)) {
+        if (nrow(df) == 0) {
+            tab <- table(df$x, df$y)
+            phat <- sweep(tab, 1, 1, "*")
+            nn <- rowSums(tab)
+        } else if (!is.null(svy)) {
             tab <- svytable(~y + x, design = svy)
-            phat <- svyby(~x, by = ~y, svy, FUN = svymean, drop.empty.groups = FALSE)
+            phat <- svyby(~x, by = ~y, svy, FUN = svymean, drop.empty.groups = FALSE, na.rm = TRUE)
             phat <- phat[, 1 + 1:ncol(tab)]
             nn <- rowSums(tab)
         } else if (!is.null(df$freq)) {
@@ -343,7 +350,8 @@ barinference <- function(obj, tab, phat, counts) {
                             est <- svyby(~x, by = ~y, obj$df,
                                 FUN = svymean,
                                 vartype = "ci",
-                                drop.empty.groups = FALSE
+                                drop.empty.groups = FALSE,
+                                na.rm = TRUE
                             )
                             est <- est[, -1]
                             nc <- length(levels(obj$df$variables$x))
@@ -353,7 +361,7 @@ barinference <- function(obj, tab, phat, counts) {
                                 estimate = as.matrix(est[, 1:nc])
                             )
                         } else {
-                            ci <- t(confint(svymean(~x, obj$df)))
+                            ci <- t(confint(svymean(~x, obj$df, na.rm = TRUE)))
                             list(
                                 lower = ci[1, , drop = FALSE],
                                 upper = ci[2, , drop = FALSE],

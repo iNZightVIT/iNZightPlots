@@ -15,6 +15,16 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
 
     boxplot <- opts$boxplot
     mean_indicator <- opts$mean_indicator
+    if (!is.null(opts$inference.par) && !is.null(opts$inference.type)) {
+        if (opts$inference.par == "mean") {
+            boxplot <- FALSE
+            mean_indicator <- TRUE
+        }
+        if (opts$inference.par == "median") {
+            boxplot <- TRUE
+            mean_indicator <- FALSE
+        }
+    }
 
     v <- colnames(df)
     vn <- xattr$varnames
@@ -146,7 +156,10 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
             h$counts <- probs * sum(get_weights(d))
         } else {
             x <- d$x
-            h <- hist(x, breaks = cuts, plot = FALSE)
+            h <- tryCatch(
+                hist(x, breaks = cuts, plot = FALSE),
+                error = function(e) hist(x, breaks = length(cuts), plot = FALSE)
+            )
         }
 
         ret <- list(
@@ -279,11 +292,15 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
                     )
                 )
             )
-            bins <- seq(
-                min(xx) - 0.5 * mdiff,
-                max(xx) + 0.5 * mdiff,
-                by = mdiff
-            )
+            if (mdiff == 0) {
+                bins <- xx[1]
+            } else {
+                bins <- seq(
+                    min(xx) - 0.5 * mdiff,
+                    max(xx) + 0.5 * mdiff,
+                    by = mdiff
+                )
+            }
         } else {
             wd <- xattr$symbol.width * 1.2
 
@@ -358,10 +375,8 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
     mcex <- gen$mcex
     col.args <- gen$col.args
     boxplot <- opts$boxplot
-    mean_indicator <- ifelse(!is.null(opts$mean_indicator),
-        opts$mean_indicator,
-        FALSE
-    )
+    mean_indicator <- !is.null(obj$meaninfo)
+
     expand.points <- 1# if (is.null(opts$expand.points)) 1 else opts$expand.points
 
     addGrid(x = TRUE, gen = gen, opts = opts)
@@ -379,7 +394,8 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
             clip = "on"
         )
     )
-    Hgts <- if (boxplot || mean_indicator) c(3, 1) else c(1, 0)
+    Hgts <- if (!is.null(boxinfo) || !is.null(meaninfo) || !is.null(inflist)) c(3, 1)
+        else c(1, 0)
     dpLayout <- grid.layout(nrow = 2, heights = unit(Hgts, "null"))
 
     # we need to make the dots stack nicely, if they fit
@@ -572,7 +588,8 @@ boxSummary <- function(obj, opts) {
                 if (nrow(o$variables) < 5) return(NULL)
                 svyobj <- o
                 quant <- svyquantile(~x, svyobj,
-                    quantiles = c(0.25, 0.5, 0.75)
+                    quantiles = c(0.25, 0.5, 0.75),
+                    na.rm = TRUE
                 )
                 min <- min(svyobj$variables$x, na.rm = TRUE)
                 max <- max(svyobj$variables$x, na.rm = TRUE)
@@ -631,10 +648,16 @@ meanSummary <- function(obj, opts) {
     lapply(obj,
         function(o) {
             if (is.null(o))
-            return(NULL)
+                return(NULL)
+
+            if (is_survey((o))) {
+                xhat <- svymean(~x, o, na.rm = TRUE)
+            } else {
+                xhat <- mean(o$x, na.rm = TRUE)
+            }
 
             list(
-                mean = mean(o$x, na.rm = TRUE),
+                mean = xhat,
                 opts = opts
             )
         }
@@ -652,7 +675,7 @@ addMean <- function(x, opts, i) {
     grid.points(unit(x$mean, "native"), unit(0.4, "npc"),
         gp = gpar(
             fill = "black",
-            cex = opts$cex.dotpt * 1.5
+            cex = opts$cex * 0.75
         ),
         pch = 24,
         name = paste("inz-mean", r, c, i, sep = ".")
@@ -747,7 +770,8 @@ dotinference <- function(obj) {
                                                         design = dat,
                                                         svymean,
                                                         vartype = "ci",
-                                                        drop.empty.groups = FALSE
+                                                        drop.empty.groups = FALSE,
+                                                        na.rm = TRUE
                                                     )
                                                     ci <- ci[, 2:4]
                                                     dimnames(ci) <- list(
@@ -755,7 +779,7 @@ dotinference <- function(obj) {
                                                         c("mean", "lower", "upper")
                                                     )
                                                 } else {
-                                                    fit <- svymean(~x, dat)
+                                                    fit <- svymean(~x, dat, na.rm = TRUE)
                                                     ci <- rbind(c(fit[1], confint(fit)))
                                                     dimnames(ci) <- list("all", c("mean", "lower", "upper"))
                                                 }

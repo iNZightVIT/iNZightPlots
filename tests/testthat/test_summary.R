@@ -66,16 +66,16 @@ test_that("Regression summary: negative coefficients", {
 })
 
 
-test_that("iNZSummary gives the same output", {
+test_that("inzsummary gives the same output", {
     expect_equal(
-        iNZSummary(Sepal.Length ~ Sepal.Width,
+        inzsummary(Sepal.Length ~ Sepal.Width,
             data = iris, trend = "linear", width = 80),
         getPlotSummary(Sepal.Width, Sepal.Length,
             data = iris, trend = "linear", width = 80)
     )
 
     expect_equal(
-        iNZSummary(Sepal.Length ~ Sepal.Width | Species,
+        inzsummary(Sepal.Length ~ Sepal.Width | Species,
             data = iris, trend = "linear", width = 80),
         getPlotSummary(Sepal.Width, Sepal.Length, g1 =  Species,
             data = iris, trend = "linear", width = 80)

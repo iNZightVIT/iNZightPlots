@@ -20,7 +20,7 @@ test_that("Replicate weight designs supported - basic plots", {
     expect_is(iNZightPlot(smoke, design = dchis), "inzplotoutput")
     expect_is(iNZightPlot(sex, design = dchis), "inzplotoutput")
     expect_is(
-        suppressWarnings(iNZightPlot(bmi_p, rakedw0, design = dchis)), 
+        suppressWarnings(iNZightPlot(bmi_p, rakedw0, design = dchis)),
         "inzplotoutput"
     )
 })
@@ -92,4 +92,3 @@ test_that("Replicate weight designs supported - plot inference - bar", {
         confint(sinf)
     )
 })
-

@@ -1,10 +1,51 @@
-- refactors exportHTML() and exportSVG() to writing file to (by default)
-  a temporary directory, and without changing directories in the process
+- fix bug where plots failed if there we no non-missing x/y values in a subset
+- only show survey information (exclude the full call) in summary/inference
+- replace `inzsummary` and `inzinference` with S3 methods
+- fix issue introduced by change in 'readr' package (uses 'hms' instead of 'time')
+
+## iNZightPlots 2.12.6
+- fix wording in inference information output ('mean' -> 'estimate') (@tmelliott, #242)
+
+## iNZightPlots 2.12.5
+- add Mantel-Haenszel tests when `g1` is specified in `getPlotSummary`
+- fix ordering of anova output (col - row instead of row - col)
+
+## iNZightPlots 2.12.4
+- pass `na.rm = TRUE` to survey methods so summaries and inference show the necessary information
+- fix bug in `inzplot()` causing axes to be the wrong way around in hex plots for surveys
+- `smooth` is respected for survey data (passed to `svysmooth`)
+
+## iNZightPlots 2.12.3
+- fix bug in survey inference where levels were the wrong way around (A - B instead of B - A)
+
+## iNZightPlots 2.12.2
+* fix bug in plots with axis range of zero (i.e., all x/y-values equal)
+
+## iNZightPlots 2.12.1
+* fix bug so mean indicator on dot plots works with surveys
+
+***
+# iNZightPlots 2.12
+This release mainly consists of compatibility changes to accompany 'iNZight' 4.0.
+
+### Breaking changes
+- New `inzplot`, `inzsummary`, and `inzinference` replace `iNZPlot`, `iNZSummary`, and `iNZInference`, providing a better interface to the package which better first the R ecosystem.
+
+### Minor changes
+- refactors exportHTML() and exportSVG() to writing file to (by default) a temporary directory, and without changing directories in the process
 - handle `col.emph`, `col.emphn`, and (by default) plot emphasized points on top
 - allow `col.fun` to be a character palette name
+- when dot plots show inference, override `boxplot` and `mean_indicator` (depending on specification of `inference.par`)
+- add normal inference to scatter plot trend lines
+- (survey) pop size estimates shown even if weights seem odd
+
+### Bug fixes
 - fix handling of env argument
 - handle "id" value for `locate` argument
+- mean indicator scales with overall plot scale, not dot point size
+- fix handling of `local` argument (for exportHTML())
 
+***
 ## iNZightPlots 2.11.6
 - fix bug resulting in an invalid p-value being displayed for some two sided tests
 

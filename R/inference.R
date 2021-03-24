@@ -32,7 +32,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
     mat[grep("NA", mat)] <- ""
 
     ## Text formatting to return a character vector - each row of matrix
-    mat <- rbind(c("Lower", "Mean", "Upper"), mat)
+    mat <- rbind(c("Lower", "Estimate", "Upper"), mat)
     colnames(mat) <- NULL
 
     byFactor <- length(toplot) > 1
@@ -91,7 +91,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
         mat[grep("NA", mat)] <- ""
 
         ## Text formatting to return a character vector - each row of matrix
-        mat <- rbind(c("Lower", "Median", "Upper"), mat)
+        mat <- rbind(c("Lower", "Estimate", "Upper"), mat)
         colnames(mat) <- NULL
 
         byFactor <- length(toplot) > 1
@@ -144,7 +144,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
         mat[grep("NA", mat)] <- ""
 
         ## Text formatting to return a character vector - each row of matrix
-        mat <- rbind(c("Lower", "IQR", "Upper"), mat)
+        mat <- rbind(c("Lower", "Estimate", "Upper"), mat)
         colnames(mat) <- NULL
 
         byFactor <- length(toplot) > 1
@@ -190,17 +190,22 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
 
             if (is.survey) {
                 fmla <- if (is.numeric(des$variables$x)) x ~ y else y ~ x
-                ttest <- try(svyttest(fmla, design = des), silent = TRUE)
+                ttest <- try(
+                    svyttest(fmla, design = des, na.rm = TRUE),
+                    silent = TRUE
+                )
                 if (inherits(ttest, "try-error")) {
                     mat <- rbind(
-                        c("Lower", "Mean", "Upper"),
+                        c("Lower", "Estimate", "Upper"),
                         rep(NA, 3)
                     )
                 } else {
+                    ## the survey t-test is "level[2] - level[1]",
+                    ## rather than "level[1] - level[2]"
                     ci <- confint(ttest)
                     mat <- rbind(
-                        c("Lower", "Mean", "Upper"),
-                        format(c(ci[[1]], ttest$estimate[[1]], ci[[2]]), digits = 4)
+                        c("Lower", "Estimate", "Upper"),
+                        format(-c(ci[[2]], ttest$estimate[[1]], ci[[1]]), digits = 4)
                     )
                     colnames(mat) <- NULL
                 }
@@ -209,7 +214,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                     var.equal = if (is.null(hypothesis)) TRUE else hypothesis$var.equal
                 )
                 mat <- rbind(
-                    c("Lower", "Mean", "Upper"),
+                    c("Lower", "Estimate", "Upper"),
                     format(
                         c(
                             ttest$conf.int[1],
@@ -263,7 +268,8 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                     test.out <- try(
                         svyttest(
                             if (is.numeric(des$variables$x)) x ~ y else y ~ x,
-                            des
+                            des,
+                            na.rm = TRUE
                         ),
                         silent = TRUE
                     )
@@ -440,6 +446,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
             )
             names(means) <- LEVELS <- levels(dat$y)
             diffMat <- outer(means, means, function(x, y) y - x)
+            # if (is.survey) diffMat <- -diffMat
             diffMat <- formatTriMat(diffMat, LEVELS)
 
             out <- c(
@@ -497,7 +504,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
         ## hypothesis testing - one sample
         if (is.survey) {
             des <- eval(parse(text = "update(des, .h0 = x - hypothesis$value)"))
-            test.out <- svyttest(.h0 ~ 1, des)
+            test.out <- svyttest(.h0 ~ 1, des, na.rm = TRUE)
         } else {
             test.out <- t.test(toplot$all$x,
                 alternative = hypothesis$alternative,
@@ -622,7 +629,7 @@ inference.inzhist <- function(object, des, bs, class, width, vn, hypothesis,
 
 
 inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
-                             survey.options, ...) {
+                             survey.options, epi.out = FALSE, ...) {
     phat <- object$phat
     inf <- object$inference.info
     is.survey <- !is.null(des)
@@ -645,7 +652,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                     HypOut <- NULL
                 } else if (is.survey) {
                     if (ncol(object$tab) == 2) {
-                        pr <- survey::svymean(~x, des)
+                        pr <- survey::svymean(~x, des, na.rm = TRUE)
                         phat <- coef(pr)[[1]]
                         p <- hypothesis$value
                         se <- SE(pr)[[1]]
@@ -767,7 +774,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
             "default" = {
                 chi2sim <- NULL
                 if (is.survey) {
-                    chi2 <- try(svychisq(~y+x, des), TRUE)
+                    chi2 <- try(svychisq(~y+x, des, na.rm = TRUE), TRUE)
                 } else {
                     chi2 <- suppressWarnings(chisq.test(object$tab))
                     # from experimenting, tables bigger than this
@@ -995,7 +1002,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                     " = ",
                     lev
                 ),
-                "    (col group - row group)",
+                "    (row group - col group)",
                 "",
                 "Estimates",
                 "",
@@ -1030,6 +1037,92 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                 )
             }
         }
+
+        ##### EPI CALCS #####
+        if (epi.out && ncol(object$tab) == 2) {
+            or.mat <- vapply(
+                2:nrow(object$tab),
+                function(i) {
+                    calculate_or(object$tab[c(1, i), ])
+                },
+                FUN.VALUE = numeric(4)
+            )
+
+            or.method <- "fisher"
+            or.method.full <- c(
+                "midp" = "median-unbiased estimation",
+                "fisher" = "conditional maximum likelihood",
+                "small" = "small sample adjustment"
+            )
+
+            hypo.mat <- matrix(
+                c(
+                    "Null Hypothesis:", "true odds ratio is equal to 1",
+                    "Alternative Hypothesis:", "true odds ratio is not equal to 1"
+                ),
+                byrow = TRUE,
+                ncol = 2
+            )
+            hypo.mat <- apply(hypo.mat, 2, function(x) format(x, justify = "right"))
+            hypo.mat <- apply(hypo.mat, MARGIN = 1, paste0, collapse = " ")
+            hypo.mat <- paste0("   ", hypo.mat)
+
+            out <- c(
+                out,
+                "",
+                "",
+                sprintf("### Odds Ratio estimates for %s = %s", vn$x, dn[[2]][2]),
+                sprintf("  (baseline: %s = %s)", vn$y, dn[[1]][1]),
+                sprintf("  Using conditional maximum likelihood estimation"),
+                "",
+                "  For each line:",
+                hypo.mat,
+                "",
+                epi.format(or.mat, "OR", names = rownames(object$tab))
+            )
+
+            #### RISK RATIO ####
+
+            rr.mat <- vapply(
+                2:nrow(object$tab),
+                function(i) {
+                    calculate_rr(object$tab[c(1, i), ])
+                },
+                FUN.VALUE = numeric(4)
+            )
+
+            out <- c(
+                out,
+                "",
+                "",
+                sprintf("### Risk Ratio estimates for %s = %s", vn$x, dn[[2]][2]),
+                sprintf("  (baseline: %s = %s)", vn$y, dn[[1]][1]),
+                "",
+                epi.format(rr.mat, "RR", names = rownames(object$tab))
+            )
+
+            #### RISK DIFF ####
+
+            rd.mat <- vapply(
+                2:nrow(object$tab),
+                function(i) {
+                    calculate_rd(object$tab[c(1, i), ])
+                },
+                FUN.VALUE = numeric(4)
+            )
+
+            out <- c(
+                out,
+                "",
+                "",
+                sprintf("### Risk Difference estimates for %s = %s", vn$x, dn[[2]][2]),
+                sprintf("  (baseline: %s = %s)", vn$y, dn[[1]][1]),
+                "",
+                epi.format(rd.mat, "RD", names = rownames(object$tab), 0)
+            )
+        }
+        ##### END CALCS #####
+
     } else { ## one-way table
         mat <- t(rbind(inf$conf$lower, inf$conf$estimate, inf$conf$upper))
 
