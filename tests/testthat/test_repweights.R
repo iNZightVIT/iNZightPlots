@@ -1,6 +1,8 @@
 context("Replicate weights")
 
-chis <- iNZightTools::smart_read("chis.csv")
+skip_if_offline()
+
+chis <- iNZightTools::smart_read("https://inzight.nz/testdata/chis2.csv")
 dchis <- suppressWarnings(svrepdesign(
     data = chis,
     repweights = "rakedw[1-9]",

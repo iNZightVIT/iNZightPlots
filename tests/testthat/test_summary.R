@@ -1,5 +1,7 @@
 context("Get Summary")
 
+skip_if_offline()
+
 cas <- read.csv("cas.csv", stringsAsFactors = TRUE)
 
 test_that("One-way table summaries are correct", {
@@ -37,7 +39,7 @@ test_that("Survey summaries are correct", {
 
 })
 
-chis <- iNZightTools::smart_read("chis.csv")
+chis <- iNZightTools::smart_read("https://inzight.nz/testdata/chis2.csv")
 dchis <- suppressWarnings(svrepdesign(
     data = chis,
     repweights = "rakedw[1-9]",

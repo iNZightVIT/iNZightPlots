@@ -588,8 +588,7 @@ test_that("Subset (only g2) inference - two sample t-test", {
 
 ############################################ Replicate weight designs
 
-chis <- iNZightTools::smart_read("chis.csv")
-# chis <- iNZightTools::smart_read("tests/testthat/chis.csv")
+chis <- iNZightTools::smart_read("https://inzight.nz/testdata/chis2.csv")
 dchis <- suppressWarnings(svrepdesign(
     data = chis,
     repweights = "rakedw[1-9]",
@@ -617,7 +616,7 @@ test_that("Replicate weight designs - one sample t-test", {
 })
 
 test_that("Replicate weight designs - two sample t-test", {
-    z <- getPlotSummary(bmi_p, srsex,
+    z <- getPlotSummary(bmi_p, sex,
         design = dchis,
         summary.type = "inference",
         inference.type = "conf"
@@ -625,7 +624,7 @@ test_that("Replicate weight designs - two sample t-test", {
     expect_is(z, "inzight.plotsummary")
     expect_output(print(z), "Design-based Two Sample T-test")
 
-    z <- getPlotSummary(bmi_p, srsex,
+    z <- getPlotSummary(bmi_p, sex,
         g1 = race,
         design = dchis,
         summary.type = "inference",
@@ -645,7 +644,7 @@ test_that("Replicate weight designs - ANOVA", {
     expect_output(print(z), "Wald test for race")
 
     z <- getPlotSummary(bmi_p, race,
-        g1 = srsex,
+        g1 = sex,
         design = dchis,
         summary.type = "inference",
         inference.type = "conf"
@@ -676,7 +675,7 @@ test_that("Replicate weight designs - regression", {
 })
 
 test_that("Replicate weight designs - single proportion", {
-    z <- getPlotSummary(srsex,
+    z <- getPlotSummary(sex,
         design = dchis,
         summary.type = "inference",
         inference.type = "conf"
@@ -684,7 +683,7 @@ test_that("Replicate weight designs - single proportion", {
     expect_is(z, "inzight.plotsummary")
     # expect_output(print(z), "")
 
-    z <- getPlotSummary(srsex,
+    z <- getPlotSummary(sex,
         g1 = race,
         design = dchis,
         summary.type = "inference",
@@ -704,7 +703,7 @@ test_that("Replicate weight designs - one way table", {
     # expect_output(print(z), "")
 
     z <- getPlotSummary(race,
-        g1 = srsex,
+        g1 = sex,
         design = dchis,
         summary.type = "inference",
         inference.type = "conf"
@@ -714,7 +713,7 @@ test_that("Replicate weight designs - one way table", {
 })
 
 test_that("Replicate weight designs - two way table", {
-    z <- getPlotSummary(race, srsex,
+    z <- getPlotSummary(race, sex,
         design = dchis,
         summary.type = "inference",
         inference.type = "conf"
@@ -722,7 +721,7 @@ test_that("Replicate weight designs - two way table", {
     expect_is(z, "inzight.plotsummary")
     expect_output(print(z), "Chi-square test for equal distributions")
 
-    z <- getPlotSummary(race, srsex,
+    z <- getPlotSummary(race, sex,
         g1 = smoke,
         design = dchis,
         summary.type = "inference",
@@ -882,8 +881,9 @@ test_that("Post-strat designs - two way table", {
 })
 
 test_that("Missing values are handled appropriately", {
+    skip_if_offline()
     suppressWarnings(
-        nhanes <- iNZightTools::smart_read("nhanes.csv") %>%
+        nhanes <- iNZightTools::smart_read("https://inzight.nz/testdata/nhanes.csv") %>%
             dplyr::mutate(Gender.cat = ifelse(Gender == 1, "Male", "Female"))
     )
     nhanes.svy <- svydesign(~SDMVPSU, strata = ~SDMVSTRA,
