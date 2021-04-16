@@ -1,6 +1,8 @@
-- fix bug where plots failed if there we no non-missing x/y values in a subset
-- only show survey information (exclude the full call) in summary/inference
+# iNZightPlots 2.13
+
 - replace `inzsummary` and `inzinference` with S3 methods
+- only show survey information (exclude the full call) in summary/inference
+- fix bug where plots failed if there we no non-missing x/y values in a subset
 - fix issue introduced by change in 'readr' package (uses 'hms' instead of 'time')
 - fix y-axis rendering of large values (now accounts for width of tick labels)
 
@@ -25,7 +27,7 @@
 ## iNZightPlots 2.12.1
 * fix bug so mean indicator on dot plots works with surveys
 
-***
+
 # iNZightPlots 2.12
 This release mainly consists of compatibility changes to accompany 'iNZight' 4.0.
 
