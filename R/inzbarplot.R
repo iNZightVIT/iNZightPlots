@@ -41,7 +41,10 @@ create.inz.barplot <- function(obj) {
 
     SEG <- FALSE
     if (ynull) {
-        if (!is.null(svy)) {
+        if (nrow(df) == 0) {
+            tab <- table(df$x)
+            phat <- matrix(tab, nrow = 1)
+        } else if (!is.null(svy)) {
             tab <- svytable(~x, design = svy)
             phat <- matrix(svymean(~x, design = svy, na.rm = TRUE), nrow = 1)
         } else if (!is.null(df$freq)) {
@@ -71,7 +74,11 @@ create.inz.barplot <- function(obj) {
             p2 <- sweep(tab2, 2, colSums(tab2), "/")
         }
     } else {
-        if (!is.null(svy)) {
+        if (nrow(df) == 0) {
+            tab <- table(df$x, df$y)
+            phat <- sweep(tab, 1, 1, "*")
+            nn <- rowSums(tab)
+        } else if (!is.null(svy)) {
             tab <- svytable(~y + x, design = svy)
             phat <- svyby(~x, by = ~y, svy, FUN = svymean, drop.empty.groups = FALSE, na.rm = TRUE)
             phat <- phat[, 1 + 1:ncol(tab)]

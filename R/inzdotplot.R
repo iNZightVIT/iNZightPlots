@@ -156,7 +156,10 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
             h$counts <- probs * sum(get_weights(d))
         } else {
             x <- d$x
-            h <- hist(x, breaks = cuts, plot = FALSE)
+            h <- tryCatch(
+                hist(x, breaks = cuts, plot = FALSE),
+                error = function(e) hist(x, breaks = length(cuts), plot = FALSE)
+            )
         }
 
         ret <- list(

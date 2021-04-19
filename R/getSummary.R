@@ -369,10 +369,14 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
 
     if (is.survey) {
         add(hrule)
-        sapply(capture.output(attr(object, "main.design")),
-            function(o) add(ind(o))
+        tmpdesign <- attr(object, "main.design")
+        tmpdesign$call <- NULL
+        sapply(capture.output(print(tmpdesign)),
+            function(o) if (o != "NULL") add(ind(gsub("Call: NULL", "Replicate weights design", o)))
         )
         design.list <- attr(object, "design")
+        if (!is.null(tmpdesign$postStrata))
+            add(ind("(calibrated)"))
     }
 
     add(Hrule)
@@ -402,23 +406,23 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                 add(Hrule)
                 add(ind("For the subset where ", 5), vnames$g2, " = ", this)
             }
-            
-            
+
+
             if (!is.null(list(...)[["epi.out"]]) && list(...)[["epi.out"]] == TRUE && length(obj[[this]]) > 1) {
                 g1.tabs <- lapply(obj[[this]], "[[", "tab")
                 g1.arr <- array(
-                    as.numeric(unlist(g1.tabs)), 
+                    as.numeric(unlist(g1.tabs)),
                     dim=c(nrow(g1.tabs[[1]]), ncol(g1.tabs[[2]]), length(g1.tabs))
                 )
-                
+
                 m <- mantelhaen.test(g1.arr)
-                
+
                 if (all(dim(g1.arr)[1:2] == 2)) {
                     cmh.stat <- c(
                         m$method,
                         ":\n",
                         sprintf(
-                            "  %s = %.2f, df = %d, p = %f\n", 
+                            "  %s = %.2f, df = %d, p = %f\n",
                             names(m$statistic),
                             m$statistic,
                             m$parameter,
@@ -434,14 +438,14 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                                 m$conf.int[2]
                             )
                         )
-                        
+
                     )
                 } else {
                     cmh.stat <- c(
                         m$method,
                         ":\n",
                         sprintf(
-                            "  %s = %.2f, df = %d, p = %f\n", 
+                            "  %s = %.2f, df = %d, p = %f\n",
                             names(m$statistic),
                             m$statistic,
                             m$parameter,
@@ -449,7 +453,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                         )
                     )
                 }
-                
+
                 add(cmh.stat)
             }
 
@@ -709,89 +713,6 @@ centerText <- function(x, width) {
     paste0(paste0(rep(" ", pad), collapse = ""), x)
 }
 
-
-#' @describeIn inzplot Wrapper for getPlotSummary to obtain summary information about a plot
-#' @export
-inzsummary <- function(x, data = NULL, design = NULL, ..., env = parent.frame()) {
-    dots <- rlang::enexprs(...)
-    fmla <- parse_formula(x)
-
-    if (!is.null(fmla$y)) {
-        varx <- data[[fmla$x]]
-        vary <- data[[fmla$y]]
-        if (is_cat(varx) || is_cat(vary)) {
-            # need to do a switch-a-roo
-            xx <- fmla$x
-            fmla$x <- fmla$y
-            fmla$y <- xx
-            rm("xx")
-        }
-    }
-
-    exp <- rlang::expr(
-        getPlotSummary(
-            x = !!fmla$x,
-            y = !!fmla$y,
-            g1 = !!fmla$g1,
-            g2 = !!fmla$g2,
-            data = !!match.call()[["data"]],
-            design = !!match.call()[["design"]],
-            !!!dots,
-            env = !!env
-        )
-    )
-
-    if (is.null(fmla$y)) exp$y <- NULL
-    if (is.null(fmla$g1)) exp$g1 <- NULL
-    if (is.null(fmla$g2)) exp$g2 <- NULL
-
-    eval(exp, envir = env)
-}
-
-#' @describeIn inzplot Wrapper for getPlotSummary to obtain inference information about a plot
-#' @export
-#' @param type Type type of inference to obtain, one of 'conf' or 'comp'
-#'             for confidence intervals and comparison intervals, respectively
-#'             (currently ignored).
-inzinference <- function(x, data = NULL, design = NULL, type = c("conf", "comp"), ...,
-                         env = parent.frame()) {
-    dots <- rlang::enexprs(...)
-    fmla <- parse_formula(x)
-    type <- match.arg(type)
-
-    if (!is.null(fmla$y)) {
-        varx <- data[[fmla$x]]
-        vary <- data[[fmla$y]]
-        if (is_cat(varx) || is_cat(vary)) {
-            # need to do a switch-a-roo
-            xx <- fmla$x
-            fmla$x <- fmla$y
-            fmla$y <- xx
-            rm("xx")
-        }
-    }
-
-    exp <- rlang::expr(
-        getPlotSummary(
-            x = !!fmla$x,
-            y = !!fmla$y,
-            g1 = !!fmla$g1,
-            g2 = !!fmla$g2,
-            data = !!match.call()[["data"]],
-            design = !!match.call()[["design"]],
-            summary.type = "inference",
-            inference.type = !!type,
-            !!!dots,
-            env = !!env
-        )
-    )
-
-    if (is.null(fmla$y)) exp$y <- NULL
-    if (is.null(fmla$g1)) exp$g1 <- NULL
-    if (is.null(fmla$g2)) exp$g2 <- NULL
-
-    eval(exp, envir = env)
-}
 
 default.survey.options <- list(
     deff = TRUE

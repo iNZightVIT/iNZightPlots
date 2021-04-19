@@ -797,8 +797,8 @@ iNZightPlot <- function(x,
                     sapply(plot.list,
                         function(x) sapply(x,
                             function(y) {
-                                if (class(y) == "inzhex")
-                                    max(y$hex@count, na.rm = TRUE)
+                                if (class(y) == "inzhex" && !is.null(y$hex))
+                                    max(y$hex@count, 0, na.rm = TRUE)
                                 else 0
                             }
                         )
@@ -993,6 +993,9 @@ iNZightPlot <- function(x,
                 opts$cex.axis * xaxis
 
         ## -- yaxis marks
+        YAX.default.width <-
+            convertWidth(unit(1, "lines"), "in", TRUE) * 2 * opts$cex.axis
+
         YAX.width <- if (any(TYPE %in% c("dot", "hist")) &
                          !ynull & !opts$internal.labels) {
             ## need to grab the factoring variable -> might be x OR y
@@ -1011,10 +1014,20 @@ iNZightPlot <- function(x,
                     )
             )
             max(yWidths)
+        } else if (any(TYPE %in% c("scatter", "hex", "grid"))) {
+            ax <- transform_axes(df$data$y, "y", opts,
+                label = TRUE, adjust.vp = FALSE)
+            convertWidth(
+                grobWidth(
+                    textGrob(ax$labs,
+                        gp = gpar(cex = opts$cex.axis * multi.cex)
+                    )
+                ),
+                "in",
+                TRUE
+            )
         } else 0
 
-        YAX.default.width <-
-            convertWidth(unit(1, "lines"), "in", TRUE) * 2 * opts$cex.axis
         YAX.width <- ifelse(yaxis, YAX.width + YAX.default.width, 0.1)
 
         ## -- legend(s)

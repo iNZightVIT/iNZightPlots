@@ -162,7 +162,7 @@ addGrid <- function(x = FALSE, y = FALSE, gen, opts) {
     }
 }
 
-transform_axes <- function(x, which, opts, label) {
+transform_axes <- function(x, which, opts, label, adjust.vp = TRUE) {
     xt <- x
     breaks <- NULL
 
@@ -182,6 +182,10 @@ transform_axes <- function(x, which, opts, label) {
             },
             "time" = {
                 xt <- chron::chron(times. = x)
+                # xt <- hms::hms(x)
+                # xt <- as.POSIXct(xt)
+                # breaks <- scales::breaks_pretty()(xt)
+                # names(breaks) <- scales::label_time()(breaks)
             },
             "log" = {
                 breaks <- scales::log_trans()$breaks(exp(x))
@@ -218,12 +222,14 @@ transform_axes <- function(x, which, opts, label) {
     }
 
     if (is.null(breaks)) {
-        breaks <- scales::pretty_breaks()(xt)
+        breaks <- scales::breaks_pretty()(xt)
     }
-    xl <- current.viewport()[[switch(which, "x" = "xscale", y = "yscale")]]
-    breaks <- breaks[breaks > xl[1] & breaks < xl[2]]
-    if (length(breaks) == 0)
-        breaks <- seq(min(xl), max(xl), by = 1)
+    if (adjust.vp) {
+        xl <- current.viewport()[[switch(which, "x" = "xscale", y = "yscale")]]
+        breaks <- breaks[breaks > xl[1] & breaks < xl[2]]
+        if (length(breaks) == 0)
+            breaks <- seq(min(xl), max(xl), by = 1)
+    }
     at <- as.numeric(breaks)
     labs <- FALSE
     if (label) labs <- if (!is.null(names(breaks))) names(breaks) else at
