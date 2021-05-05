@@ -9,10 +9,6 @@ document: $(data)
 check:
 	@$(RCMD) -e "devtools::check()"
 
-revcheck:
-	@$(RCMD) -e "devtools::use_revdep()"
-	@$(RCMD) -f "revdep/check.R"
-
 crancheck:
 	@$(RCMD) CMD build .
 	@$(RCMD) CMD check *.tar.gz
