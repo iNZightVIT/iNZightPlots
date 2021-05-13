@@ -67,7 +67,8 @@ test_that("Files are written to temporary directory - mutliple files", {
 test_that("Directory for local can be specified", {
     curd <- getwd()
     p <- iNZightPlot(x, y)
-    td <- tempdir()
+    td <- file.path(tempdir(), "test")
+    dir.create(td, recursive = TRUE)
     on.exit(unlink(td, TRUE, TRUE)) # will also delete `url`
     url <- try(exportHTML(p, local = TRUE, dir = td), silent = TRUE)
     skip_if(inherits(url, "try-error"))
