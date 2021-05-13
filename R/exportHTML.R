@@ -45,7 +45,7 @@ exportHTML <- function(x,
 #' @export
 exportHTML.function <- function(x,
                                 file = file.path(dir, "index.html"),
-                                data,
+                                data = NULL,
                                 local = FALSE,
                                 dir = tempdir(),
                                 extra.vars = NULL,
@@ -57,7 +57,7 @@ exportHTML.function <- function(x,
 
     #do exporting:
     obj <- x()
-    url <- exportHTML(obj, file, data = data, local = local, extra.vars = extra.vars)
+    url <- exportHTML(obj, file, data = data, local = local, dir = dir, extra.vars = extra.vars)
 
     ## pass URL from exportHTML.inzplotoutput
     invisible(url)
@@ -67,7 +67,7 @@ exportHTML.function <- function(x,
 #' @export
 exportHTML.ggplot <- function(x,
                               file = file.path(dir, "index.html"),
-                              data,
+                              data = NULL,
                               local = FALSE,
                               dir = tempdir(),
                               extra.vars = NULL, mapObj,
@@ -182,7 +182,7 @@ exportHTML.ggplot <- function(x,
     )
     js <- list(chart = jsonlite::toJSON(chart), jsFile = mapsJS)
 
-    url <- createHTML(tbl, js, file, local)
+    url <- createHTML(tbl, js, file, local, dir = dir)
     invisible(url)
 
 }
@@ -191,7 +191,7 @@ exportHTML.ggplot <- function(x,
 #' @export
 exportHTML.inzplotoutput <- function(x,
                                      file = file.path(dir, "index.html"),
-                                     data,
+                                     data = NULL,
                                      local = FALSE,
                                      dir = tempdir(),
                                      extra.vars = NULL, ...) {
@@ -234,7 +234,7 @@ exportHTML.inzplotoutput <- function(x,
     js <- info$js
 
     #create html
-    url <- createHTML(tbl, js, file, local)
+    url <- createHTML(tbl, js, file, local, dir = dir)
     invisible(url)
 
 }

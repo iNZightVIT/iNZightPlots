@@ -20,7 +20,7 @@ exportHTML(
 \method{exportHTML}{`function`}(
   x,
   file = file.path(dir, "index.html"),
-  data,
+  data = NULL,
   local = FALSE,
   dir = tempdir(),
   extra.vars = NULL,
@@ -32,7 +32,7 @@ exportHTML(
 \method{exportHTML}{ggplot}(
   x,
   file = file.path(dir, "index.html"),
-  data,
+  data = NULL,
   local = FALSE,
   dir = tempdir(),
   extra.vars = NULL,
@@ -43,7 +43,7 @@ exportHTML(
 \method{exportHTML}{inzplotoutput}(
   x,
   file = file.path(dir, "index.html"),
-  data,
+  data = NULL,
   local = FALSE,
   dir = tempdir(),
   extra.vars = NULL,
