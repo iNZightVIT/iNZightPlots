@@ -9,20 +9,20 @@
 \usage{
 exportHTML(
   x,
-  file = file.path(assets_dir, "index.html"),
+  file = file.path(dir, "index.html"),
   data,
   local = FALSE,
-  assets_dir = tempdir(),
+  dir = tempdir(),
   extra.vars,
   ...
 )
 
 \method{exportHTML}{`function`}(
   x,
-  file = file.path(assets_dir, "index.html"),
-  data = NULL,
+  file = file.path(dir, "index.html"),
+  data,
   local = FALSE,
-  assets_dir = tempdir(),
+  dir = tempdir(),
   extra.vars = NULL,
   width = dev.size()[1],
   height = dev.size()[2],
@@ -31,10 +31,10 @@ exportHTML(
 
 \method{exportHTML}{ggplot}(
   x,
-  file = file.path(assets_dir, "index.html"),
-  data = NULL,
+  file = file.path(dir, "index.html"),
+  data,
   local = FALSE,
-  assets_dir = tempdir(),
+  dir = tempdir(),
   extra.vars = NULL,
   mapObj,
   ...
@@ -42,10 +42,10 @@ exportHTML(
 
 \method{exportHTML}{inzplotoutput}(
   x,
-  file = file.path(assets_dir, "index.html"),
-  data = NULL,
+  file = file.path(dir, "index.html"),
+  data,
   local = FALSE,
-  assets_dir = tempdir(),
+  dir = tempdir(),
   extra.vars = NULL,
   ...
 )
@@ -54,13 +54,13 @@ exportHTML(
 \item{x}{An iNZight plot object that captures iNZight environment}
 
 \item{file}{Name of temporary HTML file generated (defaults to `index.html`
-in a temporary directory, or other as specified using `assets_dir`)}
+in a temporary directory, or other as specified using `dir`)}
 
 \item{data}{dataset/dataframe that you wish to investigate and export more variables from}
 
 \item{local}{Logical for creating local files for offline use (default to false)}
 
-\item{assets_dir}{Directory to store results (defaults to `tempdir()`)}
+\item{dir}{A directory to store the file and output}
 
 \item{extra.vars}{extra variables specified by the user to be exported}
 
