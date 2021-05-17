@@ -1,3 +1,7 @@
+## iNZightPlots 2.13.1
+
+- fix issue in exporting as HTML with local assets (@tmelliott, #252)
+
 # iNZightPlots 2.13
 
 - replace `inzsummary` and `inzinference` with S3 methods

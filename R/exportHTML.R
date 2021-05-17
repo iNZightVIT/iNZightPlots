@@ -5,9 +5,9 @@
 #'
 #' @param x An iNZight plot object that captures iNZight environment
 #' @param file Name of temporary HTML file generated (defaults to `index.html`
-#' in a temporary directory, or other as specified using `assets_dir`)
+#' in a temporary directory, or other as specified using `dir`)
 #' @param local Logical for creating local files for offline use (default to false)
-#' @param assets_dir Directory to store results (defaults to `tempdir()`)
+#' @param dir A directory to store the file and output
 # Additional parameters for scatterplots and dotplots only:
 #' @param data dataset/dataframe that you wish to investigate and export more variables from
 #' @param extra.vars extra variables specified by the user to be exported
@@ -32,16 +32,22 @@
 #'
 #' @author Yu Han Soh
 #' @export
-exportHTML <- function(x, file = file.path(assets_dir, "index.html"), data,
-                       local = FALSE, assets_dir = tempdir(), extra.vars, ...)
+exportHTML <- function(x,
+                       file = file.path(dir, "index.html"),
+                       data,
+                       local = FALSE,
+                       dir = tempdir(),
+                       extra.vars,
+                       ...)
     UseMethod("exportHTML")
 
 #' @describeIn exportHTML method for an iNZightPlot-generating function
 #' @export
-exportHTML.function <- function(x, file = file.path(assets_dir, "index.html"),
+exportHTML.function <- function(x,
+                                file = file.path(dir, "index.html"),
                                 data = NULL,
                                 local = FALSE,
-                                assets_dir = tempdir(),
+                                dir = tempdir(),
                                 extra.vars = NULL,
                                 width = dev.size()[1], height = dev.size()[2],
                                 ...) {
@@ -51,7 +57,7 @@ exportHTML.function <- function(x, file = file.path(assets_dir, "index.html"),
 
     #do exporting:
     obj <- x()
-    url <- exportHTML(obj, file, data = data, local = local, extra.vars = extra.vars)
+    url <- exportHTML(obj, file, data = data, local = local, dir = dir, extra.vars = extra.vars)
 
     ## pass URL from exportHTML.inzplotoutput
     invisible(url)
@@ -59,10 +65,11 @@ exportHTML.function <- function(x, file = file.path(assets_dir, "index.html"),
 
 #' @describeIn exportHTML method for iNZightMaps or other supported ggplot graphs
 #' @export
-exportHTML.ggplot <- function(x, file = file.path(assets_dir, "index.html"),
+exportHTML.ggplot <- function(x,
+                              file = file.path(dir, "index.html"),
                               data = NULL,
                               local = FALSE,
-                              assets_dir = tempdir(),
+                              dir = tempdir(),
                               extra.vars = NULL, mapObj,
                               ...) {
     if (missing(mapObj)) {
@@ -175,17 +182,18 @@ exportHTML.ggplot <- function(x, file = file.path(assets_dir, "index.html"),
     )
     js <- list(chart = jsonlite::toJSON(chart), jsFile = mapsJS)
 
-    url <- createHTML(tbl, js, file, local)
+    url <- createHTML(tbl, js, file, local, dir = dir)
     invisible(url)
 
 }
 
 #' @describeIn exportHTML method for output from iNZightPlot
 #' @export
-exportHTML.inzplotoutput <- function(x, file = file.path(assets_dir, "index.html"),
+exportHTML.inzplotoutput <- function(x,
+                                     file = file.path(dir, "index.html"),
                                      data = NULL,
                                      local = FALSE,
-                                     assets_dir = tempdir(),
+                                     dir = tempdir(),
                                      extra.vars = NULL, ...) {
 
     #suggest gridSVG, jsonlite, xtable:
@@ -226,7 +234,7 @@ exportHTML.inzplotoutput <- function(x, file = file.path(assets_dir, "index.html
     js <- info$js
 
     #create html
-    url <- createHTML(tbl, js, file, local)
+    url <- createHTML(tbl, js, file, local, dir = dir)
     invisible(url)
 
 }
@@ -236,10 +244,12 @@ exportHTML.inzplotoutput <- function(x, file = file.path(assets_dir, "index.html
 ## @param js - list with javascript information
 ## @param file - filename for HTML file created
 ## @param local - logical if it's to be made in a folder with source files
-## @param assets_dir - directory to save files
 ## @return url object of class inzHTML
-createHTML <- function(tbl, js, file = file.path(assets_dir, "index.html"),
-                       local = FALSE, assets_dir = tempdir()) {
+createHTML <- function(tbl, js,
+                       file = file.path(dir, "index.html"),
+                       local = FALSE,
+                       dir = tempdir()
+                       ) {
 
     # load templates
     HTMLtemplate <- readLines(system.file("template.html", package = "iNZightPlots"))
@@ -284,12 +294,14 @@ createHTML <- function(tbl, js, file = file.path(assets_dir, "index.html"),
         assets <- system.file("assets.zip", package = "iNZightPlots")
         ## if local = TRUE, create directories
         # outdir <- file.path(dirname(file), "iNZight_interactive_plot")
-        utils::unzip(assets, exdir = assets_dir)
-        assets <- file.path(assets_dir, "assets")
+        utils::unzip(assets, exdir = dir)
+        # if assets is in the same directory as file ...
+        assets_dir <- file.path(dir, "assets")
+        assets <- if (dir == dirname(file)) "assets" else assets_dir
 
         vendorCSS <- c("bootstrap.min.css", "dataTables.bootstrap.min.css")
         HTMLtemplate[9:10] <- paste0(
-            "<link rel='stylesheet' href= 'assets/vendor/",
+            "<link rel='stylesheet' href= '", assets, "/vendor/",
             vendorCSS,
             "'>"
         )
@@ -301,26 +313,26 @@ createHTML <- function(tbl, js, file = file.path(assets_dir, "index.html"),
             "dataTables.bootstrap.min.js"
         )
         HTMLtemplate[12:16] <- paste0(
-            "<script src ='assets/vendor/",
+            "<script src ='", assets, "/vendor/",
             vendorJS,
             "'></script>"
         )
 
         # create files
-        write(styles, file.path(assets, "main.css"))
-        write(chartCode, file.path(assets, "chart.js"))
-        write(inzJS, file.path(assets, "inzplot.js"))
-        write(jsCode, file.path(assets, "main.js"))
+        write(styles, file.path(assets_dir, "main.css"))
+        write(chartCode, file.path(assets_dir, "chart.js"))
+        write(inzJS, file.path(assets_dir, "inzplot.js"))
+        write(jsCode, file.path(assets_dir, "main.js"))
         file.copy(
             system.file("inzight_transp.png", package = "iNZightPlots"),
-            file.path(assets, "inzight_transp.png")
+            file.path(assets_dir, "inzight_transp.png")
         )
 
-        HTMLtemplate[cssLine] <- "<link rel='stylesheet' href='assets/main.css'>"
-        HTMLtemplate[chartLine] <- "<script src='assets/chart.js'></script>"
-        HTMLtemplate[inzplotLine] <- "<script src='assets/inzplot.js'></script>"
-        HTMLtemplate[jsLine] <- "<script src='assets/main.js'></script>"
-        HTMLtemplate <- gsub("INZIGHT_LOGO", "assets/inzight_transp.png", HTMLtemplate)
+        HTMLtemplate[cssLine] <- sprintf("<link rel='stylesheet' href='%s/main.css'>", assets)
+        HTMLtemplate[chartLine] <- sprintf("<script src='%s/chart.js'></script>", assets)
+        HTMLtemplate[inzplotLine] <- sprintf("<script src='%s/inzplot.js'></script>", assets)
+        HTMLtemplate[jsLine] <- sprintf("<script src='%s/main.js'></script>", assets)
+        HTMLtemplate <- sprintf(gsub("INZIGHT_LOGO", "%s/inzight_transp.png", HTMLtemplate), assets)
     } else {
 
         ## insert inline JS, CSS
