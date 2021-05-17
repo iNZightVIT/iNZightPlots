@@ -295,7 +295,9 @@ createHTML <- function(tbl, js,
         ## if local = TRUE, create directories
         # outdir <- file.path(dirname(file), "iNZight_interactive_plot")
         utils::unzip(assets, exdir = dir)
-        assets <- file.path(dir, "assets")
+        # if assets is in the same directory as file ...
+        assets_dir <- file.path(dir, "assets")
+        assets <- if (dir == dirname(file)) "assets" else assets_dir
 
         vendorCSS <- c("bootstrap.min.css", "dataTables.bootstrap.min.css")
         HTMLtemplate[9:10] <- paste0(
@@ -317,13 +319,13 @@ createHTML <- function(tbl, js,
         )
 
         # create files
-        write(styles, file.path(assets, "main.css"))
-        write(chartCode, file.path(assets, "chart.js"))
-        write(inzJS, file.path(assets, "inzplot.js"))
-        write(jsCode, file.path(assets, "main.js"))
+        write(styles, file.path(assets_dir, "main.css"))
+        write(chartCode, file.path(assets_dir, "chart.js"))
+        write(inzJS, file.path(assets_dir, "inzplot.js"))
+        write(jsCode, file.path(assets_dir, "main.js"))
         file.copy(
             system.file("inzight_transp.png", package = "iNZightPlots"),
-            file.path(assets, "inzight_transp.png")
+            file.path(assets_dir, "inzight_transp.png")
         )
 
         HTMLtemplate[cssLine] <- sprintf("<link rel='stylesheet' href='%s/main.css'>", assets)
