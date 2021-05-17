@@ -73,7 +73,8 @@ test_that("Directory for local can be specified", {
     url <- try(exportHTML(p, local = TRUE, dir = td), silent = TRUE)
     skip_if(inherits(url, "try-error"))
     expect_is(url, "inzHTML")
-    expect_equal(dirname(as.character(url)), td)
+    expect_true(file.exists(file.path(td, "index.html")))
+    #expect_equal(dirname(as.character(url)), td)
     expect_true(dir.exists(file.path(td, "assets")))
 })
 
