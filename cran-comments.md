@@ -9,6 +9,10 @@
 
 0 errors | 0 warnings | 0 notes
 
+I have fixed problems shown on https://cran.r-project.org/web/checks/check_results_iNZightPlots.html
+* tests fail gracefully when required files are unavailable
+* 
+
 ## Downstream dependencies
 
 I have run R CMD CHECK on the 2 downstream dependencies of iNZightPlots, and both passed.

@@ -40,7 +40,7 @@ test_that("Survey summaries are correct", {
 })
 
 chis <- try(iNZightTools::smart_read("https://inzight.nz/testdata/chis2.csv"), silent = TRUE)
-skip_if(inherits(chis, "try-error"))
+skip_if(inherits(chis, "try-error"), "Unable to load resource")
 
 dchis <- suppressWarnings(svrepdesign(
     data = chis,
