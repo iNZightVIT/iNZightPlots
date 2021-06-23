@@ -588,7 +588,9 @@ test_that("Subset (only g2) inference - two sample t-test", {
 
 ############################################ Replicate weight designs
 
-chis <- iNZightTools::smart_read("https://inzight.nz/testdata/chis2.csv")
+chis <- try(iNZightTools::smart_read("https://inzight.nz/testdata/chis2.csv"), silent = TRUE)
+skip_if(inherits(chis, "try-error"))
+
 dchis <- suppressWarnings(svrepdesign(
     data = chis,
     repweights = "rakedw[1-9]",
