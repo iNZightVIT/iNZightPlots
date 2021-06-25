@@ -38,7 +38,9 @@ test_that("Mean indicator uses correct weights", {
     expect_equivalent(p$all$all$meaninfo$all$mean, svymean(~api00, dclus2))
 })
 
-chis <- iNZightTools::smart_read("https://inzight.nz/testdata/chis2.csv")
+chis <- try(iNZightTools::smart_read("https://inzight.nz/testdata/chis2.csv"), silent = TRUE)
+skip_if(inherits(chis, "try-error"), "Unable to load resource")
+
 dchis <- suppressWarnings(svrepdesign(
     data = chis,
     repweights = "rakedw[1-9]",
