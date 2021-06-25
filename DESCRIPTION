@@ -32,14 +32,14 @@ Imports:
     iNZightTools (>= 1.9),
     rlang,
     magrittr,
-    lubridate
+    lubridate,
+    gridSVG (>= 1.7-2),
+    knitr,
+    jsonlite
 Suggests:
     hextri,
     viridis,
     RColorBrewer,
-    gridSVG (>= 1.7-2),
-    knitr,
-    jsonlite,
     testthat,
     covr,
     ggplot2,
