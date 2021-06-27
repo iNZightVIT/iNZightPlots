@@ -588,7 +588,9 @@ test_that("Subset (only g2) inference - two sample t-test", {
 
 ############################################ Replicate weight designs
 
-chis <- iNZightTools::smart_read("https://inzight.nz/testdata/chis2.csv")
+chis <- try(iNZightTools::smart_read("https://inzight.nz/testdata/chis2.csv"), silent = TRUE)
+skip_if(inherits(chis, "try-error"), "Unable to load resource")
+
 dchis <- suppressWarnings(svrepdesign(
     data = chis,
     repweights = "rakedw[1-9]",
@@ -882,10 +884,15 @@ test_that("Post-strat designs - two way table", {
 
 test_that("Missing values are handled appropriately", {
     skip_if_offline()
-    suppressWarnings(
-        nhanes <- iNZightTools::smart_read("https://inzight.nz/testdata/nhanes.csv") %>%
-            dplyr::mutate(Gender.cat = ifelse(Gender == 1, "Male", "Female"))
+    nhanes <- try(
+        suppressWarnings(
+            iNZightTools::smart_read("https://inzight.nz/testdata/nhanes.csv") %>%
+                dplyr::mutate(Gender.cat = ifelse(Gender == 1, "Male", "Female"))
+        ),
+        silent = TRUE
     )
+    skip_if(inherits(nhanes, "try-error"), "Unable to load resource")
+
     nhanes.svy <- svydesign(~SDMVPSU, strata = ~SDMVSTRA,
         weights = ~WTINT2YR, data = nhanes, nest = TRUE)
 
