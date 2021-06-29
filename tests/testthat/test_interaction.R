@@ -64,5 +64,20 @@ test_that("Files are written to temporary directory - mutliple files", {
     expect_equal(curd, getwd())
 })
 
+test_that("Directory for local can be specified", {
+    curd <- getwd()
+    p <- iNZightPlot(x, y)
+    td <- file.path(tempdir(), "test")
+    dir.create(td, recursive = TRUE)
+    on.exit(unlink(td, TRUE, TRUE)) # will also delete `url`
+    url <- try(exportHTML(p, local = TRUE, dir = td), silent = TRUE)
+    skip_if(inherits(url, "try-error"))
+    expect_is(url, "inzHTML")
+    expect_true(file.exists(file.path(td, "index.html")))
+    #expect_equal(dirname(as.character(url)), td)
+    expect_true(dir.exists(file.path(td, "assets")))
+})
+
+
 
 try(unlink("Rplot.pdf"), silent = TRUE)

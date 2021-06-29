@@ -1,7 +1,14 @@
-## iNZightPlots 2.13.1
+## iNZightPlots 2.13.3
 
 * update use of `svyquantile` for changes in 'survey' 4.1
 
+## iNZightPlots 2.13.2
+
+- fix CRAN issues on R-devel (windows), and M1 mac (all related to tests)
+
+## iNZightPlots 2.13.1
+
+- fix issue in exporting as HTML with local assets (@tmelliott, #252)
 
 # iNZightPlots 2.13
 

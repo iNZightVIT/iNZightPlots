@@ -1,13 +1,15 @@
 ## Test environments
 * local ubuntu 20.04, R 4.0.5
-* ubuntu 20.04 (GitHub Actions) R release
-* macos (GitHub Actions), R oldrel and release
+* ubuntu 20.04 (GitHub Actions) R release, R devel
+* macos (GitHub Actions), R release
 * win-builder, R release and devel
 
 ****
 ## R CMD check results
 
 0 errors | 0 warnings | 0 notes
+
+This patch fixes failures introduced by changes in the forthcoming version 4.1 of 'survey'.
 
 ## Downstream dependencies
 
