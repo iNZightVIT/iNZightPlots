@@ -1,4 +1,6 @@
+## iNZightPlots 2.13.1
 
+* update use of `svyquantile` for changes in 'survey' 4.1
 
 
 # iNZightPlots 2.13
