@@ -81,14 +81,26 @@ summary.inzdot <- function(object, des, survey.options, ...) {
         ones <- cbind(rep(1, nrow(dv)))
         if ("y" %in% colnames(dv)) {
             suppressWarnings(
-                smry_q <- svyby(~x, ~y, des, svyquantile,
-                    quantiles = c(0.25, 0.5, 0.75),
-                    ci = TRUE,
-                    se = TRUE,
-                    na.rm = TRUE,
-                    keep.var = TRUE,
-                    drop.empty.groups = FALSE
-                )
+                if (utils::packageVersion("survey") >= "4.1") {
+                    smry_q <- svyby(~x, ~y, des,
+                        get("oldsvyquantile", asNamespace("survey")),
+                        quantiles = c(0.25, 0.5, 0.75),
+                        ci = TRUE,
+                        se = TRUE,
+                        na.rm = TRUE,
+                        keep.var = TRUE,
+                        drop.empty.groups = FALSE
+                    )
+                } else {
+                    smry_q <- svyby(~x, ~y, des, svyquantile,
+                        quantiles = c(0.25, 0.5, 0.75),
+                        ci = TRUE,
+                        se = TRUE,
+                        na.rm = TRUE,
+                        keep.var = TRUE,
+                        drop.empty.groups = FALSE
+                    )
+                }
             )
             smry_mean <- svyby(~x, ~y, des, svymean,
                 na.rm = TRUE,
@@ -149,12 +161,20 @@ summary.inzdot <- function(object, des, survey.options, ...) {
                 mat <- rbind(mat, deffmat)
             }
         } else {
-            smry_q <- svyquantile(~x, des,
-                na.rm = TRUE,
-                quantiles = c(0.25, 0.5, 0.75),
-                a.rm = TRUE,
-                se = TRUE
-            )
+            if (utils::packageVersion("survey") >= "4.1") {
+                smry_q <- svyquantile(~x, des,
+                    na.rm = TRUE,
+                    quantiles = c(0.25, 0.5, 0.75),
+                    ci = TRUE
+                )
+            } else {
+                smry_q <- svyquantile(~x, des,
+                    na.rm = TRUE,
+                    quantiles = c(0.25, 0.5, 0.75),
+                    a.rm = TRUE,
+                    se = TRUE
+                )
+            }
             smry_mean <- svymean(~x, des, na.rm = TRUE,
                 deff = survey.options$deff)
             smry_var <- svyvar(~x, des, na.rm = TRUE)
@@ -163,7 +183,9 @@ summary.inzdot <- function(object, des, survey.options, ...) {
             smry_popsize <- svytotal(ones, des, na.rm = TRUE)
 
             mat <- cbind(
-                if (is_svyrep(des)) {
+                if (inherits(smry_q, "newsvyquantile")) {
+                    rbind(smry_q$x[, 'quantile'])
+                } else if (is_svyrep(des)) {
                     t(rbind(coef(smry_q)))
                 } else {
                     rbind(coef(smry_q))
@@ -179,7 +201,12 @@ summary.inzdot <- function(object, des, survey.options, ...) {
             )
 
             semat <- cbind(
-                if (is_svyrep(des)) {
+                if (inherits(smry_q, "newsvyquantile")) {
+                    cn <- colnames(smry_q$x)
+                    cnse <- grep('se', cn)
+                    if (length(cnse)) rbind(smry_q$x[, cnse[1]])
+                    else rbind(rep(NA, nrow(smry_q$x)))
+                } else if (is_svyrep(des)) {
                     t(rbind(SE(smry_q)))
                 } else {
                     rbind(SE(smry_q))

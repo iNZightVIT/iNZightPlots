@@ -587,10 +587,19 @@ boxSummary <- function(obj, opts) {
             if (is_survey(o)) {
                 if (nrow(o$variables) < 5) return(NULL)
                 svyobj <- o
-                quant <- svyquantile(~x, svyobj,
-                    quantiles = c(0.25, 0.5, 0.75),
-                    na.rm = TRUE
-                )
+                if (utils::packageVersion("survey") >= "4.1") {
+                    quant <- svyquantile(~x, svyobj,
+                        quantiles = c(0.25, 0.5, 0.75),
+                        na.rm = TRUE,
+                        ci = FALSE
+                    )[[1]]
+                } else {
+                    quant <- svyquantile(~x, svyobj,
+                        quantiles = c(0.25, 0.5, 0.75),
+                        na.rm = TRUE
+                    )
+                }
+
                 min <- min(svyobj$variables$x, na.rm = TRUE)
                 max <- max(svyobj$variables$x, na.rm = TRUE)
             } else{

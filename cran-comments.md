@@ -9,9 +9,7 @@
 
 0 errors | 0 warnings | 0 notes
 
-I have fixed problems shown on https://cran.r-project.org/web/checks/check_results_iNZightPlots.html
-* tests fail gracefully when required files are unavailable
-* some tests are skipped if any of the required packages are missing
+This patch fixes failures introduced by changes in the forthcoming version 4.1 of 'survey'.
 
 ## Downstream dependencies
 
