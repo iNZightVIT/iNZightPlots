@@ -7,8 +7,9 @@
 ****
 ## R CMD check results
 
-0 errors | 0 warnings | 0 notes
+0 errors | 0 warnings | 1 note
 
+* Days since last update: 5
 This patch fixes failures introduced by changes in the forthcoming version 4.1 of 'survey'.
 
 ## Downstream dependencies
