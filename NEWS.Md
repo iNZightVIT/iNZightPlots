@@ -1,3 +1,6 @@
+* fix bug in `inzsummary` and `inzinference` for survey regression output (response/predictor wrong way around)
+
+
 ## iNZightPlots 2.13.3
 
 * update use of `svyquantile` for changes in 'survey' 4.1
