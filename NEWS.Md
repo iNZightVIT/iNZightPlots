@@ -1,4 +1,5 @@
 * fix bug in `inzsummary` and `inzinference` for survey regression output (response/predictor wrong way around)
+* disable plots for surveys with x and/or y with only 1 level (#258, @tmelliott)
 
 
 ## iNZightPlots 2.13.3

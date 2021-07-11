@@ -224,3 +224,9 @@ test_that("Scatter plots work for surveys", {
         "inzplotoutput"
     )
 })
+
+test_that("Factors with one level return error", {
+    dclus1$variables$test <- factor(rep("test", nrow(dclus1$variables)))
+    dclus1$variables$test2 <- factor(rep("test", nrow(dclus1$variables)))
+    expect_error(inzplot(test ~ api00, design = dclus1))
+})
