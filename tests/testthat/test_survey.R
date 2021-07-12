@@ -230,3 +230,9 @@ test_that("Factors with one level return error", {
     dclus1$variables$test2 <- factor(rep("test", nrow(dclus1$variables)))
     expect_error(inzplot(test ~ api00, design = dclus1))
 })
+
+test_that("Log transformation works with surveys", {
+    expect_silent(
+        inzplot(~meals, design = dclus1, transform = list(x = "log"))
+    )
+})
