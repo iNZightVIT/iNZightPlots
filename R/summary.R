@@ -342,10 +342,10 @@ summary.inzbar <- function(object, des, survey.options, privacy_controls, ...) {
     tab <- round(object$tab)
     perc <- object$phat * 100
 
+    s_mat <- NULL
     if (!is.null(privacy_controls)) {
         s_mat <- privacy_controls$suppression_matrix(tab)
         tab <- privacy_controls$round(tab)
-        print(s_mat)
     }
 
     is.survey <- !is.null(des)
@@ -368,9 +368,10 @@ summary.inzbar <- function(object, des, survey.options, privacy_controls, ...) {
             )
         )
 
+        cm1 <- cbind(tab, rowSums(tab))
         mat1 <- rbind(
             c(colnames(tab), "Row Total"),
-            cbind(privacy_controls$suppress(tab, s_mat), rowSums(tab))
+            if (is.null(s_mat)) cm1 else privacy_controls$suppress(cm1, s_mat)
         )
         mat1 <- cbind(c("", rownames(tab)), mat1)
 
@@ -383,10 +384,14 @@ summary.inzbar <- function(object, des, survey.options, privacy_controls, ...) {
             nrow = nrow(mat1)
         )
 
-
+        cm2 <- cbind(perc, rowSums(tab))
         mat2 <- rbind(
             c(colnames(tab), "Total", "Row N"),
-            cbind(privacy_controls$suppress(perc, s_mat), rowSums(tab))
+            if (is.null(s_mat)) cm2
+            else
+                privacy_controls$suppress(cm2,
+                    t(apply(s_mat, 1, function(x) c(x | x[length(x)], x[length(x)])))
+                )
         )
         mat2 <- cbind(c("", rownames(tab)), mat2)
 
