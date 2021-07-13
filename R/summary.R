@@ -1,4 +1,4 @@
-summary.inzdot <- function(object, des, survey.options, ...) {
+summary.inzdot <- function(object, des, survey.options, privacy_controls, ...) {
     ## Generate summary information:
 
     ## Produce a matrix of the required summary:
@@ -334,13 +334,19 @@ summary.inzdot <- function(object, des, survey.options, ...) {
     out
 }
 
-summary.inzhist <- function(object, des, survey.options, ...)
+summary.inzhist <- function(object, des, survey.options, privacy_controls, ...)
     summary.inzdot(object, des, survey.options, ...)
 
 
-summary.inzbar <- function(object, des, survey.options, ...) {
+summary.inzbar <- function(object, des, survey.options, privacy_controls, ...) {
     tab <- round(object$tab)
     perc <- object$phat * 100
+
+    if (!is.null(privacy_controls)) {
+        s_mat <- privacy_controls$suppression_matrix(tab)
+        tab <- privacy_controls$round(tab)
+        print(s_mat)
+    }
 
     is.survey <- !is.null(des)
 
@@ -364,7 +370,7 @@ summary.inzbar <- function(object, des, survey.options, ...) {
 
         mat1 <- rbind(
             c(colnames(tab), "Row Total"),
-            cbind(tab, rowSums(tab))
+            cbind(privacy_controls$suppress(tab, s_mat), rowSums(tab))
         )
         mat1 <- cbind(c("", rownames(tab)), mat1)
 
@@ -380,7 +386,7 @@ summary.inzbar <- function(object, des, survey.options, ...) {
 
         mat2 <- rbind(
             c(colnames(tab), "Total", "Row N"),
-            cbind(perc, rowSums(tab))
+            cbind(privacy_controls$suppress(perc, s_mat), rowSums(tab))
         )
         mat2 <- cbind(c("", rownames(tab)), mat2)
 

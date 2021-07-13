@@ -38,6 +38,7 @@
 #' @param survey.options additional options passed to survey methods
 #' @param width width for the output, default is 100 characters
 #' @param epi.out logical, if \code{TRUE}, then odds/rate ratios and rate differences are printed when appropriate (\code{y} with 2 levels)
+#' @param privacy_controls optional, pass in confidentialisation and privacy controls (e.g., random rounding, suppression) for microdata
 #' @param ... additional arguments, see \code{inzpar}
 #' @param env compatibility argument
 #' @return an \code{inzight.plotsummary} object with a print method
@@ -56,6 +57,17 @@
 #' # if you prefer a formula interface
 #' inzsummary(Sepal.Length ~ Species, data = iris)
 #' inzinference(Sepal.Length ~ Species, data = iris)
+#'
+#' ## confidentialisation and privacy controls
+#' # random rounding and suppression:
+#' HairEyeColor_df <- as.data.frame(HairEyeColor)
+#' inzsummary(Hair ~ Eye, data = HairEyeColor_df, freq = Freq)
+#' inzsummary(Hair ~ Eye, data = HairEyeColor_df, freq = Freq,
+#'     privacy_controls = list(
+#'         rounding = "RR3",
+#'         suppression = 10
+#'     )
+#' )
 getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            g2 = NULL, g2.level = NULL, varnames = list(),
                            colby = NULL, sizeby = NULL,
@@ -80,6 +92,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            survey.options = list(),
                            width = 100,
                            epi.out = FALSE,
+                           privacy_controls = NULL,
                            ...,
                            env = parent.frame()) {
 
@@ -182,13 +195,21 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     ### Now we just loop over everything ...
 
-    summary(obj, summary.type, hypothesis, survey.options, width = width, epi.out = epi.out)
+    summary(obj,
+        summary.type,
+        hypothesis,
+        survey.options,
+        width = width,
+        epi.out = epi.out,
+        privacy_controls = privacy_controls
+    )
 }
 
 
 summary.inzplotoutput <- function(object, summary.type = "summary",
                                   hypothesis = NULL,
                                   survey.options = list(),
+                                  privacy_controls = NULL,
                                   width = 100, ...) {
     if (length(summary.type) > 1) {
         warning("Only using the first element of `summary.type`")
@@ -231,6 +252,9 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
 
     ## Handle survey options
     survey.options <- modifyList(default.survey.options, survey.options)
+
+    ## Handle privacy/confidentialisation
+    privacy_controls <- make_privacy_controls(privacy_controls)
 
     add(Hrule)
     add(
@@ -517,7 +541,8 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                         switch(summary.type,
                             "summary" =
                                 summary(pl, vn = vnames, des = pl.design,
-                                    survey.options = survey.options),
+                                    survey.options = survey.options,
+                                    privacy_controls = privacy_controls),
                             "inference" =
                                 inference(pl, bs, inzclass,
                                     des = pl.design,
@@ -526,6 +551,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                                     nb = attr(obj, "nboot"),
                                     hypothesis = hypothesis,
                                     survey.options = survey.options,
+                                    privacy_controls = privacy_controls,
                                     ...
                                 )
                         ),
