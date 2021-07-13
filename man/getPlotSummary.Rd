@@ -32,6 +32,7 @@ getPlotSummary(
   survey.options = list(),
   width = 100,
   epi.out = FALSE,
+  privacy_controls = NULL,
   ...,
   env = parent.frame()
 )
@@ -98,6 +99,8 @@ displayed in the plot}
 
 \item{epi.out}{logical, if \code{TRUE}, then odds/rate ratios and rate differences are printed when appropriate (\code{y} with 2 levels)}
 
+\item{privacy_controls}{optional, pass in confidentialisation and privacy controls (e.g., random rounding, suppression) for microdata}
+
 \item{...}{additional arguments, see \code{inzpar}}
 
 \item{env}{compatibility argument}
@@ -124,6 +127,17 @@ getPlotSummary(Sepal.Length, data = iris,
 # if you prefer a formula interface
 inzsummary(Sepal.Length ~ Species, data = iris)
 inzinference(Sepal.Length ~ Species, data = iris)
+
+## confidentialisation and privacy controls
+# random rounding and suppression:
+HairEyeColor_df <- as.data.frame(HairEyeColor)
+inzsummary(Hair ~ Eye, data = HairEyeColor_df, freq = Freq)
+inzsummary(Hair ~ Eye, data = HairEyeColor_df, freq = Freq,
+    privacy_controls = list(
+        rounding = "RR3",
+        suppression = 10
+    )
+)
 }
 \author{
 Tom Elliott
