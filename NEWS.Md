@@ -1,7 +1,27 @@
-- fix bug where plots failed if there we no non-missing x/y values in a subset
-- only show survey information (exclude the full call) in summary/inference
+* fix bug in `inzsummary` and `inzinference` for survey regression output (response/predictor wrong way around)
+* disable plots for surveys with x and/or y with only 1 level (#258, @tmelliott)
+* fix handling of axis transformations for survey data (#227, @tmelliott)
+
+
+## iNZightPlots 2.13.3
+
+* update use of `svyquantile` for changes in 'survey' 4.1
+
+## iNZightPlots 2.13.2
+
+- fix CRAN issues on R-devel (windows), and M1 mac (all related to tests)
+
+## iNZightPlots 2.13.1
+
+- fix issue in exporting as HTML with local assets (@tmelliott, #252)
+
+# iNZightPlots 2.13
+
 - replace `inzsummary` and `inzinference` with S3 methods
+- only show survey information (exclude the full call) in summary/inference
+- fix bug where plots failed if there we no non-missing x/y values in a subset
 - fix issue introduced by change in 'readr' package (uses 'hms' instead of 'time')
+- fix y-axis rendering of large values (now accounts for width of tick labels)
 
 ## iNZightPlots 2.12.6
 - fix wording in inference information output ('mean' -> 'estimate') (@tmelliott, #242)
@@ -24,7 +44,7 @@
 ## iNZightPlots 2.12.1
 * fix bug so mean indicator on dot plots works with surveys
 
-***
+
 # iNZightPlots 2.12
 This release mainly consists of compatibility changes to accompany 'iNZight' 4.0.
 

@@ -202,6 +202,18 @@ iNZightPlot <- function(x,
         )
     }
 
+    slf <- single_level_factors(df$data)
+    if (!is.null(design) && any(slf)) {
+        slf_vars <- df$varnames[slf]
+        stop(
+            paste(sep = "\n",
+                "The following variables in the survey design only have",
+                "  a single level, which is not supported:",
+                sprintf("     %s", paste(slf_vars, collapse = ", "))
+            )
+        )
+    }
+
     dots <- list(...)
 
     if (isTRUE(grepl("^gg_", dots$plottype))) {
@@ -993,6 +1005,9 @@ iNZightPlot <- function(x,
                 opts$cex.axis * xaxis
 
         ## -- yaxis marks
+        YAX.default.width <-
+            convertWidth(unit(1, "lines"), "in", TRUE) * 2 * opts$cex.axis
+
         YAX.width <- if (any(TYPE %in% c("dot", "hist")) &
                          !ynull & !opts$internal.labels) {
             ## need to grab the factoring variable -> might be x OR y
@@ -1011,10 +1026,20 @@ iNZightPlot <- function(x,
                     )
             )
             max(yWidths)
+        } else if (any(TYPE %in% c("scatter", "hex", "grid"))) {
+            ax <- transform_axes(df$data$y, "y", opts,
+                label = TRUE, adjust.vp = FALSE)
+            convertWidth(
+                grobWidth(
+                    textGrob(ax$labs,
+                        gp = gpar(cex = opts$cex.axis * multi.cex)
+                    )
+                ),
+                "in",
+                TRUE
+            )
         } else 0
 
-        YAX.default.width <-
-            convertWidth(unit(1, "lines"), "in", TRUE) * 2 * opts$cex.axis
         YAX.width <- ifelse(yaxis, YAX.width + YAX.default.width, 0.1)
 
         ## -- legend(s)

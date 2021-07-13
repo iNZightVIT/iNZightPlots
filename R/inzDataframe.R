@@ -65,7 +65,6 @@ inzDataframe <- function(m, data = NULL, names = list(),
     # e.g., in future we might want to add a TimeSeries data type ...
 
     if (is_survey(data)) {
-        # print(data$variables)
         df$data <- as.data.frame(
             lapply(m[mw], eval, data$variables, env),
             stringsAsFactors = TRUE

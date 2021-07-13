@@ -1,5 +1,19 @@
 context("Financial Times plots")
 
+gg_pkgs <- c(
+    "ggplot2",
+    "dplyr",
+    "tidyr",
+    "forcats",
+    "ggmosaic",
+    "waffle",
+    "ggthemes",
+    "ggbeeswarm",
+    "ggridges"
+)
+gg_pkgs_check <- sapply(gg_pkgs, requireNamespace, quietly = TRUE)
+skip_if(any(gg_pkgs_check), "Unable to check FT plots as some packages are missing.")
+
 test_that("Inversing x/y doesn't affect graph", {
     p1 <- iNZightPlot(Species, Sepal.Length, data = iris, plottype = "gg_violin")
     p2 <- iNZightPlot(Sepal.Length, Species, data = iris, plottype = "gg_violin")

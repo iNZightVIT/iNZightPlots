@@ -1,5 +1,5 @@
 inztransform <- function(df, transform) {
-    if (is.null(transform)) return(df)
+    if (is.null(transform) || length(transform) == 0L) return(df)
 
     for (trans in names(transform)) {
         # cat(sprintf("Transform %s using %s\n", trans, transform[[trans]]))
@@ -28,5 +28,8 @@ inztransform <- function(df, transform) {
         )
     }
 
+    if (!is.null(df$design))
+        df$design$variables <- df$data
+    
     df
 }
