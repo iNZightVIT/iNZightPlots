@@ -25,7 +25,7 @@ make_privacy_controls <- function(ctrls = NULL) {
             dimnames(x) <- dn
             if (length(d) == 2) {
                 # two way
-                x <- cbind(x, apply(x, 1, any))
+                x <- cbind(x, apply(x, 1, sum) == 1L)
             } else {
                 # one way
                 x <- c(x, TRUE)

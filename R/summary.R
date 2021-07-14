@@ -341,18 +341,23 @@ summary.inzhist <- function(object, des, survey.options, privacy_controls, ...)
 summary.inzbar <- function(object, des, survey.options, privacy_controls, ...) {
     tab <- round(object$tab)
     perc <- object$phat * 100
+    twoway <- length(dim(tab)) == 2 && nrow(tab) > 1
 
     s_mat <- NULL
     if (!is.null(privacy_controls)) {
         s_mat <- privacy_controls$suppression_matrix(tab)
         tab <- privacy_controls$round(tab)
+        if (twoway) {
+            perc <- 100 * sweep(tab, 1, rowSums(tab), "/")
+        } else {
+            perc <- 100 * tab / sum(tab)
+        }
     }
 
     is.survey <- !is.null(des)
 
     # survey tables do this thing where they retain their dimensions,
     # even for one-way tables
-    twoway <- length(dim(tab)) == 2 && nrow(tab) > 1
     if (twoway) {
         tab <- as.matrix(tab)
 
@@ -477,13 +482,15 @@ summary.inzbar <- function(object, des, survey.options, privacy_controls, ...) {
         }
         return(out)
     } else {
+        cm <- c(tab, sum(tab))
+        pm <- paste0(
+            c(format(round(perc, 2), nsmall = 2), "100"),
+            "%"
+        )
         mat <- rbind(
             c(colnames(tab), "Total"),
-            c(tab, sum(tab)),
-            paste0(
-                c(format(round(perc, 2), nsmall = 2), "100"),
-                "%"
-            )
+            if (is.null(s_mat)) cm else privacy_controls$suppress(cm, s_mat),
+            if (is.null(s_mat)) pm else privacy_controls$suppress(pm, s_mat)
         )
 
         mat <- cbind(c("", "Count ", "Percent "), mat)
