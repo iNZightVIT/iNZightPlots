@@ -28,6 +28,7 @@
 #' displayed in the plot
 #' @param inzpars allows specification of iNZight plotting parameters over multiple plots
 #' @param summary.type one of \code{"summary"} or \code{"inference"}
+#' @param table.direction one of 'horizontal' (default) or 'vertical' (useful for many categories)
 #' @param hypothesis.value H0 value for hypothesis test
 #' @param hypothesis.alt alternative hypothesis (!=, <, >)
 #' @param hypothesis.var.equal use equal variance assumption for t-test?
@@ -62,6 +63,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            data = NULL, design = NULL, freq = NULL,
                            missing.info = TRUE, inzpars = inzpar(),
                            summary.type = "summary",
+                           table.direction = "horizontal",
                            hypothesis.value = 0,
                            hypothesis.alt = c("two.sided", "less", "greater"),
                            hypothesis.var.equal = FALSE,
@@ -182,11 +184,12 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     ### Now we just loop over everything ...
 
-    summary(obj, summary.type, hypothesis, survey.options, width = width, epi.out = epi.out)
+    summary(obj, summary.type, table.direction, hypothesis, survey.options, width = width, epi.out = epi.out)
 }
 
 
 summary.inzplotoutput <- function(object, summary.type = "summary",
+                                  table.direction = "horizontal",
                                   hypothesis = NULL,
                                   survey.options = list(),
                                   width = 100, ...) {
@@ -517,7 +520,9 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                         switch(summary.type,
                             "summary" =
                                 summary(pl, vn = vnames, des = pl.design,
-                                    survey.options = survey.options),
+                                    survey.options = survey.options,
+                                    table.direction = table.direction
+                                    ),
                             "inference" =
                                 inference(pl, bs, inzclass,
                                     des = pl.design,
@@ -526,6 +531,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                                     nb = attr(obj, "nboot"),
                                     hypothesis = hypothesis,
                                     survey.options = survey.options,
+                                    table.direction = table.direction,
                                     ...
                                 )
                         ),

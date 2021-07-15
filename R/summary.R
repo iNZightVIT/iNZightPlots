@@ -338,7 +338,8 @@ summary.inzhist <- function(object, des, survey.options, ...)
     summary.inzdot(object, des, survey.options, ...)
 
 
-summary.inzbar <- function(object, des, survey.options, ...) {
+summary.inzbar <- function(object, des, survey.options,
+                           table.direction, ...) {
     tab <- round(object$tab)
     perc <- object$phat * 100
 
@@ -475,7 +476,7 @@ summary.inzbar <- function(object, des, survey.options, ...) {
             )
         )
 
-        mat <- cbind(c("", "Count ", "Percent "), mat)
+        mat <- cbind(c("", "Count", "Percent"), mat)
         if (is.survey) {
             smry_mean <- svymean(~x, des, deff = survey.options$deff, na.rm = TRUE)
             mat <- rbind(
@@ -510,6 +511,10 @@ summary.inzbar <- function(object, des, survey.options, ...) {
             }
         }
 
+        if (table.direction == "vertical") {
+            mat <- t(mat)
+        }
+
         mat <- matrix(
             apply(mat, 2,
                 function(col) {
@@ -524,6 +529,15 @@ summary.inzbar <- function(object, des, survey.options, ...) {
         mat <- apply(mat, 1,
             function(x) paste0("   ", paste(x, collapse = "   "))
         )
+
+        # add line separator above total in vertical tables
+        if (table.direction == "vertical") {
+            mat <- c(
+                mat[-length(mat)],
+                paste(c("   ", rep("-", nchar(mat[1]) - 3L)), collapse = ""),
+                mat[length(mat)]
+            )
+        }
 
 
         if (is.survey) {

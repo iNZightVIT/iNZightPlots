@@ -20,6 +20,7 @@ getPlotSummary(
   missing.info = TRUE,
   inzpars = inzpar(),
   summary.type = "summary",
+  table.direction = "horizontal",
   hypothesis.value = 0,
   hypothesis.alt = c("two.sided", "less", "greater"),
   hypothesis.var.equal = FALSE,
@@ -77,6 +78,8 @@ displayed in the plot}
 \item{inzpars}{allows specification of iNZight plotting parameters over multiple plots}
 
 \item{summary.type}{one of \code{"summary"} or \code{"inference"}}
+
+\item{table.direction}{one of 'horizontal' (default) or 'vertical' (useful for many categories)}
 
 \item{hypothesis.value}{H0 value for hypothesis test}
 
