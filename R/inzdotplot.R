@@ -292,12 +292,14 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
                     )
                 )
             )
-            if (mdiff == 0) {
+            if (is.null(xx)) {
+                bins <- NA
+            } else if (mdiff == 0) {
                 bins <- xx[1]
             } else {
                 bins <- seq(
-                    min(xx) - 0.5 * mdiff,
-                    max(xx) + 0.5 * mdiff,
+                    min(xx, na.rm = TRUE) - 0.5 * mdiff,
+                    max(xx, na.rm = TRUE) + 0.5 * mdiff,
                     by = mdiff
                 )
             }

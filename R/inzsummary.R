@@ -23,8 +23,9 @@ inzsummary.formula <- function(x, data = NULL, design = NULL, ..., env = parent.
     fmla <- parse_formula(x)
 
     if (!is.null(fmla$y)) {
-        varx <- data[[fmla$x]]
-        vary <- data[[fmla$y]]
+        d <- if(is.null(design)) data else design$variables
+        varx <- d[[fmla$x]]
+        vary <- d[[fmla$y]]
         if (is_cat(varx) || is_cat(vary)) {
             # need to do a switch-a-roo
             xx <- fmla$x

@@ -523,3 +523,9 @@ parse_formula <- function(fmla) {
 
     list(x = x, y = y, g1 = g1, g2 = g2)
 }
+
+single_level_factors <- function(df, vars = c("x", "y")) {
+    vars <- vars %in% names(df)
+    df <- df[, vars, drop = FALSE]
+    sapply(df, function(x) length(levels(x)) == 1L)
+}

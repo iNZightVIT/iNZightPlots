@@ -202,6 +202,18 @@ iNZightPlot <- function(x,
         )
     }
 
+    slf <- single_level_factors(df$data)
+    if (!is.null(design) && any(slf)) {
+        slf_vars <- df$varnames[slf]
+        stop(
+            paste(sep = "\n",
+                "The following variables in the survey design only have",
+                "  a single level, which is not supported:",
+                sprintf("     %s", paste(slf_vars, collapse = ", "))
+            )
+        )
+    }
+
     dots <- list(...)
 
     if (isTRUE(grepl("^gg_", dots$plottype))) {
