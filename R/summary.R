@@ -545,19 +545,26 @@ summary.inzscatter <- function(object, vn, des, survey.options, ...) {
 
     out <- character()
     if ("linear" %in% trend) {
-        beta <- try({
-            if (is.survey)
-                signif(coef(svyglm(y ~ x, design = des)), 4)
-            else
-                signif(coef(lm(y ~ x)), 4)
-        }, silent = TRUE)
+        f <- try({
+            if (is.survey) survey::svyglm(y ~ x, design = des, deff = TRUE)
+            else lm(y ~ x)
+        })
+        if (inherits(f, "try-error"))
+            beta <- f
+        else
+            beta <- try({
+                if (is.survey)
+                    signif(coef(f), 4)
+                else
+                    signif(coef(f), 4)
+            }, silent = TRUE)
 
         if (inherits(beta, "try-error"))
             out <- "Unable to fit linear trend."
         else
             out <- c(
                 out,
-                "Linear trend:",
+                "### Linear trend:",
                 "",
                 sprintf("    %s = %s %s %s * %s",
                     vn$y,
@@ -566,6 +573,7 @@ summary.inzscatter <- function(object, vn, des, survey.options, ...) {
                     abs(beta[2]),
                     vn$x
                 ),
+                "",
                 paste0(
                     "    Linear correlation: ",
                     if (is.survey)
@@ -576,7 +584,22 @@ summary.inzscatter <- function(object, vn, des, survey.options, ...) {
                     else
                         round(cor(x, y), 2)
                 ),
-                ""
+                "",
+                if (is.survey) c(
+                    "  # Estimates and errors",
+                    "",
+                    paste0(
+                        "    ",
+                        capture.output(
+                            rbind(
+                                Estimate = {fe <- signif(coef(f), 4); names(fe) <- gsub("^x", vn$x, names(fe)); fe},
+                                `Standard error` = signif(SE(f), 4),
+                                `Design effects` = signif(deff(f), 4)
+                            )
+                        )
+                    ),
+                    ""
+                )
             )
     }
     if ("quadratic" %in% trend) {

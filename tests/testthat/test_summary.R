@@ -37,6 +37,8 @@ test_that("Survey summaries are correct", {
     expect_is(getPlotSummary(sch.wide, awards, design = dclus2),
         "inzight.plotsummary")
 
+    inzsummary(api00 ~ api99, design = dclus2, trend = "linear")
+
 })
 
 chis <- try(iNZightTools::smart_read("https://inzight.nz/testdata/chis2.csv"), silent = TRUE)
