@@ -17,6 +17,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
 
     is.survey <- !is.null(des)
 
+    ci.width <- attr(inf, "ci.width")
     mat <- inf$mean$conf[, c("lower", "mean", "upper"), drop = FALSE]
 
     mat <- matrix(
@@ -62,7 +63,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                 ifelse(is.survey, "Population Means", "Group Means"),
                 ifelse(is.survey, "Population Mean", "Mean")
             ),
-            " with 95%",
+            " with ", ci.width * 100, "%",
             bsCI,
             " Confidence Interval",
             plural
@@ -118,7 +119,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
             "",
             paste0(
                 ifelse(byFactor, "Group Medians", "Median"),
-                " with 95%",
+                " with ", ci.width * 100, "%",
                 bsCI,
                 " Confidence Interval",
                 plural
@@ -174,7 +175,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                     "Group Interquartile Ranges",
                     "Interquartile Range"
                 ),
-                " with 95%",
+                " with ", ci.width * 100, "%",
                 bsCI,
                 " Confidence Interval",
                 plural
@@ -461,7 +462,10 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
             if (is.survey) {
                 ## To do: figure out how to make pairwise comparisons!
             } else {
-                mc <- try(s20x::multipleComp(fit), silent = TRUE)
+                mc <- try(
+                    s20x::multipleComp(fit, conf.level = ci.width),
+                    silent = TRUE
+                )
                 if (!inherits(mc, "try-error")) {
                     cimat <- triangularMatrix(LEVELS, mc, "ci")
                     cimat <- formatMat(cimat)
@@ -469,7 +473,10 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                     out <- c(
                         out,
                         "",
-                        "95% Confidence Intervals (adjusted for multiple comparisons)",
+                        paste0(
+                            ci.width * 100,
+                            "% Confidence Intervals (adjusted for multiple comparisons)"
+                        ),
                         "",
                         apply(cimat, 1,
                             function(x) paste0("   ", paste(x, collapse = "   "))

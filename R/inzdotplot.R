@@ -734,6 +734,9 @@ dotinference <- function(obj) {
         }
     }
 
+    # CI interval width:
+    alpha <- 1 - (1 - opts$ci.width) / 2
+
     if (!is.null(inf.par)) {
         result.list <- lapply(inf.par,
             function(ip) {
@@ -744,7 +747,7 @@ dotinference <- function(obj) {
                                 switch(type,
                                     "conf" = {
                                         if (bs) {
-                                            ## 95% bootstrap confidence interval
+                                            ## ci.width% bootstrap confidence interval
                                             if (svy) {
                                                 if ("y" %in% colnames(dat$variables)) {
                                                     NULL
@@ -761,7 +764,7 @@ dotinference <- function(obj) {
                                                 ci <- cbind(
                                                     t(
                                                         apply(b$t, 2, quantile,
-                                                            probs = c(0.025, 0.975),
+                                                            probs = c(1 - alpha, alpha),
                                                             na.rm = TRUE
                                                         )
                                                     ),
@@ -774,7 +777,7 @@ dotinference <- function(obj) {
                                                 ci
                                             }
                                         } else {
-                                            ## 95% confidence interval (normal theory)
+                                            ## ci.width% confidence interval (normal theory)
                                             if (svy) {
                                                 if ("y" %in% colnames(dat$variables)) {
                                                     ci <- svyby(~x, ~y,
@@ -800,7 +803,7 @@ dotinference <- function(obj) {
                                                     function(z) sum(!is.na(z))
                                                 )
                                                 n <- ifelse(n < 5, NA, n)
-                                                wd <- qt(0.975, df = n - 1) *
+                                                wd <- qt(alpha, df = n - 1) *
                                                     tapply(dat$x, dat$y, sd,
                                                         na.rm = TRUE
                                                     ) / sqrt(n)
@@ -964,7 +967,7 @@ dotinference <- function(obj) {
                                                 ci <- cbind(
                                                     t(
                                                         apply(b$t, 2, quantile,
-                                                            probs = c(0.025, 0.975),
+                                                            probs = c(1 - alpha, alpha),
                                                             na.rm = TRUE
                                                         )
                                                     ),
@@ -1059,7 +1062,7 @@ dotinference <- function(obj) {
                                         iqr <- cbind(
                                             t(
                                                 apply(b$t, 2, quantile,
-                                                    probs = c(0.025, 0.975),
+                                                    probs = c(1 - alpha, alpha),
                                                     na.rm = TRUE
                                                 )
                                             ),
@@ -1088,5 +1091,6 @@ dotinference <- function(obj) {
     }
 
     attr(result.list, "bootstrap") <- bs
+    attr(result.list, "ci.width") <- opts$ci.width
     result.list
 }
