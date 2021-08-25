@@ -271,4 +271,4 @@ test_that("Confidence level can be adjusted - dot plots", {
     f <- lm(Sepal.Length ~ Species, data = iris)
     m <- s20x::multipleComp(f, 0.99)[, 2:3] |> t() |> as.double()
     expect_equal(m0, m)
-}
+})
