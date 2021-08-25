@@ -212,7 +212,8 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                 }
             } else {
                 ttest <- t.test(toplot[[1]]$x, toplot[[2]]$x,
-                    var.equal = if (is.null(hypothesis)) TRUE else hypothesis$var.equal
+                    var.equal = if (is.null(hypothesis)) TRUE else hypothesis$var.equal,
+                    conf.level = ci.width
                 )
                 mat <- rbind(
                     c("Lower", "Estimate", "Upper"),
@@ -253,8 +254,9 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                     out,
                     "",
                     sprintf(
-                        "Difference in %s means with 95%s Confidence Interval",
+                        "Difference in %s means with %s%s Confidence Interval",
                         ifelse(is.survey, "population", "group"),
+                        ci.width * 100,
                         "%"
                     ),
                     "",
