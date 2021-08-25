@@ -272,6 +272,9 @@ barinference <- function(obj, tab, phat, counts) {
         twoway <- TRUE
     }
 
+    # CI interval width:
+    alpha <- 1 - (1 - opts$ci.width) / 2
+
     lapply(inf.type, function(type) {
         switch(type,
             "conf" = {
@@ -295,7 +298,7 @@ barinference <- function(obj, tab, phat, counts) {
                                 cis <- apply(b$t, 2,
                                     function(x) {
                                         c(
-                                            quantile(x, probs = c(0.025, 0.975)),
+                                            quantile(x, probs = c(1 - alpha, alpha)),
                                             mean(x)
                                         )
                                     }
@@ -332,7 +335,7 @@ barinference <- function(obj, tab, phat, counts) {
                             cis <- apply(b$t, 2,
                                 function(x) {
                                     c(
-                                        quantile(x, probs = c(0.025, 0.975)),
+                                        quantile(x, probs = c(1 - alpha, alpha)),
                                         mean(x)
                                     )
                                 }
@@ -376,7 +379,7 @@ barinference <- function(obj, tab, phat, counts) {
                                     n <- sum(x)
                                     p <- ifelse(x >= opts$min.count, x / n, NA)
                                     se <- sqrt(p * (1 - p) / n)
-                                    se * 1.96
+                                    se * qnorm(alpha)
                                 }
                             )
                         )
@@ -503,6 +506,7 @@ barinference <- function(obj, tab, phat, counts) {
         ),
         na.rm = TRUE
     )
+    attr(result, "ci.width") <- opts$ci.width
 
     result
 }

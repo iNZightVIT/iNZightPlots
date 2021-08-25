@@ -642,6 +642,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
     phat <- object$phat
     inf <- object$inference.info
     is.survey <- !is.null(des)
+    ci.width <- attr(inf, "ci.width")
 
     if (! "conf" %in% names(inf))
         stop("Please specify `inference.type = conf` to get inference information.")
@@ -938,7 +939,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
         out <- c(
             out,
             "",
-            paste0("95%", bsCI, " Confidence Intervals"),
+            paste0(100 * ci.width, "%", bsCI, " Confidence Intervals"),
             "",
             apply(cis, 1,
                 function(x) paste0("   ", paste(x, collapse = "   "))
@@ -1022,12 +1023,13 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
 
             if (!is.survey) {
                 cis <- matrix(NA, nrow = 2 * (n - 1), ncol = n - 1)
+                alpha <- 1 - (1 - ci.width) / 2
                 for (k in 2:n) {
                     for (l in 1:(k - 1)) {
                         wr <- (k - 2) * 2 + 1
                         cis[wr:(wr + 1), l] <-
-                            if (bs) quantile(b$t[, j], c(0.025, 0.975), na.rm = TRUE)
-                            else pDiffCI(p[k], p[l], sum[k], sum[l])
+                            if (bs) quantile(b$t[, j], c(1 - alpha, alpha), na.rm = TRUE)
+                            else pDiffCI(p[k], p[l], sum[k], sum[l], qnorm(alpha))
                     }
                 }
                 colnames(cis) <- dn[[1]][-n]
@@ -1038,7 +1040,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                 out <- c(
                     out,
                     "",
-                    paste0("95% ", bsCI, " Confidence Intervals"),
+                    paste0(100 * ci.width, "% ", bsCI, " Confidence Intervals"),
                     "",
                     apply(cis, 1,
                         function(x) paste0("   ", paste(x, collapse = "   "))
@@ -1171,9 +1173,9 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
         bsCI <- ifelse(bs, " Percentile Bootstrap", "")
         out <- c(
             paste0(
-                sprintf("Estimated %sProportions with 95%s",
+                sprintf("Estimated %sProportions with %s%s",
                     ifelse(is.survey, "Population ", ""),
-                    "%"
+                    ci.width * 100, "%"
                 ),
                 bsCI,
                 " Confidence Interval"
@@ -1232,7 +1234,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
             diffs <- freq1way.edited(object$tab, "estimates")
             diffs <- formatMat(diffs)
 
-            cis <- freq1way.edited(object$tab, "ci")
+            cis <- freq1way.edited(object$tab, "ci", conf.level = ci.width)
             cis <- formatMat(cis)
         }
 
@@ -1250,7 +1252,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                 function(x) paste0("   ", paste(x, collapse = "   "))
             ),
             "",
-            paste0("95%", bsCI, " Confidence Intervals"),
+            paste0(100 * ci.width, "%", bsCI, " Confidence Intervals"),
             "",
             apply(cis, 1,
                 function(x) paste0("   ", paste(x, collapse = "   "))
