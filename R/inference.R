@@ -1355,12 +1355,15 @@ inference.inzscatter <- function(object, des, bs, nb, vn, survey.options, ...) {
         return("Not enough observations to perform bootstrap simulation.")
 
     is.survey <- !is.null(des)
+    ci.width <- object$ci.width
 
     ## Ensure the order is linear/quad/cubic
     allT <- c("linear", "quadratic", "cubic")
     tr <- (1:3)[allT %in% trend]
 
     out <- character()
+
+    alpha <- 1 - (1 - ci.width) / 2
 
     for (t in tr) {
         if (nrow(d) <= t + 1) {
@@ -1395,8 +1398,8 @@ inference.inzscatter <- function(object, des, bs, nb, vn, survey.options, ...) {
                 )
                 mat <- cbind(
                     sprintf("%.5g", colMeans(b$t, na.rm = TRUE)),
-                    sprintf("%.5g", apply(b$t, 2, quantile, probs = 0.025, na.rm = TRUE)),
-                    sprintf("%.5g", apply(b$t, 2, quantile, probs = 0.975, na.rm = TRUE))
+                    sprintf("%.5g", apply(b$t, 2, quantile, probs = 1 - alpha, na.rm = TRUE)),
+                    sprintf("%.5g", apply(b$t, 2, quantile, probs = alpha, na.rm = TRUE))
                 )
 
             } else {
@@ -1415,7 +1418,7 @@ inference.inzscatter <- function(object, des, bs, nb, vn, survey.options, ...) {
                 }
 
                 cc <- summary(fit)$coef
-                ci <- confint(fit)
+                ci <- confint(fit, level = ci.width)
 
                 mat <- cbind(
                     sprintf("%.5g", cc[, 1]),
@@ -1450,7 +1453,7 @@ inference.inzscatter <- function(object, des, bs, nb, vn, survey.options, ...) {
                 "",
                 paste0(
                     switch(t, "Linear", "Quadratic", "Cubic"),
-                    " Trend Coefficients with 95% ",
+                    " Trend Coefficients with ", ci.width * 100, "% ",
                     ifelse(bs, "Percentile Bootstrap ", ""),
                     "Confidence Intervals"
                 ),
