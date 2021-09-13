@@ -203,7 +203,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                 } else {
                     ## the survey t-test is "level[2] - level[1]",
                     ## rather than "level[1] - level[2]"
-                    ci <- confint(ttest)
+                    ci <- confint(ttest, level = ci.width)
                     mat <- rbind(
                         c("Lower", "Estimate", "Upper"),
                         format(-c(ci[[2]], ttest$estimate[[1]], ci[[1]]), digits = 4)

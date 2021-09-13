@@ -783,18 +783,21 @@ dotinference <- function(obj) {
                                                     ci <- svyby(~x, ~y,
                                                         design = dat,
                                                         svymean,
-                                                        vartype = "ci",
+                                                        level = opts$ci.width,
                                                         drop.empty.groups = FALSE,
                                                         na.rm = TRUE
                                                     )
-                                                    ci <- ci[, 2:4]
+                                                    ci <- cbind(
+                                                        coef(ci),
+                                                        confint(ci, level = opts$ci.width)
+                                                    )
                                                     dimnames(ci) <- list(
                                                         levels(dat$variables$y),
                                                         c("mean", "lower", "upper")
                                                     )
                                                 } else {
                                                     fit <- svymean(~x, dat, na.rm = TRUE)
-                                                    ci <- rbind(c(fit[1], confint(fit)))
+                                                    ci <- rbind(c(fit[1], confint(fit, level = opts$ci.width)))
                                                     dimnames(ci) <- list("all", c("mean", "lower", "upper"))
                                                 }
                                                 ci

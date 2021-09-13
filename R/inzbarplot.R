@@ -350,21 +350,26 @@ barinference <- function(obj, tab, phat, counts) {
                 } else {
                     if (svy) {
                         if (twoway) {
-                            est <- svyby(~x, by = ~y, obj$df,
+                            fit <- svyby(~x, by = ~y, obj$df,
                                 FUN = svymean,
-                                vartype = "ci",
                                 drop.empty.groups = FALSE,
                                 na.rm = TRUE
                             )
-                            est <- est[, -1]
+                            est <- coef(fit)
+                            ci <- confint(fit, level = opts$ci.width)
                             nc <- length(levels(obj$df$variables$x))
                             list(
-                                lower = as.matrix(est[, nc + 1:nc]),
-                                upper = as.matrix(est[, 2 * nc + 1:nc]),
-                                estimate = as.matrix(est[, 1:nc])
+                                lower = matrix(ci[, 1], ncol = nc),
+                                upper = matrix(ci[, 2], ncol = nc),
+                                estimate = matrix(est, ncol = nc)
                             )
                         } else {
-                            ci <- t(confint(svymean(~x, obj$df, na.rm = TRUE)))
+                            ci <- t(
+                                confint(
+                                    svymean(~x, obj$df, na.rm = TRUE),
+                                    level = opts$ci.width
+                                )
+                            )
                             list(
                                 lower = ci[1, , drop = FALSE],
                                 upper = ci[2, , drop = FALSE],
