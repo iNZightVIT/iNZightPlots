@@ -1,8 +1,8 @@
 on:
   push:
-    paths:
-      - "README.Rmd"
-      - "R/*.R"
+    # paths:
+    #   - "README.Rmd"
+    #   - "R/*.R"
     branches:
       - dev
       - "release/**"
