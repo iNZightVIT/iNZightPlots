@@ -84,8 +84,7 @@ addXYsmoother <- function(obj, opts, col.args, xlim, ylim) {
                                 bs = FALSE,
                                 lty = opts$smoothby.lty,
                                 opts = opts
-                            ),
-                            silent = TRUE
+                            )
                         )
                     }
                 }
@@ -100,8 +99,29 @@ addSmoother <- function(x, y = NULL, f, col, bs, lty = 1, opts) {
         bw <- f * sqrt(diff(xr))
         sm <- svysmooth(y ~ x, design = x, method = "locpoly", bandwidth = bw)[[1]]
     } else {
-        sm <- loess.smooth(x, y, span = f, family = "gaussian")
+        sf <- predict(
+            loess(y ~ x, span = f, family = "gaussian", degree = 1),
+            se = TRUE
+        )
+        o <- order(x)
+        sm <- list(x = x[o], y = sf$fit[o], e = sf$se.fit[o])
     }
+
+    if (!bs && !any(is.na(sm$e))) {
+        alpha <- 1 - (1 - opts$ci.width) / 2
+        # add shaded region
+        se_x <- c(sm$x, rev(sm$x))
+        se_y <- c(
+            qnorm(1 - alpha, sm$y, sm$e),
+            rev(qnorm(alpha, sm$y, sm$e))
+        )
+        grid.polygon(se_x, se_y,
+            default.units = "native",
+            gp = gpar(fill = col, alpha = 0.2, lwd = 0),
+            name = paste("inz-smoother-se", opts$rowNum, opts$colNum, sep = ".")
+        )
+    }
+
     grid.lines(sm$x, sm$y,
         default.units = "native",
         gp = gpar(col = col, lwd = 2 * opts$lwd, lty = lty),

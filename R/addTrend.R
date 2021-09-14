@@ -135,9 +135,13 @@ addTrend <- function(x, y, order, xlim, col, bs, inf, opts) {
     if (inherits(yy, "try-error")) return()
 
     if (inf && !bs && !any(is.na(yy$se.fit))) {
+        alpha <- 1 - (1 - opts$ci.width) / 2
         # add shaded region
         se_x <- c(xx, rev(xx))
-        se_y <- c(qnorm(0.025, yy$fit, yy$se.fit), rev(qnorm(0.975, yy$fit, yy$se.fit)))
+        se_y <- c(
+            qnorm(1 - alpha, yy$fit, yy$se.fit),
+            rev(qnorm(alpha, yy$fit, yy$se.fit))
+        )
         grid.polygon(se_x, se_y,
             default.units = "native",
             gp = gpar(fill = col, alpha = 0.2, lwd = 0),

@@ -194,3 +194,130 @@ test_that("ANOVA (one-way) output is the correct way around", {
     inf <- inzinference(Sepal.Length ~ Species, data = iris)
     expect_match(inf, "col group - row group", all = FALSE)
 })
+
+
+####
+test_that("Confidence level can be adjusted - dot plots", {
+    # dot plot - one
+    inf <- inzinference(~Sepal.Length, data = iris,
+        ci.width = 0.8) |> as.character()
+    expect_match(inf, "Mean with 80% Confidence Interval", all = FALSE)
+    expect_equal(
+        inf[grep("Lower\\s+Estimate\\s+Upper", inf) + 1L] |>
+            strsplit("\\s+") |> unlist() |> as.double() |> round(2L),
+        c(NA_real_, 5.76, 5.84, 5.93)
+    )
+
+    # dot plot - two
+    iris2 <- iris[iris$Species != "setosa", ] |> droplevels()
+    inf <- inzinference(Sepal.Length ~ Species, data = iris2,
+        ci.width = 0.90) |> as.character()
+    expect_match(inf, "Group Means with 90% Confidence Intervals",
+        all = FALSE)
+    x <- paste(collapse = "\n",
+        inf[grep("Group Means with 90% Confidence Intervals", inf) + 3:4]
+    )
+    m0 <- read.table(textConnection(x))[, -1] |> as.matrix()
+    ci <- tapply(iris2$Sepal.Length, iris2$Species, t.test,
+        conf.level = 0.9) |>
+        sapply(function(x) x$conf.int) |> t()
+    m <- cbind(
+        ci[, 1],
+        tapply(iris2$Sepal.Length, iris2$Species, mean),
+        ci[, 2]
+    ) |> round(3)
+    expect_equivalent(m0, m)
+    expect_match(inf,
+        "Difference in group means with 90% Confidence Interval",
+        all = FALSE
+    )
+    expect_equal(
+        inf[grep("Difference in group means", inf) + 3L] |>
+            strsplit("\\s+") |> unlist() |> tail(3) |> as.double() |>
+            round(3L),
+        c(-0.844, -0.652, -0.460)
+    )
+
+    # dot plot - 3+
+    inf <- inzinference(Sepal.Length ~ Species, data = iris,
+        ci.width = 0.99) |> as.character()
+    expect_match(inf, "Group Means with 99% Confidence Intervals",
+        all = FALSE)
+    x <- paste(collapse = "\n",
+        inf[grep("Group Means with 99% Confidence Intervals", inf) + 3:5]
+    )
+    m0 <- read.table(textConnection(x))[, -1] |> as.matrix()
+    ci <- tapply(iris$Sepal.Length, iris$Species, t.test,
+        conf.level = 0.99) |>
+        sapply(function(x) x$conf.int) |> t()
+    m <- cbind(
+        ci[, 1],
+        tapply(iris$Sepal.Length, iris$Species, mean),
+        ci[, 2]
+    ) |> round(3)
+    expect_equivalent(m0, m)
+    ## - difference CIs
+    expect_match(inf,
+        "99% Confidence Intervals (adjusted for multiple comparisons)",
+        all = FALSE,
+        fixed = TRUE
+    )
+    x <- paste(collapse = "\n",
+        inf[grep("99% Confidence Intervals \\(adjusted for multiple comparisons\\)", inf) + 2:6]
+    )
+    m0 <- read.fwf(textConnection(x), c(13, 10, 13))[-1, -1] |>
+        as.matrix() |> as.double()
+    m0 <- m0[!is.na(m0)]
+    f <- lm(Sepal.Length ~ Species, data = iris)
+    m <- s20x::multipleComp(f, 0.99)[, 2:3] |> t() |> as.double()
+    expect_equal(m0, m)
+
+    # bar chart - one way
+    inf <- inzinference(~ Species, data = iris,
+        ci.width = 0.92) |> as.character()
+    expect_match(
+        inf,
+        "Estimated Proportions with 92% Confidence Interval",
+        all = FALSE
+    )
+    x <- paste(collapse = "\n",
+        inf[grep("Estimated Proportions with 92% Confidence Interval", inf) + 3:5]
+    )
+    m0 <- read.table(textConnection(x))[, -1] |> as.matrix() |> unname()
+    t <- qnorm(0.96) * sqrt(1/3 * 2/3 / nrow(iris))
+    m <- cbind(
+        1/3 - t,
+        rep(1/3, 3),
+        1/3 + t
+    ) |> round(3)
+    expect_equivalent(m0, m)
+
+    expect_match(inf, "^92% Confidence Intervals", all = FALSE)
+    x <- paste(collapse = "\n",
+        inf[grep("^92% Confidence Intervals", inf) + 2:6]
+    )
+    m0 <- read.fwf(textConnection(x), c(13, 10, 13))[-1, -1] |>
+        as.matrix() |> as.double() |> round(3)
+    m <- freq1way.edited(t(as.matrix(table(iris$Species))), "ci", conf.level = 0.92) |>
+        as.double() |> round(3)
+    expect_equal(m0, m)
+
+    # bar chart - two way
+    set.seed(100)
+    d <- data.frame(
+        x = sample(LETTERS[1:3], 100, replace = TRUE),
+        y = sample(LETTERS[1:2], 100, replace = TRUE),
+        stringsAsFactors = TRUE
+    )
+    inf <- inzinference(y ~ x, data = d, ci.width = 0.8)
+
+    expect_match(inf, "80% Confidence Intervals", all = FALSE)
+
+    # scatter plot
+    inf <- inzinference(Sepal.Length ~ Sepal.Width, data = iris, ci.width = 0.9, trend = "linear")
+    expect_match(
+        inf,
+        "Linear Trend Coefficients with 90% Confidence Intervals",
+        all = FALSE
+    )
+})
