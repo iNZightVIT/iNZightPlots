@@ -654,6 +654,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
         return("Not enough data to perform bootstraps.")
 
     twoway <- nrow(phat) > 1
+    alpha <- 1 - (1 - ci.width) / 2
 
     if (!is.null(hypothesis) && !bs) {
         HypOut <- switch(hypothesis$test,
@@ -1023,7 +1024,6 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
 
             if (!is.survey) {
                 cis <- matrix(NA, nrow = 2 * (n - 1), ncol = n - 1)
-                alpha <- 1 - (1 - ci.width) / 2
                 for (k in 2:n) {
                     for (l in 1:(k - 1)) {
                         wr <- (k - 2) * 2 + 1
@@ -1191,7 +1191,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
             ## and hence match the output from this function.
 
             dat <- data.frame(
-                x = rep(names(object$tab), times = object$tab),
+                x = rep(colnames(object$tab), times = object$tab),
                 stringsAsFactors = TRUE
             )
             b <- boot(dat,
@@ -1216,8 +1216,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
             diffs <- formatTriMat(diffs, LEVELS)
 
             cil <- ciu <- matrix(nrow = length(LEVELS), ncol = length(LEVELS))
-            cil[lower.tri(cil)] <- apply(b$t, 2, quantile, probs = 0.025)
-            ciu[lower.tri(ciu)] <- apply(b$t, 2, quantile, probs = 0.975)
+            cil[lower.tri(cil)] <- apply(b$t, 2, quantile, probs = 1 - alpha)
+            ciu[lower.tri(ciu)] <- apply(b$t, 2, quantile, probs = alpha)
 
             cil <- formatTriMat(cil, LEVELS)
             ciu <- formatTriMat(ciu, LEVELS)
