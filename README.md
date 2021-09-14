@@ -1,9 +1,14 @@
 
 # iNZightPlots
 
-![R-CMD-check](https://github.com/iNZightVIT/iNZightPlots/workflows/R-CMD-check/badge.svg) [![codecov](https://codecov.io/gh/iNZightVIT/iNZightPlots/branch/dev/graph/badge.svg)](https://codecov.io/gh/iNZightVIT/iNZightPlots) [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0) [![CRAN](https://www.r-pkg.org/badges/version/iNZightPlots)](https://CRAN.R-project.org/package=iNZightPlots)
+![R-CMD-check](https://github.com/iNZightVIT/iNZightPlots/workflows/R-CMD-check/badge.svg)
+[![codecov](https://codecov.io/gh/iNZightVIT/iNZightPlots/branch/dev/graph/badge.svg)](https://codecov.io/gh/iNZightVIT/iNZightPlots)
+[![License: GPL
+v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
+[![CRAN](https://www.r-pkg.org/badges/version/iNZightPlots)](https://CRAN.R-project.org/package=iNZightPlots)
 
-Graphics functions which provide a simple, easy-to-learn interface, allowing beginners to explore and visualize data easily.
+Graphics functions which provide a simple, easy-to-learn interface,
+allowing beginners to explore and visualize data easily.
 
 ## Install
 
@@ -24,7 +29,8 @@ devtools::install_github("iNZightVIT/iNZightPlots")
 
 ## Usage
 
-`iNZightPlots` provides a simple interface to graphics, which are most easily produced using the following function:
+`iNZightPlots` provides a simple interface to graphics, which are most
+easily produced using the following function:
 
 ``` r
 library(iNZightPlots)
@@ -33,7 +39,8 @@ inzplot(~Sepal.Length, data = iris)
 
 <img src="man/figures/README-demo-1.png" width="50%" />
 
-From there, formula notation can be used to explore relationships between variables:
+From there, formula notation can be used to explore relationships
+between variables:
 
 ``` r
 inzplot(Sepal.Length ~ Species, data = iris)
@@ -41,11 +48,17 @@ inzplot(Sepal.Length ~ Sepal.Width, data = iris)
 inzplot(Sepal.Length ~ Sepal.Width | Species, data = iris)
 ```
 
-<img src="man/figures/README-demo-usage-2.png" width="30%" /> <img src="man/figures/README-demo-usage-3.png" width="30%" /> <img src="man/figures/README-demo-usage-4.png" width="30%" />
+<img src="man/figures/README-demo-usage-2.png" width="30%" />
+<img src="man/figures/README-demo-usage-3.png" width="30%" />
+<img src="man/figures/README-demo-usage-4.png" width="30%" />
 
-These functions all produce different graphs (dot plot and scatter plot), which means the focus is on exploring data, not on which type of graph to use. Subsetting works as expected, and can include up to two variables (e.g., `y ~ x | g1 + g2`).
+These functions all produce different graphs (dot plot and scatter
+plot), which means the focus is on exploring data, not on which type of
+graph to use. Subsetting works as expected, and can include up to two
+variables (e.g., `y ~ x | g1 + g2`).
 
-There are additionally two companion functions for summary and inference information, which are
+There are additionally two companion functions for summary and inference
+information, which are
 
 ``` r
 inzsummary(~Sepal.Length, data = iris)
@@ -122,15 +135,21 @@ inzinference(Sepal.Length ~ Species, data = iris)
 #> ====================================================================================================
 ```
 
-These use the same notation as the plot, and are intended to be used alongside.
+These use the same notation as the plot, and are intended to be used
+alongside.
 
 ## Features
 
-There are many, many features available in `iNZightPlots`, all of which are added simply through additional arguments to `inzplot()`. For a full list, check `?iNZightPlot` (this is the base function for which `inzplot()` is a convenience wrapper) and `?inzpar`.
+There are many, many features available in `iNZightPlots`, all of which
+are added simply through additional arguments to `inzplot()`. For a full
+list, check `?iNZightPlot` (this is the base function for which
+`inzplot()` is a convenience wrapper) and `?inzpar`.
 
 ### Colour and size
 
-Probably the most common features to add to a graph, we have the `sizeby` and `colby` arguments which map an additional variable to size and colour, respectively:
+Probably the most common features to add to a graph, we have the
+`sizeby` and `colby` arguments which map an additional variable to size
+and colour, respectively:
 
 ``` r
 inzplot(Sepal.Length ~ Sepal.Width, data = iris, colby = Species)
@@ -140,7 +159,11 @@ inzplot(Sepal.Length ~ Sepal.Width, data = iris, colby = Species)
 
 ### Inference lines
 
-Usually you want to know if what you see has any statistical significance, and `iNZightPlots` makes this easy. We also provide **comparison intervals** which can be, very simply, interpreted as "overlapping comparison intervals indicate no significant difference between groups".
+Usually you want to know if what you see has any statistical
+significance, and `iNZightPlots` makes this easy. We also provide
+**comparison intervals** which can be, very simply, interpreted as
+“overlapping comparison intervals indicate no significant difference
+between groups”.
 
 ``` r
 # Add confidence intervals
@@ -152,7 +175,8 @@ inzplot(Sepal.Length ~ Species, data = iris,
 
 <img src="man/figures/README-demo-inf.png" width="50%" />
 
-For scatter plots, inference uses linear trends. You can add a bootstrap sample of trend estimates using the `bs.inference` argument:
+For scatter plots, inference uses linear trends. You can add a bootstrap
+sample of trend estimates using the `bs.inference` argument:
 
 ``` r
 inzplot(Sepal.Length ~ Sepal.Width, data = iris,
