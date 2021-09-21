@@ -108,7 +108,7 @@ test_that("General plot formatting works", {
     expect_equal(p1$labels$caption, "Test caption")
     
     p1 <- iNZightPlot(Sepal.Length, Species, data = iris, plottype = "gg_violin",
-        overall_size = 2)
+        cex = 2)
     expect_equal(p1$theme$text$size, 22)
 })
 
