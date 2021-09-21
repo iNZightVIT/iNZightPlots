@@ -87,12 +87,9 @@ test_that("Ridgeline plots work", {
     expect_match(attr(p1, "code"), 'fill = Species')
 })
 
-test_that("Density plots work", {
-    p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_cumcurve")
-    expect_match(attr(p1, "code")[2], 'ggplot2::geom_step()')
-    
+test_that("Cumulative curve plots work", {
     p1 <- iNZightPlot(Sepal.Length, Species, data = iris, plottype = "gg_cumcurve")
-    expect_match(attr(p1, "code")[2], 'ggplot2::geom_step()')
+    expect_match(attr(p1, "code")[2], 'ggplot2::geom_step')
     expect_match(attr(p1, "code")[2], 'colour = Species')
 })
 
@@ -108,18 +105,73 @@ test_that("Lollipop count plots work", {
 })
 
 test_that("Pie plots work", {
-    p1 <- iNZightPlot(Species, data = iris, plottype = "gg_pie")
+    p1 <- iNZightPlot(Test.Cat.Var, data = iris, plottype = "gg_pie")
     expect_match(attr(p1, "code"), 'ggplot2::geom_bar')
+    expect_match(attr(p1, "code"), 'ggplot2::coord_polar')
+    
+    p1 <- iNZightPlot(Species, data = iris, plottype = "gg_pie", ordered = "desc")
+    expect_match(attr(p1, "code")[2], 'ggplot2::geom_bar')
+    expect_match(attr(p1, "code")[1], 'forcats::fct_infreq\\(Species\\)')
+
+    p1 <- iNZightPlot(Species, data = iris, plottype = "gg_pie", ordered = "asc")
+    expect_match(attr(p1, "code")[2], 'ggplot2::geom_bar')
+    expect_match(attr(p1, "code")[1], 'forcats::fct_infreq\\(Species\\)')
+    expect_match(attr(p1, "code")[1], 'forcats::fct_rev')
 })
 
 test_that("Donut plots work", {
     p1 <- iNZightPlot(Species, data = iris, plottype = "gg_donut")
     expect_match(attr(p1, "code")[2], 'ggplot2::geom_rect')
+    
+    p1 <- iNZightPlot(Species, data = iris, plottype = "gg_donut", ordered = "desc")
+    expect_match(attr(p1, "code")[2], 'ggplot2::geom_rect')
+    expect_match(attr(p1, "code")[1], 'forcats::fct_infreq\\(Species\\)')
+    
+    p1 <- iNZightPlot(Species, data = iris, plottype = "gg_donut", ordered = "asc")
+    expect_match(attr(p1, "code")[2], 'ggplot2::geom_rect')
+    expect_match(attr(p1, "code")[1], 'forcats::fct_infreq\\(Species\\)')
+    expect_match(attr(p1, "code")[1], 'forcats::fct_rev')
 })
 
 test_that("Grid plots work", {
     p1 <- iNZightPlot(Species, data = iris, plottype = "gg_gridplot")
     expect_match(attr(p1, "code")[2], 'waffle::waffle')
+})
+
+test_that("Lollipop distribution plots work", {
+    p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_lollipop")
+    expect_match(attr(p1, "code")[2], 'ggplot2::geom_point')
+    expect_match(attr(p1, "code")[2], 'ggplot2::geom_segment')
+})
+
+test_that("Column distribution plots work", {
+    p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_column2")
+    expect_match(attr(p1, "code")[2], 'ggplot2::geom_col')
+})
+
+
+
+test_that("Facetting works", {
+    p1 <- iNZightPlot(Sepal.Length, g1 = Species, data = iris, plottype = "gg_violin")
+    expect_equal(names(p1$facet$params$facets), 'Species')
+    
+    p1 <- iNZightPlot(Sepal.Length, g1 = Species, g1.level = "setosa", data = iris, plottype = "gg_violin")
+    expect_match(attr(p1, "code")[1], 'Species == \\"setosa\\"')
+    
+    p1 <- iNZightPlot(Sepal.Length, g1 = Species, g2 = Test.Cat.Var, data = iris, plottype = "gg_violin")
+    expect_equal(names(p1$facet$params$facets), 'Species')
+    
+    p1 <- iNZightPlot(Sepal.Length, g1 = Species, g2 = Test.Cat.Var, g2.level = "_MULTI", data = iris, plottype = "gg_violin")
+    expect_match(attr(p1, "code")[1], 'ggplot2::facet_grid')
+    expect_equal(names(p1$facet$params$cols), 'Species')
+    expect_equal(names(p1$facet$params$rows), 'Test.Cat.Var')
+    
+    p1 <- iNZightPlot(Sepal.Length, g1 = Species, g1.level = "setosa", g2 = Test.Cat.Var, g2.level = "_MULTI", data = iris, plottype = "gg_violin")
+    expect_match(attr(p1, "code")[2], 'ggplot2::facet_grid')
+    expect_equal(names(p1$facet$params$cols), 'Species')
+    expect_equal(names(p1$facet$params$rows), 'Test.Cat.Var')
+    expect_match(attr(p1, "code")[1], 'Species == \\"setosa\\"')
+    
 })
 
 
