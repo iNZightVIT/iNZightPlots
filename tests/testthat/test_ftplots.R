@@ -71,9 +71,25 @@ test_that("Plots can have themes", {
     expect_match(attr(p1, "code"), "theme_tufte")
 })
 
-test_that("Plot labels can be rotated", {
+test_that("General plot formatting works", {
     p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_violin", 
                       rotate_labels = list(x = TRUE, y = TRUE))
     expect_equal(p1$theme$axis.text.x$angle, 45)
     expect_equal(p1$theme$axis.text.y$angle, 45)
+    
+    p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_violin",
+        bg = "black")
+    expect_equal(p1$theme$panel.background$fill, "black")
+    
+    p1 <- iNZightPlot(Sepal.Length, Species, data = iris, plottype = "gg_violin",
+        palette = "Reds")
+    expect_match(attr(p1, "code"), 'scale_fill_brewer\\(palette = \\"Reds\\"\\)')
+    
+    p1 <- iNZightPlot(Sepal.Length, Species, data = iris, plottype = "gg_violin",
+        caption = "Test caption")
+    expect_equal(p1$labels$caption, "Test caption")
+    
+    p1 <- iNZightPlot(Sepal.Length, Species, data = iris, plottype = "gg_violin",
+        overall_size = 2)
+    expect_equal(p1$theme$text$size, 22)
 })
