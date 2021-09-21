@@ -14,27 +14,114 @@ gg_pkgs <- c(
 gg_pkgs_check <- sapply(gg_pkgs, requireNamespace, quietly = TRUE)
 skip_if(any(!gg_pkgs_check), "Unable to check FT plots as some packages are missing.")
 
-test_that("All available ggplots work", {
+iris$Test.Cat.Var <- sample(letters[1:3], size = nrow(iris), replace = TRUE)
+
+test_that("Barcode plots work", {
     p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_barcode")
-    expect_equal(p1$labels$y, "")
+    expect_match(attr(p1, "code"), 'ggplot2::geom_point\\(shape = "\\|"\\)')
+    
+    p1 <- iNZightPlot(Sepal.Length, Species, data = iris, plottype = "gg_barcode")
+    expect_match(attr(p1, "code"), 'ggplot2::geom_point\\(shape = "\\|"\\)')
+    
     p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_barcode2")
     expect_equal(p1$labels$y, "")
     p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_barcode3")
     expect_equal(p1$labels$y, "")
-    
-    p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_boxplot")
-    expect_equal(p1$labels$x, "")
-    
-    p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_violin")
-    expect_equal(p1$labels$x, "")
-    
-    p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_dotstrip")
-    expect_equal(p1$labels$y, "")
-    
-    p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_beeswarm")
-    expect_equal(p1$labels$x, "")
-    p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_quasirandom")
 })
+
+test_that("Boxplots work", {
+    p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_boxplot")
+    expect_match(attr(p1, "code"), 'ggplot2::geom_boxplot()')
+    
+    p1 <- iNZightPlot(Sepal.Length, Species, data = iris, plottype = "gg_boxplot")
+    expect_match(attr(p1, "code"), 'ggplot2::geom_boxplot()')
+    expect_match(attr(p1, "code"), 'fill = Species')
+})
+
+test_that("Violin plots work", {
+    p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_violin")
+    expect_match(attr(p1, "code"), 'ggplot2::geom_violin()')
+    
+    p1 <- iNZightPlot(Sepal.Length, Species, data = iris, plottype = "gg_violin")
+    expect_match(attr(p1, "code"), 'ggplot2::geom_violin()')
+    expect_match(attr(p1, "code"), 'fill = Species')
+})
+
+test_that("Dotstrip plots work", {
+    p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_dotstrip")
+    expect_match(attr(p1, "code"), 'ggplot2::geom_point()')
+    
+    p1 <- iNZightPlot(Sepal.Length, Species, data = iris, plottype = "gg_dotstrip")
+    expect_match(attr(p1, "code"), 'ggplot2::geom_point()')
+    expect_match(attr(p1, "code"), 'colour = Species')
+})
+
+test_that("Beeswarm plots work", {
+    p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_beeswarm")
+    expect_match(attr(p1, "code"), 'ggbeeswarm::geom_beeswarm()')
+    
+    p1 <- iNZightPlot(Sepal.Length, Species, data = iris, plottype = "gg_beeswarm")
+    expect_match(attr(p1, "code"), 'ggbeeswarm::geom_beeswarm()')
+    expect_match(attr(p1, "code"), 'colour = Species')
+    
+    p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_quasirandom")
+    expect_match(attr(p1, "code"), 'ggbeeswarm::geom_quasirandom()')
+    
+    p1 <- iNZightPlot(Sepal.Length, Species, data = iris, plottype = "gg_quasirandom")
+    expect_match(attr(p1, "code"), 'ggbeeswarm::geom_quasirandom()')
+    expect_match(attr(p1, "code"), 'colour = Species')
+})
+
+test_that("Density plots work", {
+    p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_density")
+    expect_match(attr(p1, "code"), 'ggplot2::geom_density()')
+    
+    p1 <- iNZightPlot(Sepal.Length, Species, data = iris, plottype = "gg_density")
+    expect_match(attr(p1, "code"), 'ggplot2::geom_density()')
+    expect_match(attr(p1, "code"), 'fill = Species')
+})
+
+test_that("Ridgeline plots work", {
+    p1 <- iNZightPlot(Sepal.Length, Species, data = iris, plottype = "gg_ridgeline")
+    expect_match(attr(p1, "code"), 'ggridges::geom_density_ridges()')
+    expect_match(attr(p1, "code"), 'fill = Species')
+})
+
+test_that("Density plots work", {
+    p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_cumcurve")
+    expect_match(attr(p1, "code")[2], 'ggplot2::geom_step()')
+    
+    p1 <- iNZightPlot(Sepal.Length, Species, data = iris, plottype = "gg_cumcurve")
+    expect_match(attr(p1, "code")[2], 'ggplot2::geom_step()')
+    expect_match(attr(p1, "code")[2], 'colour = Species')
+})
+
+test_that("Lollipop count plots work", {
+    p1 <- iNZightPlot(Species, data = iris, plottype = "gg_lollipop2")
+    expect_match(attr(p1, "code")[2], 'ggplot2::geom_point')
+    expect_match(attr(p1, "code")[2], 'ggplot2::geom_segment')
+    
+    p1 <- iNZightPlot(Species, Test.Cat.Var, data = iris, plottype = "gg_lollipop2")
+    expect_match(attr(p1, "code")[2], 'ggplot2::geom_point')
+    expect_match(attr(p1, "code")[2], 'ggplot2::geom_linerange')
+    expect_match(attr(p1, "code")[2], 'colour = Test.Cat.Var')
+})
+
+test_that("Pie plots work", {
+    p1 <- iNZightPlot(Species, data = iris, plottype = "gg_pie")
+    expect_match(attr(p1, "code"), 'ggplot2::geom_bar')
+})
+
+test_that("Donut plots work", {
+    p1 <- iNZightPlot(Species, data = iris, plottype = "gg_donut")
+    expect_match(attr(p1, "code")[2], 'ggplot2::geom_rect')
+})
+
+test_that("Grid plots work", {
+    p1 <- iNZightPlot(Species, data = iris, plottype = "gg_gridplot")
+    expect_match(attr(p1, "code")[2], 'waffle::waffle')
+})
+
 
 test_that("Inversing x/y doesn't affect graph", {
     p1 <- iNZightPlot(Species, Sepal.Length, data = iris, plottype = "gg_violin")
@@ -149,8 +236,6 @@ test_that("Each type of palette works", {
     p1 <- iNZightPlot(Sepal.Length, Species, data = iris, plottype = "gg_cumcurve",
                       palette = "greyscale")
     expect_match(attr(p1, "code")[2], 'scale_colour_grey')
-    
-    iris$Test.Cat.Var <- sample(letters[1:3], size = nrow(iris), replace = TRUE)
     
     p1 <- iNZightPlot(Species, Test.Cat.Var, data = iris, plottype = "gg_heatmap",
                       palette = "greyscale")
