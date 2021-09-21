@@ -60,3 +60,13 @@ test_that("Plots can be rotated", {
     #     rotation = TRUE, rotate_labels = list(x = TRUE))
     # expect_match(attr(p1, "code"), "coord_flip")
 })
+
+test_that("Plots can have themes", {
+    p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_violin", 
+        gg_theme = "bw")
+    expect_match(attr(p1, "code"), "theme_bw")
+    
+    p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_violin", 
+                      gg_theme = "tufte")
+    expect_match(attr(p1, "code"), "theme_tufte")
+})
