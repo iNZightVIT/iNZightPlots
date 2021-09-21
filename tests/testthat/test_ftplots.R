@@ -171,7 +171,40 @@ test_that("Facetting works", {
     expect_equal(names(p1$facet$params$cols), 'Species')
     expect_equal(names(p1$facet$params$rows), 'Test.Cat.Var')
     expect_match(attr(p1, "code")[1], 'Species == \\"setosa\\"')
+})
+
+test_that("Data names can be replaced", {
+    test_expr <- rlang::expr(
+        ggplot2::ggplot(iris, ggplot2::aes(Species)) + 
+            ggplot2::geom_bar()
+    )
     
+    test_expr2 <- replace_data_name(test_expr, "test_name")
+    expect_equal(as.character(test_expr2[[2]][[2]]), "test_name")
+})
+
+test_that("Other expressions can be inserted into expression", {
+    test_expr <- rlang::expr(
+        plot_data <- other_data %>% 
+            dplyr::group_by(var1, var2) %>% 
+            dplyr::summarise(count = sum(count))
+    )
+    
+    insert_into_first_place(test_expr, rlang::expr(dplyr::mutate(new_var = var1+var2)))
+})
+
+test_that("Other expressions can be inserted into expression", {
+    test_expr <- rlang::expr(
+        plot_data <- other_data %>% 
+            dplyr::group_by(var1, var2) %>% 
+            dplyr::ungroup() %>% 
+            dplyr::summarise(count = sum(count))
+    )
+    
+    test_expr2 <- add_to_group(test_expr[[3]], rlang::sym("facet_var"))
+    
+    expect_equal(as.character(test_expr2[[2]][[2]][[3]]), c("dplyr::group_by", "var1", "var2", "facet_var"))
+    expect_equal(as.character(test_expr2[[2]][[3]]), c("dplyr::group_by", "facet_var"))
 })
 
 
