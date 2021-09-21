@@ -12,7 +12,7 @@ gg_pkgs <- c(
     "ggridges"
 )
 gg_pkgs_check <- sapply(gg_pkgs, requireNamespace, quietly = TRUE)
-skip_if(any(gg_pkgs_check), "Unable to check FT plots as some packages are missing.")
+skip_if(any(!gg_pkgs_check), "Unable to check FT plots as some packages are missing.")
 
 test_that("All available ggplots work", {
     p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_barcode")
