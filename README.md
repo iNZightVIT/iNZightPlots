@@ -15,7 +15,7 @@ allowing beginners to explore and visualize data easily.
 Easily install the latest release version from CRAN:
 
 ``` r
-install.packages("iNZightRegression")
+install.packages("iNZightPlots")
 ```
 
 For the latest development version:
