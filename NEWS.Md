@@ -1,5 +1,6 @@
 - add `ci.width` argument to `inzpar()` for plots and inferences for their confidence intervals
 - suppress warnings from `RColorBrewer::brewer.pal` if `n <= 2`
+- fix bug in ggplot2 plots where discrete axis ordering was different to a regular iNZightPlot (#270, @daniel-barnett)
 
 ## iNZightPlots 2.13.4
 
