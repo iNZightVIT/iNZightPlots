@@ -222,7 +222,7 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
         } else {
           varnames["fill"] <- extra_vars$fill_colour
         }
-      } else {
+      } else if (type != "gg_cumcurve") {
         varnames["fill"] <- "darkgreen"
       }
     } else if (is.numeric(data[[varnames["x"]]])) {
