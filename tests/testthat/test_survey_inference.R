@@ -5,14 +5,16 @@ dclus1 <- svydesign(id = ~dnum, weights = ~pw, data = apiclus1, fpc = ~fpc)
 
 test_that("One sample t-test", {
     svy_mean <- svymean(~api00, dclus1)
-    svy_ci <- confint(svy_mean)
+    svy_ci <- confint(svy_mean, level = 0.9)
     svy_test <- svyttest(api00~1, dclus1)
 
     inz_test <- capture.output(
         inzinference(~api00,
             design = dclus1,
-            inference.type = "conf"
+            inference.type = "conf",
             # hypothesis.value = 600
+            ci.width = 0.9,
+            width = 80
         )
     )
     inz_inf <-
@@ -52,20 +54,39 @@ test_that("One sample t-test", {
 })
 
 test_that("Two sample inference", {
-    smry <- inzinference(api00 ~ both, design = dclus1)
+    smry <- inzinference(api00 ~ both, design = dclus1, ci.width = 0.99, width = 80)
     ciline <- smry[grepl("No - Yes", smry)]
     expect_match(ciline, "-15.51", all = FALSE)
+    x <- svyby(~api00, ~both, design = dclus1, svymean)
+    xhat <- round(coef(x), 1)
+    ci <- round(confint(x, level = 0.99), 1)
+    reg <- paste("\\s+", rownames(ci), "\\s+", ci[, 1], "\\s+", xhat, "\\s+", ci[, 2],
+        sep = "", collapse = " ")
+    expect_match(
+        paste(smry, collapse = " "),
+        gsub(".", "\\.", reg, fixed = TRUE),
+        all = FALSE
+    )
+
+    ttest <- svyttest(api00 ~ both, design = dclus1)
+    x <- round(ttest$estimate, 2)
+    ci <- sprintf("%.2f", confint(ttest, level = 0.99) * -1)
+    reg <- gsub(".", "\\.",
+        paste("No - Yes", ci[2], -x, ci[1], sep = "\\s+"),
+        fixed = TRUE)
+    expect_match(smry, reg, all = FALSE)
 })
 
 test_that("Two sample t-test", {
     svy_mean <- svyby(~api00, ~awards, dclus1, svymean)
-    svy_ci <- confint(svy_mean)
+    svy_ci <- confint(svy_mean, level = 0.8)
     svy_test <- svyttest(api00~awards, dclus1)
 
     inz_test <- capture.output(
         inzinference(api00 ~ awards,
             design = dclus1,
-            inference.type = "conf"
+            inference.type = "conf",
+            ci.width = 0.8
         )
     )
     inz_inf <-
@@ -105,14 +126,15 @@ test_that("Two sample t-test", {
 
 test_that("ANOVA (equivalent)", {
     svy_mean <- svyby(~growth, ~stype, dclus1, svymean)
-    svy_ci <- confint(svy_mean)
+    svy_ci <- confint(svy_mean, level = 0.85)
     svy_test <- svyglm(growth ~ stype, dclus1)
     svy_ftest <- regTermTest(svy_test, ~stype)
 
     inz_test <- capture.output(
         inzinference(growth ~ stype,
             design = dclus1,
-            inference.type = "conf"
+            inference.type = "conf",
+            ci.width = 0.85
         )
     )
     inz_inf <-
@@ -152,14 +174,15 @@ test_that("ANOVA (equivalent)", {
 
 test_that("Survey regression", {
     svy_test <- svyglm(api00 ~ api99, dclus1)
-    svy_ci <- confint(svy_test)
+    svy_ci <- confint(svy_test, level = 0.9)
     svy_coef <- summary(svy_test)$coef
 
     inz_test <- capture.output(
         inzinference(api00 ~ api99,
             design = dclus1,
             inference.type = "conf",
-            trend = "linear"
+            trend = "linear",
+            ci.width = 0.9
         )
     )
 
@@ -188,7 +211,7 @@ test_that("Survey regression", {
 
 test_that("Single proportion survey (binary variable)", {
     svy_prop <- svymean(~awards, dclus1)
-    svy_ci <- confint(svy_prop)
+    svy_ci <- confint(svy_prop, level = 0.99)
     svy_Z <- (coef(svy_prop)[[1]] - 0.25) / SE(svy_prop)[[1]]
     svy_p <- 2 * pnorm(abs(svy_Z), lower.tail = FALSE)
 
@@ -197,7 +220,8 @@ test_that("Single proportion survey (binary variable)", {
             design = dclus1,
             inference.type = "conf",
             hypothesis.test = "proportion",
-            hypothesis.value = 0.25
+            hypothesis.value = 0.25,
+            ci.width = 0.9
         )
     )
 
@@ -241,13 +265,14 @@ test_that("Single proportion survey (binary variable)", {
 
 test_that("Two way Chi-square contingency tables", {
     svy_prop <- svyby(~stype, ~awards, dclus1, svymean)
-    svy_ci <- confint(svy_prop)
+    svy_ci <- confint(svy_prop, level = 0.8)
     svy_test <- suppressWarnings(svychisq(~awards+stype, dclus1))
 
     inz_test <- suppressWarnings(capture.output(
         inzinference(stype ~ awards,
             design = dclus1,
-            inference.type = "conf"
+            inference.type = "conf",
+            ci.width = 0.8
         )
     ))
 

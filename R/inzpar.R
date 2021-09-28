@@ -89,6 +89,7 @@
 #'      are \code{c("comp", "conf")}}
 #' \item{'inference.par'}{the parameter which we obtain intervals for. For a dotplot or histogram,
 #'      this can be either \code{"mean"} or \code{"median"}; for bar plots it can be "proportion"}
+#' \item{'ci.width'}{the width of confidence intervals, default 0.95 for a 95\% confidence interval}
 #' \item{'bs.inference'}{logical, if \code{TRUE}, then nonparametric bootstrap simulation is used
 #'      to obtain the intervals}
 #' \item{'min.count'}{the min count for barplots inference; counts less than this are ignored}
@@ -237,6 +238,7 @@ inzpar <- function(...,
         inf.col.conf   = c("red", "orange"),
         inference.type = NULL,
         inference.par  = NULL,
+        ci.width       = 0.95,
         bs.inference   = FALSE,
         min.count      = 5,
         n.boot         = 1500,

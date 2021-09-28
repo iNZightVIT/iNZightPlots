@@ -85,3 +85,27 @@ test_that("Dot plot with single unique value", {
 test_that("Transformations for dot plots", {
     inzplot(~Sepal.Length, data = iris, transform = list(x = "log"))
 })
+
+test_that("Confidence level can be adjusted", {
+    # single x
+    p <- inzplot(~Sepal.Length, data = iris,
+        inference.type = "conf", ci.width = 0.9,
+        inference.par = "mean", plot = FALSE)
+    t <- t.test(iris$Sepal.Length,
+        conf.level = 0.9)
+    expect_equivalent(
+        p$all$all$inf$mean$conf,
+        c(t$conf.int, t$estimate)
+    )
+
+    # by factor
+    p <- inzplot(Sepal.Length ~ Species, data = iris,
+        inference.type = "conf", ci.width = 0.9,
+        inference.par = "mean", plot = FALSE)
+    t <- tapply(iris$Sepal.Length, iris$Species,
+        t.test, conf.level = 0.9)
+    expect_equivalent(
+        p$all$all$inf$mean$conf,
+        t(sapply(t, function(x) c(x$conf.int, x$estimate)))
+    )
+})

@@ -20,7 +20,6 @@ create.inz.scatterplot <- function(obj) {
         df <- df[sample(nrow(df)), ]
     }
 
-
     if (xattr$class == "inz.survey") {
         design <- df
         df <- as.data.frame(
@@ -119,7 +118,8 @@ create.inz.scatterplot <- function(obj) {
         n.boot = opts$n.boot,
         text.labels = text.labels,
         extreme.ids = ext.ids,
-        point.order = ORDER
+        point.order = ORDER,
+        ci.width = opts$ci.width
     )
 
     if (xattr$class == "inz.survey")

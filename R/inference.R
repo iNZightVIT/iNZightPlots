@@ -17,6 +17,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
 
     is.survey <- !is.null(des)
 
+    ci.width <- attr(inf, "ci.width")
     mat <- inf$mean$conf[, c("lower", "mean", "upper"), drop = FALSE]
 
     mat <- matrix(
@@ -62,7 +63,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                 ifelse(is.survey, "Population Means", "Group Means"),
                 ifelse(is.survey, "Population Mean", "Mean")
             ),
-            " with 95%",
+            " with ", ci.width * 100, "%",
             bsCI,
             " Confidence Interval",
             plural
@@ -118,7 +119,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
             "",
             paste0(
                 ifelse(byFactor, "Group Medians", "Median"),
-                " with 95%",
+                " with ", ci.width * 100, "%",
                 bsCI,
                 " Confidence Interval",
                 plural
@@ -174,7 +175,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                     "Group Interquartile Ranges",
                     "Interquartile Range"
                 ),
-                " with 95%",
+                " with ", ci.width * 100, "%",
                 bsCI,
                 " Confidence Interval",
                 plural
@@ -202,7 +203,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                 } else {
                     ## the survey t-test is "level[2] - level[1]",
                     ## rather than "level[1] - level[2]"
-                    ci <- confint(ttest)
+                    ci <- confint(ttest, level = ci.width)
                     mat <- rbind(
                         c("Lower", "Estimate", "Upper"),
                         format(-c(ci[[2]], ttest$estimate[[1]], ci[[1]]), digits = 4)
@@ -211,7 +212,8 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                 }
             } else {
                 ttest <- t.test(toplot[[1]]$x, toplot[[2]]$x,
-                    var.equal = if (is.null(hypothesis)) TRUE else hypothesis$var.equal
+                    var.equal = if (is.null(hypothesis)) TRUE else hypothesis$var.equal,
+                    conf.level = ci.width
                 )
                 mat <- rbind(
                     c("Lower", "Estimate", "Upper"),
@@ -252,8 +254,9 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                     out,
                     "",
                     sprintf(
-                        "Difference in %s means with 95%s Confidence Interval",
+                        "Difference in %s means with %s%s Confidence Interval",
                         ifelse(is.survey, "population", "group"),
+                        ci.width * 100,
                         "%"
                     ),
                     "",
@@ -461,7 +464,10 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
             if (is.survey) {
                 ## To do: figure out how to make pairwise comparisons!
             } else {
-                mc <- try(s20x::multipleComp(fit), silent = TRUE)
+                mc <- try(
+                    s20x::multipleComp(fit, conf.level = ci.width),
+                    silent = TRUE
+                )
                 if (!inherits(mc, "try-error")) {
                     cimat <- triangularMatrix(LEVELS, mc, "ci")
                     cimat <- formatMat(cimat)
@@ -469,7 +475,10 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                     out <- c(
                         out,
                         "",
-                        "95% Confidence Intervals (adjusted for multiple comparisons)",
+                        paste0(
+                            ci.width * 100,
+                            "% Confidence Intervals (adjusted for multiple comparisons)"
+                        ),
                         "",
                         apply(cimat, 1,
                             function(x) paste0("   ", paste(x, collapse = "   "))
@@ -633,6 +642,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
     phat <- object$phat
     inf <- object$inference.info
     is.survey <- !is.null(des)
+    ci.width <- attr(inf, "ci.width")
 
     if (! "conf" %in% names(inf))
         stop("Please specify `inference.type = conf` to get inference information.")
@@ -644,6 +654,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
         return("Not enough data to perform bootstraps.")
 
     twoway <- nrow(phat) > 1
+    alpha <- 1 - (1 - ci.width) / 2
 
     if (!is.null(hypothesis) && !bs) {
         HypOut <- switch(hypothesis$test,
@@ -929,7 +940,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
         out <- c(
             out,
             "",
-            paste0("95%", bsCI, " Confidence Intervals"),
+            paste0(100 * ci.width, "%", bsCI, " Confidence Intervals"),
             "",
             apply(cis, 1,
                 function(x) paste0("   ", paste(x, collapse = "   "))
@@ -1017,8 +1028,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                     for (l in 1:(k - 1)) {
                         wr <- (k - 2) * 2 + 1
                         cis[wr:(wr + 1), l] <-
-                            if (bs) quantile(b$t[, j], c(0.025, 0.975), na.rm = TRUE)
-                            else pDiffCI(p[k], p[l], sum[k], sum[l])
+                            if (bs) quantile(b$t[, j], c(1 - alpha, alpha), na.rm = TRUE)
+                            else pDiffCI(p[k], p[l], sum[k], sum[l], qnorm(alpha))
                     }
                 }
                 colnames(cis) <- dn[[1]][-n]
@@ -1029,7 +1040,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                 out <- c(
                     out,
                     "",
-                    paste0("95% ", bsCI, " Confidence Intervals"),
+                    paste0(100 * ci.width, "% ", bsCI, " Confidence Intervals"),
                     "",
                     apply(cis, 1,
                         function(x) paste0("   ", paste(x, collapse = "   "))
@@ -1162,9 +1173,9 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
         bsCI <- ifelse(bs, " Percentile Bootstrap", "")
         out <- c(
             paste0(
-                sprintf("Estimated %sProportions with 95%s",
+                sprintf("Estimated %sProportions with %s%s",
                     ifelse(is.survey, "Population ", ""),
-                    "%"
+                    ci.width * 100, "%"
                 ),
                 bsCI,
                 " Confidence Interval"
@@ -1180,7 +1191,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
             ## and hence match the output from this function.
 
             dat <- data.frame(
-                x = rep(names(object$tab), times = object$tab),
+                x = rep(colnames(object$tab), times = object$tab),
                 stringsAsFactors = TRUE
             )
             b <- boot(dat,
@@ -1205,8 +1216,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
             diffs <- formatTriMat(diffs, LEVELS)
 
             cil <- ciu <- matrix(nrow = length(LEVELS), ncol = length(LEVELS))
-            cil[lower.tri(cil)] <- apply(b$t, 2, quantile, probs = 0.025)
-            ciu[lower.tri(ciu)] <- apply(b$t, 2, quantile, probs = 0.975)
+            cil[lower.tri(cil)] <- apply(b$t, 2, quantile, probs = 1 - alpha)
+            ciu[lower.tri(ciu)] <- apply(b$t, 2, quantile, probs = alpha)
 
             cil <- formatTriMat(cil, LEVELS)
             ciu <- formatTriMat(ciu, LEVELS)
@@ -1223,7 +1234,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
             diffs <- freq1way.edited(object$tab, "estimates")
             diffs <- formatMat(diffs)
 
-            cis <- freq1way.edited(object$tab, "ci")
+            cis <- freq1way.edited(object$tab, "ci", conf.level = ci.width)
             cis <- formatMat(cis)
         }
 
@@ -1241,7 +1252,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                 function(x) paste0("   ", paste(x, collapse = "   "))
             ),
             "",
-            paste0("95%", bsCI, " Confidence Intervals"),
+            paste0(100 * ci.width, "%", bsCI, " Confidence Intervals"),
             "",
             apply(cis, 1,
                 function(x) paste0("   ", paste(x, collapse = "   "))
@@ -1344,12 +1355,15 @@ inference.inzscatter <- function(object, des, bs, nb, vn, survey.options, ...) {
         return("Not enough observations to perform bootstrap simulation.")
 
     is.survey <- !is.null(des)
+    ci.width <- object$ci.width
 
     ## Ensure the order is linear/quad/cubic
     allT <- c("linear", "quadratic", "cubic")
     tr <- (1:3)[allT %in% trend]
 
     out <- character()
+
+    alpha <- 1 - (1 - ci.width) / 2
 
     for (t in tr) {
         if (nrow(d) <= t + 1) {
@@ -1384,8 +1398,8 @@ inference.inzscatter <- function(object, des, bs, nb, vn, survey.options, ...) {
                 )
                 mat <- cbind(
                     sprintf("%.5g", colMeans(b$t, na.rm = TRUE)),
-                    sprintf("%.5g", apply(b$t, 2, quantile, probs = 0.025, na.rm = TRUE)),
-                    sprintf("%.5g", apply(b$t, 2, quantile, probs = 0.975, na.rm = TRUE))
+                    sprintf("%.5g", apply(b$t, 2, quantile, probs = 1 - alpha, na.rm = TRUE)),
+                    sprintf("%.5g", apply(b$t, 2, quantile, probs = alpha, na.rm = TRUE))
                 )
 
             } else {
@@ -1404,7 +1418,7 @@ inference.inzscatter <- function(object, des, bs, nb, vn, survey.options, ...) {
                 }
 
                 cc <- summary(fit)$coef
-                ci <- confint(fit)
+                ci <- confint(fit, level = ci.width)
 
                 mat <- cbind(
                     sprintf("%.5g", cc[, 1]),
@@ -1439,7 +1453,7 @@ inference.inzscatter <- function(object, des, bs, nb, vn, survey.options, ...) {
                 "",
                 paste0(
                     switch(t, "Linear", "Quadratic", "Cubic"),
-                    " Trend Coefficients with 95% ",
+                    " Trend Coefficients with ", ci.width * 100, "% ",
                     ifelse(bs, "Percentile Bootstrap ", ""),
                     "Confidence Intervals"
                 ),
