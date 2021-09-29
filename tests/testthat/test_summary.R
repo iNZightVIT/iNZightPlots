@@ -31,6 +31,17 @@ test_that("Vertical tables supported", {
         p[which(grepl("Summary of the distribution", p)) + 10],
         "-+"
     )
+
+    p2 <- inzsummary(travel~gender, data = cas, table.direction = "vertical")
+    expect_match(
+        p2[grep("Summary of the distribution", p2)],
+        ".+travel \\(rows\\) by gender \\(columns\\).+"
+    )
+    expect_match(
+        p2[grep("Table of Counts", p2) + 2L],
+        "\\sfemale\\s+male"
+    )
+    expect_match(p2, "Column N", all = FALSE)
 })
 
 
