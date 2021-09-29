@@ -63,7 +63,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            data = NULL, design = NULL, freq = NULL,
                            missing.info = TRUE, inzpars = inzpar(),
                            summary.type = "summary",
-                           table.direction = "horizontal",
+                           table.direction = c("horizontal", "vertical"),
                            hypothesis.value = 0,
                            hypothesis.alt = c("two.sided", "less", "greater"),
                            hypothesis.var.equal = FALSE,
@@ -94,6 +94,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     ## Grab a plot object!
     m <- match.call(expand.dots = FALSE)
+    table.direction <- match.arg(table.direction)
 
     if ("design" %in% names(m) && !is.null(m$design)) {
         md <- eval(m$design, env)
@@ -189,7 +190,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
 
 summary.inzplotoutput <- function(object, summary.type = "summary",
-                                  table.direction = "horizontal",
+                                  table.direction = c("horizontal", "vertical"),
                                   hypothesis = NULL,
                                   survey.options = list(),
                                   width = 100, ...) {
@@ -201,6 +202,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
         stop("`summary.type` must be either `summary` or `inference`")
 
     obj <- object  ## same typing ... but match default `summary` method arguments
+    table.direction <- match.arg(table.direction)
 
     ## set up some variables/functions to make text processing easier ...
 
@@ -494,8 +496,18 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                                     },
                                     "factor" = {
                                         sprintf(
-                                            "%s of the distribution of %s (columns) by %s (rows)",
-                                            stype, vnames$x, vnames$y
+                                            "%s of the distribution of %s (%s) by %s (%s)",
+                                            stype,
+                                            vnames$x,
+                                            switch(table.direction,
+                                                vertical = "rows",
+                                                horizontal = "columns"
+                                            ),
+                                            vnames$y,
+                                            switch(table.direction,
+                                                vertical = "columns",
+                                                horizontal = "rows"
+                                            )
                                         )
                                     }
                                 )
