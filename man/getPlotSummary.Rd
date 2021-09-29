@@ -20,7 +20,7 @@ getPlotSummary(
   missing.info = TRUE,
   inzpars = inzpar(),
   summary.type = "summary",
-  table.direction = "horizontal",
+  table.direction = c("horizontal", "vertical"),
   hypothesis.value = 0,
   hypothesis.alt = c("two.sided", "less", "greater"),
   hypothesis.var.equal = FALSE,
