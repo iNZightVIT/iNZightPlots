@@ -1079,7 +1079,8 @@ dotinference <- function(obj) {
                                     }
                                 } else {
                                     NULL
-                                }
+                                },
+                            comp = NULL
                         )
                     }
                 )
