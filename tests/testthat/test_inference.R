@@ -8,6 +8,22 @@ d <- data.frame(
 )
 # iNZightPlot(x, y, data = d)
 
+# ## Target output
+
+# ### Difference in mean Sepal.Width between Species categories
+#     with 95% Confidence Intervals (adjusted for mulitple comparisons)
+
+#                            Estimate      Lower      Upper    P-value*
+#     setosa - versicolor       0.658     0.4971     0.8189     < 1e-12
+#     setosa - virginica        0.454     0.2931     0.6149     < 1e-12
+# versicolor - virginica       -0.204    -0.3649    -0.0431      0.0088
+
+# * P-value hypotheses:
+
+#           Null Hypothesis: pairwise difference between group means is zero
+#    Alternative Hypothesis: pairwise difference between group means is not zero
+
+
 test_that("Two-sample tests use appropriate CI", {
     pTRUE <- getPlotSummary(x, y, data = d,
         summary.type = "inference",

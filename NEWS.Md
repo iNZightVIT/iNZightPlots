@@ -2,6 +2,7 @@
 - suppress warnings from `RColorBrewer::brewer.pal` if `n <= 2`
 - fix bug in ggplot2 plots where discrete axis ordering was different to a regular iNZightPlot (#270, @daniel-barnett)
 - add `table.direction` argument to `inzsummary()` to display tables horizontally (default) or vertically
+- reorganise output for inference (differences, CIs, and p-values) into a single table, rather than 2 or 3 matrices
 
 ## iNZightPlots 2.13.4
 

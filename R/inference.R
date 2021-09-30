@@ -435,71 +435,99 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
             ## For x ~ factor, we also include an F test, and multiple comparisons
             ## (estimates, pvalues, and confidence intervals).
 
-            out <- c(
-                out,
-                "",
-                "",
-                sprintf("### Difference in mean %s between %s groups", vn$x, vn$y),
-                "    (col group - row group)",
-                ""
-            )
-
-            means <- predict(fit,
-                newdata = data.frame(y = levels(dat$y), stringsAsFactors = TRUE)
-            )
-            names(means) <- LEVELS <- levels(dat$y)
-            diffMat <- outer(means, means, function(x, y) y - x)
-            # if (is.survey) diffMat <- -diffMat
-            diffMat <- formatTriMat(diffMat, LEVELS)
-
-            out <- c(
-                out,
-                "Estimates",
-                "",
-                apply(diffMat, 1,
-                    function(x) paste0("   ", paste(x, collapse = "   "))
-                )
-            )
+            LEVELS <- levels(dat$y)
 
             if (is.survey) {
                 ## To do: figure out how to make pairwise comparisons!
+                out <- c(
+                    out,
+                    "",
+                    "",
+                    sprintf("### Difference in mean %s between %s groups", vn$x, vn$y),
+                    "    (col group - row group)",
+                    ""
+                )
+
+                means <- predict(fit,
+                    newdata = data.frame(y = levels(dat$y), stringsAsFactors = TRUE)
+                )
+                names(means) <- LEVELS
+                diffMat <- outer(means, means, function(x, y) y - x)
+                # if (is.survey) diffMat <- -diffMat
+                diffMat <- formatTriMat(diffMat, LEVELS)
+
+                out <- c(
+                    out,
+                    "Estimates",
+                    "",
+                    apply(diffMat, 1,
+                        function(x) paste0("   ", paste(x, collapse = "   "))
+                    )
+                )
             } else {
                 mc <- try(
                     s20x::multipleComp(fit, conf.level = ci.width),
                     silent = TRUE
                 )
                 if (!inherits(mc, "try-error")) {
-                    cimat <- triangularMatrix(LEVELS, mc, "ci")
-                    cimat <- formatMat(cimat)
 
-                    out <- c(
-                        out,
-                        "",
-                        paste0(
-                            ci.width * 100,
-                            "% Confidence Intervals (adjusted for multiple comparisons)"
+                    mat <- matrix(
+                        apply(mc, 2,
+                            function(col) {
+                                format(col, digits = 4, justify = "right")
+                            }
                         ),
-                        "",
-                        apply(cimat, 1,
-                            function(x) paste0("   ", paste(x, collapse = "   "))
-                        )
+                        nrow = nrow(mc)
+                    )
+                    mat[grep("NA", mat)] <- ""
+
+                    rnames <- lapply(strsplit(rownames(mc), " "), trimws)
+                    rnames <- do.call(rbind, rnames)
+                    rnames[, 1] <- format(rnames[, 1], justify = "right")
+                    rnames[, 3] <- format(rnames[, 3], justify = "left")
+                    rnames <- apply(rnames, 1, paste, collapse = " ")
+                    mat <- cbind(format(rnames, justify = "left"), mat)
+
+                    mat<- rbind(c("", "Estimate", "Lower", "Upper", "P-value"), mat)
+                    mat <- matrix(
+                        apply(mat, 2,
+                            function(col) {
+                                format(col, justify = "right")
+                            }
+                        ),
+                        nrow = nrow(mat)
                     )
 
+                    mat <- apply(mat, 1,
+                        function(x) paste0("   ", paste(x, collapse = "   "))
+                    )
+                    mat <- c(
+                        mat[1],
+                        paste0("   ",
+                            paste(rep("-", nchar(mat[1]) - 3L), collapse = "")
+                        ),
+                        mat[-1]
+                    )
 
-                    pmat <- triangularMatrix(LEVELS, mc, "p-values")
-                    pmat <- formatMat(pmat, 2)
+                    # add a new line each time the LHS changes
+                    rl <- (length(LEVELS) - 1L):1L
+                    rl <- cumsum(rl) + 2L
+                    mat[rl] <- paste0(mat[rl], "\n")
 
                     out <- c(
                         out,
                         "",
-                        "P-values",
+                        "### Difference in mean Sepal.Width between Species categories",
+                        "    with 95% Confidence Intervals (adjusted for mulitple comparisons)",
                         "",
-                        apply(pmat, 1,
-                            function(x) paste0("   ", paste(x, collapse = "   "))
-                        )
+                        mat,
+                        "",
+                        "          Null Hypothesis: true difference in group means is zero",
+                        "   Alternative Hypothesis: true difference in group means is not zero"
                     )
 
                 } else {
+                    # make standard table ...
                     out <- c(
                         out,
                         "",
