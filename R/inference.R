@@ -18,7 +18,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
     is.survey <- !is.null(des)
 
     ci.width <- attr(inf, "ci.width")
-    mat <- inf$mean$conf[, c("lower", "mean", "upper"), drop = FALSE]
+    mat <- inf$mean$conf[, c("mean", "lower", "upper"), drop = FALSE]
 
     mat <- matrix(
         apply(mat, 2,
@@ -33,7 +33,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
     mat[grep("NA", mat)] <- ""
 
     ## Text formatting to return a character vector - each row of matrix
-    mat <- rbind(c("Lower", "Estimate", "Upper"), mat)
+    mat <- rbind(c("Estimate", "Lower", "Upper"), mat)
     colnames(mat) <- NULL
 
     byFactor <- length(toplot) > 1
@@ -77,7 +77,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
             return("Bootstrap inference not yet implemented for survey data.")
 
         ## BOOTSTRAP MEDIAN
-        mat <- inf$median$conf[, c("lower", "mean", "upper"), drop = FALSE]
+        mat <- inf$median$conf[, c("mean", "lower", "upper"), drop = FALSE]
 
         mat <- matrix(
             apply(mat, 2,
@@ -92,7 +92,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
         mat[grep("NA", mat)] <- ""
 
         ## Text formatting to return a character vector - each row of matrix
-        mat <- rbind(c("Lower", "Estimate", "Upper"), mat)
+        mat <- rbind(c("Estimate", "Lower", "Upper"), mat)
         colnames(mat) <- NULL
 
         byFactor <- length(toplot) > 1
@@ -130,7 +130,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
 
 
         ## BOOTSTRAP INTERQUARTILE RANGE
-        mat <- inf$iqr$conf[, c("lower", "mean", "upper"), drop = FALSE]
+        mat <- inf$iqr$conf[, c("mean", "lower", "upper"), drop = FALSE]
 
         mat <- matrix(
             apply(mat, 2,
@@ -145,7 +145,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
         mat[grep("NA", mat)] <- ""
 
         ## Text formatting to return a character vector - each row of matrix
-        mat <- rbind(c("Lower", "Estimate", "Upper"), mat)
+        mat <- rbind(c("Estimate", "Lower", "Upper"), mat)
         colnames(mat) <- NULL
 
         byFactor <- length(toplot) > 1
@@ -197,7 +197,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                 )
                 if (inherits(ttest, "try-error")) {
                     mat <- rbind(
-                        c("Lower", "Estimate", "Upper"),
+                        c("Estimate", "Lower", "Upper"),
                         rep(NA, 3)
                     )
                 } else {
@@ -205,8 +205,8 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                     ## rather than "level[1] - level[2]"
                     ci <- confint(ttest, level = ci.width)
                     mat <- rbind(
-                        c("Lower", "Estimate", "Upper"),
-                        format(-c(ci[[2]], ttest$estimate[[1]], ci[[1]]), digits = 4)
+                        c("Estimate", "Lower", "Upper"),
+                        format(-c(ttest$estimate[[1]], ci[[2]], ci[[1]]), digits = 4)
                     )
                     colnames(mat) <- NULL
                 }
@@ -216,11 +216,11 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                     conf.level = ci.width
                 )
                 mat <- rbind(
-                    c("Lower", "Estimate", "Upper"),
+                    c("Estimate", "Lower", "Upper"),
                     format(
                         c(
-                            ttest$conf.int[1],
                             diff(rev(ttest$estimate)),
+                            ttest$conf.int[1],
                             ttest$conf.int[2]
                         ),
                         digits = 4
@@ -517,7 +517,11 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                         out,
                         "",
                         "### Difference in mean Sepal.Width between Species categories",
-                        "    with 95% Confidence Intervals (adjusted for mulitple comparisons)",
+                        sprintf(
+                            "    with %s%s Confidence Intervals (adjusted for multiple comparisons)",
+                            ci.width * 100,
+                            "%"
+                        ),
                         "",
                         paste0(" ", mat),
                         "",
