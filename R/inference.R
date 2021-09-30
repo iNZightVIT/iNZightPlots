@@ -479,6 +479,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                         ),
                         nrow = nrow(mc)
                     )
+                    mat[,4] <- format.pval(as.numeric(mat[,4]))
                     mat[grep("NA", mat)] <- ""
 
                     rnames <- lapply(strsplit(rownames(mc), " "), trimws)
@@ -499,13 +500,11 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                     )
 
                     mat <- apply(mat, 1,
-                        function(x) paste0("   ", paste(x, collapse = "   "))
+                        function(x) paste(x, collapse = "   ")
                     )
                     mat <- c(
                         mat[1],
-                        paste0("   ",
-                            paste(rep("-", nchar(mat[1]) - 3L), collapse = "")
-                        ),
+                        paste(rep("-", nchar(mat[1])), collapse = ""),
                         mat[-1]
                     )
 
@@ -520,7 +519,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                         "### Difference in mean Sepal.Width between Species categories",
                         "    with 95% Confidence Intervals (adjusted for mulitple comparisons)",
                         "",
-                        mat,
+                        paste0(" ", mat),
                         "",
                         "          Null Hypothesis: true difference in group means is zero",
                         "   Alternative Hypothesis: true difference in group means is not zero"
