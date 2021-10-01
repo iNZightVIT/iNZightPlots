@@ -466,6 +466,10 @@ summary.inzbar <- function(object, vn, des, survey.options,
                 rbind(colnames(tab), mat)
             )
 
+            if (table.direction == "vertical") {
+                mat <- t(mat)
+            }
+
             mat <- matrix(
                 apply(mat, 2,
                     function(col) {
@@ -481,7 +485,7 @@ summary.inzbar <- function(object, vn, des, survey.options,
             out <- c(
                 out,
                 "",
-                "Standard error of estimated percentages:",
+                "Standard errors of estimated percentages:",
                 "",
                 mat
             )
@@ -492,6 +496,9 @@ summary.inzbar <- function(object, vn, des, survey.options,
                     c("", rownames(tab)),
                     rbind(colnames(tab), mat)
                 )
+                if (table.direction == "vertical") {
+                    mat <- t(mat)
+                }
                 mat <- matrix(
                     apply(mat, 2,
                         function(col) {
@@ -527,7 +534,7 @@ summary.inzbar <- function(object, vn, des, survey.options,
                 "",
                 mat[3, ],
                 c(
-                    "  std err ",
+                    "Standard Error",
                     paste0(
                         format(round(SE(smry_mean) * 100, 2),
                             nsmall = 2
@@ -541,7 +548,7 @@ summary.inzbar <- function(object, vn, des, survey.options,
                 mat <- rbind(mat,
                     "",
                     c(
-                        "Design effects ",
+                        "Design effects",
                         paste0(
                             format(round(deff(smry_mean), 2),
                                 nsmall = 2
