@@ -373,8 +373,10 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
             )
         )
         if (is.survey) {
+            fmla <- if (is.numeric(des$variables$x)) x ~ y else y ~ x
             fit <- try(
-                svyglm(if (is.numeric(des$variables$x)) x ~ y else y ~ x, des),
+                if (is.numeric(des$variables$x)) svyglm(x ~ y, des)
+                else svyglm(y ~ x, des),
                 silent = TRUE
             )
         } else {
@@ -438,105 +440,96 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
             LEVELS <- levels(dat$y)
 
             if (is.survey) {
-                ## To do: figure out how to make pairwise comparisons!
-                out <- c(
-                    out,
-                    "",
-                    "",
-                    sprintf("### Difference in mean %s between %s groups", vn$x, vn$y),
-                    "    (col group - row group)",
-                    ""
+                mc <- summary(
+                    emmeans::emmeans(fit,
+                        if (is.numeric(des$variables$x)) pairwise ~ y else pairwise ~ x,
+                        data = dat,
+                        infer = c(TRUE, TRUE)
+                    ),
+                    level = ci.width
                 )
 
-                means <- predict(fit,
-                    newdata = data.frame(y = levels(dat$y), stringsAsFactors = TRUE)
-                )
-                names(means) <- LEVELS
-                diffMat <- outer(means, means, function(x, y) y - x)
-                # if (is.survey) diffMat <- -diffMat
-                diffMat <- formatTriMat(diffMat, LEVELS)
+                mc <- mc$contrasts
+                rownames(mc) <- mc[,1]
+                mc <- mc[, c("estimate", "asymp.LCL", "asymp.UCL", "p.value")]
 
-                out <- c(
-                    out,
-                    "Estimates",
-                    "",
-                    apply(diffMat, 1,
-                        function(x) paste0("   ", paste(x, collapse = "   "))
-                    )
-                )
             } else {
                 mc <- try(
                     s20x::multipleComp(fit, conf.level = ci.width),
                     silent = TRUE
                 )
-                if (!inherits(mc, "try-error")) {
+            }
 
-                    mat <- matrix(
-                        apply(mc, 2,
-                            function(col) {
-                                format(col, digits = 4, justify = "right")
-                            }
-                        ),
-                        nrow = nrow(mc)
-                    )
-                    mat[,4] <- format.pval(as.numeric(mat[,4]))
-                    mat[grep("NA", mat)] <- ""
+            if (!inherits(mc, "try-error")) {
 
-                    rnames <- lapply(strsplit(rownames(mc), " "), trimws)
-                    rnames <- do.call(rbind, rnames)
-                    rnames[, 1] <- format(rnames[, 1], justify = "right")
-                    rnames[, 3] <- format(rnames[, 3], justify = "left")
-                    rnames <- apply(rnames, 1, paste, collapse = " ")
-                    mat <- cbind(format(rnames, justify = "left"), mat)
+                mat <- matrix(
+                    apply(mc, 2,
+                        function(col) {
+                            format(col, digits = 4, justify = "right")
+                        }
+                    ),
+                    nrow = nrow(mc)
+                )
+                mat[,4] <- format.pval(as.numeric(mat[,4]))
+                mat[grep("NA", mat)] <- ""
 
-                    mat<- rbind(c("", "Estimate", "Lower", "Upper", "P-value"), mat)
-                    mat <- matrix(
-                        apply(mat, 2,
-                            function(col) {
-                                format(col, justify = "right")
-                            }
-                        ),
-                        nrow = nrow(mat)
-                    )
+                rnames <- lapply(strsplit(rownames(mc), " "), trimws)
+                rnames <- do.call(rbind, rnames)
+                rnames[, 1] <- format(rnames[, 1], justify = "right")
+                rnames[, 3] <- format(rnames[, 3], justify = "left")
+                rnames <- apply(rnames, 1, paste, collapse = " ")
+                mat <- cbind(format(rnames, justify = "left"), mat)
 
-                    mat <- apply(mat, 1,
-                        function(x) paste(x, collapse = "   ")
-                    )
-                    mat <- c(
-                        mat[1],
-                        paste(rep("-", nchar(mat[1])), collapse = ""),
-                        mat[-1]
-                    )
+                mat<- rbind(c("", "Estimate", "Lower", "Upper", "P-value"), mat)
+                mat <- matrix(
+                    apply(mat, 2,
+                        function(col) {
+                            format(col, justify = "right")
+                        }
+                    ),
+                    nrow = nrow(mat)
+                )
 
-                    # add a new line each time the LHS changes
-                    rl <- (length(LEVELS) - 1L):1L
-                    rl <- cumsum(rl) + 2L
-                    mat[rl] <- paste0(mat[rl], "\n")
+                mat <- apply(mat, 1,
+                    function(x) paste(x, collapse = "   ")
+                )
+                mat <- c(
+                    mat[1],
+                    paste(rep("-", nchar(mat[1])), collapse = ""),
+                    mat[-1]
+                )
 
-                    out <- c(
-                        out,
-                        "",
-                        "### Difference in mean Sepal.Width between Species categories",
-                        sprintf(
-                            "    with %s%s Confidence Intervals (adjusted for multiple comparisons)",
-                            ci.width * 100,
-                            "%"
-                        ),
-                        "",
-                        paste0(" ", mat),
-                        "",
-                        "          Null Hypothesis: true difference in group means is zero",
-                        "   Alternative Hypothesis: true difference in group means is not zero"
-                    )
+                # add a new line each time the LHS changes
+                rl <- (length(LEVELS) - 1L):1L
+                rl <- cumsum(rl) + 2L
+                mat[rl] <- paste0(mat[rl], "\n")
 
-                } else {
-                    # make standard table ...
-                    out <- c(
-                        out,
-                        "",
-                        "Unable to compute confidence intervals and p-values."
-                    )
-                }
+                out <- c(
+                    out,
+                    "",
+                    sprintf("### Difference in %smean %s between %s categories",
+                        ifelse(is.survey, "population ", ""),
+                        vn$x, vn$y
+                    ),
+                    sprintf(
+                        "    with %s%s Confidence Intervals (adjusted for multiple comparisons)",
+                        ci.width * 100,
+                        "%"
+                    ),
+                    "",
+                    paste0(" ", mat),
+                    "",
+                    "          Null Hypothesis: true difference in group means is zero",
+                    "   Alternative Hypothesis: true difference in group means is not zero"
+                )
+
+            } else {
+                # make standard table ...
+                out <- c(
+                    out,
+                    "",
+                    "Unable to compute confidence intervals and p-values."
+                )
             }
         }
 

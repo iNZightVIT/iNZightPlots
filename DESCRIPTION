@@ -33,7 +33,8 @@ Imports:
     rlang,
     magrittr,
     lubridate,
-    cli
+    cli,
+    emmeans
 Suggests:
     hextri,
     viridis,
