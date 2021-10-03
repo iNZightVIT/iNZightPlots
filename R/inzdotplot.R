@@ -737,6 +737,31 @@ dotinference <- function(obj) {
     # CI interval width:
     alpha <- 1 - (1 - opts$ci.width) / 2
 
+    if (bs) {
+        # big boot
+        boot.sim <- boot(
+            dat,
+            function(d, i) {
+                quantiles <- tapply(d[i, 1], d[i, 2], quantile,
+                    probs = c(0.25, 0.5, 0.75))
+                cbind(
+                    mean = tapply(d[i, 1], d[i, 2], mean),
+                    median = sapply(quantiles, function(x) x[2]),
+                    iqr = sapply(quantiles, function(x) x[3] - x[1])
+                )
+            },
+            R = opts$n.boot
+        )
+        boot.results <- apply(boot.sim$t, 2L, quantile,
+            probs = c(0.025, 0.5, 0.975))
+        dim(boot.results) <- c(3L, length(levels(dat$y)), 3L)
+        dimnames(boot.results) <- list(
+            c("lower", "mean", "upper"),
+            levels(dat$y),
+            c("mean", "median", "iqr")
+        )
+    }
+
     if (!is.null(inf.par)) {
         result.list <- lapply(inf.par,
             function(ip) {
@@ -755,26 +780,7 @@ dotinference <- function(obj) {
                                                     NULL
                                                 }
                                             } else {
-                                                b <- boot(dat,
-                                                    strata = dat$y,
-                                                    function(d, f)
-                                                        tapply(d[f, 1], d[f, 2], mean, na.rm = TRUE),
-                                                    R = opts$n.boot
-                                                )
-                                                ci <- cbind(
-                                                    t(
-                                                        apply(b$t, 2, quantile,
-                                                            probs = c(1 - alpha, alpha),
-                                                            na.rm = TRUE
-                                                        )
-                                                    ),
-                                                    colMeans(b$t)
-                                                )
-                                                dimnames(ci) <- list(
-                                                    levels(dat$y),
-                                                    c("lower", "upper", "mean")
-                                                )
-                                                ci
+                                                t(boot.results[,,"mean"])
                                             }
                                         } else {
                                             ## ci.width% confidence interval (normal theory)
@@ -958,29 +964,7 @@ dotinference <- function(obj) {
                                             if (svy) {
                                                 NULL
                                             } else {
-                                                b <- boot(dat,
-                                                    strata = dat$y,
-                                                    function(d, f)
-                                                        tapply(d[f, 1], d[f, 2], quantile,
-                                                            probs = 0.5,
-                                                            na.rm = TRUE
-                                                        ),
-                                                    R = 2 * opts$n.boot
-                                                )
-                                                ci <- cbind(
-                                                    t(
-                                                        apply(b$t, 2, quantile,
-                                                            probs = c(1 - alpha, alpha),
-                                                            na.rm = TRUE
-                                                        )
-                                                    ),
-                                                    colMeans(b$t)
-                                                )
-                                                dimnames(ci) <- list(
-                                                    levels(dat$y),
-                                                    c("lower", "upper", "mean")
-                                                )
-                                                ci
+                                                t(boot.results[,,"median"])
                                             }
                                         } else {
                                             if (svy) {
@@ -1053,29 +1037,7 @@ dotinference <- function(obj) {
                                     if (svy) {
                                         NULL
                                     } else {
-                                        b <- boot(dat,
-                                            strata = dat$y,
-                                            function(d, f)
-                                                tapply(d[f, 1], d[f, 2],
-                                                    function(x)
-                                                        diff(quantile(x, probs = c(0.25, 0.75), na.rm = TRUE))
-                                                ),
-                                            R = 2 * opts$n.boot
-                                        )
-                                        iqr <- cbind(
-                                            t(
-                                                apply(b$t, 2, quantile,
-                                                    probs = c(1 - alpha, alpha),
-                                                    na.rm = TRUE
-                                                )
-                                            ),
-                                            colMeans(b$t)
-                                        )
-                                        dimnames(iqr) <- list(
-                                            levels(dat$y),
-                                            c("lower", "upper", "mean")
-                                        )
-                                        iqr
+                                        t(boot.results[,,"iqr"])
                                     }
                                 } else {
                                     NULL
