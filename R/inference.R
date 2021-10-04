@@ -1235,25 +1235,15 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                 R = nb
             )
 
-            diffs <- matrix(nrow = length(LEVELS), ncol = length(LEVELS))
-            diffs[lower.tri(diffs)] <- colMeans(b$t)
-            diffs <- formatTriMat(diffs, LEVELS)
-
-            cil <- ciu <- matrix(nrow = length(LEVELS), ncol = length(LEVELS))
-            cil[lower.tri(cil)] <- apply(b$t, 2, quantile, probs = 1 - alpha)
-            ciu[lower.tri(ciu)] <- apply(b$t, 2, quantile, probs = alpha)
-
-            cil <- formatTriMat(cil, LEVELS)
-            ciu <- formatTriMat(ciu, LEVELS)
-
-            cis <- rbind(cil[-1, , drop = FALSE], ciu[-1, , drop = FALSE])
-            cis <- cis[order(cis[, 1]), -1, drop = FALSE]
-
-            rownames(cis) <- rbind(LEVELS[-1], "")
-            colnames(cis) <- cil[1, -1]
-
-            cis <- formatMat(cis)
-
+            diffs <- apply(b$t, 2L,
+                function(x) {
+                    c(mean(x), quantile(x, probs = c(1 - alpha, alpha)))
+                }
+            )
+            diffs <- data.frame(
+                t(utils::combn(colnames(object$tab), 2L)),
+                t(diffs)
+            )
         } else {
             if (is.survey) {
                 diffs <- freq1way.survey(des, ci.width)
@@ -1313,9 +1303,11 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                 vn$x
             ),
             sprintf(
-                "    with %s%s Confidence Intervals (adjusted for multiple comparisons)",
+                "    with %s%s %sConfidence Intervals%s",
                 ci.width * 100,
-                "%"
+                "%",
+                ifelse(bs, "Percentile Bootstrap ", ""),
+                ifelse(bs, "", " (adjusted for multiple comparisons)")
             ),
             "",
             paste0(" ", mat)
