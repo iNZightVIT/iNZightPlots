@@ -1255,7 +1255,11 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
             cis <- formatMat(cis)
 
         } else {
-            diffs <- freq1way.edited(object$tab, conf.level = ci.width)
+            if (is.survey) {
+                diffs <- freq1way.survey(des, ci.width)
+            } else {
+                diffs <- freq1way.edited(object$tab, conf.level = ci.width)
+            }
         }
 
         rnames <- cbind(diffs[, 1], "-", diffs[, 2])
@@ -1358,6 +1362,37 @@ freq1way.edited <- function(tbl, conf.level = 0.95) {
     }
 
     comp_results
+}
+
+freq1way.survey <- function(des, conf.level = 0.95) {
+    phat <- svymean(~x, des)
+    lvls <- levels(des$variables$x)
+    Nc <- length(lvls)
+    cmb <- utils::combn(Nc, 2L)
+    contrast_mat <- apply(cmb, 2L,
+        function(x) {
+            z <- rep(0L, Nc)
+            z[x[1]] <- 1L
+            z[x[2]] <- -1L
+            z
+        },
+        simplify = FALSE
+    )
+    names(contrast_mat) <- apply(cmb, 2L,
+        function(i) paste(lvls[i], collapse = " - ")
+    )
+
+    ctr <- svycontrast(phat, contrast_mat)
+
+    alpha <- 1 - conf.level
+    alpha_m <- alpha / length(contrast_mat)
+
+    data.frame(
+        lvls[cmb[1, ]],
+        lvls[cmb[2, ]],
+        coef(ctr),
+        confint(ctr, level = 1 - alpha_m * 2)
+    )
 }
 
 pDiffCI <- function(p1, p2, n1, n2, z = 1.96) {
