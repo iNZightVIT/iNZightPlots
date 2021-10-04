@@ -284,20 +284,20 @@ test_that("Confidence level can be adjusted - dot plots", {
     m0 <- read.table(textConnection(x))[, -1] |> as.matrix() |> unname()
     t <- qnorm(0.96) * sqrt(1/3 * 2/3 / nrow(iris))
     m <- cbind(
-        1/3 - t,
         rep(1/3, 3),
+        1/3 - t,
         1/3 + t
     ) |> round(3)
     expect_equivalent(m0, m)
 
-    expect_match(inf, "^92% Confidence Intervals", all = FALSE)
+    expect_match(inf, "with 92% Confidence Intervals", all = FALSE)
     x <- paste(collapse = "\n",
-        inf[grep("^92% Confidence Intervals", inf) + 2:6]
+        gsub("\n", "", inf[grep("92% Confidence Intervals", inf) + 4:6], fixed = TRUE)
     )
-    m0 <- read.fwf(textConnection(x), c(13, 10, 13))[-1, -1] |>
+    m0 <- read.fwf(textConnection(x), c(26, 9, 10, 9))[, -1] |>
         as.matrix() |> as.double() |> round(3)
-    m <- freq1way.edited(t(as.matrix(table(iris$Species))), "ci", conf.level = 0.92) |>
-        as.double() |> round(3)
+    m <- freq1way.edited(t(as.matrix(table(iris$Species))), conf.level = 0.92)[, -(1:2)] |>
+        as.matrix() |> as.double() |> round(3)
     expect_equal(m0, m)
 
     # bar chart - two way
