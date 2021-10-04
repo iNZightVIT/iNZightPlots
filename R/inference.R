@@ -1159,7 +1159,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
         ##### END CALCS #####
 
     } else { ## one-way table
-        mat <- t(rbind(inf$conf$lower, inf$conf$estimate, inf$conf$upper))
+        mat <- t(rbind(inf$conf$estimate, inf$conf$lower, inf$conf$upper))
 
         mat <- matrix(
             apply(mat, 2,
@@ -1175,7 +1175,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
         mat[grep("NaN", mat)] <- ""
 
         ## Text formatting to return a character vector - each row of matrix
-        mat <- rbind(c("Lower", "Estimate", "Upper"), mat)
+        mat <- rbind(c("Estimate", "Lower", "Upper"), mat)
         colnames(mat) <- NULL
         LEVELS <- colnames(object$tab)
         mat <- cbind(c("", LEVELS), mat)
@@ -1255,39 +1255,73 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
             cis <- formatMat(cis)
 
         } else {
-            diffs <- freq1way.edited(object$tab, "estimates")
-            diffs <- formatMat(diffs)
-
-            cis <- freq1way.edited(object$tab, "ci", conf.level = ci.width)
-            cis <- formatMat(cis)
+            diffs <- freq1way.edited(object$tab, conf.level = ci.width)
         }
+
+        rnames <- cbind(diffs[, 1], "-", diffs[, 2])
+        rnames[, 1] <- format(rnames[, 1], justify = "right")
+        rnames[, 3] <- format(rnames[, 3], justify = "left")
+        rnames <- apply(rnames, 1, paste, collapse = " ")
+
+        mat <- matrix(
+            apply(diffs[3:5], 2,
+                function(col) {
+                    format(col, digits = 4L, justify = "right")
+                }
+            ),
+            nrow = nrow(diffs)
+        )
+        mat[grep("NA", mat)] <- ""
+
+        mat <- cbind(format(rnames, justify = "left"), mat)
+
+        mat<- rbind(c("", "Estimate", "Lower", "Upper"), mat)
+        mat <- matrix(
+            apply(mat, 2,
+                function(col) {
+                    format(col, justify = "right")
+                }
+            ),
+            nrow = nrow(mat)
+        )
+
+        mat <- apply(mat, 1,
+            function(x) paste(x, collapse = "   ")
+        )
+        mat <- c(
+            mat[1],
+            paste(rep("-", nchar(mat[1])), collapse = ""),
+            mat[-1]
+        )
+
+        # add a new line each time the LHS changes
+        rl <- (length(LEVELS) - 1L):1L
+        rl <- cumsum(rl) + 2L
+        mat[rl] <- paste0(mat[rl], "\n")
 
         out <- c(
             out,
             "",
             HypOut,
             "",
-            sprintf("### Differences in proportions of %s", vn$x),
-            "    (col group - row group)",
-            "",
-            "Estimates",
-            "",
-            apply(diffs, 1,
-                function(x) paste0("   ", paste(x, collapse = "   "))
+            sprintf("### Difference in %sproportions of %s",
+                ifelse(is.survey, "population ", ""),
+                vn$x
+            ),
+            sprintf(
+                "    with %s%s Confidence Intervals (adjusted for multiple comparisons)",
+                ci.width * 100,
+                "%"
             ),
             "",
-            paste0(100 * ci.width, "%", bsCI, " Confidence Intervals"),
-            "",
-            apply(cis, 1,
-                function(x) paste0("   ", paste(x, collapse = "   "))
-            )
+            paste0(" ", mat)
         )
     }
 
     out
 }
 
-freq1way.edited <- function(tbl, inf.type = "estimates", conf.level = 0.95) {
+freq1way.edited <- function(tbl, conf.level = 0.95) {
     ## Before freq1way is called should output the variable name in the table
     level.names <- colnames(tbl)
     n <- sum(tbl)
@@ -1299,61 +1333,31 @@ freq1way.edited <- function(tbl, inf.type = "estimates", conf.level = 0.95) {
     conf.pc <- conf.level * 100
     phat <- tbl / sum(tbl)
 
-    qval <- abs(qnorm((1 - conf.level) / (2 * ncats)))
-
-    matw <- matrix(NA, ncats - 1, ncats - 1)
-
-    dimnames(matw) <- list(level.names[-length(level.names)], level.names[-1])
-
     qval.adjusted <- abs(qnorm((1 - conf.level) / (2 * ncatsC2)))
 
-    tempw <- ""
+    tempw <- NA_real_
 
-    if (inf.type == "estimates") {
-        for(i1 in 1:(ncats - 1)) {
-            for(i2 in 2:ncats) {
-                tempw <- phat[i1] - phat[i2]
-                tempw <- signif(tempw, 5)
-                matw[i1, i2 - 1] <- ifelse((i1 < i2), tempw , " ")
-            }
-        }
-        t(matw)
-    } else {
-        testMatrix <- matrix(" ", ncats - 1, 2 * ncats - 2)
-        count <- 1
-        count.2 <- 0
-        for (i1 in 1:(ncats - 1)) {
-            count <- 0
-            for (i2 in 2:ncats) {
-                tempw <- phat[i1] - phat[i2] +
-                    abs(qnorm((1 - conf.level) / (2 * ncatsC2))) * c(-1, 1) *
-                        sqrt(((phat[i1] + phat[i2]) - ((phat[i1] - phat[i2])^2)) / n)
-                tempw <- signif(tempw, 5)
-                matw[i1, i2 - 1] <- ifelse((i1 < i2),
-                    paste("(", tempw[1], ",", tempw[2], ")", sep = ""),
-                    " "
-                )
+    lvlc <- combn(level.names, 2L)
+    comp_results <- data.frame(
+        a = lvlc[1L, ],
+        b = lvlc[2L, ],
+        estimate = numeric(ncatsC2),
+        lower = numeric(ncatsC2),
+        upper = numeric(ncatsC2)
+    )
 
-                if (i2 == 2)
-                    count <- i2 - 2
-                if (i1 < i2) {
-                    testMatrix[i1, count + 1 + count.2] <- tempw[1]
-                    testMatrix[i1, (count = count + 2) + count.2] <- tempw[2]
-                }
-            }
-            count.2 <- count.2 + 2
-        }
-
-        rowNames <- rep("", ncats * 2)
-        temp <- 1:(ncats * 2)
-        rowNames[(temp %% 2 != 0)] <- level.names
-
-        testMatrix <- t(testMatrix)
-        rownames(testMatrix) <- rowNames[-c(1, 2)]
-        colnames(testMatrix) <- level.names[-ncats]
-
-        testMatrix
+    for (i in seq_len(ncatsC2)) {
+        a <- comp_results[i, "a"]
+        b <- comp_results[i, "b"]
+        comp_results[i, "estimate"] <- phat[,a] - phat[,b]
+        ci <- phat[,a] - phat[,b] +
+            qval.adjusted * c(-1, 1) *
+                sqrt(((phat[,a] + phat[,b]) - ((phat[,a] - phat[,b])^2)) / n)
+        comp_results[i, "lower"] <- ci[1]
+        comp_results[i, "upper"] <- ci[2]
     }
+
+    comp_results
 }
 
 pDiffCI <- function(p1, p2, n1, n2, z = 1.96) {
