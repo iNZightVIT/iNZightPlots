@@ -186,85 +186,6 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
     }
 
     if (byFactor & !bs) {
-        if (length(toplot) == 2) {
-            ## Two sample t-test
-
-            if (is.survey) {
-                fmla <- if (is.numeric(des$variables$x)) x ~ y else y ~ x
-                ttest <- try(
-                    svyttest(fmla, design = des, na.rm = TRUE),
-                    silent = TRUE
-                )
-                if (inherits(ttest, "try-error")) {
-                    mat <- rbind(
-                        c("Estimate", "Lower", "Upper"),
-                        rep(NA, 3)
-                    )
-                } else {
-                    ## the survey t-test is "level[2] - level[1]",
-                    ## rather than "level[1] - level[2]"
-                    ci <- confint(ttest, level = ci.width)
-                    mat <- rbind(
-                        c("Estimate", "Lower", "Upper"),
-                        format(-c(ttest$estimate[[1]], ci[[2]], ci[[1]]), digits = 4)
-                    )
-                    colnames(mat) <- NULL
-                }
-            } else {
-                ttest <- t.test(toplot[[1]]$x, toplot[[2]]$x,
-                    var.equal = if (is.null(hypothesis)) TRUE else hypothesis$var.equal,
-                    conf.level = ci.width
-                )
-                mat <- rbind(
-                    c("Estimate", "Lower", "Upper"),
-                    format(
-                        c(
-                            diff(rev(ttest$estimate)),
-                            ttest$conf.int[1],
-                            ttest$conf.int[2]
-                        ),
-                        digits = 4
-                    )
-                )
-                colnames(mat) <- NULL
-            }
-
-            if (any(is.na(mat))) {
-                out <- c(out, "")
-            } else {
-                mat <- cbind(
-                    c("", paste0(names(toplot)[1], " - ", names(toplot)[2])),
-                    mat
-                )
-
-                mat <- matrix(
-                    apply(mat, 2,
-                        function(col) {
-                            format(col, justify = "right")
-                        }
-                    ),
-                    nrow = nrow(mat)
-                )
-
-                mat <- apply(mat, 1,
-                    function(x) paste0("   ", paste(x, collapse = "   "))
-                )
-
-                out <- c(
-                    out,
-                    "",
-                    sprintf(
-                        "Difference in %s means with %s%s Confidence Interval",
-                        ifelse(is.survey, "population", "group"),
-                        ci.width * 100,
-                        "%"
-                    ),
-                    "",
-                    mat
-                )
-            }
-        }
-
         if (!is.null(hypothesis)) {
             if (length(toplot) == 2 && hypothesis$test %in% c("default", "t.test")) {
                 if (is.survey) {
@@ -433,7 +354,84 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
             )
         }
 
-        if (length(toplot) > 2) {
+        if (length(toplot) == 2) {
+            ## Two sample t-test
+
+            if (is.survey) {
+                fmla <- if (is.numeric(des$variables$x)) x ~ y else y ~ x
+                ttest <- try(
+                    svyttest(fmla, design = des, na.rm = TRUE),
+                    silent = TRUE
+                )
+                if (inherits(ttest, "try-error")) {
+                    mat <- rbind(
+                        c("Estimate", "Lower", "Upper"),
+                        rep(NA, 3)
+                    )
+                } else {
+                    ## the survey t-test is "level[2] - level[1]",
+                    ## rather than "level[1] - level[2]"
+                    ci <- confint(ttest, level = ci.width)
+                    mat <- rbind(
+                        c("Estimate", "Lower", "Upper"),
+                        format(-c(ttest$estimate[[1]], ci[[2]], ci[[1]]), digits = 4)
+                    )
+                    colnames(mat) <- NULL
+                }
+            } else {
+                ttest <- t.test(toplot[[1]]$x, toplot[[2]]$x,
+                    var.equal = if (is.null(hypothesis)) TRUE else hypothesis$var.equal,
+                    conf.level = ci.width
+                )
+                mat <- rbind(
+                    c("Estimate", "Lower", "Upper"),
+                    format(
+                        c(
+                            diff(rev(ttest$estimate)),
+                            ttest$conf.int[1],
+                            ttest$conf.int[2]
+                        ),
+                        digits = 4
+                    )
+                )
+                colnames(mat) <- NULL
+            }
+
+            if (any(is.na(mat))) {
+                out <- c(out, "")
+            } else {
+                mat <- cbind(
+                    c("", paste0(names(toplot)[1], " - ", names(toplot)[2])),
+                    mat
+                )
+
+                mat <- matrix(
+                    apply(mat, 2,
+                        function(col) {
+                            format(col, justify = "right")
+                        }
+                    ),
+                    nrow = nrow(mat)
+                )
+
+                mat <- apply(mat, 1,
+                    function(x) paste0("   ", paste(x, collapse = "   "))
+                )
+
+                out <- c(
+                    out,
+                    "",
+                    sprintf(
+                        "Difference in %s means with %s%s Confidence Interval",
+                        ifelse(is.survey, "population", "group"),
+                        ci.width * 100,
+                        "%"
+                    ),
+                    "",
+                    mat
+                )
+            }
+        } else if (length(toplot) > 2) {
             ## For x ~ factor, we also include an F test, and multiple comparisons
             ## (estimates, pvalues, and confidence intervals).
 
@@ -507,15 +505,12 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                 out <- c(
                     out,
                     "",
-                    sprintf("### Difference in %smean %s between %s categories",
+                    sprintf("Pairwise differences in %sgroup means with %s%s Confidence Intervals and P-values",
                         ifelse(is.survey, "population ", ""),
-                        vn$x, vn$y
-                    ),
-                    sprintf(
-                        "    with %s%s Confidence Intervals (adjusted for multiple comparisons)",
                         ci.width * 100,
                         "%"
                     ),
+                    "(The CIs and P-values have been adjusted for multiple comparisons)",
                     "",
                     paste0(" ", mat),
                     "",
@@ -977,11 +972,12 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
             HypOut,
             "",
             paste0(
-                "### Differences in proportions of ",
+                "Differences in proportions of ",
                 vn$y,
                 " with the specified ",
                 vn$x
-            )
+            ),
+            "(Note: CIs are not adjusted for multiple comparisons)"
         )
 
         if (bs) {
@@ -998,18 +994,31 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                     n1 <- nrow(tt)
                     n2 <- ncol(tt)
                     nn <- rowSums(tt)
-                    pp <- sweep(tt, 1, nn, "/")
+                    pp <- sweep(tt, 1L, nn, "/")
 
-                    d <- c()
-                    for (ii in 1:n2)
-                        for (jj in 2:n1)
-                            d <- c(d, pp[jj, ii] - pp[jj - 1, ii])
-
-                    d
+                    cm <- utils::combn(n1, 2L)
+                    t(apply(cm, 2L,
+                        function(x) {
+                            pp[x[1], ] - pp[x[2], ]
+                        }
+                    ))
                 },
                 R = nb
             )
+            bmat <- apply(b$t, 2L,
+                function(x) {
+                    c(mean(x), quantile(x, probs = c(1 - alpha, alpha)))
+                }
+            )
+            b_mean <- matrix(bmat[1L, ], ncol = choose(nrow(tab), 2L), byrow = TRUE)
+            b_low <- matrix(bmat[2L, ], ncol = choose(nrow(tab), 2L), byrow = TRUE)
+            b_upp <- matrix(bmat[3L, ], ncol = choose(nrow(tab), 2L), byrow = TRUE)
         }
+
+        ## TODO: work out correct value of M for adjusting alpha
+        alpha_m <- (length(dn$x) - 1L) * choose(length(dn$y), 2L)
+        alpha_m <- 1L
+        alpha_adjusted <- (1 - ci.width) / alpha_m
 
         for (j in 1:ncol(phat)) {
             p <- phat[, j]
@@ -1018,59 +1027,68 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
             sum <- rowSums(object$tab)
 
             if (bs) {
-                ni <- nrow(tab) - 1
-                wi <- 1:ni + (j - 1) * ni
-                diff <- matrix(nrow = ni + 1, ncol = ni + 1)
-                diff[lower.tri(diff)] <- colMeans(b$t, na.rm = TRUE)[wi]
-                diff <- formatTriMat(diff, rownames(tab))
+                diffs <- data.frame(
+                    t(utils::combn(rownames(tab), 2L)),
+                    b_mean[j, ],
+                    b_low[j, ],
+                    b_upp[j, ]
+                )
+            } else if (is.survey) {
+                des$variables$x0 <- ifelse(des$variables$x == lev, 1L, 0L)
+                fit <- survey::svyglm(x0 ~ y - 1L, design = des)
+                diffs <- freq2way.survey(fit, dn[[1]], alpha_adjusted)
             } else {
-                diff <- outer(p, p, function(p1, p2) p1 - p2)
-                diff <- formatTriMat(diff, dn[[1]])
+                diffs <- freq2way(p, sum, alpha_adjusted)
             }
+
+            rnames <- cbind(diffs[, 1], "-", diffs[, 2])
+            rnames[, 1] <- format(rnames[, 1], justify = "right")
+            rnames[, 3] <- format(rnames[, 3], justify = "left")
+            rnames <- apply(rnames, 1, paste, collapse = " ")
+
+            mat <- matrix(
+                apply(diffs[3:5], 2,
+                    function(col) {
+                        format(col, digits = 4L, justify = "right")
+                    }
+                ),
+                nrow = nrow(diffs)
+            )
+            mat[grep("NA", mat)] <- ""
+
+            mat <- cbind(format(rnames, justify = "left"), mat)
+
+            mat<- rbind(c("", "Estimate", "Lower", "Upper"), mat)
+            mat <- matrix(
+                apply(mat, 2,
+                    function(col) {
+                        format(col, justify = "right")
+                    }
+                ),
+                nrow = nrow(mat)
+            )
+
+            mat <- apply(mat, 1,
+                function(x) paste(x, collapse = "   ")
+            )
+            mat <- c(
+                mat[1],
+                paste(rep("-", nchar(mat[1])), collapse = ""),
+                mat[-1]
+            )
 
             out <- c(
                 out,
                 "",
                 paste0(
-                    "  # Group differences between proportions with: ",
+                    " ## ",
                     vn$x,
                     " = ",
                     lev
                 ),
-                "    (row group - col group)",
                 "",
-                "Estimates",
-                "",
-                apply(diff, 1,
-                    function(x) paste0("   ", paste(x, collapse = "   "))
-                )
+                mat
             )
-
-            if (!is.survey) {
-                cis <- matrix(NA, nrow = 2 * (n - 1), ncol = n - 1)
-                for (k in 2:n) {
-                    for (l in 1:(k - 1)) {
-                        wr <- (k - 2) * 2 + 1
-                        cis[wr:(wr + 1), l] <-
-                            if (bs) quantile(b$t[, j], c(1 - alpha, alpha), na.rm = TRUE)
-                            else pDiffCI(p[k], p[l], sum[k], sum[l], qnorm(alpha))
-                    }
-                }
-                colnames(cis) <- dn[[1]][-n]
-                rownames(cis) <- c(rbind(dn[[1]][-1], ""))
-
-                cis <- formatMat(cis, 3)
-
-                out <- c(
-                    out,
-                    "",
-                    paste0(100 * ci.width, "% ", bsCI, " Confidence Intervals"),
-                    "",
-                    apply(cis, 1,
-                        function(x) paste0("   ", paste(x, collapse = "   "))
-                    )
-                )
-            }
         }
 
         ##### EPI CALCS #####
@@ -1386,6 +1404,57 @@ freq1way.survey <- function(des, conf.level = 0.95) {
         confint(ctr, level = 1 - alpha_m * 2)
     )
 }
+
+freq2way <- function(p, n, alpha) {
+    cn <- utils::combn(names(p), 2L)
+    data.frame(
+        t(cn),
+        t(apply(cn, 2L,
+            function(x) {
+                c(
+                    p[x[1]] - p[x[2]],
+                    pDiffCI(p[x[1]], p[x[2]], n[x[1]], n[x[2]], qnorm(alpha))
+                )
+            }
+        ))
+    )
+}
+
+freq2way.survey <- function(fit, lvls, alpha) {
+    Nc <- length(lvls)
+    cmb <- utils::combn(Nc, 2L)
+    contrast_mat <- apply(cmb, 2L,
+        function(x) {
+            z <- rep(0L, Nc)
+            z[x[1]] <- 1L
+            z[x[2]] <- -1L
+            z
+        },
+        simplify = FALSE
+    )
+    names(contrast_mat) <- apply(cmb, 2L,
+        function(i) paste(lvls[i], collapse = " - ")
+    )
+    ctr <- try(svycontrast(fit, contrast_mat), silent = TRUE)
+    if (inherits(ctr, "try-error")) {
+        return(
+            data.frame(
+                lvls[cmb[1, ]],
+                lvls[cmb[2, ]],
+                sapply(contrast_mat, function(x) sum(coef(fit) * x)),
+                rep(NA, length(contrast_mat)),
+                rep(NA, length(contrast_mat))
+            )
+        )
+    }
+    data.frame(
+        lvls[cmb[1, ]],
+        lvls[cmb[2, ]],
+        coef(ctr),
+        confint(ctr, level = 1 - alpha * 2)
+    )
+}
+
 
 pDiffCI <- function(p1, p2, n1, n2, z = 1.96) {
     p <- p1 - p2

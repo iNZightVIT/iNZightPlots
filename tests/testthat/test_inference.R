@@ -257,7 +257,7 @@ test_that("Confidence level can be adjusted - dot plots", {
     expect_equivalent(m0, m)
     ## - difference CIs
     expect_match(inf,
-        "99% Confidence Intervals (adjusted for multiple comparisons)",
+        "99% Confidence Intervals",
         all = FALSE,
         fixed = TRUE
     )

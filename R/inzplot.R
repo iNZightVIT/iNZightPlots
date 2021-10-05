@@ -62,7 +62,7 @@ inzplot.formula <- function(x, data = NULL, design = NULL, ..., env = parent.fra
             varx <- data[[fmla$x]]
             vary <- data[[fmla$y]]
         }
-        if (is_cat(varx) || is_cat(vary)) {
+        if (is_cat(varx)) {
             # need to do a switch-a-roo
             xx <- fmla$x
             fmla$x <- fmla$y
