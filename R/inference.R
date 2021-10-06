@@ -972,7 +972,9 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
             HypOut,
             "",
             paste0(
-                "Comparing differences across ",
+                "Comparing differences in ",
+                vn$x,
+                "-distribution proportions between ",
                 vn$y,
                 " groups"
             ),
@@ -1080,13 +1082,13 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                 out,
                 "",
                 paste0(
-                    "  # Pairwise differences in proportions with ",
+                    " # Pairwise differences in proportions of ",
                     vn$x,
                     " = ",
                     lev
                 ),
                 "",
-                mat,
+                paste("  ", mat),
                 ""
             )
         }
