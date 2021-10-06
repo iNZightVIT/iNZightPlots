@@ -35,8 +35,8 @@ test_that("One sample t-test", {
     expect_equal(
         est_tbl,
         data.frame(
-            Lower = round(svy_ci[[1]], 1),
             Estimate = round(svy_mean[[1]], 1),
+            Lower = round(svy_ci[[1]], 1),
             Upper = round(svy_ci[[2]], 1),
             stringsAsFactors = TRUE
         )
@@ -60,7 +60,7 @@ test_that("Two sample inference", {
     x <- svyby(~api00, ~both, design = dclus1, svymean)
     xhat <- round(coef(x), 1)
     ci <- round(confint(x, level = 0.99), 1)
-    reg <- paste("\\s+", rownames(ci), "\\s+", ci[, 1], "\\s+", xhat, "\\s+", ci[, 2],
+    reg <- paste("\\s+", rownames(ci), "\\s+", xhat, "\\s+", ci[, 1], "\\s+", ci[, 2],
         sep = "", collapse = " ")
     expect_match(
         paste(smry, collapse = " "),
@@ -72,7 +72,7 @@ test_that("Two sample inference", {
     x <- round(ttest$estimate, 2)
     ci <- sprintf("%.2f", confint(ttest, level = 0.99) * -1)
     reg <- gsub(".", "\\.",
-        paste("No - Yes", ci[2], -x, ci[1], sep = "\\s+"),
+        paste("No - Yes", -x, ci[2], ci[1], sep = "\\s+"),
         fixed = TRUE)
     expect_match(smry, reg, all = FALSE)
 })
@@ -107,8 +107,8 @@ test_that("Two sample t-test", {
     expect_equal(
         est_tbl,
         data.frame(
-            Lower = round(svy_ci[,1], 1),
             Estimate = round(svy_mean[,2], 1),
+            Lower = round(svy_ci[,1], 1),
             Upper = round(svy_ci[,2], 1),
             stringsAsFactors = TRUE
         )
@@ -155,8 +155,8 @@ test_that("ANOVA (equivalent)", {
     expect_equal(
         est_tbl,
         data.frame(
-            Lower = round(svy_ci[,1], 2),
             Estimate = round(svy_mean[,2], 2),
+            Lower = round(svy_ci[,1], 2),
             Upper = round(svy_ci[,2], 2),
             stringsAsFactors = TRUE
         )
@@ -356,8 +356,8 @@ test_that("Subset inference - one sample t-test", {
         function(svy_mean) {
             svy_ci <- confint(svy_mean)
             data.frame(
-                Lower = round(svy_ci[[1]], 1),
                 Estimate = round(svy_mean[[1]], 1),
+                Lower = round(svy_ci[[1]], 1),
                 Upper = round(svy_ci[[2]], 1),
                 stringsAsFactors = TRUE
             )
@@ -423,8 +423,8 @@ test_that("Subset inference - two sample t-test", {
         function(svy_mean) {
             svy_ci <- confint(svy_mean)
             data.frame(
-                Lower = round(svy_ci[,1], 1),
                 Estimate = round(svy_mean[,2], 1),
+                Lower = round(svy_ci[,1], 1),
                 Upper = round(svy_ci[,2], 1),
                 stringsAsFactors = TRUE
             )
@@ -502,8 +502,8 @@ test_that("Subset twice inference - one sample t-test", {
         function(svy_mean) {
             svy_ci <- confint(svy_mean)
             data.frame(
-                Lower = round(svy_ci[[1]], 1),
                 Estimate = round(svy_mean[[1]], 1),
+                Lower = round(svy_ci[[1]], 1),
                 Upper = round(svy_ci[[2]], 1),
                 stringsAsFactors = TRUE
             )
@@ -572,8 +572,8 @@ test_that("Subset (only g2) inference - two sample t-test", {
         function(svy_mean) {
             svy_ci <- confint(svy_mean)
             data.frame(
-                Lower = round(svy_ci[,1], 1),
                 Estimate = round(svy_mean[,2], 1),
+                Lower = round(svy_ci[,1], 1),
                 Upper = round(svy_ci[,2], 1),
                 stringsAsFactors = TRUE
             )
@@ -902,7 +902,7 @@ test_that("Missing values are handled appropriately", {
     out <- inzinference(Weight ~ Gender.cat, design = nhanes.svy)
     outi <- grep("Population Means", out) + 3:4
     obs <- scan(textConnection(gsub("[a-zA-Z]", "", out[outi])))
-    exp <- cbind(rci[,1], coef(r), rci[,2])
+    exp <- cbind(coef(r), rci[,1], rci[,2])
     exp <- round(c(exp[1, ], exp[2, ]), 2)
 
     expect_equal(obs, exp)

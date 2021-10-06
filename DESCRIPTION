@@ -32,7 +32,9 @@ Imports:
     iNZightTools (>= 1.9),
     rlang,
     magrittr,
-    lubridate
+    lubridate,
+    cli,
+    emmeans
 Suggests:
     hextri,
     viridis,
