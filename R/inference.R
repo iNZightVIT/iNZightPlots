@@ -1353,7 +1353,7 @@ freq1way.edited <- function(tbl, conf.level = 0.95) {
 
     tempw <- NA_real_
 
-    lvlc <- combn(level.names, 2L)
+    lvlc <- utils::combn(level.names, 2L)
     comp_results <- data.frame(
         a = lvlc[1L, ],
         b = lvlc[2L, ],
