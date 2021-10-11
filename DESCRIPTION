@@ -12,7 +12,7 @@ BugReports: https://github.com/iNZightVIT/iNZightPlots/issues
 Contact: inzight_support@stat.auckland.ac.nz
 URL: https://inzight.nz
 Depends:
-    R(>= 3.2)
+    R(>= 4.0)
 Imports:
     grDevices,
     stats,
