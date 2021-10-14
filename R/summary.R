@@ -338,7 +338,8 @@ summary.inzhist <- function(object, des, survey.options, ...)
     summary.inzdot(object, des, survey.options, ...)
 
 
-summary.inzbar <- function(object, des, survey.options, ...) {
+summary.inzbar <- function(object, vn, des, survey.options,
+                           table.direction, ...) {
     tab <- round(object$tab)
     perc <- object$phat * 100
 
@@ -363,10 +364,21 @@ summary.inzbar <- function(object, des, survey.options, ...) {
         )
 
         mat1 <- rbind(
-            c(colnames(tab), "Row Total"),
+            c(colnames(tab),
+                sprintf("%s Total",
+                    switch(table.direction,
+                        vertical = "Column",
+                        horizontal = "Row"
+                    )
+                )
+            ),
             cbind(tab, rowSums(tab))
         )
         mat1 <- cbind(c("", rownames(tab)), mat1)
+
+        if (table.direction == "vertical") {
+            mat1 <- t(mat1)
+        }
 
         mat1 <- matrix(
             apply(mat1, 2,
@@ -377,12 +389,34 @@ summary.inzbar <- function(object, des, survey.options, ...) {
             nrow = nrow(mat1)
         )
 
+        mat1 <- apply(mat1, 1,
+            function(x) paste0("   ", paste(x, collapse = "   "))
+        )
+
+        if (table.direction == "vertical") {
+            mat1 <- c(
+                mat1[-length(mat1)],
+                paste(c("   ", rep("-", nchar(mat1[1]) - 3L)), collapse = ""),
+                mat1[length(mat1)]
+            )
+        }
 
         mat2 <- rbind(
-            c(colnames(tab), "Total", "Row N"),
+            c(colnames(tab), "Total",
+                sprintf("%s N",
+                    switch(table.direction,
+                        vertical = "Column",
+                        horizontal = "Row"
+                    )
+                )
+            ),
             cbind(perc, rowSums(tab))
         )
         mat2 <- cbind(c("", rownames(tab)), mat2)
+
+        if (table.direction == "vertical") {
+            mat2 <- t(mat2)
+        }
 
         mat2 <- matrix(
             apply(mat2, 2,
@@ -393,22 +427,31 @@ summary.inzbar <- function(object, des, survey.options, ...) {
             nrow = nrow(mat2)
         )
 
+        mat2 <- apply(mat2, 1,
+            function(x) paste0("   ", paste(x, collapse = "   "))
+        )
+
+        if (table.direction == "vertical") {
+            mat2 <- c(
+                mat2[seq_len(length(mat2) - 2L)],
+                paste(c("   ", rep("-", nchar(mat2[1]) - 3L)), collapse = ""),
+                mat2[-seq_len(length(mat2) - 2L)]
+            )
+        }
+
         out <- c(
             sprintf("Table of %sCounts:",
                 ifelse(is.survey, "Estimated Population ", "")
             ),
             "",
-            apply(mat1, 1,
-                function(x) paste0("   ", paste(x, collapse = "   "))
+            mat1,
+            "",
+            sprintf("Table of %sPercentages (within categories of %s):",
+                ifelse(is.survey, "Estimated Population ", ""),
+                vn$y
             ),
             "",
-            sprintf("Table of %sPercentages:",
-                ifelse(is.survey, "Estimated Population ", "")
-            ),
-            "",
-            apply(mat2, 1,
-                function(x) paste0("   ", paste(x, collapse = "   "))
-            )
+            mat2
         )
 
         if (is.survey) {
@@ -422,6 +465,11 @@ summary.inzbar <- function(object, des, survey.options, ...) {
                 c("", rownames(tab)),
                 rbind(colnames(tab), mat)
             )
+
+            if (table.direction == "vertical") {
+                mat <- t(mat)
+            }
+
             mat <- matrix(
                 apply(mat, 2,
                     function(col) {
@@ -437,7 +485,7 @@ summary.inzbar <- function(object, des, survey.options, ...) {
             out <- c(
                 out,
                 "",
-                "Standard error of estimated percentages:",
+                "Standard errors of estimated percentages:",
                 "",
                 mat
             )
@@ -448,6 +496,9 @@ summary.inzbar <- function(object, des, survey.options, ...) {
                     c("", rownames(tab)),
                     rbind(colnames(tab), mat)
                 )
+                if (table.direction == "vertical") {
+                    mat <- t(mat)
+                }
                 mat <- matrix(
                     apply(mat, 2,
                         function(col) {
@@ -475,7 +526,7 @@ summary.inzbar <- function(object, des, survey.options, ...) {
             )
         )
 
-        mat <- cbind(c("", "Count ", "Percent "), mat)
+        mat <- cbind(c("", "Count", "Percent"), mat)
         if (is.survey) {
             smry_mean <- svymean(~x, des, deff = survey.options$deff, na.rm = TRUE)
             mat <- rbind(
@@ -483,7 +534,7 @@ summary.inzbar <- function(object, des, survey.options, ...) {
                 "",
                 mat[3, ],
                 c(
-                    "  std err ",
+                    "Standard Error",
                     paste0(
                         format(round(SE(smry_mean) * 100, 2),
                             nsmall = 2
@@ -497,7 +548,7 @@ summary.inzbar <- function(object, des, survey.options, ...) {
                 mat <- rbind(mat,
                     "",
                     c(
-                        "Design effects ",
+                        "Design effects",
                         paste0(
                             format(round(deff(smry_mean), 2),
                                 nsmall = 2
@@ -508,6 +559,10 @@ summary.inzbar <- function(object, des, survey.options, ...) {
                     )
                 )
             }
+        }
+
+        if (table.direction == "vertical") {
+            mat <- t(mat)
         }
 
         mat <- matrix(
@@ -524,6 +579,15 @@ summary.inzbar <- function(object, des, survey.options, ...) {
         mat <- apply(mat, 1,
             function(x) paste0("   ", paste(x, collapse = "   "))
         )
+
+        # add line separator above total in vertical tables
+        if (table.direction == "vertical") {
+            mat <- c(
+                mat[-length(mat)],
+                paste(c("   ", rep("-", nchar(mat[1]) - 3L)), collapse = ""),
+                mat[length(mat)]
+            )
+        }
 
 
         if (is.survey) {
