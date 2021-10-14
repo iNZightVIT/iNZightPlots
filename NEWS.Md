@@ -7,6 +7,10 @@
 - one- and two-way tables' inference displays a single table, and uses correct method for calculating CIs for differences in proportions in a survey design
 - clarify wording for two-way difference tables
 
+## iNZightPlots 2.13.5
+
+- patch issue with summary/inference if the graphics device has minimal/no dimensions
+
 ## iNZightPlots 2.13.4
 
 - fix bug in `inzsummary` and `inzinference` for survey regression output (response/predictor wrong way around)
