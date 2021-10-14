@@ -662,7 +662,7 @@ iNZightPlot <- function(x,
 
     if (itsADotplot) {
 
-        if (is.null(dev.list())) {
+        if (!plot || is.null(dev.list())) {
             xattr$symbol.width <- 1
         } else {
             xattr$symbol.width <- convertWidth(unit(opts$cex.dotpt, "char"),
