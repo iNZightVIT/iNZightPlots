@@ -261,6 +261,9 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
 
     ## Handle privacy/confidentialisation
     privacy_controls <- make_privacy_controls(privacy_controls)
+    if (!is.null(privacy_controls) && privacy_controls$has("seed")) {
+        set.seed(privacy_controls$get("seed"))
+    }
 
     add(Hrule)
     add(
@@ -411,6 +414,39 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
 
     add(Hrule)
     add("")
+
+    if (!is.null(privacy_controls)) {
+        add("Privacy and confidentialisation information", underline = TRUE)
+        add("")
+        if (privacy_controls$has("rounding")) {
+            add(
+                sprintf("  * counts are rounded using %s",
+                    switch(privacy_controls$get("rounding"),
+                        "RR3" = "RR3 (random rounding to base 3)",
+                        paste0("other (", privacy_controls$get("rounding"), ")")
+                    )
+                )
+            )
+        }
+        if (privacy_controls$has("suppression")) {
+            add(
+                sprintf("  * suppression of counts smaller than %d, indicated by %s",
+                    privacy_controls$get("suppression"),
+                    privacy_controls$get("symbol")
+                )
+            )
+        }
+        if (privacy_controls$has("seed")) {
+            add(sprintf("  * using RNG seed %d", privacy_controls$get("seed")))
+        }
+        add("")
+        add(
+            "NOTE: this feature is still experimental, and all output should be manually\n",
+            "checked before being made public. This is simply to aid that process.\n"
+        )
+        add(Hrule)
+        add("")
+    }
 
     simpleCap <- function(x) {
         s <- strsplit(x, " ")[[1]]

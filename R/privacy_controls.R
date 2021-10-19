@@ -3,6 +3,8 @@ make_privacy_controls <- function(ctrls = NULL) {
 
     if (is.null(ctrls$rounding)) ctrls$rounding <- ""
     if (is.null(ctrls$suppression)) ctrls$suppression <- NA
+    if (is.null(ctrls$symbol)) ctrls$symbol <- "S"
+    if (is.null(ctrls$seed)) ctrls$seed <- NA
 
     list(
         round = switch(ctrls$rounding,
@@ -32,10 +34,16 @@ make_privacy_controls <- function(ctrls = NULL) {
             }
             x
         },
-        suppress = function(x, mat, symbol = "S") {
+        suppress = function(x, mat, symbol) {
             if (is.null(mat)) return(x)
+            if (missing(symbol)) symbol <- ctrls$symbol
             x[mat] <- symbol
             x
-        }
+        },
+        has = function(x)
+            !is.null(ctrls[[x]]) &&
+            !is.na(ctrls[[x]]) &&
+            ctrls[[x]] != "",
+        get = function(x) ctrls[[x]]
     )
 }
