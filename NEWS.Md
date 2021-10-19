@@ -6,6 +6,8 @@
 - survey anova inference now provides CIs and adjusted p-values using 'emmeans' package
 - one- and two-way tables' inference displays a single table, and uses correct method for calculating CIs for differences in proportions in a survey design
 - clarify wording for two-way difference tables
+- allow specification of randomg rounding and suppression rules
+  - one- and two-way tables
 
 ## iNZightPlots 2.13.5
 
