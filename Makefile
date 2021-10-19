@@ -24,3 +24,7 @@ test: $(data)
 
 data/plot_types.rda: data-raw/plot_types.csv
 	@$(RCMD) -f data-raw/plot_types.R
+
+README.md: README.Rmd
+	@$(RCMD) -e 'rmarkdown::render("$<")'
+	@rm README.html

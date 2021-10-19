@@ -21,6 +21,29 @@ test_that("One-way table summaries are correct", {
     )
 })
 
+test_that("Vertical tables supported", {
+    p <- inzsummary(~travel, data = cas, table.direction = "vertical")
+    expect_match(
+        p[which(grepl("Summary of the distribution", p)) + 3],
+        "\\sCount\\s+Percent"
+    )
+    expect_match(
+        p[which(grepl("Summary of the distribution", p)) + 10],
+        "-+"
+    )
+
+    p2 <- inzsummary(travel~gender, data = cas, table.direction = "vertical")
+    expect_match(
+        p2[grep("Summary of the distribution", p2)],
+        ".+travel \\(rows\\) by gender \\(columns\\).+"
+    )
+    expect_match(
+        p2[grep("Table of Counts", p2) + 2L],
+        "\\sfemale\\s+male"
+    )
+    expect_match(p2, "Column N", all = FALSE)
+})
+
 
 data(api, package = "survey")
 dclus2<-svydesign(id=~dnum+snum, fpc=~fpc1+fpc2, data=apiclus2)

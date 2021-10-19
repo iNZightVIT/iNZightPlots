@@ -9,7 +9,7 @@ df <- data.frame(
 tab <- t(table(df$x, df$y))
 pr <- sweep(tab, 1, rowSums(tab), "/")
 # CI width
-wd <- unclass(1.96 * sqrt(
+wd <- unclass(qnorm(0.975) * sqrt(
     sweep(pr * (1 - pr), 1, rowSums(tab), "/")
 ))
 

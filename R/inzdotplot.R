@@ -292,12 +292,14 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
                     )
                 )
             )
-            if (mdiff == 0) {
+            if (is.null(xx)) {
+                bins <- NA
+            } else if (mdiff == 0) {
                 bins <- xx[1]
             } else {
                 bins <- seq(
-                    min(xx) - 0.5 * mdiff,
-                    max(xx) + 0.5 * mdiff,
+                    min(xx, na.rm = TRUE) - 0.5 * mdiff,
+                    max(xx, na.rm = TRUE) + 0.5 * mdiff,
                     by = mdiff
                 )
             }
@@ -732,6 +734,9 @@ dotinference <- function(obj) {
         }
     }
 
+    # CI interval width:
+    alpha <- 1 - (1 - opts$ci.width) / 2
+
     if (!is.null(inf.par)) {
         result.list <- lapply(inf.par,
             function(ip) {
@@ -742,7 +747,7 @@ dotinference <- function(obj) {
                                 switch(type,
                                     "conf" = {
                                         if (bs) {
-                                            ## 95% bootstrap confidence interval
+                                            ## ci.width% bootstrap confidence interval
                                             if (svy) {
                                                 if ("y" %in% colnames(dat$variables)) {
                                                     NULL
@@ -759,7 +764,7 @@ dotinference <- function(obj) {
                                                 ci <- cbind(
                                                     t(
                                                         apply(b$t, 2, quantile,
-                                                            probs = c(0.025, 0.975),
+                                                            probs = c(1 - alpha, alpha),
                                                             na.rm = TRUE
                                                         )
                                                     ),
@@ -772,24 +777,27 @@ dotinference <- function(obj) {
                                                 ci
                                             }
                                         } else {
-                                            ## 95% confidence interval (normal theory)
+                                            ## ci.width% confidence interval (normal theory)
                                             if (svy) {
                                                 if ("y" %in% colnames(dat$variables)) {
                                                     ci <- svyby(~x, ~y,
                                                         design = dat,
                                                         svymean,
-                                                        vartype = "ci",
+                                                        level = opts$ci.width,
                                                         drop.empty.groups = FALSE,
                                                         na.rm = TRUE
                                                     )
-                                                    ci <- ci[, 2:4]
+                                                    ci <- cbind(
+                                                        coef(ci),
+                                                        confint(ci, level = opts$ci.width)
+                                                    )
                                                     dimnames(ci) <- list(
                                                         levels(dat$variables$y),
                                                         c("mean", "lower", "upper")
                                                     )
                                                 } else {
                                                     fit <- svymean(~x, dat, na.rm = TRUE)
-                                                    ci <- rbind(c(fit[1], confint(fit)))
+                                                    ci <- rbind(c(fit[1], confint(fit, level = opts$ci.width)))
                                                     dimnames(ci) <- list("all", c("mean", "lower", "upper"))
                                                 }
                                                 ci
@@ -798,7 +806,7 @@ dotinference <- function(obj) {
                                                     function(z) sum(!is.na(z))
                                                 )
                                                 n <- ifelse(n < 5, NA, n)
-                                                wd <- qt(0.975, df = n - 1) *
+                                                wd <- qt(alpha, df = n - 1) *
                                                     tapply(dat$x, dat$y, sd,
                                                         na.rm = TRUE
                                                     ) / sqrt(n)
@@ -962,7 +970,7 @@ dotinference <- function(obj) {
                                                 ci <- cbind(
                                                     t(
                                                         apply(b$t, 2, quantile,
-                                                            probs = c(0.025, 0.975),
+                                                            probs = c(1 - alpha, alpha),
                                                             na.rm = TRUE
                                                         )
                                                     ),
@@ -1057,7 +1065,7 @@ dotinference <- function(obj) {
                                         iqr <- cbind(
                                             t(
                                                 apply(b$t, 2, quantile,
-                                                    probs = c(0.025, 0.975),
+                                                    probs = c(1 - alpha, alpha),
                                                     na.rm = TRUE
                                                 )
                                             ),
@@ -1071,7 +1079,8 @@ dotinference <- function(obj) {
                                     }
                                 } else {
                                     NULL
-                                }
+                                },
+                            comp = NULL
                         )
                     }
                 )
@@ -1086,5 +1095,6 @@ dotinference <- function(obj) {
     }
 
     attr(result.list, "bootstrap") <- bs
+    attr(result.list, "ci.width") <- opts$ci.width
     result.list
 }

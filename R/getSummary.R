@@ -28,6 +28,7 @@
 #' displayed in the plot
 #' @param inzpars allows specification of iNZight plotting parameters over multiple plots
 #' @param summary.type one of \code{"summary"} or \code{"inference"}
+#' @param table.direction one of 'horizontal' (default) or 'vertical' (useful for many categories)
 #' @param hypothesis.value H0 value for hypothesis test
 #' @param hypothesis.alt alternative hypothesis (!=, <, >)
 #' @param hypothesis.var.equal use equal variance assumption for t-test?
@@ -74,6 +75,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            data = NULL, design = NULL, freq = NULL,
                            missing.info = TRUE, inzpars = inzpar(),
                            summary.type = "summary",
+                           table.direction = c("horizontal", "vertical"),
                            hypothesis.value = 0,
                            hypothesis.alt = c("two.sided", "less", "greater"),
                            hypothesis.var.equal = FALSE,
@@ -105,6 +107,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     ## Grab a plot object!
     m <- match.call(expand.dots = FALSE)
+    table.direction <- match.arg(table.direction)
 
     if ("design" %in% names(m) && !is.null(m$design)) {
         md <- eval(m$design, env)
@@ -197,6 +200,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     summary(obj,
         summary.type,
+        table.direction,
         hypothesis,
         survey.options,
         width = width,
@@ -207,6 +211,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
 
 summary.inzplotoutput <- function(object, summary.type = "summary",
+                                  table.direction = c("horizontal", "vertical"),
                                   hypothesis = NULL,
                                   survey.options = list(),
                                   privacy_controls = NULL,
@@ -219,6 +224,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
         stop("`summary.type` must be either `summary` or `inference`")
 
     obj <- object  ## same typing ... but match default `summary` method arguments
+    table.direction <- match.arg(table.direction)
 
     ## set up some variables/functions to make text processing easier ...
 
@@ -515,8 +521,18 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                                     },
                                     "factor" = {
                                         sprintf(
-                                            "%s of the distribution of %s (columns) by %s (rows)",
-                                            stype, vnames$x, vnames$y
+                                            "%s of the distribution of %s (%s) by %s (%s)",
+                                            stype,
+                                            vnames$x,
+                                            switch(table.direction,
+                                                vertical = "rows",
+                                                horizontal = "columns"
+                                            ),
+                                            vnames$y,
+                                            switch(table.direction,
+                                                vertical = "columns",
+                                                horizontal = "rows"
+                                            )
                                         )
                                     }
                                 )
@@ -542,7 +558,9 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                             "summary" =
                                 summary(pl, vn = vnames, des = pl.design,
                                     survey.options = survey.options,
-                                    privacy_controls = privacy_controls),
+                                    privacy_controls = privacy_controls,
+                                    table.direction = table.direction
+                                ),
                             "inference" =
                                 inference(pl, bs, inzclass,
                                     des = pl.design,
@@ -552,6 +570,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                                     hypothesis = hypothesis,
                                     survey.options = survey.options,
                                     privacy_controls = privacy_controls,
+                                    table.direction = table.direction,
                                     ...
                                 )
                         ),

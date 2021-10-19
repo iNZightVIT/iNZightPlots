@@ -63,7 +63,8 @@ create.inz.hexplot <- function(obj) {
         trend = opts$trend,
         trend.by = opts$trend.by,
         smooth = opts$trend,
-        n.boot = opts$n.boot
+        n.boot = opts$n.boot,
+        ci.width = opts$ci.width
     )
     class(out) <- "inzhex"
 

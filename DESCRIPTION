@@ -1,7 +1,7 @@
 Package: iNZightPlots
 Type: Package
 Title: Graphical Tools for Exploring Data with 'iNZight'
-Version: 2.13.3
+Version: 2.13.5.9000
 Authors@R: c(
     person("Tom", "Elliott", role = c("aut", "cre"), email = "tom.elliott@auckland.ac.nz", comment = c(ORCID = "0000-0002-7815-6318")),
     person("Yu Han", "Soh", role = "aut"),
@@ -12,7 +12,7 @@ BugReports: https://github.com/iNZightVIT/iNZightPlots/issues
 Contact: inzight_support@stat.auckland.ac.nz
 URL: https://inzight.nz
 Depends:
-    R(>= 3.2)
+    R(>= 4.0)
 Imports:
     grDevices,
     stats,
@@ -32,7 +32,9 @@ Imports:
     iNZightTools (>= 1.9),
     rlang,
     magrittr,
-    lubridate
+    lubridate,
+    cli,
+    emmeans
 Suggests:
     hextri,
     viridis,
@@ -55,4 +57,4 @@ Suggests:
 License: GPL-3
 Encoding: UTF-8
 Language: en-GB
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
