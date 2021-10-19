@@ -1,6 +1,6 @@
 test_that("Privacy control list created correctly", {
     pc <- make_privacy_controls(list(suppression = 10))
-    expect_equal(names(pc), c("round", "suppression_matrix", "suppress"))
+    expect_equal(names(pc), c("round", "suppression_matrix", "suppress", "has", "get"))
     expect_is(pc$round, "function")
     expect_is(pc$suppression_matrix, "function")
     expect_is(pc$suppress, "function")
