@@ -344,6 +344,8 @@ summary.inzbar <- function(object, vn, des, survey.options,
     perc <- object$phat * 100
     twoway <- length(dim(tab)) == 2 && nrow(tab) > 1
 
+    is.survey <- !is.null(des)
+
     s_mat <- NULL
     if (!is.null(privacy_controls)) {
         s_mat <- privacy_controls$suppression_matrix(tab)
@@ -355,12 +357,22 @@ summary.inzbar <- function(object, vn, des, survey.options,
         }
     }
 
-    is.survey <- !is.null(des)
-
     # survey tables do this thing where they retain their dimensions,
     # even for one-way tables
     if (twoway) {
         tab <- as.matrix(tab)
+        if (is.survey) {
+            smry_mean <- svyby(~x, ~y, des, svymean,
+                deff = survey.options$deff,
+                drop.empty.groups = FALSE,
+                na.rm = TRUE
+            )
+            if (!is.null(privacy_controls) && !is.null(privacy_controls$has("rse_matrix"))) {
+                # print(as.matrix(SE(smry_mean)) / tab * 100)
+                rse_mat <- privacy_controls$rse_matrix(tab, as.matrix(SE(smry_mean)))
+                # print(rse_mat)
+            }
+        }
 
         perc <- as.matrix(perc)
         perc <- t(
@@ -472,11 +484,6 @@ summary.inzbar <- function(object, vn, des, survey.options,
         )
 
         if (is.survey) {
-            smry_mean <- svyby(~x, ~y, des, svymean,
-                deff = survey.options$deff,
-                drop.empty.groups = FALSE,
-                na.rm = TRUE
-            )
             mat <- format(SE(smry_mean) * 100, digits = 4)
             mat <- cbind(
                 c("", rownames(tab)),
