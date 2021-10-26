@@ -1,6 +1,10 @@
 test_that("Privacy control list created correctly", {
     pc <- make_privacy_controls(list(suppression = 10))
-    expect_equal(names(pc), c("round", "suppression_matrix", "suppress", "has", "get"))
+    expect_equal(
+        names(pc),
+        c("round", "suppression_matrix", "suppress",
+            "rse_matrix", "markup", "has", "get")
+    )
     expect_is(pc$round, "function")
     expect_is(pc$suppression_matrix, "function")
     expect_is(pc$suppress, "function")
@@ -63,7 +67,7 @@ test_that("RSE checking/annotation/suppression", {
     m <- pc$rse_matrix(x, e)
     expect_equal(
         as.character(m),
-        c(NA_character_, "*", "suppress", NA_character_, NA_character_, NA_character_)
+        c(NA_character_, " *", "suppress", NA_character_, NA_character_, NA_character_)
     )
 
     ms <- pc$suppression_matrix(x) | !(is.na(m) | m != "suppress")
@@ -126,11 +130,12 @@ test_that("Weighted survey counts", {
 
     # 4.2.2 - identify or suppress high estimates with high RSE
     # devtools::load_all()
+
     inf <- inzsummary(sch.wide ~ stype,
         design = dclus2,
-        table.direction = "v",
+        # table.direction = "v",
         privacy_controls = list(
-            rounding = 100L,
+            # rounding = 100L,
             check_rse = list(
                 cut = c(20, 30, 50),
                 output = c(" *", " **", "suppress")

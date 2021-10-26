@@ -361,16 +361,26 @@ summary.inzbar <- function(object, vn, des, survey.options,
     # even for one-way tables
     if (twoway) {
         tab <- as.matrix(tab)
+        s_mat_tab <- NULL
         if (is.survey) {
+            # needed for supressing percentages ...
+            svy_tab <- svyby(~x, ~y, des, svytotal,
+                drop.empty.groups = FALSE,
+                na.rm = TRUE
+            )
             smry_mean <- svyby(~x, ~y, des, svymean,
                 deff = survey.options$deff,
                 drop.empty.groups = FALSE,
                 na.rm = TRUE
             )
             if (!is.null(privacy_controls) && !is.null(privacy_controls$has("rse_matrix"))) {
-                # print(as.matrix(SE(smry_mean)) / tab * 100)
-                rse_mat <- privacy_controls$rse_matrix(tab, as.matrix(SE(smry_mean)))
-                # print(rse_mat)
+                xhat <- coef(svy_tab)
+                xse <- as.matrix(SE(svy_tab))
+                dim(xhat) <- dim(xse) <- dim(tab)
+                dimnames(xhat) <- dimnames(xse) <- dimnames(tab)
+                rse_mat_tab <- privacy_controls$rse_matrix(xhat, xse)
+
+                s_mat_tab <- s_mat | rse_mat_tab == "suppress"
             }
         }
 
@@ -396,7 +406,13 @@ summary.inzbar <- function(object, vn, des, survey.options,
                     )
                 )
             ),
-            if (is.null(s_mat)) cm1 else privacy_controls$suppress(cm1, s_mat)
+            if (!is.null(s_mat_tab)) {
+                privacy_controls$suppress(cm1, s_mat_tab)
+            } else if (!is.null(s_mat)) {
+                privacy_controls$suppress(cm1, s_mat)
+            } else {
+                cm1
+            }
         )
         mat1 <- cbind(c("", rownames(tab)), mat1)
 
@@ -412,6 +428,18 @@ summary.inzbar <- function(object, vn, des, survey.options,
             ),
             nrow = nrow(mat1)
         )
+
+        if (!is.null(s_mat_tab)) {
+            mat1[-1, -1] <- privacy_controls$markup(mat1[-1, -1], rse_mat_tab)
+            mat1 <- matrix(
+                apply(mat1, 2,
+                    function(col) {
+                        format(col, justify = "left")
+                    }
+                ),
+                nrow = nrow(mat1)
+            )
+        }
 
         mat1 <- apply(mat1, 1,
             function(x) paste0("   ", paste(x, collapse = "   "))
@@ -484,6 +512,7 @@ summary.inzbar <- function(object, vn, des, survey.options,
         )
 
         if (is.survey) {
+
             mat <- format(SE(smry_mean) * 100, digits = 4)
             mat <- cbind(
                 c("", rownames(tab)),
