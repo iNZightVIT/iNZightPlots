@@ -1,3 +1,5 @@
+context("Privacy controls")
+
 test_that("Privacy control list created correctly", {
     pc <- make_privacy_controls(list(suppression = 10))
     expect_equal(

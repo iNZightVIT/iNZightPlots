@@ -4,6 +4,7 @@ make_privacy_controls <- function(ctrls = NULL) {
     if (is.null(ctrls$rounding)) ctrls$rounding <- ""
     if (is.null(ctrls$suppression)) ctrls$suppression <- -Inf
     if (is.null(ctrls$secondary_suppression)) ctrls$secondary_suppression <- TRUE
+    if (is.null(ctrls$check_rse)) ctrls["check_rse"] <- list(NULL)
     if (is.null(ctrls$symbol)) ctrls$symbol <- "S"
     if (is.null(ctrls$seed)) ctrls$seed <- NA
 
@@ -99,13 +100,16 @@ make_privacy_controls <- function(ctrls = NULL) {
             y
 
         },
-        has = function(x)
+        has = function(x) {
             !is.null(ctrls[[x]]) &&
-            !is.na(ctrls[[x]]) &&
-            ifelse(is.numeric(ctrls[[x]]),
-                is.finite(ctrls[[x]]),
-                ctrls[[x]] != ""
-            ),
+            (length(ctrls[[x]]) > 1L || (
+                !is.na(ctrls[[x]]) &&
+                ifelse(is.numeric(ctrls[[x]]),
+                    is.finite(ctrls[[x]]),
+                    ctrls[[x]] != ""
+                )
+            ))
+        },
         get = function(x) ctrls[[x]]
     )
 }
