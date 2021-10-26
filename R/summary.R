@@ -373,7 +373,7 @@ summary.inzbar <- function(object, vn, des, survey.options,
                 drop.empty.groups = FALSE,
                 na.rm = TRUE
             )
-            if (!is.null(privacy_controls) && !is.null(privacy_controls$has("rse_matrix"))) {
+            if (!is.null(privacy_controls) && privacy_controls$has("check_rse")) {
                 xhat <- coef(svy_tab)
                 xse <- as.matrix(SE(svy_tab))
                 dim(xhat) <- dim(xse) <- dim(tab)

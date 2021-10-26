@@ -436,6 +436,22 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                 )
             )
         }
+        if (privacy_controls$has("check_rse")) {
+            rse_values <- do.call(cbind, privacy_controls$get("check_rse"))
+            add("  * for estimates with large relative sampling error (RSE),")
+            apply(rse_values, 1L,
+                function(rv) {
+                    add(ifelse(rv[2] == "suppress",
+                        sprintf("    - estimates with RSE >= %s%s suppressed",
+                            rv[1], "%"
+                        ),
+                        sprintf("    - estimates with RSE >= %s%s marked with %s",
+                            rv[1], "%", rv[2]
+                        )
+                    ))
+                }
+            )
+        }
         if (privacy_controls$has("seed")) {
             add(sprintf("  * using RNG seed %d", privacy_controls$get("seed")))
         }
