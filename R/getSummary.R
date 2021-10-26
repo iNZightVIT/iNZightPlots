@@ -436,6 +436,13 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                 )
             )
         }
+        if (privacy_controls$has("suppression_raw_counts")) {
+            add(
+                sprintf("  * suppression of weighted counts with corresponding unweighted counts < %s",
+                    privacy_controls$get("suppression_raw_counts")
+                )
+            )
+        }
         if (privacy_controls$has("check_rse")) {
             rse_values <- do.call(cbind, privacy_controls$get("check_rse"))
             add("  * for estimates with large relative sampling error (RSE),")

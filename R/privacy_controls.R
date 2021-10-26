@@ -3,6 +3,7 @@ make_privacy_controls <- function(ctrls = NULL) {
 
     if (is.null(ctrls$rounding)) ctrls$rounding <- ""
     if (is.null(ctrls$suppression)) ctrls$suppression <- -Inf
+    if (is.null(ctrls$suppression_raw_counts)) ctrls$suppression_raw_counts <- NA_integer_
     if (is.null(ctrls$secondary_suppression)) ctrls$secondary_suppression <- TRUE
     if (is.null(ctrls$check_rse)) ctrls["check_rse"] <- list(NULL)
     if (is.null(ctrls$symbol)) ctrls$symbol <- "S"
@@ -36,10 +37,11 @@ make_privacy_controls <- function(ctrls = NULL) {
                     function(x) x
                 )
             },
-        suppression_matrix = function(x) {
+        suppression_matrix = function(x, using_raw = FALSE) {
             d <- dim(x)
             dn <- dimnames(x)
-            x <- x < ctrls$suppression
+            t <- ifelse(using_raw, ctrls$suppression_raw_counts, ctrls$suppression)
+            x <- x < t
             dim(x) <- d
             dimnames(x) <- dn
             if (ctrls$secondary_suppression) {

@@ -135,13 +135,33 @@ test_that("Weighted survey counts", {
 
     inf <- inzsummary(sch.wide ~ stype,
         design = dclus2,
-        # table.direction = "v",
+        table.direction = "v",
         privacy_controls = list(
             # rounding = 100L,
             check_rse = list(
                 cut = c(20, 30, 50),
                 output = c(" *", " **", "suppress")
             )
+        )
+    )
+
+    # 4.2.4 - suppress weighted counts based on unweighted count threshold
+    # devtools::load_all()
+    inf <- inzsummary(sch.wide ~ stype,
+        # data = apiclus2
+        design = dclus2,
+        privacy_controls = list(
+            suppression_raw_counts = 6L
+        )
+    )
+})
+
+test_that("Value magnitudes (cell totals and means)", {
+    # devtools::load_all()
+    inf <- inzsummary(api00 ~ stype | awards,
+        design = dclus2,
+        privacy_controls = list(
+            suppression = 1000L
         )
     )
 })

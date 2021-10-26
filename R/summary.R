@@ -349,6 +349,14 @@ summary.inzbar <- function(object, vn, des, survey.options,
     s_mat <- NULL
     if (!is.null(privacy_controls)) {
         s_mat <- privacy_controls$suppression_matrix(tab)
+        if (is.survey && privacy_controls$has("suppression_raw_counts")) {
+            rtab <- with(des$variables, table(y, x))
+            sr_mat <- privacy_controls$suppression_matrix(
+                rtab,
+                using_raw = TRUE
+            )
+            s_mat <- s_mat | sr_mat
+        }
         tab <- privacy_controls$round(tab)
         if (twoway) {
             perc <- 100 * sweep(tab, 1, rowSums(tab), "/")
