@@ -158,10 +158,59 @@ test_that("Weighted survey counts", {
 
 test_that("Value magnitudes (cell totals and means)", {
     # devtools::load_all()
-    inf <- inzsummary(api00 ~ stype | awards,
+    inf <- inzsummary(api00 ~ stype | awards + both,
+        g1.level = "Yes",
+        g2.level = "Yes",
         design = dclus2,
         privacy_controls = list(
-            suppression = 1000L
+            suppression = 500L,
+            suppression_magnitude = 200L
         )
+    )
+
+    # 4.3.1 - suppress totals/means if unrounded count < x
+    popest <- read.table(
+        textConnection(
+            inf[grep("Population estimates", inf) + 3:5]
+        )
+    )
+    expect_equal(popest[2, 5], "S")
+    expect_equal(popest[2, 7], "S")
+    expect_equal(popest[2, 8], "S")
+    expect_equal(popest[3, 8], "S")
+})
+
+test_that("Medians, quantiles, and percentiles", {
+    # devtools::load_all()
+    inf <- inzsummary(api00 ~ stype | awards + both,
+        g1.level = "Yes",
+        g2.level = "Yes",
+        design = dclus2,
+        privacy_controls = list(
+            suppression_quantiles = list(
+                p = c(0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99),
+                n = c(500, 100, 50, 20, 10, 20, 50, 100, 500)
+            )
+        )
+    )
+
+    # 4.4.1 - suppress quantiles based on scale
+    popest <- read.table(
+        textConnection(
+            inf[grep("Population estimates", inf) + 3:5]
+        )
+    )
+})
+
+test_that("Percentages, proportions, and ratios", {
+    # devtools::load_all()
+    inf <- inzsummary(~stype, design = dclus2, round_percent = 1L)
+
+    # 4.5.2 - round percentages to 1 d.p.
+    pr <- inf[grep("Population Estimates", inf) + 5]
+    prs <- strsplit(pr, "\\s+")[[1]][3:5]
+    expect_match(
+        prs,
+        "[0-9]+\\.[0-9]\\%"
     )
 })

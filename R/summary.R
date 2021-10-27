@@ -1,4 +1,4 @@
-summary.inzdot <- function(object, des, survey.options, privacy_controls, ...) {
+summary.inzdot <- function(object, opts, des, survey.options, privacy_controls, ...) {
     ## Generate summary information:
 
     ## Produce a matrix of the required summary:
@@ -117,6 +117,25 @@ summary.inzdot <- function(object, des, survey.options, privacy_controls, ...) {
                 drop.empty.groups = FALSE
             )
             smry_popsize <- svytotal(~y, des)
+
+            s_mat <- s_mat_mag <- NULL
+            n_mat_q <- NULL
+            if (!is.null(privacy_controls)) {
+                if (privacy_controls$has("suppression")) {
+                    s_mat <- privacy_controls$suppression_matrix(coef(smry_popsize))
+                    s_mat <- s_mat[-length(s_mat)]
+                }
+                if (privacy_controls$has("suppression_magnitude")) {
+                    s_mat_mag <- privacy_controls$suppression_matrix(
+                        as.vector(table(dv$y)),
+                        using = "suppression_magnitude"
+                    )
+                    s_mat_mag <- s_mat_mag[-length(s_mat_mag)]
+                }
+                if (privacy_controls$has("suppression_quantiles")) {
+                    n_mat_q <- as.vector(table(dv$y))
+                }
+            }
 
             mat <- cbind(
                 smry_q[, 2:4],
@@ -254,6 +273,24 @@ summary.inzdot <- function(object, des, survey.options, privacy_controls, ...) {
         ),
         nrow = nrow(mat)
     )
+    # suppress means and totals, and pop size
+    if (!is.null(s_mat_mag)) {
+        mat[, 4L] <- privacy_controls$suppress(mat[, 4L], s_mat_mag)
+        mat[, 6L] <- privacy_controls$suppress(mat[, 6L], s_mat_mag)
+    }
+    if (!is.null(s_mat))
+        mat[, 7L] <- privacy_controls$suppress(mat[, 7L], s_mat)
+    if (!is.null(n_mat_q)) {
+        mat[, 1L] <- privacy_controls$suppress_quantile(
+            mat[, 1L], n_mat_q, 0.25
+        )
+        mat[, 2L] <- privacy_controls$suppress_quantile(
+            mat[, 2L], n_mat_q, 0.5
+        )
+        mat[, 3L] <- privacy_controls$suppress_quantile(
+            mat[, 3L], n_mat_q, 0.75
+        )
+    }
 
     ## Remove NA's and replace with an empty space
     mat[grep("NA", mat)] <- ""
@@ -263,6 +300,9 @@ summary.inzdot <- function(object, des, survey.options, privacy_controls, ...) {
     mat <- rbind(rns,  mat)
     colnames(mat) <- NULL
 
+    if (!is.null(privacy_controls)) {
+        mat <- mat[, -(8:11)]
+    }
 
     if (length(toplot) > 1) {
         mat <- cbind(
@@ -334,11 +374,11 @@ summary.inzdot <- function(object, des, survey.options, privacy_controls, ...) {
     out
 }
 
-summary.inzhist <- function(object, des, survey.options, privacy_controls, ...)
-    summary.inzdot(object, des, survey.options, ...)
+summary.inzhist <- function(object, opts, des, survey.options, privacy_controls, ...)
+    summary.inzdot(object, des, survey.options, privacy_controls, ...)
 
 
-summary.inzbar <- function(object, vn, des, survey.options,
+summary.inzbar <- function(object, opts, vn, des, survey.options,
                            privacy_controls, table.direction, ...) {
     tab <- round(object$tab)
     perc <- object$phat * 100
@@ -392,7 +432,7 @@ summary.inzbar <- function(object, vn, des, survey.options,
             }
         }
 
-        perc <- as.matrix(perc)
+        perc <- round(as.matrix(perc), opts$round_percent)
         perc <- t(
             apply(perc, 1,
                 function(p) {
@@ -520,8 +560,10 @@ summary.inzbar <- function(object, vn, des, survey.options,
         )
 
         if (is.survey) {
-
-            mat <- format(SE(smry_mean) * 100, digits = 4)
+            mat <- format(
+                round(SE(smry_mean) * 100, opts$round_percent),
+                nsmall = opts$round_percent
+            )
             mat <- cbind(
                 c("", rownames(tab)),
                 rbind(colnames(tab), mat)
@@ -579,8 +621,9 @@ summary.inzbar <- function(object, vn, des, survey.options,
         return(out)
     } else {
         cm <- c(tab, sum(tab))
+        perc <- round(perc, opts$round_percent)
         pm <- paste0(
-            c(format(round(perc, 2), nsmall = 2), "100"),
+            c(format(perc, nsmall = opts$round_percent), "100"),
             "%"
         )
         mat <- rbind(
@@ -599,8 +642,9 @@ summary.inzbar <- function(object, vn, des, survey.options,
                 c(
                     "Standard Error",
                     paste0(
-                        format(round(SE(smry_mean) * 100, 2),
-                            nsmall = 2
+                        format(
+                            round(SE(smry_mean) * 100, opts$round_percent),
+                            nsmall = opts$round_percent
                         ),
                         "%"
                     ),
@@ -613,8 +657,9 @@ summary.inzbar <- function(object, vn, des, survey.options,
                     c(
                         "Design effects",
                         paste0(
-                            format(round(deff(smry_mean), 2),
-                                nsmall = 2
+                            format(
+                                round(deff(smry_mean), 2L),
+                                nsmall = 2L
                             ),
                             ""
                         ),
@@ -663,7 +708,7 @@ summary.inzbar <- function(object, vn, des, survey.options,
 
 
 
-summary.inzscatter <- function(object, vn, des, survey.options, ...) {
+summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
     x <- object$x
     y <- object$y
     trend <- object$trend
@@ -814,8 +859,8 @@ summary.inzscatter <- function(object, vn, des, survey.options, ...) {
 
     out
 }
-summary.inzgrid <- function(object, vn, des, survey.options, ...)
+summary.inzgrid <- function(object, opts, vn, des, survey.options, ...)
     summary.inzscatter(object, vn, des, ...)
 
-summary.inzhex <- function(object, vn, des, survey.options, ...)
+summary.inzhex <- function(object, opts, vn, des, survey.options, ...)
     summary.inzscatter(object, vn, des, ...)

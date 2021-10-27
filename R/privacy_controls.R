@@ -5,6 +5,8 @@ make_privacy_controls <- function(ctrls = NULL) {
     if (is.null(ctrls$suppression)) ctrls$suppression <- -Inf
     if (is.null(ctrls$suppression_raw_counts)) ctrls$suppression_raw_counts <- NA_integer_
     if (is.null(ctrls$secondary_suppression)) ctrls$secondary_suppression <- TRUE
+    if (is.null(ctrls$suppression_magnitude)) ctrls$suppression_magnitude <- ctrls$suppression
+    if (is.null(ctrls$suppression_quantiles)) ctrls["suppression_quantiles"] <- list(NULL)
     if (is.null(ctrls$check_rse)) ctrls["check_rse"] <- list(NULL)
     if (is.null(ctrls$symbol)) ctrls$symbol <- "S"
     if (is.null(ctrls$seed)) ctrls$seed <- NA
@@ -37,10 +39,10 @@ make_privacy_controls <- function(ctrls = NULL) {
                     function(x) x
                 )
             },
-        suppression_matrix = function(x, using_raw = FALSE) {
+        suppression_matrix = function(x, using_raw = FALSE, using = "suppression") {
             d <- dim(x)
             dn <- dimnames(x)
-            t <- ifelse(using_raw, ctrls$suppression_raw_counts, ctrls$suppression)
+            t <- ifelse(using_raw, ctrls$suppression_raw_counts, ctrls[[using]])
             x <- x < t
             dim(x) <- d
             dimnames(x) <- dn
@@ -67,6 +69,13 @@ make_privacy_controls <- function(ctrls = NULL) {
             if (is.null(mat)) return(x)
             if (missing(symbol)) symbol <- ctrls$symbol
             x[mat] <- symbol
+            x
+        },
+        suppress_quantile = function(x, n, q, symbol) {
+            qi <- which(ctrls$suppression_quantiles$p == q)
+            if (missing(symbol)) symbol <- ctrls$symbol
+            if (length(qi) == 0) return(rep(symbol, length(x)))
+            x[n < ctrls$suppression_quantiles$n[qi]] <- symbol
             x
         },
         rse_matrix = function(x, e) {

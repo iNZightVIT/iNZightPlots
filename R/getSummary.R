@@ -158,7 +158,8 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         warning("Comparison intervals not yet available for Inferential output.\n",
             "Defaulting to confidence intervals.")
     }
-    ## dots <- list(...)
+    dots <- list(...)
+    inzpars <- modifyList(inzpars, dots)
     ## inference.type <- inference.par <- NULL
     ## bs.inference <- FALSE
     ## if (summary.type[1] == "inference") {
@@ -205,7 +206,8 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         survey.options,
         width = width,
         epi.out = epi.out,
-        privacy_controls = privacy_controls
+        privacy_controls = privacy_controls,
+        inzpars = inzpars
     )
 }
 
@@ -215,6 +217,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                                   hypothesis = NULL,
                                   survey.options = list(),
                                   privacy_controls = NULL,
+                                  inzpars = inzpar(),
                                   width = 100, ...) {
     if (length(summary.type) > 1) {
         warning("Only using the first element of `summary.type`")
@@ -615,7 +618,8 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                     sapply(
                         switch(summary.type,
                             "summary" =
-                                summary(pl, vn = vnames, des = pl.design,
+                                summary(pl, opts = inzpars,
+                                    vn = vnames, des = pl.design,
                                     survey.options = survey.options,
                                     privacy_controls = privacy_controls,
                                     table.direction = table.direction
