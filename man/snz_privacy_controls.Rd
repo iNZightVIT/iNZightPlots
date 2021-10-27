@@ -4,7 +4,7 @@
 \alias{snz_privacy_controls}
 \title{Statistics New Zealand Privacy Controls}
 \usage{
-snz_privacy_controls(type = c("survey"), weighted = type == "survey")
+snz_privacy_controls(type = c("survey"), weighted = type == "survey", ...)
 }
 \arguments{
 \item{type}{the type of data, used to specify the correct rules. Currently only survey (4.0.1) data is supported.}
