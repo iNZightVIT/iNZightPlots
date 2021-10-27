@@ -433,9 +433,13 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
         }
         if (privacy_controls$has("suppression")) {
             add(
-                sprintf("  * suppression of counts smaller than %d, indicated by %s",
+                sprintf("  * suppression of counts smaller than %d, indicated by %s%s",
                     privacy_controls$get("suppression"),
-                    privacy_controls$get("symbol")
+                    privacy_controls$get("symbol"),
+                    ifelse(privacy_controls$get("secondary_suppression"),
+                        ", with secondary suppression where necessary",
+                        ""
+                    )
                 )
             )
         }
