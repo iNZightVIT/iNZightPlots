@@ -446,6 +446,26 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                 )
             )
         }
+        if (privacy_controls$has("suppression_magnitude")) {
+            add(
+                sprintf("  * suppression of totals and means where underlying unrounded count < %s",
+                    privacy_controls$get("suppression_magnitude")
+                )
+            )
+        }
+        if (privacy_controls$has("suppression_quantiles")) {
+            add("  * suppression of quantiles")
+            q_values <- do.call(cbind, privacy_controls$get("suppression_quantiles"))
+            apply(q_values, 1L,
+                function(qv) {
+                    add(
+                        sprintf("    - %s%s if underlying unrounded count < %s",
+                            qv[1] * 100, "%", qv[2]
+                        )
+                    )
+                }
+            )
+        }
         if (privacy_controls$has("check_rse")) {
             rse_values <- do.call(cbind, privacy_controls$get("check_rse"))
             add("  * for estimates with large relative sampling error (RSE),")

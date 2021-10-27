@@ -140,3 +140,34 @@ rr <- function(x, b, g) {
 
     x + b - r - b * (u < p)
 }
+
+#' Statistics New Zealand Privacy Controls
+#'
+#' Based off Microdata Output Guide 2020 v5-1
+#'
+#' @param type the type of data, used to specify the correct rules. Currently only survey (4.0.1) data is supported.
+#' @param weighted logical indicating if the results are a weighted survey design or not.
+#'
+#' @return a list of privacy control rules
+#' @export
+#' @md
+snz_privacy_controls <- function(type = c("survey"),
+                                 weighted = type == "survey",
+                                 ...) {
+    type <- match.arg(type)
+
+    message("When calling inzsummary or inzinference, also set `round_percent = 1`")
+
+    dots <- list(...)
+    set <- list(
+        rounding = if (weighted) 100L else "RR3",
+        suppression = 1000L,
+        secondary_suppression = FALSE,
+        suppression_magnitude = 5L,
+        suppress_quantile = list(
+            p = c(0.25, 0.5, 0.75),
+            n = c(20L, 10L, 20L)
+        )
+    )
+    modifyList(set, dots)
+}

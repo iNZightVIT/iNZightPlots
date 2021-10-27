@@ -191,8 +191,8 @@ test_that("Medians, quantiles, and percentiles", {
         design = dclus2,
         privacy_controls = list(
             suppression_quantiles = list(
-                p = c(0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99),
-                n = c(500, 100, 50, 20, 10, 20, 50, 100, 500)
+                p = c(0.25, 0.5, 0.75),
+                n = c(20, 10, 20)
             )
         )
     )
