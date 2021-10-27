@@ -147,6 +147,7 @@ rr <- function(x, b, g) {
 #'
 #' @param type the type of data, used to specify the correct rules. Currently only survey (4.0.1) data is supported.
 #' @param weighted logical indicating if the results are a weighted survey design or not.
+#' @param ... additional arguments, used to override defaults
 #'
 #' @return a list of privacy control rules
 #' @export

@@ -10,6 +10,8 @@ snz_privacy_controls(type = c("survey"), weighted = type == "survey", ...)
 \item{type}{the type of data, used to specify the correct rules. Currently only survey (4.0.1) data is supported.}
 
 \item{weighted}{logical indicating if the results are a weighted survey design or not.}
+
+\item{...}{additional arguments, used to override defaults}
 }
 \value{
 a list of privacy control rules
