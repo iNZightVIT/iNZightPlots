@@ -4,7 +4,8 @@ summary.inzdot <- function(object, opts, des, survey.options, privacy_controls, 
     ## Produce a matrix of the required summary:
     toplot <- object$toplot
 
-
+    n_mat_q <- NULL
+    s_mat <- s_mat_mag <- NULL
     if (is.null(des)) {
         smrytype <- "numeric"
 
@@ -118,8 +119,6 @@ summary.inzdot <- function(object, opts, des, survey.options, privacy_controls, 
             )
             smry_popsize <- svytotal(~y, des)
 
-            s_mat <- s_mat_mag <- NULL
-            n_mat_q <- NULL
             if (!is.null(privacy_controls)) {
                 if (privacy_controls$has("suppression")) {
                     s_mat <- privacy_controls$suppression_matrix(coef(smry_popsize))
@@ -375,7 +374,7 @@ summary.inzdot <- function(object, opts, des, survey.options, privacy_controls, 
 }
 
 summary.inzhist <- function(object, opts, des, survey.options, privacy_controls, ...)
-    summary.inzdot(object, des, survey.options, privacy_controls, ...)
+    summary.inzdot(object, opts, des, survey.options, privacy_controls, ...)
 
 
 summary.inzbar <- function(object, opts, vn, des, survey.options,
@@ -511,11 +510,16 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
                     )
                 )
             ),
-            if (is.null(s_mat)) cm2
-            else
+
+            if (!is.null(s_mat_tab))
+                privacy_controls$suppress(cm2,
+                    t(apply(s_mat_tab, 1, function(x) c(x | x[length(x)], x[length(x)])))
+                )
+            else if (!is.null(s_mat))
                 privacy_controls$suppress(cm2,
                     t(apply(s_mat, 1, function(x) c(x | x[length(x)], x[length(x)])))
                 )
+            else cm2
         )
         mat2 <- cbind(c("", rownames(tab)), mat2)
 
@@ -564,6 +568,12 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
                 round(SE(smry_mean) * 100, opts$round_percent),
                 nsmall = opts$round_percent
             )
+            mat <- as.matrix(mat)
+            if (!is.null(s_mat_tab))
+                mat <- privacy_controls$suppress(mat, s_mat_tab[,-ncol(s_mat_tab)])
+            else if (!is.null(s_mat))
+                mat <- privacy_controls$suppress(mat, s_mat_tab[,-ncol(s_mat)])
+
             mat <- cbind(
                 c("", rownames(tab)),
                 rbind(colnames(tab), mat)
@@ -595,6 +605,12 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
 
             if (!isFALSE(survey.options$deff)) {
                 mat <- format(deff(smry_mean), digits = 3)
+                mat <- as.matrix(mat)
+                if (!is.null(s_mat_tab))
+                    mat <- privacy_controls$suppress(mat, s_mat_tab[,-ncol(s_mat_tab)])
+                else if (!is.null(s_mat))
+                    mat <- privacy_controls$suppress(mat, s_mat_tab[,-ncol(s_mat)])
+
                 mat <- cbind(
                     c("", rownames(tab)),
                     rbind(colnames(tab), mat)
@@ -635,36 +651,34 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
         mat <- cbind(c("", "Count", "Percent"), mat)
         if (is.survey) {
             smry_mean <- svymean(~x, des, deff = survey.options$deff, na.rm = TRUE)
+            semat <- paste0(
+                format(
+                    round(SE(smry_mean) * 100, opts$round_percent),
+                    nsmall = opts$round_percent
+                ),
+                "%"
+            )
+            if (!is.null(s_mat))
+                semat <- privacy_controls$suppress(semat, s_mat[-ncol(s_mat)])
             mat <- rbind(
                 mat[1:2, ],
                 "",
                 mat[3, ],
-                c(
-                    "Standard Error",
-                    paste0(
-                        format(
-                            round(SE(smry_mean) * 100, opts$round_percent),
-                            nsmall = opts$round_percent
-                        ),
-                        "%"
-                    ),
-                    NA
-                )
+                c("Standard Error", semat, NA)
             )
             if (!isFALSE(survey.options$deff)) {
+                deffmat <- paste0(
+                    format(
+                        round(deff(smry_mean), 2L),
+                        nsmall = 2L
+                    ),
+                    ""
+                )
+                if (!is.null(s_mat))
+                    deffmat <- privacy_controls$suppress(deffmat, s_mat[-ncol(s_mat)])
                 mat <- rbind(mat,
                     "",
-                    c(
-                        "Design effects",
-                        paste0(
-                            format(
-                                round(deff(smry_mean), 2L),
-                                nsmall = 2L
-                            ),
-                            ""
-                        ),
-                        NA
-                    )
+                    c("Design effects", deffmat, NA)
                 )
             }
         }
@@ -860,7 +874,7 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
     out
 }
 summary.inzgrid <- function(object, opts, vn, des, survey.options, ...)
-    summary.inzscatter(object, vn, des, ...)
+    summary.inzscatter(object, opts, vn, des, ...)
 
 summary.inzhex <- function(object, opts, vn, des, survey.options, ...)
-    summary.inzscatter(object, vn, des, ...)
+    summary.inzscatter(object, opts, vn, des, ...)

@@ -5,6 +5,7 @@ test_that("Privacy control list created correctly", {
     expect_equal(
         names(pc),
         c("round", "suppression_matrix", "suppress",
+            "suppress_quantile",
             "rse_matrix", "markup", "has", "get")
     )
     expect_is(pc$round, "function")
@@ -144,6 +145,8 @@ test_that("Weighted survey counts", {
             )
         )
     )
+    expect_match(inf, "242 **", fixed = TRUE, all = FALSE)
+    expect_match(inf, "689 *", fixed = TRUE, all = FALSE)
 
     # 4.2.4 - suppress weighted counts based on unweighted count threshold
     # devtools::load_all()
@@ -200,6 +203,7 @@ test_that("Medians, quantiles, and percentiles", {
             inf[grep("Population estimates", inf) + 3:5]
         )
     )
+    expect_equal(popest[2, 2], "S")
 })
 
 test_that("Percentages, proportions, and ratios", {

@@ -1,15 +1,15 @@
 make_privacy_controls <- function(ctrls = NULL) {
     if (is.null(ctrls)) return(NULL)
 
-    if (is.null(ctrls$rounding)) ctrls$rounding <- ""
-    if (is.null(ctrls$suppression)) ctrls$suppression <- -Inf
-    if (is.null(ctrls$suppression_raw_counts)) ctrls$suppression_raw_counts <- NA_integer_
-    if (is.null(ctrls$secondary_suppression)) ctrls$secondary_suppression <- TRUE
-    if (is.null(ctrls$suppression_magnitude)) ctrls$suppression_magnitude <- ctrls$suppression
-    if (is.null(ctrls$suppression_quantiles)) ctrls["suppression_quantiles"] <- list(NULL)
-    if (is.null(ctrls$check_rse)) ctrls["check_rse"] <- list(NULL)
-    if (is.null(ctrls$symbol)) ctrls$symbol <- "S"
-    if (is.null(ctrls$seed)) ctrls$seed <- NA
+    if (is.null(ctrls[["rounding"]])) ctrls$rounding <- ""
+    if (is.null(ctrls[["suppression"]])) ctrls$suppression <- -Inf
+    if (is.null(ctrls[["suppression_raw_counts"]])) ctrls$suppression_raw_counts <- NA_integer_
+    if (is.null(ctrls[["secondary_suppression"]])) ctrls$secondary_suppression <- TRUE
+    if (is.null(ctrls[["suppression_magnitude"]])) ctrls$suppression_magnitude <- ctrls$suppression
+    if (is.null(ctrls[["suppression_quantiles"]])) ctrls["suppression_quantiles"] <- list(NULL)
+    if (is.null(ctrls[["check_rse"]])) ctrls["check_rse"] <- list(NULL)
+    if (is.null(ctrls[["symbol"]])) ctrls$symbol <- "S"
+    if (is.null(ctrls[["seed"]])) ctrls$seed <- NA
 
     list(
         round =
