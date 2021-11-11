@@ -115,3 +115,7 @@ caption,,,,,,,,,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p
 desc,,,,,,,,,,,,,,p,p,p,p,,,,,,,,,,,,
 palette,,,,,,,,,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p
 table.direction,,,,,,s,s,s,,,,,,,,,,,,,,,,,,,,,
+round,si,si,si,si,si,si,si,si,,,,,,,,,,,,,,,,,,,,,
+round_percent,si,si,si,si,si,si,si,si,,,,,,,,,,,,,,,,,,,,,
+signif,si,si,si,si,si,si,si,si,,,,,,,,,,,,,,,,,,,,,
+privacy_controls,si,si,si,si,si,si,si,si,,,,,,,,,,,,,,,,,,,,,
