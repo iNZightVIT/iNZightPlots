@@ -125,6 +125,7 @@ make_privacy_controls <- function(ctrls = NULL) {
     )
 }
 
+# Adapted from code by Simon Anastasiadis at Social Wellbeing Agency, NZ.
 # randomly round x to base b, optionally graduated at cut-points g
 rr <- function(x, b, g) {
     if (!missing(g)) {
