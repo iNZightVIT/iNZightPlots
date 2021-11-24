@@ -92,6 +92,7 @@
 #' \item{'ci.width'}{the width of confidence intervals, default 0.95 for a 95\% confidence interval}
 #' \item{'bs.inference'}{logical, if \code{TRUE}, then nonparametric bootstrap simulation is used
 #'      to obtain the intervals}
+#' \item{'inference.method'}{one of 'normal', 'bootstrap', or 'bayesian'}
 #' \item{'min.count'}{the min count for barplots inference; counts less than this are ignored}
 #' \item{'n.boot'}{the number of bootstrap simulations to perform}
 #' \item{'large.sample.size'}{sample sizes over this value will use a large-sample plot variant
@@ -243,6 +244,7 @@ inzpar <- function(...,
         inference.par  = NULL,
         ci.width       = 0.95,
         bs.inference   = FALSE,
+        inference.method = "normal",
         min.count      = 5,
         n.boot         = 1500,
         large.sample.size = 5001,
