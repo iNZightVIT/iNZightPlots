@@ -1,7 +1,8 @@
 # R script
 github_deps <- c(
     "iNZightVIT/iNZightTools@1.9",
-    "iNZightVIT/iNZightMR@2.2.5"
+    "iNZightVIT/iNZightMR@2.2.5",
+    "iNZightVIT/iNZightBayes"
 )
 
 OS <- Sys.getenv("OS_TYPE")
