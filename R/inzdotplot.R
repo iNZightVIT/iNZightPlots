@@ -784,7 +784,21 @@ dotinference <- function(obj) {
                                                     ci
                                                 }
                                             },
-                                            "bayesian" = NULL,
+                                            "bayesian" = {
+                                                if (requireNamespace("iNZightBayes", quietly = TRUE)) {
+                                                    est <- iNZightBayes::estimate_mean(~x, data = dat)
+                                                    smry <- summary(est, "mu")
+                                                    ci <- rbind(c(
+                                                        smry$statistics["mu", "Mean"],
+                                                        smry$quantiles["mu", c("2.5%", "97.5%")]
+                                                    ))
+                                                    dimnames(ci) <- list(
+                                                        levels(dat$y),
+                                                        c("mean", "lower", "upper")
+                                                    )
+                                                    ci
+                                                }
+                                            },
                                             "normal" = {
                                                 ## ci.width% confidence interval (normal theory)
                                                 if (svy) {

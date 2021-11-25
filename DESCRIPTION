@@ -54,7 +54,8 @@ Suggests:
     ggthemes,
     ggbeeswarm,
     ggridges,
-    plotly
+    plotly,
+    iNZightBayes
 License: GPL-3
 Encoding: UTF-8
 Language: en-GB
