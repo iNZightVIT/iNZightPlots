@@ -25,6 +25,13 @@ test: $(data)
 data/plot_types.rda: data-raw/plot_types.csv
 	@$(RCMD) -f data-raw/plot_types.R
 
+BRANCH := $(shell git branch --show-current | sed 's/[a-z]*\///')
+releasePRs:
+	@echo Creating PR to master
+	@gh pr create -a "@me" -b "" -B master -l "release" -p "Tom" -t "Release $(BRANCH)"
+	@echo Creating PR to dev
+	@gh pr create -a "@me" -b "" -B dev -l "release" -p "Tom" -t "Release $(BRANCH) into dev"
+
 README.md: README.Rmd
 	@$(RCMD) -e 'rmarkdown::render("$<")'
 	@rm README.html
