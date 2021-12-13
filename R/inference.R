@@ -449,7 +449,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
 
                 mc <- mc$contrasts
                 rownames(mc) <- mc[,1]
-                mc <- mc[, c("estimate", "asymp.LCL", "asymp.UCL", "p.value")]
+                mc <- mc[, c("estimate", "lower.CL", "upper.CL", "p.value")]
 
             } else {
                 mc <- try(
