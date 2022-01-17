@@ -9,6 +9,14 @@ document: $(data)
 check:
 	@$(RCMD) -e "devtools::check()"
 
+revcheck:
+	@$(RCMD) -e "if (!requireNamespace('revdepcheck')) install.packages('revdepcheck')"
+	@$(RCMD) -e "revdepcheck::revdep_check()"
+	@$(RCMD) -f "revdep/check.R"
+
+revcheck_reset:
+	@$(RCMD) -e "revdepcheck::revdep_reset()"
+
 crancheck:
 	@$(RCMD) CMD build .
 	@$(RCMD) CMD check *.tar.gz
