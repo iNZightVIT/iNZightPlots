@@ -19,17 +19,17 @@ inzpalette <- function(palette) {
         "contrast" = function(n) {
             if (n > 8)
                 return(inzpar()$col.default$cat(n))
-            RColorBrewer::brewer.pal(n, "Set2")[1:n]
+            RColorBrewer::brewer.pal(max(n, 3L), "Set2")[1:n]
         },
         "bright" = function(n) {
             if (n > 9)
                 return(inzpar()$col.default$cat(n))
-            RColorBrewer::brewer.pal(n, "Set1")[1:n]
+            RColorBrewer::brewer.pal(max(n, 3L), "Set1")[1:n]
         },
         "light" = function(n) {
             if (n > 12)
                 return(inzpar()$col.default$cat(n))
-            RColorBrewer::brewer.pal(n, "Set3")[1:n]
+            RColorBrewer::brewer.pal(max(n, 3L), "Set3")[1:n]
         },
         "viridis" = viridis::viridis,
         "magma" = viridis::magma,

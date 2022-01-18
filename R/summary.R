@@ -1,10 +1,11 @@
-summary.inzdot <- function(object, des, survey.options, ...) {
+summary.inzdot <- function(object, opts, des, survey.options, privacy_controls, ...) {
     ## Generate summary information:
 
     ## Produce a matrix of the required summary:
     toplot <- object$toplot
 
-
+    n_mat_q <- NULL
+    s_mat <- s_mat_mag <- NULL
     if (is.null(des)) {
         smrytype <- "numeric"
 
@@ -117,6 +118,23 @@ summary.inzdot <- function(object, des, survey.options, ...) {
                 drop.empty.groups = FALSE
             )
             smry_popsize <- svytotal(~y, des)
+
+            if (!is.null(privacy_controls)) {
+                if (privacy_controls$has("suppression")) {
+                    s_mat <- privacy_controls$suppression_matrix(coef(smry_popsize))
+                    s_mat <- s_mat[-length(s_mat)]
+                }
+                if (privacy_controls$has("suppression_magnitude")) {
+                    s_mat_mag <- privacy_controls$suppression_matrix(
+                        as.vector(table(dv$y)),
+                        using = "suppression_magnitude"
+                    )
+                    s_mat_mag <- s_mat_mag[-length(s_mat_mag)]
+                }
+                if (privacy_controls$has("suppression_quantiles")) {
+                    n_mat_q <- as.vector(table(dv$y))
+                }
+            }
 
             mat <- cbind(
                 smry_q[, 2:4],
@@ -254,6 +272,24 @@ summary.inzdot <- function(object, des, survey.options, ...) {
         ),
         nrow = nrow(mat)
     )
+    # suppress means and totals, and pop size
+    if (!is.null(s_mat_mag)) {
+        mat[, 4L] <- privacy_controls$suppress(mat[, 4L], s_mat_mag)
+        mat[, 6L] <- privacy_controls$suppress(mat[, 6L], s_mat_mag)
+    }
+    if (!is.null(s_mat))
+        mat[, 7L] <- privacy_controls$suppress(mat[, 7L], s_mat)
+    if (!is.null(n_mat_q)) {
+        mat[, 1L] <- privacy_controls$suppress_quantile(
+            mat[, 1L], n_mat_q, 0.25
+        )
+        mat[, 2L] <- privacy_controls$suppress_quantile(
+            mat[, 2L], n_mat_q, 0.5
+        )
+        mat[, 3L] <- privacy_controls$suppress_quantile(
+            mat[, 3L], n_mat_q, 0.75
+        )
+    }
 
     ## Remove NA's and replace with an empty space
     mat[grep("NA", mat)] <- ""
@@ -263,6 +299,9 @@ summary.inzdot <- function(object, des, survey.options, ...) {
     mat <- rbind(rns,  mat)
     colnames(mat) <- NULL
 
+    if (!is.null(privacy_controls)) {
+        mat <- mat[, -(8:11)]
+    }
 
     if (length(toplot) > 1) {
         mat <- cbind(
@@ -334,23 +373,65 @@ summary.inzdot <- function(object, des, survey.options, ...) {
     out
 }
 
-summary.inzhist <- function(object, des, survey.options, ...)
-    summary.inzdot(object, des, survey.options, ...)
+summary.inzhist <- function(object, opts, des, survey.options, privacy_controls, ...)
+    summary.inzdot(object, opts, des, survey.options, privacy_controls, ...)
 
 
-summary.inzbar <- function(object, des, survey.options, ...) {
+summary.inzbar <- function(object, opts, vn, des, survey.options,
+                           privacy_controls, table.direction, ...) {
     tab <- round(object$tab)
     perc <- object$phat * 100
+    twoway <- length(dim(tab)) == 2 && nrow(tab) > 1
 
     is.survey <- !is.null(des)
 
+    s_mat <- NULL
+    if (!is.null(privacy_controls)) {
+        s_mat <- privacy_controls$suppression_matrix(tab)
+        if (is.survey && privacy_controls$has("suppression_raw_counts")) {
+            rtab <- with(des$variables, table(y, x))
+            sr_mat <- privacy_controls$suppression_matrix(
+                rtab,
+                using_raw = TRUE
+            )
+            s_mat <- s_mat | sr_mat
+        }
+        tab <- privacy_controls$round(tab)
+        if (twoway) {
+            perc <- 100 * sweep(tab, 1, rowSums(tab), "/")
+        } else {
+            perc <- 100 * tab / sum(tab)
+        }
+    }
+
     # survey tables do this thing where they retain their dimensions,
     # even for one-way tables
-    twoway <- length(dim(tab)) == 2 && nrow(tab) > 1
     if (twoway) {
         tab <- as.matrix(tab)
+        s_mat_tab <- NULL
+        if (is.survey) {
+            # needed for supressing percentages ...
+            svy_tab <- svyby(~x, ~y, des, svytotal,
+                drop.empty.groups = FALSE,
+                na.rm = TRUE
+            )
+            smry_mean <- svyby(~x, ~y, des, svymean,
+                deff = survey.options$deff,
+                drop.empty.groups = FALSE,
+                na.rm = TRUE
+            )
+            if (!is.null(privacy_controls) && privacy_controls$has("check_rse")) {
+                xhat <- coef(svy_tab)
+                xse <- as.matrix(SE(svy_tab))
+                dim(xhat) <- dim(xse) <- dim(tab)
+                dimnames(xhat) <- dimnames(xse) <- dimnames(tab)
+                rse_mat_tab <- privacy_controls$rse_matrix(xhat, xse)
 
-        perc <- as.matrix(perc)
+                s_mat_tab <- s_mat | rse_mat_tab == "suppress"
+            }
+        }
+
+        perc <- round(as.matrix(perc), opts$round_percent)
         perc <- t(
             apply(perc, 1,
                 function(p) {
@@ -362,11 +443,29 @@ summary.inzbar <- function(object, des, survey.options, ...) {
             )
         )
 
+        cm1 <- cbind(tab, rowSums(tab))
         mat1 <- rbind(
-            c(colnames(tab), "Row Total"),
-            cbind(tab, rowSums(tab))
+            c(colnames(tab),
+                sprintf("%s Total",
+                    switch(table.direction,
+                        vertical = "Column",
+                        horizontal = "Row"
+                    )
+                )
+            ),
+            if (!is.null(s_mat_tab)) {
+                privacy_controls$suppress(cm1, s_mat_tab)
+            } else if (!is.null(s_mat)) {
+                privacy_controls$suppress(cm1, s_mat)
+            } else {
+                cm1
+            }
         )
         mat1 <- cbind(c("", rownames(tab)), mat1)
+
+        if (table.direction == "vertical") {
+            mat1 <- t(mat1)
+        }
 
         mat1 <- matrix(
             apply(mat1, 2,
@@ -377,12 +476,56 @@ summary.inzbar <- function(object, des, survey.options, ...) {
             nrow = nrow(mat1)
         )
 
+        if (!is.null(s_mat_tab)) {
+            mat1[-1, -1] <- privacy_controls$markup(mat1[-1, -1], rse_mat_tab)
+            mat1 <- matrix(
+                apply(mat1, 2,
+                    function(col) {
+                        format(col, justify = "left")
+                    }
+                ),
+                nrow = nrow(mat1)
+            )
+        }
 
+        mat1 <- apply(mat1, 1,
+            function(x) paste0("   ", paste(x, collapse = "   "))
+        )
+
+        if (table.direction == "vertical") {
+            mat1 <- c(
+                mat1[-length(mat1)],
+                paste(c("   ", rep("-", nchar(mat1[1]) - 3L)), collapse = ""),
+                mat1[length(mat1)]
+            )
+        }
+
+        cm2 <- cbind(perc, rowSums(tab))
         mat2 <- rbind(
-            c(colnames(tab), "Total", "Row N"),
-            cbind(perc, rowSums(tab))
+            c(colnames(tab), "Total",
+                sprintf("%s N",
+                    switch(table.direction,
+                        vertical = "Column",
+                        horizontal = "Row"
+                    )
+                )
+            ),
+
+            if (!is.null(s_mat_tab))
+                privacy_controls$suppress(cm2,
+                    t(apply(s_mat_tab, 1, function(x) c(x | x[length(x)], x[length(x)])))
+                )
+            else if (!is.null(s_mat))
+                privacy_controls$suppress(cm2,
+                    t(apply(s_mat, 1, function(x) c(x | x[length(x)], x[length(x)])))
+                )
+            else cm2
         )
         mat2 <- cbind(c("", rownames(tab)), mat2)
+
+        if (table.direction == "vertical") {
+            mat2 <- t(mat2)
+        }
 
         mat2 <- matrix(
             apply(mat2, 2,
@@ -393,35 +536,53 @@ summary.inzbar <- function(object, des, survey.options, ...) {
             nrow = nrow(mat2)
         )
 
+        mat2 <- apply(mat2, 1,
+            function(x) paste0("   ", paste(x, collapse = "   "))
+        )
+
+        if (table.direction == "vertical") {
+            mat2 <- c(
+                mat2[seq_len(length(mat2) - 2L)],
+                paste(c("   ", rep("-", nchar(mat2[1]) - 3L)), collapse = ""),
+                mat2[-seq_len(length(mat2) - 2L)]
+            )
+        }
+
         out <- c(
             sprintf("Table of %sCounts:",
                 ifelse(is.survey, "Estimated Population ", "")
             ),
             "",
-            apply(mat1, 1,
-                function(x) paste0("   ", paste(x, collapse = "   "))
+            mat1,
+            "",
+            sprintf("Table of %sPercentages (within categories of %s):",
+                ifelse(is.survey, "Estimated Population ", ""),
+                vn$y
             ),
             "",
-            sprintf("Table of %sPercentages:",
-                ifelse(is.survey, "Estimated Population ", "")
-            ),
-            "",
-            apply(mat2, 1,
-                function(x) paste0("   ", paste(x, collapse = "   "))
-            )
+            mat2
         )
 
         if (is.survey) {
-            smry_mean <- svyby(~x, ~y, des, svymean,
-                deff = survey.options$deff,
-                drop.empty.groups = FALSE,
-                na.rm = TRUE
+            mat <- format(
+                round(SE(smry_mean) * 100, opts$round_percent),
+                nsmall = opts$round_percent
             )
-            mat <- format(SE(smry_mean) * 100, digits = 4)
+            mat <- as.matrix(mat)
+            if (!is.null(s_mat_tab))
+                mat <- privacy_controls$suppress(mat, s_mat_tab[,-ncol(s_mat_tab)])
+            else if (!is.null(s_mat))
+                mat <- privacy_controls$suppress(mat, s_mat_tab[,-ncol(s_mat)])
+
             mat <- cbind(
                 c("", rownames(tab)),
                 rbind(colnames(tab), mat)
             )
+
+            if (table.direction == "vertical") {
+                mat <- t(mat)
+            }
+
             mat <- matrix(
                 apply(mat, 2,
                     function(col) {
@@ -437,17 +598,26 @@ summary.inzbar <- function(object, des, survey.options, ...) {
             out <- c(
                 out,
                 "",
-                "Standard error of estimated percentages:",
+                "Standard errors of estimated percentages:",
                 "",
                 mat
             )
 
             if (!isFALSE(survey.options$deff)) {
                 mat <- format(deff(smry_mean), digits = 3)
+                mat <- as.matrix(mat)
+                if (!is.null(s_mat_tab))
+                    mat <- privacy_controls$suppress(mat, s_mat_tab[,-ncol(s_mat_tab)])
+                else if (!is.null(s_mat))
+                    mat <- privacy_controls$suppress(mat, s_mat_tab[,-ncol(s_mat)])
+
                 mat <- cbind(
                     c("", rownames(tab)),
                     rbind(colnames(tab), mat)
                 )
+                if (table.direction == "vertical") {
+                    mat <- t(mat)
+                }
                 mat <- matrix(
                     apply(mat, 2,
                         function(col) {
@@ -466,48 +636,55 @@ summary.inzbar <- function(object, des, survey.options, ...) {
         }
         return(out)
     } else {
+        cm <- c(tab, sum(tab))
+        perc <- round(perc, opts$round_percent)
+        pm <- paste0(
+            c(format(perc, nsmall = opts$round_percent), "100"),
+            "%"
+        )
         mat <- rbind(
             c(colnames(tab), "Total"),
-            c(tab, sum(tab)),
-            paste0(
-                c(format(round(perc, 2), nsmall = 2), "100"),
-                "%"
-            )
+            if (is.null(s_mat)) cm else privacy_controls$suppress(cm, s_mat),
+            if (is.null(s_mat)) pm else privacy_controls$suppress(pm, s_mat)
         )
 
-        mat <- cbind(c("", "Count ", "Percent "), mat)
+        mat <- cbind(c("", "Count", "Percent"), mat)
         if (is.survey) {
             smry_mean <- svymean(~x, des, deff = survey.options$deff, na.rm = TRUE)
+            semat <- paste0(
+                format(
+                    round(SE(smry_mean) * 100, opts$round_percent),
+                    nsmall = opts$round_percent
+                ),
+                "%"
+            )
+            if (!is.null(s_mat))
+                semat <- privacy_controls$suppress(semat, s_mat[-ncol(s_mat)])
             mat <- rbind(
                 mat[1:2, ],
                 "",
                 mat[3, ],
-                c(
-                    "  std err ",
-                    paste0(
-                        format(round(SE(smry_mean) * 100, 2),
-                            nsmall = 2
-                        ),
-                        "%"
-                    ),
-                    NA
-                )
+                c("Standard Error", semat, NA)
             )
             if (!isFALSE(survey.options$deff)) {
+                deffmat <- paste0(
+                    format(
+                        round(deff(smry_mean), 2L),
+                        nsmall = 2L
+                    ),
+                    ""
+                )
+                if (!is.null(s_mat))
+                    deffmat <- privacy_controls$suppress(deffmat, s_mat[-ncol(s_mat)])
                 mat <- rbind(mat,
                     "",
-                    c(
-                        "Design effects ",
-                        paste0(
-                            format(round(deff(smry_mean), 2),
-                                nsmall = 2
-                            ),
-                            ""
-                        ),
-                        NA
-                    )
+                    c("Design effects", deffmat, NA)
                 )
             }
+        }
+
+        if (table.direction == "vertical") {
+            mat <- t(mat)
         }
 
         mat <- matrix(
@@ -525,6 +702,15 @@ summary.inzbar <- function(object, des, survey.options, ...) {
             function(x) paste0("   ", paste(x, collapse = "   "))
         )
 
+        # add line separator above total in vertical tables
+        if (table.direction == "vertical") {
+            mat <- c(
+                mat[-length(mat)],
+                paste(c("   ", rep("-", nchar(mat[1]) - 3L)), collapse = ""),
+                mat[length(mat)]
+            )
+        }
+
 
         if (is.survey) {
             return(c("Population Estimates:", "", mat))
@@ -536,7 +722,7 @@ summary.inzbar <- function(object, des, survey.options, ...) {
 
 
 
-summary.inzscatter <- function(object, vn, des, survey.options, ...) {
+summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
     x <- object$x
     y <- object$y
     trend <- object$trend
@@ -687,8 +873,8 @@ summary.inzscatter <- function(object, vn, des, survey.options, ...) {
 
     out
 }
-summary.inzgrid <- function(object, vn, des, survey.options, ...)
-    summary.inzscatter(object, vn, des, ...)
+summary.inzgrid <- function(object, opts, vn, des, survey.options, ...)
+    summary.inzscatter(object, opts, vn, des, ...)
 
-summary.inzhex <- function(object, vn, des, survey.options, ...)
-    summary.inzscatter(object, vn, des, ...)
+summary.inzhex <- function(object, opts, vn, des, survey.options, ...)
+    summary.inzscatter(object, opts, vn, des, ...)

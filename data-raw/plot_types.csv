@@ -81,6 +81,7 @@ inf.col.comp,p,p,,,,p,p,p,,,,,,,,,,,,,,,,,,,,,
 inf.col.conf,p,p,,,,p,p,p,,,,,,,,,,,,,,,,,,,,,
 inference.type,p,p,p,p,p,p,p,p,,,,,,,,,,,,,,,,,,,,,
 inference.par,p,p,,,,,,,,,,,,,,,,,,,,,,,,,,,
+ci.width,pi,pi,pi,pi,pi,pi,pi,pi,,,,,,,,,,,,,,,,,,,,,
 bs.inference,pi,pi,pi,pi,pi,pi,pi,pi,,,,,,,,,,,,,,,,,,,,,
 min.count,,,,,,psi,psi,psi,,,,,,,,,,,,,,,,,,,,,
 n.boot,pi,pi,pi,pi,pi,pi,pi,pi,,,,,,,,,,,,,,,,,,,,,
@@ -113,3 +114,8 @@ rotate_labels,,,,,,,,,p,p,p,p,,p,p,,,p,p,p,p,p,p,p,p,p,,p,p
 caption,,,,,,,,,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p
 desc,,,,,,,,,,,,,,p,p,p,p,,,,,,,,,,,,
 palette,,,,,,,,,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p
+table.direction,,,,,,s,s,s,,,,,,,,,,,,,,,,,,,,,
+round,si,si,si,si,si,si,si,si,,,,,,,,,,,,,,,,,,,,,
+round_percent,si,si,si,si,si,si,si,si,,,,,,,,,,,,,,,,,,,,,
+signif,si,si,si,si,si,si,si,si,,,,,,,,,,,,,,,,,,,,,
+privacy_controls,si,si,si,si,si,si,si,si,,,,,,,,,,,,,,,,,,,,,

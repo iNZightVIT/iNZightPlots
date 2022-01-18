@@ -20,6 +20,7 @@ getPlotSummary(
   missing.info = TRUE,
   inzpars = inzpar(),
   summary.type = "summary",
+  table.direction = c("horizontal", "vertical"),
   hypothesis.value = 0,
   hypothesis.alt = c("two.sided", "less", "greater"),
   hypothesis.var.equal = FALSE,
@@ -32,6 +33,7 @@ getPlotSummary(
   survey.options = list(),
   width = 100,
   epi.out = FALSE,
+  privacy_controls = NULL,
   ...,
   env = parent.frame()
 )
@@ -78,6 +80,8 @@ displayed in the plot}
 
 \item{summary.type}{one of \code{"summary"} or \code{"inference"}}
 
+\item{table.direction}{one of 'horizontal' (default) or 'vertical' (useful for many categories)}
+
 \item{hypothesis.value}{H0 value for hypothesis test}
 
 \item{hypothesis.alt}{alternative hypothesis (!=, <, >)}
@@ -97,6 +101,8 @@ displayed in the plot}
 \item{width}{width for the output, default is 100 characters}
 
 \item{epi.out}{logical, if \code{TRUE}, then odds/rate ratios and rate differences are printed when appropriate (\code{y} with 2 levels)}
+
+\item{privacy_controls}{optional, pass in confidentialisation and privacy controls (e.g., random rounding, suppression) for microdata}
 
 \item{...}{additional arguments, see \code{inzpar}}
 
@@ -124,6 +130,17 @@ getPlotSummary(Sepal.Length, data = iris,
 # if you prefer a formula interface
 inzsummary(Sepal.Length ~ Species, data = iris)
 inzinference(Sepal.Length ~ Species, data = iris)
+
+## confidentialisation and privacy controls
+# random rounding and suppression:
+HairEyeColor_df <- as.data.frame(HairEyeColor)
+inzsummary(Hair ~ Eye, data = HairEyeColor_df, freq = Freq)
+inzsummary(Hair ~ Eye, data = HairEyeColor_df, freq = Freq,
+    privacy_controls = list(
+        rounding = "RR3",
+        suppression = 10
+    )
+)
 }
 \author{
 Tom Elliott

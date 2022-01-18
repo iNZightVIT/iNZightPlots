@@ -108,6 +108,7 @@ smaller, while values larger than 1 will magnify everything}
      are \code{c("comp", "conf")}}
 \item{'inference.par'}{the parameter which we obtain intervals for. For a dotplot or histogram,
      this can be either \code{"mean"} or \code{"median"}; for bar plots it can be "proportion"}
+\item{'ci.width'}{the width of confidence intervals, default 0.95 for a 95\% confidence interval}
 \item{'bs.inference'}{logical, if \code{TRUE}, then nonparametric bootstrap simulation is used
      to obtain the intervals}
 \item{'min.count'}{the min count for barplots inference; counts less than this are ignored}
@@ -135,6 +136,9 @@ smaller, while values larger than 1 will magnify everything}
 \item{'ylim'}{a vector defining the y axis limits (default NULL will use the data)}
 \item{'transform'}{a list of variable transformations (e.g., list(x = 'log'))}
 \item{'plot.features'}{a list containing any additional features for new plots (e.g., maptype)}
+\item{'round'}{integer specifying optional rounding of numerical output, default NA (ignored)}
+\item{'round_percent'}{integer specifying rounding for percentages (default 2)}
+\item{'signif'}{integer specifying number of significant figured in numeric output (default 2). Ignored if \code{round} is not NA.}
 }
 }
 \examples{

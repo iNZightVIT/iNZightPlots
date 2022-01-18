@@ -9,7 +9,7 @@ df <- data.frame(
 tab <- table(df$x)
 pr <- tab / nrow(df)
 # CI width
-wd <- as.numeric(1.96 * sqrt(pr * (1 - pr) / nrow(df)))
+wd <- as.numeric(qnorm(0.975) * sqrt(pr * (1 - pr) / nrow(df)))
 
 plotit <- FALSE
 

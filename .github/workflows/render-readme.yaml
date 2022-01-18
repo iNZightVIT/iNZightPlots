@@ -1,11 +1,11 @@
 on:
   push:
     paths:
-      - 'README.Rmd'
-      - 'R/*.R'
+      - "README.Rmd"
+      - "R/*.R"
     branches:
       - dev
-      - 'release/**'
+      - "release/**"
 
 name: Render README
 
@@ -13,20 +13,21 @@ jobs:
   render:
     name: Render README
     runs-on: macOS-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v2
       - uses: r-lib/actions/setup-r@v1
       - uses: r-lib/actions/setup-pandoc@v1
-      - name: Install rmarkdown, remotes, and the local package
+      - name: Install remotes
+        run: Rscript -e 'install.packages("remotes")'
+      - name: Install dependencies
+        env:
+          OS_TYPE: ${{ runner.os }}
+        run: Rscript ./.github/install_deps.R
+        shell: bash
+      - name: Install rmarkdown and the local package
         run: |
-          install.packages("remotes")
-          remotes::install_github(
-            paste0(
-              "iNZightVIT/",
-              c("iNZightTools", "iNZightMR"),
-              "@dev"
-            )
-          )
           remotes::install_local(".")
           remotes::install_cran("rmarkdown")
         shell: Rscript {0}

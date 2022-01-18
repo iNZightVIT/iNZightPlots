@@ -28,6 +28,7 @@
 #' displayed in the plot
 #' @param inzpars allows specification of iNZight plotting parameters over multiple plots
 #' @param summary.type one of \code{"summary"} or \code{"inference"}
+#' @param table.direction one of 'horizontal' (default) or 'vertical' (useful for many categories)
 #' @param hypothesis.value H0 value for hypothesis test
 #' @param hypothesis.alt alternative hypothesis (!=, <, >)
 #' @param hypothesis.var.equal use equal variance assumption for t-test?
@@ -38,6 +39,7 @@
 #' @param survey.options additional options passed to survey methods
 #' @param width width for the output, default is 100 characters
 #' @param epi.out logical, if \code{TRUE}, then odds/rate ratios and rate differences are printed when appropriate (\code{y} with 2 levels)
+#' @param privacy_controls optional, pass in confidentialisation and privacy controls (e.g., random rounding, suppression) for microdata
 #' @param ... additional arguments, see \code{inzpar}
 #' @param env compatibility argument
 #' @return an \code{inzight.plotsummary} object with a print method
@@ -56,12 +58,24 @@
 #' # if you prefer a formula interface
 #' inzsummary(Sepal.Length ~ Species, data = iris)
 #' inzinference(Sepal.Length ~ Species, data = iris)
+#'
+#' ## confidentialisation and privacy controls
+#' # random rounding and suppression:
+#' HairEyeColor_df <- as.data.frame(HairEyeColor)
+#' inzsummary(Hair ~ Eye, data = HairEyeColor_df, freq = Freq)
+#' inzsummary(Hair ~ Eye, data = HairEyeColor_df, freq = Freq,
+#'     privacy_controls = list(
+#'         rounding = "RR3",
+#'         suppression = 10
+#'     )
+#' )
 getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            g2 = NULL, g2.level = NULL, varnames = list(),
                            colby = NULL, sizeby = NULL,
                            data = NULL, design = NULL, freq = NULL,
                            missing.info = TRUE, inzpars = inzpar(),
                            summary.type = "summary",
+                           table.direction = c("horizontal", "vertical"),
                            hypothesis.value = 0,
                            hypothesis.alt = c("two.sided", "less", "greater"),
                            hypothesis.var.equal = FALSE,
@@ -80,6 +94,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            survey.options = list(),
                            width = 100,
                            epi.out = FALSE,
+                           privacy_controls = NULL,
                            ...,
                            env = parent.frame()) {
 
@@ -92,6 +107,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     ## Grab a plot object!
     m <- match.call(expand.dots = FALSE)
+    table.direction <- match.arg(table.direction)
 
     if ("design" %in% names(m) && !is.null(m$design)) {
         md <- eval(m$design, env)
@@ -142,7 +158,8 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         warning("Comparison intervals not yet available for Inferential output.\n",
             "Defaulting to confidence intervals.")
     }
-    ## dots <- list(...)
+    dots <- list(...)
+    inzpars <- modifyList(inzpars, dots)
     ## inference.type <- inference.par <- NULL
     ## bs.inference <- FALSE
     ## if (summary.type[1] == "inference") {
@@ -182,13 +199,25 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     ### Now we just loop over everything ...
 
-    summary(obj, summary.type, hypothesis, survey.options, width = width, epi.out = epi.out)
+    summary(obj,
+        summary.type,
+        table.direction,
+        hypothesis,
+        survey.options,
+        width = width,
+        epi.out = epi.out,
+        privacy_controls = privacy_controls,
+        inzpars = inzpars
+    )
 }
 
 
 summary.inzplotoutput <- function(object, summary.type = "summary",
+                                  table.direction = c("horizontal", "vertical"),
                                   hypothesis = NULL,
                                   survey.options = list(),
+                                  privacy_controls = NULL,
+                                  inzpars = inzpar(),
                                   width = 100, ...) {
     if (length(summary.type) > 1) {
         warning("Only using the first element of `summary.type`")
@@ -198,6 +227,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
         stop("`summary.type` must be either `summary` or `inference`")
 
     obj <- object  ## same typing ... but match default `summary` method arguments
+    table.direction <- match.arg(table.direction)
 
     ## set up some variables/functions to make text processing easier ...
 
@@ -231,6 +261,12 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
 
     ## Handle survey options
     survey.options <- modifyList(default.survey.options, survey.options)
+
+    ## Handle privacy/confidentialisation
+    privacy_controls <- make_privacy_controls(privacy_controls)
+    if (!is.null(privacy_controls) && privacy_controls$has("seed")) {
+        set.seed(privacy_controls$get("seed"))
+    }
 
     add(Hrule)
     add(
@@ -382,6 +418,86 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
     add(Hrule)
     add("")
 
+    if (!is.null(privacy_controls)) {
+        add("Privacy and confidentialisation information", underline = TRUE)
+        add("")
+        if (privacy_controls$has("rounding")) {
+            add(
+                sprintf("  * counts are rounded using %s",
+                    switch(privacy_controls$get("rounding"),
+                        "RR3" = "RR3 (random rounding to base 3)",
+                        paste0("other (", privacy_controls$get("rounding"), ")")
+                    )
+                )
+            )
+        }
+        if (privacy_controls$has("suppression")) {
+            add(
+                sprintf("  * suppression of counts smaller than %d, indicated by %s%s",
+                    privacy_controls$get("suppression"),
+                    privacy_controls$get("symbol"),
+                    ifelse(privacy_controls$get("secondary_suppression"),
+                        ", with secondary suppression where necessary",
+                        ""
+                    )
+                )
+            )
+        }
+        if (privacy_controls$has("suppression_raw_counts")) {
+            add(
+                sprintf("  * suppression of weighted counts with corresponding unweighted counts < %s",
+                    privacy_controls$get("suppression_raw_counts")
+                )
+            )
+        }
+        if (privacy_controls$has("suppression_magnitude")) {
+            add(
+                sprintf("  * suppression of totals and means where underlying unrounded count < %s",
+                    privacy_controls$get("suppression_magnitude")
+                )
+            )
+        }
+        if (privacy_controls$has("suppression_quantiles")) {
+            add("  * suppression of quantiles")
+            q_values <- do.call(cbind, privacy_controls$get("suppression_quantiles"))
+            apply(q_values, 1L,
+                function(qv) {
+                    add(
+                        sprintf("    - %s%s if underlying unrounded count < %s",
+                            qv[1] * 100, "%", qv[2]
+                        )
+                    )
+                }
+            )
+        }
+        if (privacy_controls$has("check_rse")) {
+            rse_values <- do.call(cbind, privacy_controls$get("check_rse"))
+            add("  * for estimates with large relative sampling error (RSE),")
+            apply(rse_values, 1L,
+                function(rv) {
+                    add(ifelse(rv[2] == "suppress",
+                        sprintf("    - estimates with RSE >= %s%s suppressed",
+                            rv[1], "%"
+                        ),
+                        sprintf("    - estimates with RSE >= %s%s marked with %s",
+                            rv[1], "%", rv[2]
+                        )
+                    ))
+                }
+            )
+        }
+        if (privacy_controls$has("seed")) {
+            add(sprintf("  * using RNG seed %d", privacy_controls$get("seed")))
+        }
+        add("")
+        add(
+            "NOTE: this feature is still experimental, and all output should be manually\n",
+            "checked before being made public. This is simply to aid that process.\n"
+        )
+        add(Hrule)
+        add("")
+    }
+
     simpleCap <- function(x) {
         s <- strsplit(x, " ")[[1]]
         paste(toupper(substring(s, 1,1)), substring(s, 2),
@@ -491,8 +607,18 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                                     },
                                     "factor" = {
                                         sprintf(
-                                            "%s of the distribution of %s (columns) by %s (rows)",
-                                            stype, vnames$x, vnames$y
+                                            "%s of the distribution of %s (%s) by %s (%s)",
+                                            stype,
+                                            vnames$x,
+                                            switch(table.direction,
+                                                vertical = "rows",
+                                                horizontal = "columns"
+                                            ),
+                                            vnames$y,
+                                            switch(table.direction,
+                                                vertical = "columns",
+                                                horizontal = "rows"
+                                            )
                                         )
                                     }
                                 )
@@ -516,8 +642,12 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                     sapply(
                         switch(summary.type,
                             "summary" =
-                                summary(pl, vn = vnames, des = pl.design,
-                                    survey.options = survey.options),
+                                summary(pl, opts = inzpars,
+                                    vn = vnames, des = pl.design,
+                                    survey.options = survey.options,
+                                    privacy_controls = privacy_controls,
+                                    table.direction = table.direction
+                                ),
                             "inference" =
                                 inference(pl, bs, inzclass,
                                     des = pl.design,
@@ -526,6 +656,8 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                                     nb = attr(obj, "nboot"),
                                     hypothesis = hypothesis,
                                     survey.options = survey.options,
+                                    privacy_controls = privacy_controls,
+                                    table.direction = table.direction,
                                     ...
                                 )
                         ),
