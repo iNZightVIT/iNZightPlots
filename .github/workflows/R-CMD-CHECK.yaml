@@ -39,6 +39,8 @@ jobs:
 
       - name: Query dependencies
         run: |
+          if (getRversion() >= numeric_version('4.2'))
+            install.packages('processx', type = 'source')
           install.packages('remotes')
           saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
         shell: Rscript {0}
