@@ -1,11 +1,13 @@
+## Resubmission
+
+This is a resubmission, previous submission failed for some unknown error during CRAN pretests. This same error was occuring on the current CRAN version, but the latest R-devel seems to pass all checks, so attempting a resubmisison.
+
 ## Test environments
 
 - local ubuntu 21.10, R 4.1.0
 - ubuntu 20.04 (GitHub Actions) R release, R devel
 - macos (GitHub Actions), R release
 - win-builder, R release and devel
-
----
 
 ## R CMD check results
 
