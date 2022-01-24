@@ -11,3 +11,4 @@
 ^.github$
 ^CRAN-RELEASE$
 ^README.Rmd$
+^CRAN-SUBMISSION$
