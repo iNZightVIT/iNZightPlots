@@ -228,11 +228,13 @@ test_that("Scatter plots work for surveys", {
 test_that("Factors with one level return error", {
     dclus1$variables$test <- factor(rep("test", nrow(dclus1$variables)))
     dclus1$variables$test2 <- factor(rep("test", nrow(dclus1$variables)))
-    expect_error(inzplot(test ~ api00, design = dclus1))
+    expect_error(inzplot(test ~ api00, design = dclus1, plot = FALSE))
 })
 
 test_that("Log transformation works with surveys", {
     expect_silent(
-        inzplot(~meals, design = dclus1, transform = list(x = "log"))
+        inzplot(~meals, design = dclus1, transform = list(x = "log"),
+            plot = FALSE
+        )
     )
 })
