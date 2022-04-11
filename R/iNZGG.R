@@ -206,7 +206,7 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
   non_mapped <- varnames[grep("^(x|y)$", names(varnames), invert = TRUE)]
   varnames <- varnames[grep("^(x|y)$", names(varnames))]
   varnames <- varnames[varnames != ""]
-  nullVars <- vapply(data[, varnames, drop = FALSE], is.null, FUN.VALUE = logical(1))
+  nullVars <- vapply(data[, names(varnames), drop = FALSE], is.null, FUN.VALUE = logical(1))
   varnames[which(nullVars)] <- NULL
 
   varnames[!varnames %in% colnames(data)] <- NULL
@@ -465,7 +465,7 @@ iNZightPlotGG <- function(
   if (isTRUE(!is.null(caption) && caption != "")) {
     plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::labs(caption = caption))
   }
-  
+
   if (type %in% c("gg_barcode3", "gg_dotstrip", "gg_ridgeline")) {
     plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::scale_y_discrete(limits = rev))
   } else if (type %in% c("gg_violin", "gg_boxplot", "gg_beeswarm", "gg_quasirandom")) {

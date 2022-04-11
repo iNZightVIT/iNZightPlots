@@ -33,6 +33,7 @@ Imports:
     s20x,
     scales,
     stats,
+    units,
     survey,
     utils
 Suggests:

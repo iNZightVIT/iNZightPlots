@@ -147,6 +147,9 @@ inzDataframe <- function(m, data = NULL, names = list(),
     needs_transform <- function(x) {
         if (is.factor(x)) return(FALSE)
 
+        if (inherits(x, "units"))
+            x <- units::drop_units(x)
+
         if (is.numeric(x) && class(x) %in% c("integer", "numeric"))
             return(FALSE)
 
@@ -295,6 +298,37 @@ inzDataframe <- function(m, data = NULL, names = list(),
             varnames,
             function(x) ifelse(!is.character(x), deparse(x), x)
         )
+
+    # df$varnames <- sapply(names(varnames),
+    #     function(x) {
+    #         if (!is.null(attributes(df$data[[x]])$label))
+    #             return(attr(df$data[[x]], "label", exact = TRUE))
+
+    #         df$varnames[[x]]
+    #     }
+    # )
+
+    # # units
+    # df$varnames <- sapply(names(varnames),
+    #     function(x) {
+    #         if (inherits(df$data[[x]], "units"))
+    #             return(
+    #                 sprintf("%s (%s)",
+    #                     df$varnames[[x]],
+    #                     units::deparse_unit(df$data[[x]])
+    #                 )
+    #             )
+
+    #         df$varnames[[x]]
+    #     }
+    # )
+
+    # # removes labels and units
+    # for (i in seq_len(ncol(df$data))) {
+    #     if (inherits(df$data[[i]], "units"))
+    #         df$data[[i]] <- units::drop_units(df$data[[i]])
+    # }
+
     df$glevels <- list(g1.level = g1.level, g2.level = g2.level)
 
     if (!is.null(df$design)) {
