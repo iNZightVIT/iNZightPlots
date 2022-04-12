@@ -10,6 +10,6 @@ cas <- apply_dictionary(cas_raw, cas_dict)
 
 test_that("Variable lables used if present", {
     # devtools::load_all()
-    inzplot(~height, cas)
-
+    expect_silent(inzplot(~height, cas))
+    expect_silent(inzplot(~height, cas, plottype = "gg_barcode"))
 })

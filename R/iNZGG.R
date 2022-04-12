@@ -206,7 +206,7 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
   non_mapped <- varnames[grep("^(x|y)$", names(varnames), invert = TRUE)]
   varnames <- varnames[grep("^(x|y)$", names(varnames))]
   varnames <- varnames[varnames != ""]
-  nullVars <- vapply(data[, names(varnames), drop = FALSE], is.null, FUN.VALUE = logical(1))
+  nullVars <- vapply(data[, varnames, drop = FALSE], is.null, FUN.VALUE = logical(1))
   varnames[which(nullVars)] <- NULL
 
   varnames[!varnames %in% colnames(data)] <- NULL

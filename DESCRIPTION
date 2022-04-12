@@ -20,6 +20,7 @@ Imports:
     colorspace,
     dichromat,
     emmeans,
+    expss,
     grDevices,
     grid,
     hexbin,
@@ -33,6 +34,7 @@ Imports:
     s20x,
     scales,
     stats,
+    stringr,
     units,
     survey,
     utils

@@ -55,6 +55,7 @@
 #'        missingness is displayed in the plot
 #' @param xlab the text for the x-label
 #' @param ylab the text for the y-label
+#' @param show_units logical, if `TRUE` (default) units will be shown beside axies and legend variable labels
 #' @param new logical, used for compatibility
 #' @param df compatibility argument
 #' @param env compatibility argument
@@ -123,8 +124,9 @@ iNZightPlot <- function(x,
                         design = NULL,
                         freq = NULL,
                         missing.info = TRUE,
-                        xlab = varnames$x,
-                        ylab = varnames$y,
+                        xlab,
+                        ylab,
+                        show_units = TRUE,
                         new = TRUE,
                         inzpars = inzpar(),
                         layout.only = FALSE,
@@ -317,8 +319,8 @@ iNZightPlot <- function(x,
                         type = list(...)$plottype,
                         data_name = data_name,
                         main = list(...)$main,
-                        xlab = xlab,
-                        ylab = ylab,
+                        xlab = if (missing(xlab)) NULL else xlab,
+                        ylab = if (missing(ylab)) NULL else ylab,
                         extra_args = list(...),
                         palette = list(...)$palette,
                         gg_theme = list(...)$gg_theme,
@@ -887,18 +889,18 @@ iNZightPlot <- function(x,
             }
         }
 
-        if (is.null(xlab))
-            xlab <- varnames$x
-        if (is.null(ylab))
-            ylab <- varnames$y
+        if (missing(xlab))
+            xlab <- df$labels$x %||% varnames$x
+        if (missing(ylab))
+            ylab <- df$labels$y %||% varnames$y
 
         titles <- list()
         titles$main <-
             if (!is.null(dots$main))
-                makeTitle(varnames, VT, g1.level, g2.level,
+                makeTitle(df$labels, VT, g1.level, g2.level,
                     template = dots$main
                 )
-            else makeTitle(varnames, VT, g1.level, g2.level)
+            else makeTitle(df$labels, VT, g1.level, g2.level)
         titles$xlab <- xlab
         if (!ynull) {
             titles$ylab <-
@@ -908,8 +910,14 @@ iNZightPlot <- function(x,
         } else if (xfact) {
             titles$ylab <- ifelse(opts$bar.counts, "Count", "Percentage (%)")
         }
-        if ("colby" %in% df.vs) titles$legend <- varnames$colby
+        if ("colby" %in% df.vs)
+            titles$legend <- df$labels$colby %||% varnames$colby
 
+        if (show_units) {
+            titles$xlab <- add_units(titles$xlab, df$units$x)
+            titles$ylab <- add_units(titles$ylab, df$units$y)
+            titles$colby <- add_units(titles$legend, df$units$colby)
+        }
 
         ## plot.list still contains all the levels of g1 that wont be plotted
         ## - for axis scaling etc
@@ -1113,7 +1121,7 @@ iNZightPlot <- function(x,
                     f.levels <- levels(as.factor(df$data$colby)),
                     col = ptcol,
                     pch = legPch,
-                    title = varnames$colby,
+                    title = df$labels$colby %||% varnames$colby,
                     any.missing = misscol,
                     opts = opts
                 )
@@ -1131,7 +1139,10 @@ iNZightPlot <- function(x,
                 )
                 leg.grobL <- drawContLegend(
                     df$data$colby,
-                    title = varnames$colby,
+                    title = add_units(
+                        df$short_labels$colby %||% varnames$colby,
+                        df$units$colby
+                    ),
                     height = 0.4 * PAGE.height,
                     cex.mult = cex.mult,
                     any.missing = misscol,
@@ -1154,7 +1165,8 @@ iNZightPlot <- function(x,
             leg.grob1 <- drawLegend(
                 levels(as.factor(df$data$y)),
                 col = barcol, pch = 22,
-                title = varnames$y, opts = opts
+                title = df$short_labels$y %||% varnames$y,
+                opts = opts
             )
             col.args$b.cols <- barcol
         }

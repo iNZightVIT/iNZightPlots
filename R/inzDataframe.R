@@ -139,6 +139,39 @@ inzDataframe <- function(m, data = NULL, names = list(),
         df$data$highlight <- as.logical((1:nrow(df$data)) %in% eval(m$highlight))
     }
 
+    df$labels <- structure(
+        lapply(names(df$data),
+            function(x)
+                attr(df$data[[x]], "label", exact = TRUE) %||% df$varnames[[x]]
+        ),
+        .Names = names(df$data)
+    )
+    df$short_labels <- structure(
+        lapply(names(df$labels),
+            function(x) {
+                stringr::str_trunc(df$labels[[x]], 20, "center")
+            }
+        ),
+        .Names = names(df$labels)
+    )
+
+    df$units <- structure(
+        lapply(df$data,
+            function(x) {
+                if (inherits(x, "units")) units::deparse_unit(x)
+                else NULL
+            }
+        ),
+        .Names = names(df$data)
+    )
+
+    # removes labels and units
+    for (i in seq_len(ncol(df$data))) {
+        if (inherits(df$data[[i]], "units"))
+            df$data[[i]] <- units::drop_units(df$data[[i]])
+        if (inherits(df$data[[i]], "labelled"))
+            df$data[[i]] <- expss::drop_var_labs(df$data[[i]])
+    }
 
 
     # convert anything that isn't a numeric variable to a factor
@@ -298,36 +331,6 @@ inzDataframe <- function(m, data = NULL, names = list(),
             varnames,
             function(x) ifelse(!is.character(x), deparse(x), x)
         )
-
-    # df$varnames <- sapply(names(varnames),
-    #     function(x) {
-    #         if (!is.null(attributes(df$data[[x]])$label))
-    #             return(attr(df$data[[x]], "label", exact = TRUE))
-
-    #         df$varnames[[x]]
-    #     }
-    # )
-
-    # # units
-    # df$varnames <- sapply(names(varnames),
-    #     function(x) {
-    #         if (inherits(df$data[[x]], "units"))
-    #             return(
-    #                 sprintf("%s (%s)",
-    #                     df$varnames[[x]],
-    #                     units::deparse_unit(df$data[[x]])
-    #                 )
-    #             )
-
-    #         df$varnames[[x]]
-    #     }
-    # )
-
-    # # removes labels and units
-    # for (i in seq_len(ncol(df$data))) {
-    #     if (inherits(df$data[[i]], "units"))
-    #         df$data[[i]] <- units::drop_units(df$data[[i]])
-    # }
 
     df$glevels <- list(g1.level = g1.level, g2.level = g2.level)
 

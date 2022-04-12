@@ -529,3 +529,12 @@ single_level_factors <- function(df, vars = c("x", "y")) {
     df <- df[, vars, drop = FALSE]
     sapply(df, function(x) length(levels(x)) == 1L)
 }
+
+`%||%` <- function(a, b) {
+    if (!is.null(a)) a else b
+}
+
+add_units <- function(x, unit) {
+    if (is.null(unit)) return(x)
+    sprintf("%s (%s)", x, unit)
+}
