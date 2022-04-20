@@ -535,9 +535,13 @@ parse_formula <- function(fmla) {
 }
 
 single_level_factors <- function(df, vars = c("x", "y")) {
-    vars <- vars %in% names(df)
+    vars <- vars[vars %in% names(df)]
     df <- df[, vars, drop = FALSE]
-    sapply(df, function(x) length(levels(x)) == 1L)
+    sapply(df, function(x) {
+        if (tibble::is_tibble(x) && ncol(x) > 1L) return(FALSE)
+        if (tibble::is_tibble(x)) x <- x[[1]]
+        length(levels(x)) == 1L
+    })
 }
 
 `%||%` <- function(a, b) {

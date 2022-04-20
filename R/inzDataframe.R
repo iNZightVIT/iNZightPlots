@@ -135,13 +135,16 @@ inzDataframe <- function(m, data = NULL, names = list(),
         } else {
             label <- rep(" ", nrow(df$data))
         }
-        df$data$extreme.label <- label
-        df$data$pointIDs <- 1:nrow(df$data)
-    } else {
+        df$data <- tibble::add_column(
+            df$data,
+            extreme.label = label,
+            pointIDs = seq_len(nrow(df$data))
+        )
+    } else if ("locate.same.level" %in% names(df$data)) {
         df$data$locate.same.level <- NULL
     }
 
-    if (!is.null(df$data$locate.same.level)) {
+    if ("locate.same.level" %in% names(df$data)) {
         df$data$locate.same.level <- as.factor(
             ifelse(
                 is.na(df$data$locate.same.level),
@@ -152,15 +155,23 @@ inzDataframe <- function(m, data = NULL, names = list(),
     }
 
     if (!is.null(m$highlight)) {
-        df$data$highlight <- as.logical((1:nrow(df$data)) %in% eval(m$highlight))
+        df$data <- tibble::add_column(
+            df$data,
+            highlight = as.logical((1:nrow(df$data)) %in% eval(m$highlight))
+        )
     }
 
-    print(varnames)
-
+    varnames_c <- lapply(varnames,
+        function(x) {
+            x <- as.character(x)
+            if (length(x) == 1L) return(x)
+            paste(x[-1], collapse = " + ")
+        }
+    )
     df$labels <- structure(
         lapply(names(df$data),
             function(x)
-                attr(df$data[[x]], "label", exact = TRUE) %||% varnames[[x]]
+                attr(df$data[[x]], "label", exact = TRUE) %||% varnames_c[[x]]
         ),
         .Names = names(df$data)
     )

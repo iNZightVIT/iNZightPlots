@@ -204,8 +204,6 @@ iNZightPlot <- function(x,
         )
     }
 
-    print(df)
-
     slf <- single_level_factors(df$data)
     if (!is.null(design) && any(slf)) {
         slf_vars <- df$varnames[slf]
@@ -218,7 +216,18 @@ iNZightPlot <- function(x,
         )
     }
 
+    ## For the time being, just use `ggplot2` for multiple-variable plots:
+    multi_var <- any(
+        sapply(df$data,
+            function(x) tibble::is_tibble(x) && ncol(x) > 1L
+        )
+    )
+
     dots <- list(...)
+
+    if (multi_var) return(multiplot(df$data, dots))
+
+    df$data <- as.data.frame(df$data)
 
     if (isTRUE(grepl("^gg_", dots$plottype))) {
 
