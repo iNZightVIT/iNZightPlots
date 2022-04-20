@@ -509,15 +509,25 @@ parse_formula <- function(fmla) {
         # no grouping vars
         x <- f.list2[[1]]
     } else {
-        # grouping vars
-        x <- f.list2[[2]]
+        if (as.character(f.list2[[1]]) == "|") {
+            f.list3 <- as.list(f.list2[[3]])
+            if (length(f.list3) == 1) {
+                g1 <- f.list3[[1]]
+            } else {
+                g1 <- f.list3[[2]]
+                g2 <- f.list3[[3]]
+            }
 
-        f.list3 <- as.list(f.list2[[3]])
-        if (length(f.list3) == 1) {
-            g1 <- f.list3[[1]]
+            x <- f.list2[[2]]
+        } else if (as.character(f.list2[[1]]) == "+") {
+            s1 <- as.character(f.list2[[2]])
+            s2 <- as.character(f.list2[[3]])
+            if (length(s1) > 1L) s1 <- paste(s1[-1], collapse = " + ")
+            if (length(s2) > 1L) s2 <- paste(s2[-1], collapse = " + ")
+            str <- sprintf("%s + %s", s1, s2)
+            x <- as.call(str2lang(str))
         } else {
-            g1 <- f.list3[[2]]
-            g2 <- f.list3[[3]]
+            stop("unsupported formula")
         }
     }
 

@@ -204,6 +204,8 @@ iNZightPlot <- function(x,
         )
     }
 
+    print(df)
+
     slf <- single_level_factors(df$data)
     if (!is.null(design) && any(slf)) {
         slf_vars <- df$varnames[slf]

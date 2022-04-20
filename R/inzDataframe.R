@@ -55,7 +55,15 @@ inzDataframe <- function(m, data = NULL, names = list(),
 
     # take the names and replace if specified
     names <- names[names != ""]
-    varnames <- utils::modifyList(as.list(m[mw]), as.list(names))
+    varnames <- lapply(
+        utils::modifyList(as.list(m[mw]), as.list(names)),
+        function(x) {
+            return(x)
+            if (length(x) == 1L) return(x)
+            do.call(c, x[-1])
+        }
+    )
+
 
     df <- list()  # initialise the object
 
@@ -82,10 +90,18 @@ inzDataframe <- function(m, data = NULL, names = list(),
         df$max.freq <- max(df$freq)
         class(df) <- "inz.freq"
     } else {
-        df$data <- as.data.frame(
-            lapply(m[mw], eval, data, env),
-            stringsAsFactors = TRUE
-        )
+        zz <- lapply(m[mw], function(x) {
+            if (length(x) > 1L) {
+                nn <- as.character(x)[-1]
+                x <- lapply(as.character(x)[-1],
+                    function(z) eval(as.name(z), data, env)
+                )
+                names(x) <- nn
+                do.call(tibble::tibble, x)
+            } else eval(x, data, env)
+        })
+        names(zz) <- names(mw)[mw]
+        df$data <- do.call(tibble::tibble, zz)
         class(df) <- "inz.simple"
     }
 
@@ -139,10 +155,12 @@ inzDataframe <- function(m, data = NULL, names = list(),
         df$data$highlight <- as.logical((1:nrow(df$data)) %in% eval(m$highlight))
     }
 
+    print(varnames)
+
     df$labels <- structure(
         lapply(names(df$data),
             function(x)
-                attr(df$data[[x]], "label", exact = TRUE) %||% df$varnames[[x]]
+                attr(df$data[[x]], "label", exact = TRUE) %||% varnames[[x]]
         ),
         .Names = names(df$data)
     )
@@ -178,6 +196,7 @@ inzDataframe <- function(m, data = NULL, names = list(),
     # NOTE: this is just precautionary; as.data.frame should set any
     # character strings to factors by default.
     needs_transform <- function(x) {
+        if (tibble::is_tibble(x)) return(FALSE)
         if (is.factor(x)) return(FALSE)
 
         if (inherits(x, "units"))
@@ -259,8 +278,14 @@ inzDataframe <- function(m, data = NULL, names = list(),
     # such as 1 / x, or log(x) (which give Inf and -Inf respectively).
     # Because we can't plot these values, it is easier just to replace them
     # with missing.
-    for (i in colnames(df$data))
-        df$data[[i]][is.infinite(df$data[[i]])] <- NA
+    for (i in colnames(df$data)) {
+        if (tibble::is_tibble(df$data[[i]])) {
+            for (j in colnames(df$data[[i]]))
+            df$data[[i]][[j]][is.infinite(df$data[[i]][[j]])] <- NA
+        } else {
+            df$data[[i]][is.infinite(df$data[[i]])] <- NA
+        }
+    }
 
     # convert numeric grouping variables to factors
     if ("g2" %in% colnames(df$data))
