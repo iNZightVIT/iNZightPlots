@@ -1,4 +1,7 @@
+#' @importFrom rlang .data
 multiplot <- function(df, args) {
+    check_suggested_packages()
+
     # what type of plot?
     d <- df$data
 
@@ -37,11 +40,15 @@ multiplot_cat <- function(df, args) {
         names_to = "x",
         values_to = "value"
     )
-    d <- dplyr::mutate(d, x = stringr::str_replace(x, "^x_", ""))
-    d <- dplyr::group_by(d, x, value)
+    d <- dplyr::mutate(d, x = stringr::str_replace(.data$x, "^x_", ""))
+    d <- dplyr::group_by(d, .data$x, .data$value)
     d <- dplyr::tally(d)
-    d <- dplyr::group_by(d, x)
-    d <- dplyr::summarise(d, value = value, n = n, p = n / sum(n) * 100)
+    d <- dplyr::group_by(d, .data$x)
+    d <- dplyr::summarise(d,
+        value = .data$value,
+        n = .data$n,
+        p = .data$n / sum(.data$n) * 100
+    )
 
     plottype <- args$plottype
     if (is.null(plottype)) {
@@ -55,17 +62,17 @@ multiplot_cat <- function(df, args) {
             xlvls <- unique(d$value)
             xlevel <- unique(xlvls)[1]
             if ("yes" %in% tolower(xlvls)) xlevel[tolower(xlevel) == "yes"]
-            d <- dplyr::filter(d, value == !!xlevel)
+            d <- dplyr::filter(d, .data$value == !!xlevel)
 
             d$x <- factor(d$x, levels = unique(d$x)[order(d$p)])
 
-            ggplot2::ggplot(d, ggplot2::aes(x, p)) +
+            ggplot2::ggplot(d, ggplot2::aes(.data$x, .data$p)) +
                 ggplot2::geom_bar(stat = "identity", fill = "#18afe3") +
                 ggplot2::coord_flip()
         },
         "vertical-stack" = {
             ggplot2::ggplot(d,
-                ggplot2::aes(x, p, fill = value)
+                ggplot2::aes(.data$x, .data$p, fill = .data$value)
             ) +
                 ggplot2::geom_bar(stat = "identity") +
                 ggplot2::coord_flip()
@@ -73,7 +80,7 @@ multiplot_cat <- function(df, args) {
         "side-by-side" = ,
         "default" = {
             ggplot2::ggplot(d,
-                ggplot2::aes(value, p, fill = x)
+                ggplot2::aes(.data$value, .data$p, fill = .data$x)
             ) +
                 ggplot2::geom_bar(stat = "identity", position = "dodge")
         }
@@ -120,4 +127,12 @@ multiplot_cat <- function(df, args) {
 
 multiplot_num <- function(df, args) {
 
+}
+
+check_suggested_packages <- function() {
+    pkgs <- c("ggplot2", "ggthemes", "dplyr", "tibble", "tidyr")
+    inst <- sapply(pkgs, requireNamespace(pkgs, quietly = TRUE))
+    if (any(!inst)) {
+        stop("Please install suggested packages: install.packages('iNZightPlots', dependencies = TRUE)")
+    }
 }

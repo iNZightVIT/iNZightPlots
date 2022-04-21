@@ -40,8 +40,8 @@ Imports:
     utils
 Suggests:
     covr,
-    dplyr,
     forcats,
+    dplyr,
     ggbeeswarm,
     ggmosaic,
     ggplot2,
@@ -54,6 +54,7 @@ Suggests:
     plotly,
     RColorBrewer,
     testthat,
+    tibble,
     tidyr,
     viridis,
     waffle
