@@ -64,7 +64,6 @@ inzDataframe <- function(m, data = NULL, names = list(),
         }
     )
 
-
     df <- list()  # initialise the object
 
     ## ----- DATA TYPES:
@@ -93,10 +92,13 @@ inzDataframe <- function(m, data = NULL, names = list(),
         zz <- lapply(m[mw], function(x) {
             if (length(x) > 1L) {
                 nn <- as.character(x)[-1]
-                x <- lapply(as.character(x)[-1],
+                xx <- strsplit(
+                    paste(as.character(x)[-1], collapse = " + "),
+                    " + ", fixed = TRUE)[[1]]
+                x <- lapply(xx,
                     function(z) eval(as.name(z), data, env)
                 )
-                names(x) <- nn
+                names(x) <- xx
                 do.call(tibble::tibble, x)
             } else eval(x, data, env)
         })
