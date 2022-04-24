@@ -809,7 +809,7 @@ iNZightPlot <- function(x,
                     sapply(plot.list,
                         function(x) sapply(x,
                             function(y) {
-                                if (class(y) == "inzhex" && !is.null(y$hex))
+                                if (inherits(y, "inzhex") && !is.null(y$hex))
                                     max(y$hex@count, 0, na.rm = TRUE)
                                 else 0
                             }

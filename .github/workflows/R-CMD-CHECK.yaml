@@ -12,6 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         config:
+          - { os: windows-latest, r: "oldrel" }
           - { os: windows-latest, r: "release" }
           # - { os: windows-latest, r: "devel" }
           - { os: macOS-latest, r: "release" }
