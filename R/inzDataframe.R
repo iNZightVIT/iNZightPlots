@@ -69,6 +69,7 @@ inzDataframe <- function(m, data = NULL, names = list(),
             lapply(m[mw], eval, data$variables, env),
             stringsAsFactors = TRUE
         )
+        data <- repair_inz_names(data, vars)
         newDat <- cbind(data$variables, df$data)
         data$variables <- newDat
         df$design <- data
@@ -305,4 +306,16 @@ inzDataframe <- function(m, data = NULL, names = list(),
     }
 
     df
+}
+
+repair_inz_names <- function(des, vars) {
+    if (!any(vars %in% names(des$variables))) return(des)
+    vars <- vars[vars %in% names(des$variables)]
+
+    for (var in vars) {
+        des$variables[[sprintf(".%s", var)]] <- des$variables[[var]]
+        des$variables[[var]] <- NULL
+    }
+
+    des
 }

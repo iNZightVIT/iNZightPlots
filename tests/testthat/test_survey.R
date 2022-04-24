@@ -238,3 +238,13 @@ test_that("Log transformation works with surveys", {
         )
     )
 })
+
+test_that("SRS fpc-only works", {
+    srs_data <- data.frame(
+        v = sample(5:20, size = 20, replace = TRUE),
+        y = 100
+    )
+    srs_des <- svydesign(~1, fpc = ~y, data = srs_data)
+
+    expect_silent(inzplot(~v, design = srs_des))
+})
