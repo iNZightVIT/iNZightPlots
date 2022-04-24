@@ -1,3 +1,8 @@
+# iNZightPlots 2.14.1
+
+- fix bug in surveys where ID not consecutive
+- fix bug in surveys using reserved column names (x, y, etc)
+
 # iNZightPlots 2.14
 
 ## Major changes
