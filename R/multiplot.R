@@ -131,7 +131,7 @@ multiplot_num <- function(df, args) {
 
 check_suggested_packages <- function() {
     pkgs <- c("ggplot2", "ggthemes", "dplyr", "tibble", "tidyr")
-    inst <- sapply(pkgs, requireNamespace(pkgs, quietly = TRUE))
+    inst <- sapply(pkgs, requireNamespace, quietly = TRUE)
     if (any(!inst)) {
         stop("Please install suggested packages: install.packages('iNZightPlots', dependencies = TRUE)")
     }
