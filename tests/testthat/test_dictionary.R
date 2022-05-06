@@ -12,4 +12,6 @@ test_that("Variable lables used if present", {
     # devtools::load_all()
     expect_silent(inzplot(~height, cas))
     expect_silent(inzplot(~height, cas, plottype = "gg_barcode"))
+
+    expect_silent(inzplot(~travel, cas, plottype = "gg_column"))
 })

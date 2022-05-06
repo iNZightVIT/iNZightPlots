@@ -234,6 +234,7 @@ iNZightPlot <- function(x,
         # Required, general packages = 1, other pkgs for specific plots = 0.
         gg_pkgs <- c(
             "ggplot2",
+            "ggtext",
             "dplyr",
             "tidyr",
             "forcats",
@@ -323,10 +324,17 @@ iNZightPlot <- function(x,
             g2 <- m$g2
             }
 
+            vn <- unlist(
+                modifyList(
+                    as.list(df$varnames),
+                    as.list(df$labels)
+                )
+            )
+            # vn <- stringr::str_trunc(vn, 50, "center")
             ret.plot <- do.call(iNZightPlotGG,
                 c(
                     list(
-                        setNames(df$data, df$varnames),
+                        setNames(df$data, vn),
                         type = list(...)$plottype,
                         data_name = data_name,
                         main = list(...)$main,
@@ -339,7 +347,7 @@ iNZightPlot <- function(x,
                         g1 = as.character(g1),
                         g2 = as.character(g2)
                     ),
-                    varnames,
+                    vn,
                     list(
                         g1.level = g1.level,
                         g2.level = g2.level

@@ -46,6 +46,7 @@ Suggests:
     ggmosaic,
     ggplot2,
     ggridges,
+    ggtext,
     ggthemes,
     gridSVG (>= 1.7-2),
     hextri,

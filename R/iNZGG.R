@@ -430,6 +430,19 @@ iNZightPlotGG <- function(
     plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + !!theme_fun)
   }
 
+  plot_exprs$plot <- rlang::expr(!!plot_exprs$plot +
+    ggplot2::theme(
+      plot.title = ggtext::element_textbox_simple(
+        margin = ggplot2::margin(0, 0, 8, 0)
+      ),
+      plot.title.position = "plot",
+      axis.title.x = ggtext::element_textbox_simple(
+        halign = 0.5,
+        margin = ggplot2::margin(10, 0, 8, 0)
+      )
+    )
+  )
+
   if (exists("rotate_labels") && !(type %in% c("gg_pie", "gg_donut", "gg_cumcurve", "gg_gridplot"))) {
     if (isTRUE(rotate_labels$x)) {
       plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1)))
@@ -473,7 +486,6 @@ iNZightPlotGG <- function(
   }
 
   eval_env <- rlang::env(!!rlang::sym(data_name) := data)
-
   eval_results <- lapply(plot_exprs, eval, envir = eval_env)
 
   plot_object <- eval_results[[length(eval_results)]]
@@ -634,7 +646,7 @@ iNZightPlotGG_column <- function(data, x, group, main = sprintf("Column chart of
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, fill = !!x)) +
         ggplot2::geom_bar() +
-        ggplot2::labs(title = !!main) +
+        ggplot2::labs(title = !!main, fill = stringr::str_wrap(!!xlab, 40)) +
         ggplot2::xlab(!!xlab) +
         ggplot2::ylab(!!ylab)
     )
@@ -751,7 +763,7 @@ iNZightPlotGG_stackedcolumn <- function(data, fill, main = sprintf("Stacked colu
         ), position = "fill"
       ) +
       ggplot2::scale_y_continuous(labels = scales::percent) +
-      ggplot2::labs(title = !!main) +
+      ggplot2::labs(title = !!main, fill = stringr::str_wrap(!!as.character(fill), 40)) +
       ggplot2::xlab(!!xlab) +
       ggplot2::ylab(!!ylab)
   )
@@ -774,7 +786,7 @@ iNZightPlotGG_stackedcolumn <- function(data, fill, main = sprintf("Stacked colu
   )
 }
 
-iNZightPlotGG_stackedbar <- function(data, fill, main = "Stacked bar", x, ...) {
+iNZightPlotGG_stackedbar <- function(data, fill, main = sprintf("Stacked bar of %s", as.character(fill)), x, ...) {
   column_plot <- iNZightPlotGG_stackedcolumn(!!rlang::enexpr(data), fill, main, x, ...)
 
   column_plot$plot <- rotate(column_plot$plot)
@@ -793,7 +805,7 @@ iNZightPlotGG_violin <- function(data, x, y, fill = "darkgreen", main = sprintf(
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y)) +
         ggplot2::geom_violin(fill = !!fill, !!!dots) +
-        ggplot2::labs(title = !!main) +
+        ggplot2::labs(title = !!main, fill = stringr::str_wrap(!!as.character(fill), 40)) +
         ggplot2::xlab("") +
         ggplot2::ylab(!!ylab) +
         ggplot2::theme(
@@ -808,7 +820,7 @@ iNZightPlotGG_violin <- function(data, x, y, fill = "darkgreen", main = sprintf(
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, fill = !!fill)) +
         ggplot2::geom_violin(!!!dots) +
-        ggplot2::labs(title = !!main) +
+        ggplot2::labs(title = !!main, fill = stringr::str_wrap(!!as.character(fill), 40)) +
         ggplot2::xlab(!!xlab) +
         ggplot2::ylab(!!ylab)
     )
@@ -927,7 +939,7 @@ iNZightPlotGG_barcode3 <- function(data, x, y, fill = "darkgreen", main = sprint
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x, colour = !!colour)) +
         ggplot2::geom_spoke(angle = pi/2, position = ggplot2::position_nudge(y = -!!radius/2), !!!dots) +
-        ggplot2::labs(title = !!main) +
+        ggplot2::labs(title = !!main, colour = stringr::str_wrap(!!as.character(colour), 40)) +
         ggplot2::xlab(!!xlab) +
         ggplot2::ylab(!!ylab)
     )
@@ -963,7 +975,7 @@ iNZightPlotGG_boxplot <- function(data, x, y, fill = "darkgreen", main = sprintf
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, fill = !!fill)) +
         ggplot2::geom_boxplot(!!!dots) +
-        ggplot2::labs(title = !!main) +
+        ggplot2::labs(title = !!main, fill = stringr::str_wrap(!!as.character(fill), 40)) +
         ggplot2::xlab(!!xlab) +
         ggplot2::ylab(!!ylab)
     )
@@ -1104,7 +1116,7 @@ iNZightPlotGG_cumcurve <- function(data, x, y, main = sprintf("Cumulative Curve 
     plot_expr <- rlang::expr(
       ggplot2::ggplot(plot_data, ggplot2::aes(x = !!y, y = !!rlang::sym("Observation"), colour = !!x)) +
         ggplot2::geom_step(!!!dots) +
-        ggplot2::labs(title = !!main) +
+        ggplot2::labs(title = !!main, colour = stringr::str_wrap(!!as.character(colour), 40)) +
         ggplot2::xlab(!!xlab) +
         ggplot2::ylab(!!ylab)
     )
@@ -1135,7 +1147,7 @@ iNZightPlotGG_poppyramid <- function(data, x, fill, main = sprintf("Count of %s 
         ),
         !!!dots
       ) +
-      ggplot2::labs(title = !!main) +
+      ggplot2::labs(title = !!main, fill = stringr::str_wrap(!!as.character(fill), 40)) +
       ggplot2::xlab(!!xlab) +
       ggplot2::ylab(!!ylab) +
       ggplot2::scale_y_continuous(labels = abs)
@@ -1166,7 +1178,7 @@ iNZightPlotGG_spine <- function(data, x, fill, main = sprintf("Count of %s by %s
         !!!dots
       ) +
       ggplot2::coord_flip() +
-      ggplot2::labs(title = !!main) +
+      ggplot2::labs(title = !!main, fill = stringr::str_wrap(!!as.character(fill), 40)) +
       ggplot2::xlab(!!xlab) +
       ggplot2::ylab(!!ylab) +
       ggplot2::scale_y_continuous(labels = abs)
@@ -1193,7 +1205,7 @@ iNZightPlotGG_freqpolygon <- function(data, x, colour, main = sprintf("Count of 
     ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, colour = !!colour, group = !!colour)) +
       ggplot2::geom_line(stat = "count", !!!line_dots) +
       ggplot2::geom_point(stat = "count", !!!point_dots) +
-      ggplot2::labs(title = !!main) +
+      ggplot2::labs(title = !!main, colour = stringr::str_wrap(!!as.character(colour), 40)) +
       ggplot2::xlab(!!xlab) +
       ggplot2::ylab(!!ylab)
   )
@@ -1229,7 +1241,7 @@ iNZightPlotGG_dotstrip <- function(data, x, y, fill = "darkgreen", main = sprint
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x, colour = !!colour)) +
         ggplot2::geom_point(!!!dots) +
-        ggplot2::labs(title = !!main) +
+        ggplot2::labs(title = !!main, colour = stringr::str_wrap(!!as.character(colour), 40)) +
         ggplot2::xlab(!!xlab) +
         ggplot2::ylab(!!ylab)
     )
@@ -1248,7 +1260,7 @@ iNZightPlotGG_density <- function(data, x, y, fill = "darkgreen", main = sprintf
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y)) +
         ggplot2::geom_density(fill = !!fill, !!!dots) +
-        ggplot2::labs(title = !!main) +
+        ggplot2::labs(title = !!main, fill = stringr::str_wrap(!!as.character(fill), 40)) +
         ggplot2::xlab(!!xlab) +
         ggplot2::ylab(!!ylab)
     )
@@ -1258,7 +1270,7 @@ iNZightPlotGG_density <- function(data, x, y, fill = "darkgreen", main = sprintf
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, fill = !!fill)) +
         ggplot2::geom_density(!!!dots) +
-        ggplot2::labs(title = !!main) +
+        ggplot2::labs(title = !!main, fill = stringr::str_wrap(!!as.character(fill), 40)) +
         ggplot2::xlab(!!xlab) +
         ggplot2::ylab(!!ylab)
     )
@@ -1286,7 +1298,7 @@ iNZightPlotGG_mosaic <- function(data, x, y, main = sprintf("Mosaic plot of %s a
   plot_expr <- rlang::expr(
     ggplot2::ggplot(plot_data) +
       ggmosaic::geom_mosaic(ggplot2::aes(x = ggmosaic::product(!!x), fill = !!y)) +
-      ggplot2::labs(title = !!main) +
+      ggplot2::labs(title = !!main, fill = stringr::str_wrap(!!as.character(fill), 40)) +
       ggplot2::xlab(!!xlab) +
       ggplot2::ylab(!!ylab)
   )
