@@ -95,17 +95,16 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         id <- rep("all", nrow(df))
     }
 
-    for (i in seq_along(unique(id))) {
-        id_i <- unique(id)[i]
+    for (i in unique(id)) {
         if (xattr$class == "inz.freq")
             di <- svydesign(ids=~1, weights = dfi$freq, data = dfi)
         else if (xattr$class == "inz.survey") {
             if ("y" %in% colnames(obj$df$variables)) {
-                ss <- obj$df$variables$y == id_i & !is.na(obj$df$variables$y)
+                ss <- obj$df$variables$y == i & !is.na(obj$df$variables$y)
                 di <- obj$df[ss]
             } else di <- obj$df
         } else {
-            ss <- id == id_i & !is.na(id)
+            ss <- id == i & !is.na(id)
             dfi <- df[ss, , drop = FALSE]
             dfi$y <- NULL
             di <- dfi

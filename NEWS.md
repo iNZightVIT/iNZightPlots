@@ -1,3 +1,7 @@
+# iNZightPlots 2.14.2
+
+- fix bug introduced by fix in 2.14.1
+
 # iNZightPlots 2.14.1
 
 - fix bug in surveys where ID not consecutive
