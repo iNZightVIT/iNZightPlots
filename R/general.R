@@ -455,26 +455,28 @@ mend_call <- function(call, data, design_name, plot) {
         ## and remove invalid vars (for plot_type/method combination)
         cnames <- names(call[[1]])
         ptype <- attr(plot, "plottype")
-        if (ptype == "bar") {
-            vnames <- attr(plot, "varnames")
-            vtypes <- attr(plot, "vartypes")
-            xcat <- vtypes[[vnames$x]] == "factor"
-            ycat <- !is.null(vnames$y) && vtypes[[vnames$y]] == "factor"
-            if (xcat && ycat)
-                ptype <- "bar2"
-            else if (length(levels(data[[vnames$x]])) == 2L)
-                ptype <- "barBinary"
-        }
-        keep <- valid_par(
-            cnames,
-            ptype,
-            switch(as.character(call[[1]])[1],
-                "inzplot" = "plot",
-                "inzsummary" = "summary",
-                "inzinference" = "inference"
+        if (!is.null(ptype)) {
+            if (ptype == "bar") {
+                vnames <- attr(plot, "varnames")
+                vtypes <- attr(plot, "vartypes")
+                xcat <- vtypes[[vnames$x]] == "factor"
+                ycat <- !is.null(vnames$y) && vtypes[[vnames$y]] == "factor"
+                if (xcat && ycat)
+                    ptype <- "bar2"
+                else if (length(levels(data[[vnames$x]])) == 2L)
+                    ptype <- "barBinary"
+            }
+            keep <- valid_par(
+                cnames,
+                ptype,
+                switch(as.character(call[[1]])[1],
+                    "inzplot" = "plot",
+                    "inzsummary" = "summary",
+                    "inzinference" = "inference"
+                )
             )
-        )
-        call[[1]] <- call[[1]][keep]
+            call[[1]] <- call[[1]][keep]
+        }
     }
 
     code <- as.character(call)

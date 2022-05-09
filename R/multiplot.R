@@ -121,8 +121,15 @@ multiplot_cat <- function(df, args) {
             )
         )
 
-    p
+    dev.hold()
+    tryCatch(
+        print(p),
+        finally = dev.flush()
+    )
 
+    attr(p, "plottype") <- "gg_multi"
+
+    invisible(p)
 }
 
 multiplot_num <- function(df, args) {
