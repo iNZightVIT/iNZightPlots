@@ -3,7 +3,6 @@ cas5k <- iNZightMR::census.at.school.5000
 
 # inzplot(~techtv, data = cas5k)
 
-# devtools::load_all()
 # inzplot(~ techtv + techmp3 + techinternet + techmobinternet + techfacebook +
 #     techtwitter + techbebo + techmyspace + techskype + technone, data = cas5k
 # )
@@ -15,5 +14,17 @@ cas5k <- iNZightMR::census.at.school.5000
 #     stringsAsFactors = TRUE
 # )
 
-# devtools::load_all()
 # inzplot(~q1 + q2, data = dd)
+# inzplot(~q1 + q2, data = dd, plottype = "vertical-stack")
+
+
+# cas_raw <- iNZightTools::smart_read('cas500_coded.csv')
+# cas_dict <- iNZightTools::read_dictionary('casdict.csv',
+#     name = "variable",
+#     title = "friendly_name"
+# )
+# cas <- iNZightTools::apply_dictionary(cas_raw, cas_dict)
+
+# levels(cas$getlunch) <- levels(cas$travel)
+
+# inzplot(~travel+getlunch, data = cas)

@@ -32,7 +32,11 @@ multiplot_cat <- function(df, args) {
     xvars <- names(df$data$x) <- paste("x", names(df$data$x), sep = "_")
     d <- tidyr::unnest(df$data, seq_len(ncol(df$data)))
 
-    olvls <- levels(df$data[[1]])
+    olvls <- levels(d[[1]])
+
+    ## need to remove labels ...
+    levels <- sapply(d, expss::var_lab)
+    d <- tibble::as_tibble(lapply(d, as.character))
 
     # mutate X's
     d <- tidyr::pivot_longer(d,
@@ -40,8 +44,16 @@ multiplot_cat <- function(df, args) {
         names_to = "x",
         values_to = "value"
     )
+
+    d <- dplyr::mutate(d, x = factor(.data$x, levels = xvars, labels = levels))
     d <- dplyr::mutate(d, x = stringr::str_replace(.data$x, "^x_", ""))
-    d <- dplyr::group_by(d, .data$x, .data$value)
+
+    d <- dplyr::mutate(d, value = ifelse(is.na(.data$value), "Missing", .data$value))
+    lvls <- unique(c(olvls, unique(d$value)))
+    if ("Missing" %in% lvls) lvls <- c(lvls[lvls != "Missing"], "Missing")
+    d$value <- factor(d$value, levels = lvls)
+
+    d <- dplyr::group_by(d, .data$x, .data$value, .drop = FALSE)
     d <- dplyr::tally(d)
     d <- dplyr::group_by(d, .data$x)
     d <- dplyr::summarise(d,
