@@ -35,7 +35,7 @@ multiplot_cat <- function(df, args) {
     olvls <- levels(d[[1]])
 
     ## need to remove labels ...
-    levels <- sapply(d, expss::var_lab)
+    levels <- sapply(names(d), function(x) expss::var_lab(x) %||% x)
     d <- tibble::as_tibble(lapply(d, as.character))
 
     # mutate X's
@@ -48,7 +48,13 @@ multiplot_cat <- function(df, args) {
     d <- dplyr::mutate(d, x = factor(.data$x, levels = xvars, labels = levels))
     d <- dplyr::mutate(d, x = stringr::str_replace(.data$x, "^x_", ""))
 
-    d <- dplyr::mutate(d, value = ifelse(is.na(.data$value), "Missing", .data$value))
+    if (is.null(args$keep_missing)) args$keep_missing <- FALSE
+
+    if (args$keep_missing) {
+        d <- dplyr::mutate(d, value = ifelse(is.na(.data$value), "Missing", .data$value))
+    } else {
+        d <- dplyr::filter(d, !is.na(.data$value))
+    }
     lvls <- unique(c(olvls, unique(d$value)))
     if ("Missing" %in% lvls) lvls <- c(lvls[lvls != "Missing"], "Missing")
     d$value <- factor(d$value, levels = lvls)
@@ -61,6 +67,16 @@ multiplot_cat <- function(df, args) {
         n = .data$n,
         p = .data$n / sum(.data$n) * 100
     )
+
+    # figure out the name of X
+    print(d)
+    xvar <- setNames(iNZightMR::substrsplit(unique(d$x)), c("name", "levels"))
+    xlab <- ""
+    if (xvar$name != "" && all(xvar$levels != "")) {
+        newlvls <- setNames(unique(d$x), xvar$levels)
+        d$x <- forcats::fct_recode(d$x, !!!newlvls)
+        xlab <- xvar$name
+    }
 
     plottype <- args$plottype
     if (is.null(plottype)) {
@@ -123,7 +139,7 @@ multiplot_cat <- function(df, args) {
     }
 
     p <- p +
-        ggplot2::xlab("") +
+        ggplot2::xlab(xlab) +
         ggplot2::ylab("Percentage (%)") +
         ggplot2::theme(
             legend.position = "bottom",
