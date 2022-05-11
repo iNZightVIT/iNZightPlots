@@ -31,4 +31,3 @@ cas <- iNZightTools::apply_dictionary(cas_raw, cas_dict)
 levels(cas$getlunch) <- levels(cas$travel)
 
 inzplot(~travel+getlunch, data = cas)
-inzplot(~travel+getlunch, data = cas)

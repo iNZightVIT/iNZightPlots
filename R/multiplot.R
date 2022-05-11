@@ -158,7 +158,6 @@ multiplot_cat <- function(df, args) {
     attr(p, "varnames") <- list(
         x = strsplit(as.character(df$varnames["x"]), " + ", fixed = TRUE)[[1]]
     )
-    print(attributes(p))
 
     invisible(p)
 }
