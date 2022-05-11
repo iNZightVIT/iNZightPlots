@@ -69,7 +69,6 @@ multiplot_cat <- function(df, args) {
     )
 
     # figure out the name of X
-    print(d)
     xvar <- setNames(iNZightMR::substrsplit(unique(d$x)), c("name", "levels"))
     xlab <- ""
     if (xvar$name != "" && all(xvar$levels != "")) {
@@ -79,14 +78,15 @@ multiplot_cat <- function(df, args) {
     }
 
     plottype <- args$plottype
-    if (is.null(plottype)) {
+    if (is.null(plottype) || plottype %in% c("default", "gg_multi")) {
         # binary answers?
-        if (length(levels(d$value)) == 2L) plottype <- "vertical-binary"
-        else plottype <- "default"
+        if (length(levels(d$value)) == 2L) plottype <- "gg_multi_binary"
+        else plottype <- "gg_multi_col"
     }
 
     p <- switch(plottype,
-        "vertical-binary" = {
+        "gg_multi_binary" = {
+            if (length(levels(d$value)) != 2L) stop("Invalid plot type")
             xlvls <- unique(d$value)
             xlevel <- unique(xlvls)[1]
             if ("yes" %in% tolower(xlvls)) xlevel[tolower(xlevel) == "yes"]
@@ -98,15 +98,14 @@ multiplot_cat <- function(df, args) {
                 ggplot2::geom_bar(stat = "identity", fill = "#18afe3") +
                 ggplot2::coord_flip()
         },
-        "vertical-stack" = {
+        "gg_multi_stack" = {
             ggplot2::ggplot(d,
                 ggplot2::aes(.data$x, .data$p, fill = .data$value)
             ) +
                 ggplot2::geom_bar(stat = "identity") +
                 ggplot2::coord_flip()
         },
-        "side-by-side" = ,
-        "default" = {
+        "gg_multi_col" = {
             ggplot2::ggplot(d,
                 ggplot2::aes(.data$value, .data$p, fill = .data$x)
             ) +
@@ -155,7 +154,11 @@ multiplot_cat <- function(df, args) {
         finally = dev.flush()
     )
 
-    attr(p, "plottype") <- "gg_multi"
+    attr(p, "plottype") <- plottype
+    attr(p, "varnames") <- list(
+        x = strsplit(as.character(df$varnames["x"]), " + ", fixed = TRUE)[[1]]
+    )
+    print(attributes(p))
 
     invisible(p)
 }
