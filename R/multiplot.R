@@ -35,8 +35,11 @@ multiplot_cat <- function(df, args) {
     olvls <- levels(d[[1]])
 
     ## need to remove labels ...
-    levels <- sapply(names(d), function(x) expss::var_lab(x) %||% x)
+    levels <- sapply(names(d), function(x) expss::var_lab(d[[x]]) %||% x)
     d <- tibble::as_tibble(lapply(d, as.character))
+
+    facet <- ""
+    if ("g1" %in% names(d)) facet <- "g1"
 
     # mutate X's
     d <- tidyr::pivot_longer(d,
@@ -45,7 +48,7 @@ multiplot_cat <- function(df, args) {
         values_to = "value"
     )
 
-    d <- dplyr::mutate(d, x = factor(.data$x, levels = xvars, labels = levels))
+    d <- dplyr::mutate(d, x = factor(.data$x, levels = xvars, labels = levels[xvars]))
     d <- dplyr::mutate(d, x = stringr::str_replace(.data$x, "^x_", ""))
 
     if (is.null(args$keep_missing)) args$keep_missing <- FALSE
@@ -59,9 +62,16 @@ multiplot_cat <- function(df, args) {
     if ("Missing" %in% lvls) lvls <- c(lvls[lvls != "Missing"], "Missing")
     d$value <- factor(d$value, levels = lvls)
 
-    d <- dplyr::group_by(d, .data$x, .data$value, .drop = FALSE)
-    d <- dplyr::tally(d)
-    d <- dplyr::group_by(d, .data$x)
+    if (facet == "g1") {
+        d <- dplyr::mutate(d, g1 = ifelse(is.na(.data$g1), "missing", .data$g1))
+        d <- dplyr::group_by(d, .data$x, .data$value, .data$g1, .drop = FALSE)
+        d <- dplyr::tally(d)
+        d <- dplyr::group_by(d, .data$x, .data$g1, .drop = FALSE)
+    } else {
+        d <- dplyr::group_by(d, .data$x, .data$value, .drop = FALSE)
+        d <- dplyr::tally(d)
+        d <- dplyr::group_by(d, .data$x, .drop = FALSE)
+    }
     d <- dplyr::summarise(d,
         value = .data$value,
         n = .data$n,
@@ -70,11 +80,11 @@ multiplot_cat <- function(df, args) {
 
     # figure out the name of X
     xvar <- setNames(iNZightMR::substrsplit(unique(d$x)), c("name", "levels"))
-    xlab <- ""
+    title <- xlab <- ""
     if (xvar$name != "" && all(xvar$levels != "")) {
         newlvls <- setNames(unique(d$x), xvar$levels)
-        d$x <- forcats::fct_recode(d$x, !!!newlvls)
-        xlab <- xvar$name
+        d$x <- stringr::str_wrap(forcats::fct_recode(d$x, !!!newlvls), width = 30)
+        title <- xvar$name
     }
 
     plottype <- args$plottype
@@ -84,15 +94,18 @@ multiplot_cat <- function(df, args) {
         else plottype <- "gg_multi_col"
     }
 
+    ylab <- "Percentage (%)"
+
     p <- switch(plottype,
         "gg_multi_binary" = {
             if (length(levels(d$value)) != 2L) stop("Invalid plot type")
             xlvls <- unique(d$value)
-            xlevel <- unique(xlvls)[1]
-            if ("yes" %in% tolower(xlvls)) xlevel[tolower(xlevel) == "yes"]
+            xlevel <- if ("yes" %in% tolower(xlvls)) xlvls[tolower(xlvls) == "yes"] else unique(xlvls)[1]
             d <- dplyr::filter(d, .data$value == !!xlevel)
 
             d$x <- factor(d$x, levels = unique(d$x)[order(d$p)])
+
+            ylab <- sprintf("%s of responses = '%s'", ylab, xlevel)
 
             ggplot2::ggplot(d, ggplot2::aes(.data$x, .data$p)) +
                 ggplot2::geom_bar(stat = "identity", fill = "#18afe3") +
@@ -112,6 +125,15 @@ multiplot_cat <- function(df, args) {
                 ggplot2::geom_bar(stat = "identity", position = "dodge")
         }
     )
+
+    subtitle <- ""
+
+    if (facet == "g1") {
+        p <- p + ggplot2::facet_wrap(~g1)
+        subtitle <- sprintf("Faceted by %s",
+            df$labels$g1 %||% df$varnames$g1
+        )
+    }
 
     if (!is.null(args$theme)) {
         if (is.character(args$theme)) {
@@ -139,7 +161,9 @@ multiplot_cat <- function(df, args) {
 
     p <- p +
         ggplot2::xlab(xlab) +
-        ggplot2::ylab("Percentage (%)") +
+        ggplot2::ylab(ylab) +
+        ggplot2::labs(fill = "") +
+        ggplot2::ggtitle(title, subtitle = subtitle) +
         ggplot2::theme(
             legend.position = "bottom",
             panel.grid.major.x = ggplot2::element_line(

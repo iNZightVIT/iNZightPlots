@@ -97,6 +97,7 @@ shade <- Vectorize(Shade)
 #' f <- convert.to.factor(runif(100, 0, 10))
 #' levels(f)
 convert.to.factor <- function(x) {
+    lbls <- expss::var_lab(x)
     if (is_cat(x)) {
         # to simplify coding elsewhere, allow convert to factor to simply return
         # the supplied x vector if it is already a factor.
@@ -195,7 +196,9 @@ convert.to.factor <- function(x) {
     }
 
     # Remove any empty levels -_-
-    factor(x.fact)
+    x <- factor(x.fact)
+    if (!is.null(lbls)) expss::set_var_lab(x, lbls)
+    x
 }
 
 
