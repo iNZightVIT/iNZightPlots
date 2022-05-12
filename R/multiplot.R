@@ -99,7 +99,7 @@ multiplot_cat <- function(df, args) {
     p <- switch(plottype,
         "gg_multi_binary" = {
             if (length(levels(d$value)) != 2L) stop("Invalid plot type")
-            xlvls <- unique(d$value)
+            xlvls <- levels(d$value)
             xlevel <- if ("yes" %in% tolower(xlvls)) xlvls[tolower(xlvls) == "yes"] else unique(xlvls)[1]
             d <- dplyr::filter(d, .data$value == !!xlevel)
 
@@ -108,15 +108,13 @@ multiplot_cat <- function(df, args) {
             ylab <- sprintf("%s of responses = '%s'", ylab, xlevel)
 
             ggplot2::ggplot(d, ggplot2::aes(.data$x, .data$p)) +
-                ggplot2::geom_bar(stat = "identity", fill = "#18afe3") +
-                ggplot2::coord_flip()
+                ggplot2::geom_bar(stat = "identity", fill = "#18afe3")
         },
         "gg_multi_stack" = {
             ggplot2::ggplot(d,
                 ggplot2::aes(.data$x, .data$p, fill = .data$value)
             ) +
-                ggplot2::geom_bar(stat = "identity") +
-                ggplot2::coord_flip()
+                ggplot2::geom_bar(stat = "identity")
         },
         "gg_multi_col" = {
             ggplot2::ggplot(d,
@@ -135,17 +133,17 @@ multiplot_cat <- function(df, args) {
         )
     }
 
-    if (!is.null(args$theme)) {
-        if (is.character(args$theme)) {
+    if (!is.null(args$gg_theme)) {
+        if (is.character(args$gg_theme)) {
             ptheme <- try(
-                eval(parse(text = sprintf("ggplot2::theme_%s", args$theme))),
+                eval(parse(text = sprintf("ggplot2::theme_%s", args$gg_theme))),
                 silent = TRUE
             )
             if (!inherits(ptheme, "try-error")) {
                 p <- p + ptheme()
             } else {
                 ptheme <- try(
-                    eval(parse(text = sprintf("ggthemes::theme_%s", args$theme))),
+                    eval(parse(text = sprintf("ggthemes::theme_%s", args$gg_theme))),
                     silent = TRUE
                 )
                 if (!inherits(ptheme, "try-error")) {
@@ -153,11 +151,13 @@ multiplot_cat <- function(df, args) {
                 }
             }
         } else {
-            p <- p + do.call(ggplot2::theme, args$theme)
+            p <- p + do.call(ggplot2::theme, args$gg_theme)
         }
     } else {
         p <- p + ggplot2::theme_classic()
     }
+
+    if (is.null(args$bg)) args$bg <- "lightgray"
 
     p <- p +
         ggplot2::xlab(xlab) +
@@ -170,7 +170,14 @@ multiplot_cat <- function(df, args) {
                 colour = "#cccccc70",
                 size = 0.4
             )
+            # panel.background = ggplot2::element_rect(fill = args$bg)
         )
+
+    if (!is.null(args$rotation) && args$rotation) {
+        if (plottype %in% c("gg_multi_column"))
+            p <- p + ggplot2::coord_flip()
+    } else if (plottype %in% c("gg_multi_binary", "gg_multi_stack"))
+        p <- p + ggplot2::coord_flip()
 
     dev.hold()
     tryCatch(
@@ -182,6 +189,7 @@ multiplot_cat <- function(df, args) {
     attr(p, "varnames") <- list(
         x = strsplit(as.character(df$varnames["x"]), " + ", fixed = TRUE)[[1]]
     )
+    attr(p, "xlevels") <- levels(d$value)
 
     invisible(p)
 }
