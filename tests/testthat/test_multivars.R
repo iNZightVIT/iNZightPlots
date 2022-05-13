@@ -11,6 +11,8 @@ inzplot(~ techtv + techmp3 + techinternet + techmobinternet + techfacebook +
     keep_missing = TRUE
 )
 
+inzsummary(~ techtv + techmp3 + techinternet, data = cas5k)
+
 dd <- data.frame(
     q1 = sample(c("never", "sometimes", "often", "always", "don't know"), 100, replace = TRUE),
     q2 = sample(c("never", "sometimes", "often", "always", "don't know"), 100, replace = TRUE),
