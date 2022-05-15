@@ -190,6 +190,16 @@ multiplot_cat <- function(df, args) {
         x = strsplit(as.character(df$varnames["x"]), " + ", fixed = TRUE)[[1]]
     )
     attr(p, "xlevels") <- levels(d$value)
+    attr(p, "data") <- d
+    attr(p, "labels") <- list(
+        title = title,
+        subtitle = subtitle,
+        xlab = xlab,
+        ylab = ylab
+    )
+    attr(p, "n") <- nrow(df$data)
+
+    class(p) <- c(plottype, "inzmulti_gg", class(p))
 
     invisible(p)
 }

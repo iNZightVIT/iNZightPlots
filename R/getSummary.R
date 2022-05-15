@@ -95,6 +95,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            width = 100,
                            epi.out = FALSE,
                            privacy_controls = NULL,
+                           html = FALSE,
                            ...,
                            env = parent.frame()) {
 
@@ -207,6 +208,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         width = width,
         epi.out = epi.out,
         privacy_controls = privacy_controls,
+        html = html,
         inzpars = inzpars
     )
 }
@@ -682,6 +684,29 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
 
     class(out) <- "inzight.plotsummary"
     out
+}
+
+summary.inzmulti_gg <- function(object, ...) {
+    d <- attr(object, "data", exact = TRUE)
+    d
+}
+
+summary.gg_multi_binary <- function(object, html = FALSE, ...) {
+    varnames <- attr(object, "varnames", exact = TRUE)
+    labels <- attr(object, "labels", exact = TRUE)
+    d <- attr(object, "data", exact = TRUE)
+    d <- tibble::add_row(
+        dplyr::ungroup(d),
+        x = "Total",
+        n = attr(object, "n", exact = TRUE)
+    )
+
+    smry <- setNames(dplyr::select(d, x, p, n), c(" ", "%", "N"))
+
+    knitr::kable(smry,
+        format = ifelse(html, "html", "simple"),
+        caption = labels$title
+    )
 }
 
 summary.inzdata <- function(object, des, width = 100, ...) {
