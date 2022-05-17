@@ -686,29 +686,6 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
     out
 }
 
-summary.inzmulti_gg <- function(object, ...) {
-    d <- attr(object, "data", exact = TRUE)
-    d
-}
-
-summary.gg_multi_binary <- function(object, html = FALSE, ...) {
-    varnames <- attr(object, "varnames", exact = TRUE)
-    labels <- attr(object, "labels", exact = TRUE)
-    d <- attr(object, "data", exact = TRUE)
-    d <- tibble::add_row(
-        dplyr::ungroup(d),
-        x = "Total",
-        n = attr(object, "n", exact = TRUE)
-    )
-
-    smry <- setNames(dplyr::select(d, x, p, n), c(" ", "%", "N"))
-
-    knitr::kable(smry,
-        format = ifelse(html, "html", "simple"),
-        caption = labels$title
-    )
-}
-
 summary.inzdata <- function(object, des, width = 100, ...) {
     out <- character()
     rule <- function(char, width)

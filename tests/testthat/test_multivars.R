@@ -42,8 +42,11 @@ for (c in c("bike", "bus", "motor", "other", "train", "walk")) {
     )
 }
 
+inzsummary(~bike + bus + motor + train + walk + other, data = cas)
+
 inzplot(~bike + bus + motor + train + walk + other, data = cas, g1 = gender)
 inzsummary(~bike + bus + motor + train + walk + other, data = cas, g1 = gender)
+
 
 inzplot(~eth5_e_y8c+eth5_m_y8c+eth5_p_y8c, data = d)
 inzplot(~tu82_0_y8c+tu82_1_y8c+tu82_2_y8c+tu82_3_y8c+tu82_4_y8c+tu82_5_y8c+tu82_6_y8c+tu82_7_y8c+tu82_8_y8c, data = d)

@@ -179,11 +179,13 @@ multiplot_cat <- function(df, args) {
     } else if (plottype %in% c("gg_multi_binary", "gg_multi_stack"))
         p <- p + ggplot2::coord_flip()
 
-    dev.hold()
-    tryCatch(
-        print(p),
-        finally = dev.flush()
-    )
+    if (isTRUE(args$plot)) {
+        dev.hold()
+        tryCatch(
+            print(p),
+            finally = dev.flush()
+        )
+    }
 
     attr(p, "plottype") <- plottype
     attr(p, "varnames") <- list(
@@ -214,4 +216,45 @@ check_suggested_packages <- function() {
     if (any(!inst)) {
         stop("Please install suggested packages: install.packages('iNZightPlots', dependencies = TRUE)")
     }
+}
+
+
+summary.inzmulti_gg <- function(object, ...) {
+    d <- attr(object, "data", exact = TRUE)
+    d
+}
+
+summary.gg_multi_binary <- function(object, html = FALSE, ...) {
+    varnames <- attr(object, "varnames", exact = TRUE)
+    labels <- attr(object, "labels", exact = TRUE)
+    d <- attr(object, "data", exact = TRUE)
+
+    if (!is.null(d$g1)) {
+        smry <- tidyr::pivot_wider(d,
+            names_from = g1,
+            values_from = c(n, p)
+        )
+        smry <- dplyr::select(smry, -value)
+        cn <- colnames(smry)[-1]
+        cn <- sapply(cn, function(x)
+            paste0(paste(rev(strsplit(x, "_")[[1]]), collapse = " ("), ")")
+        )
+        smry <- setNames(smry, c("", cn))
+        smry <- smry[, c(1, order(cn) + 1L)]
+        colnames(smry) <- gsub("(p)", "(%)", colnames(smry), fixed = TRUE)
+        # pcols <- grepl("(%)", colnames(smry), fixed = TRUE)
+
+    } else {
+        d <- tibble::add_row(
+            dplyr::ungroup(d),
+            x = "Total",
+            n = attr(object, "n", exact = TRUE)
+        )
+        smry <- setNames(dplyr::select(d, x, p, n), c(" ", "%", "N"))
+    }
+
+    knitr::kable(smry,
+        format = ifelse(html, "html", "simple"),
+        caption = labels$title
+    )
 }
