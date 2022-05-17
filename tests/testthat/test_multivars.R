@@ -44,7 +44,9 @@ for (c in c("bike", "bus", "motor", "other", "train", "walk")) {
 
 inzsummary(~bike + bus + motor + train + walk + other, data = cas)
 
-inzplot(~bike + bus + motor + train + walk + other, data = cas, g1 = gender)
+inzplot(~bus + train + bike, data = cas, g1 = gender)
+inzsummary(~bus + train + bike, data = cas, g1 = gender)
+
 inzsummary(~bike + bus + motor + train + walk + other, data = cas, g1 = gender)
 
 

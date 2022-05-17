@@ -179,7 +179,7 @@ multiplot_cat <- function(df, args) {
     } else if (plottype %in% c("gg_multi_binary", "gg_multi_stack"))
         p <- p + ggplot2::coord_flip()
 
-    if (isTRUE(args$plot)) {
+    if (is.null(args$plot) || isTRUE(args$plot)) {
         dev.hold()
         tryCatch(
             print(p),
@@ -200,6 +200,7 @@ multiplot_cat <- function(df, args) {
         ylab = ylab
     )
     attr(p, "n") <- nrow(df$data)
+    attr(p, "args") <- args
 
     class(p) <- c(plottype, "inzmulti_gg", class(p))
 
@@ -225,11 +226,12 @@ summary.inzmulti_gg <- function(object, ...) {
 }
 
 summary.gg_multi_binary <- function(object, html = FALSE, ...) {
+    args <- modifyList(inzpar(), attr(object, "args"))
     varnames <- attr(object, "varnames", exact = TRUE)
     labels <- attr(object, "labels", exact = TRUE)
     d <- attr(object, "data", exact = TRUE)
 
-    if (!is.null(d$g1)) {
+    if ("g1" %in% colnames(d)) {
         smry <- tidyr::pivot_wider(d,
             names_from = g1,
             values_from = c(n, p)
@@ -242,8 +244,8 @@ summary.gg_multi_binary <- function(object, html = FALSE, ...) {
         smry <- setNames(smry, c("", cn))
         smry <- smry[, c(1, order(cn) + 1L)]
         colnames(smry) <- gsub("(p)", "(%)", colnames(smry), fixed = TRUE)
-        # pcols <- grepl("(%)", colnames(smry), fixed = TRUE)
-
+        pcols <- grepl("(%)", colnames(smry), fixed = TRUE)
+        digits <- ifelse(pcols, args$round_percent, 0)
     } else {
         d <- tibble::add_row(
             dplyr::ungroup(d),
@@ -251,10 +253,12 @@ summary.gg_multi_binary <- function(object, html = FALSE, ...) {
             n = attr(object, "n", exact = TRUE)
         )
         smry <- setNames(dplyr::select(d, x, p, n), c(" ", "%", "N"))
+        digits <- c(0, args$round_percent, 0)
     }
 
     knitr::kable(smry,
         format = ifelse(html, "html", "simple"),
-        caption = labels$title
+        caption = labels$title,
+        digits = digits
     )
 }

@@ -224,7 +224,7 @@ iNZightPlot <- function(x,
     )
 
     dots <- list(...)
-
+    dots$plot <- plot
     if (multi_var) return(multiplot(df, dots))
 
     df$data <- as.data.frame(df$data)
