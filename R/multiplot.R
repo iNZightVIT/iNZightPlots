@@ -252,7 +252,41 @@ summary.gg_multi_binary <- function(object, html = FALSE, ...) {
             x = "Total",
             n = attr(object, "n", exact = TRUE)
         )
-        smry <- setNames(dplyr::select(d, x, p, n), c(" ", "%", "N"))
+        smry <- setNames(dplyr::select(d, x, n, p), c(" ", "N", "%"))
+        digits <- c(0, args$round_percent, 0)
+    }
+
+    knitr::kable(smry,
+        format = ifelse(html, "html", "simple"),
+        caption = labels$title,
+        digits = digits
+    )
+}
+
+summary.gg_multi_col <- function(object, html = FALSE, ...) {
+    args <- modifyList(inzpar(), attr(object, "args"))
+    varnames <- attr(object, "varnames", exact = TRUE)
+    labels <- attr(object, "labels", exact = TRUE)
+    d <- attr(object, "data", exact = TRUE)
+
+    if ("g1" %in% colnames(d)) {
+        smry <- tidyr::pivot_wider(d,
+            names_from = g1,
+            values_from = c(n, p)
+        )
+        smry$x <- ifelse(seq_along(smry$x) %% 2 == 0, "", smry$x)
+        cn <- colnames(smry)[-(1:2)]
+        cn <- sapply(cn, function(x)
+            paste0(paste(rev(strsplit(x, "_")[[1]]), collapse = " ("), ")")
+        )
+        smry <- setNames(smry, c("", "", cn))
+        smry <- smry[, c(1:2, order(cn) + 2L)]
+        colnames(smry) <- gsub("(p)", "(%)", colnames(smry), fixed = TRUE)
+        pcols <- grepl("(%)", colnames(smry), fixed = TRUE)
+        digits <- ifelse(pcols, args$round_percent, 0)
+    } else {
+        d$x <- ifelse(seq_along(d$x) %% 2 == 0, "", d$x)
+        smry <- setNames(dplyr::select(d, x, value, n, p), c("", "", "N", "%"))
         digits <- c(0, args$round_percent, 0)
     }
 
