@@ -317,9 +317,25 @@ summary.gg_multi_col <- function(object, html = FALSE, ...) {
         digits <- c(0, args$round_percent, 0)
     }
 
-    knitr::kable(smry,
+    if (!requireNamespace("knitr", quietly = TRUE)) return(smry)
+
+    res <- knitr::kable(smry,
         format = ifelse(html, "html", "simple"),
         caption = labels$title,
         digits = digits
     )
+
+    if (!html) return(res)
+
+    if (is.null(args$kable_styling))
+        args$kable_styling <- list(bootstrap_options = NULL)
+
+    if (!requireNamespace("kableExtra", quietly = TRUE)) {
+        tf <- tempfile(fileext = ".html")
+        writeLines(res, tf)
+        browseURL(tf)
+        return(invisible(tf))
+    }
+
+    kableExtra::kable_classic(res, full_width = FALSE)
 }
