@@ -49,7 +49,7 @@ multiplot_cat <- function(df, args) {
     )
 
     d <- dplyr::mutate(d, x = factor(.data$x, levels = xvars, labels = levels[xvars]))
-    d <- dplyr::mutate(d, x = stringr::str_replace(.data$x, "^x_", ""))
+    # d <- dplyr::mutate(d, x = stringr::str_replace(.data$x, "^x_", ""))
 
     if (is.null(args$keep_missing)) args$keep_missing <- FALSE
 
@@ -267,11 +267,27 @@ summary.gg_multi_binary <- function(object, html = FALSE, ...) {
     smry <- smry[order(smry[[1]]), ]
     smry[[1]] <- stringr::str_replace(as.character(smry[[1]]), "\n", " ")
 
-    knitr::kable(smry,
+    if (!requireNamespace("knitr", quietly = TRUE)) return(smry)
+
+    res <- knitr::kable(smry,
         format = ifelse(html, "html", "simple"),
         caption = labels$title,
         digits = digits
     )
+
+    if (!html) return(res)
+
+    if (is.null(args$kable_styling))
+        args$kable_styling <- list(bootstrap_options = NULL)
+
+    if (!requireNamespace("kableExtra", quietly = TRUE)) {
+        tf <- tempfile(fileext = ".html")
+        writeLines(res, tf)
+        browseURL(tf)
+        return(invisible(tf))
+    }
+
+    kableExtra::kable_classic(res, full_width = FALSE)
 }
 
 summary.gg_multi_col <- function(object, html = FALSE, ...) {
