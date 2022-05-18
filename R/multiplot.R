@@ -118,7 +118,7 @@ multiplot_cat <- function(df, args) {
             ) +
                 ggplot2::geom_bar(
                     stat = "identity",
-                    position = position_stack(reverse = TRUE)
+                    position = ggplot2::position_stack(reverse = TRUE)
                 )
         },
         "gg_multi_col" = {
