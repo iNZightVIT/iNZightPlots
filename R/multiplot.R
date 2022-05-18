@@ -79,11 +79,12 @@ multiplot_cat <- function(df, args) {
     )
 
     # figure out the name of X
-    xvar <- setNames(iNZightMR::substrsplit(unique(d$x)), c("name", "levels"))
+    d$x <- factor(d$x, levels = levels[xvars])
+    xvar <- setNames(iNZightMR::substrsplit(levels(d$x)), c("name", "levels"))
     title <- xlab <- ""
     if (xvar$name != "" && all(xvar$levels != "")) {
-        newlvls <- setNames(unique(d$x), xvar$levels)
-        d$x <- stringr::str_wrap(forcats::fct_recode(d$x, !!!newlvls), width = 30)
+        newlvls <- setNames(levels(d$x), stringr::str_wrap(xvar$levels, width = 30))
+        d$x <- forcats::fct_recode(d$x, !!!newlvls)
         title <- xvar$name
     }
 
@@ -103,7 +104,8 @@ multiplot_cat <- function(df, args) {
             xlevel <- if ("yes" %in% tolower(xlvls)) xlvls[tolower(xlvls) == "yes"] else unique(xlvls)[1]
             d <- dplyr::filter(d, .data$value == !!xlevel)
 
-            d$x <- factor(d$x, levels = unique(d$x)[order(d$p)])
+            if (!is.null(args$order) && args$order %in% c("desc", "asc"))
+                d$x <- factor(d$x, levels = unique(d$x)[order(d$p, decreasing = args$order == "desc")])
 
             ylab <- sprintf("%s of responses = '%s'", ylab, xlevel)
 
@@ -114,7 +116,10 @@ multiplot_cat <- function(df, args) {
             ggplot2::ggplot(d,
                 ggplot2::aes(.data$x, .data$p, fill = .data$value)
             ) +
-                ggplot2::geom_bar(stat = "identity")
+                ggplot2::geom_bar(
+                    stat = "identity",
+                    position = position_stack(reverse = TRUE)
+                )
         },
         "gg_multi_col" = {
             ggplot2::ggplot(d,
@@ -177,7 +182,8 @@ multiplot_cat <- function(df, args) {
         if (plottype %in% c("gg_multi_column"))
             p <- p + ggplot2::coord_flip()
     } else if (plottype %in% c("gg_multi_binary", "gg_multi_stack"))
-        p <- p + ggplot2::coord_flip()
+        p <- p + ggplot2::coord_flip() +
+            ggplot2::scale_x_discrete(limits = rev(levels(d$x)))
 
     if (is.null(args$plot) || isTRUE(args$plot)) {
         dev.hold()
@@ -247,14 +253,19 @@ summary.gg_multi_binary <- function(object, html = FALSE, ...) {
         pcols <- grepl("(%)", colnames(smry), fixed = TRUE)
         digits <- ifelse(pcols, args$round_percent, 0)
     } else {
+        lvls <- c(levels(d$x), "Total")
         d <- tibble::add_row(
             dplyr::ungroup(d),
             x = "Total",
             n = attr(object, "n", exact = TRUE)
         )
+        d$x <- factor(d$x, levels = lvls)
         smry <- setNames(dplyr::select(d, x, n, p), c(" ", "N", "%"))
         digits <- c(0, args$round_percent, 0)
     }
+
+    smry <- smry[order(smry[[1]]), ]
+    smry[[1]] <- stringr::str_replace(as.character(smry[[1]]), "\n", " ")
 
     knitr::kable(smry,
         format = ifelse(html, "html", "simple"),
