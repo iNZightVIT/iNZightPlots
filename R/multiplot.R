@@ -301,7 +301,8 @@ summary.gg_multi_col <- function(object, html = FALSE, ...) {
             names_from = g1,
             values_from = c(n, p)
         )
-        smry$x <- ifelse(seq_along(smry$x) %% 2 == 0, "", smry$x)
+        smry$x <- ifelse(smry$value == levels(smry$value)[1],
+            as.character(smry$x), "")
         cn <- colnames(smry)[-(1:2)]
         cn <- sapply(cn, function(x)
             paste0(paste(rev(strsplit(x, "_")[[1]]), collapse = " ("), ")")

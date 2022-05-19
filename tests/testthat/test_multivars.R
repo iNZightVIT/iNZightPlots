@@ -42,6 +42,8 @@ for (c in c("bike", "bus", "motor", "other", "train", "walk")) {
     )
 }
 
+inzsummary(~getlunch+travel, data = cas, g1 = gender)
+
 inzsummary(~bike + bus + motor + train + walk + other, data = cas)
 
 inzplot(~bus + train + bike, data = cas, g1 = gender)
