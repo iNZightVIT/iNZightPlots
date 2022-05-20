@@ -453,7 +453,7 @@ iNZightPlotGG <- function(
           ggplot2::geom_point(
             data = !!rlang::sym(data_name) %>%
               dplyr::group_by(!!rlang::sym(plot_args$x)) %>%
-              dplyr::summarize(Mean = mean(!!rlang::sym(plot_args$y))),
+              dplyr::summarize(Mean = mean(!!rlang::sym(plot_args$y), na.rm = TRUE)),
             ggplot2::aes(
               x = !!rlang::sym(plot_args$x),
               y = Mean
@@ -464,6 +464,7 @@ iNZightPlotGG <- function(
           )
       )
     }
+    print(plot_exprs$plot)
     if (type %in% c("gg_density")) {
       dexpr <- rlang::expr(!!rlang::sym(data_name))
       fill <- "mean"
@@ -476,7 +477,7 @@ iNZightPlotGG <- function(
         mean_palette <- NULL
       }
       dexpr <- rlang::expr(!!dexpr %>%
-        dplyr::summarise(Mean = mean(!!rlang::sym(plot_args$y)))
+        dplyr::summarise(Mean = mean(!!rlang::sym(plot_args$y), na.rm = TRUE))
       )
       plot_exprs$plot <- rlang::expr(
         !!plot_exprs$plot +
