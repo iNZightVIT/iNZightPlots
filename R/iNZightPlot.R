@@ -355,6 +355,12 @@ iNZightPlot <- function(x,
                 )
             )
 
+            attr(ret.plot, "varnames") <-
+                modifyList(
+                    as.list(vn),
+                    as.list(df$varnames)
+                )
+
             return(ret.plot)
         }
     }

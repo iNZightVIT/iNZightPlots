@@ -348,7 +348,8 @@ iNZightPlotGG_extraargs <- function(extra_args) {
     "bg" = "bg",
     "adjust" = "adjust",
     "lwd" = "lwd",
-    "gg_lwd" = "gg_lwd"
+    "gg_lwd" = "gg_lwd",
+    "mean_indicator" = "mean_indicator"
   )
 
   extra_args <- extra_args[to.keep]
@@ -442,6 +443,24 @@ iNZightPlotGG <- function(
       )
     )
   )
+
+  if (!is.null(extra_args$mean_indicator) && isTRUE(extra_args$mean_indicator) && type %in% c("gg_boxplot")) {
+    plot_exprs$plot <- rlang::expr(
+      !!plot_exprs$plot +
+        ggplot2::geom_point(
+          data = !!rlang::sym(data_name) %>%
+            dplyr::group_by(!!rlang::sym(plot_args$x)) %>%
+            dplyr::summarize(Mean = mean(!!rlang::sym(plot_args$y))),
+          ggplot2::aes(
+            x = !!rlang::sym(plot_args$x),
+            y = Mean
+          ),
+          shape = 8,
+          size = 2,
+          colour = "black"
+        )
+    )
+  }
 
   if (exists("rotate_labels") && !(type %in% c("gg_pie", "gg_donut", "gg_cumcurve", "gg_gridplot"))) {
     if (isTRUE(rotate_labels$x)) {
