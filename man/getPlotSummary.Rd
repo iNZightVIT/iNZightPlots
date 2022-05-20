@@ -34,6 +34,7 @@ getPlotSummary(
   width = 100,
   epi.out = FALSE,
   privacy_controls = NULL,
+  html = FALSE,
   ...,
   env = parent.frame()
 )
