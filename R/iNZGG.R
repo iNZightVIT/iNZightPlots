@@ -464,7 +464,6 @@ iNZightPlotGG <- function(
           )
       )
     }
-    print(plot_exprs$plot)
     if (type %in% c("gg_density")) {
       dexpr <- rlang::expr(!!rlang::sym(data_name))
       fill <- "mean"
