@@ -444,7 +444,9 @@ iNZightPlotGG <- function(
     )
   )
 
-  if (!is.null(extra_args$mean_indicator) && isTRUE(extra_args$mean_indicator)) {
+  if (!is.null(extra_args$mean_indicator) && (
+    isTRUE(extra_args$mean_indicator) || extra_args$mean_indicator %in% c("grand", "group")
+  )) {
     if (type %in% c("gg_boxplot")) {
       plot_exprs$plot <- rlang::expr(
         !!plot_exprs$plot +
@@ -465,11 +467,13 @@ iNZightPlotGG <- function(
     if (type %in% c("gg_density")) {
       dexpr <- rlang::expr(!!rlang::sym(data_name))
       fill <- "mean"
-      if (!is.null(plot_args$x)) {
+      mean_palette <- rlang::expr(ggplot2::scale_colour_manual(values = c(mean = "black")))
+      if (!is.null(plot_args$x) && extra_args$mean_indicator == "group") {
         dexpr <- rlang::expr(!!dexpr %>%
               dplyr::group_by(!!rlang::sym(plot_args$x))
         )
         fill <- rlang::sym(plot_args$x)
+        mean_palette <- NULL
       }
       dexpr <- rlang::expr(!!dexpr %>%
         dplyr::summarise(Mean = mean(!!rlang::sym(plot_args$y)))
@@ -481,9 +485,15 @@ iNZightPlotGG <- function(
             ggplot2::aes(
               xintercept = Mean,
               colour = !!fill
-            )
+            ),
+            lty = 2
           )
       )
+      if (!is.null(mean_palette)) {
+        plot_exprs$plot <- rlang::expr(
+          !!plot_exprs$plot + !!mean_palette
+        )
+      }
     }
   }
 
