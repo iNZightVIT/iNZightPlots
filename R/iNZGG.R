@@ -444,22 +444,47 @@ iNZightPlotGG <- function(
     )
   )
 
-  if (!is.null(extra_args$mean_indicator) && isTRUE(extra_args$mean_indicator) && type %in% c("gg_boxplot")) {
-    plot_exprs$plot <- rlang::expr(
-      !!plot_exprs$plot +
-        ggplot2::geom_point(
-          data = !!rlang::sym(data_name) %>%
-            dplyr::group_by(!!rlang::sym(plot_args$x)) %>%
-            dplyr::summarize(Mean = mean(!!rlang::sym(plot_args$y))),
-          ggplot2::aes(
-            x = !!rlang::sym(plot_args$x),
-            y = Mean
-          ),
-          shape = 8,
-          size = 2,
-          colour = "black"
+  if (!is.null(extra_args$mean_indicator) && isTRUE(extra_args$mean_indicator)) {
+    if (type %in% c("gg_boxplot")) {
+      plot_exprs$plot <- rlang::expr(
+        !!plot_exprs$plot +
+          ggplot2::geom_point(
+            data = !!rlang::sym(data_name) %>%
+              dplyr::group_by(!!rlang::sym(plot_args$x)) %>%
+              dplyr::summarize(Mean = mean(!!rlang::sym(plot_args$y))),
+            ggplot2::aes(
+              x = !!rlang::sym(plot_args$x),
+              y = Mean
+            ),
+            shape = 8,
+            size = 2,
+            colour = "black"
+          )
+      )
+    }
+    if (type %in% c("gg_density")) {
+      dexpr <- rlang::expr(!!rlang::sym(data_name))
+      fill <- "mean"
+      if (!is.null(plot_args$x)) {
+        dexpr <- rlang::expr(!!dexpr %>%
+              dplyr::group_by(!!rlang::sym(plot_args$x))
         )
-    )
+        fill <- rlang::sym(plot_args$x)
+      }
+      dexpr <- rlang::expr(!!dexpr %>%
+        dplyr::summarise(Mean = mean(!!rlang::sym(plot_args$y)))
+      )
+      plot_exprs$plot <- rlang::expr(
+        !!plot_exprs$plot +
+          ggplot2::geom_vline(
+            data = !!dexpr,
+            ggplot2::aes(
+              xintercept = Mean,
+              colour = !!fill
+            )
+          )
+      )
+    }
   }
 
   if (exists("rotate_labels") && !(type %in% c("gg_pie", "gg_donut", "gg_cumcurve", "gg_gridplot"))) {
