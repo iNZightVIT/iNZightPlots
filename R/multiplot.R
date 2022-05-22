@@ -313,7 +313,8 @@ summary.gg_multi_col <- function(object, html = FALSE, ...) {
         pcols <- grepl("(%)", colnames(smry), fixed = TRUE)
         digits <- ifelse(pcols, args$round_percent, 0)
     } else {
-        d$x <- ifelse(seq_along(d$x) %% 2 == 0, "", d$x)
+        d$x <- ifelse(d$value == levels(d$value)[1],
+            stringr::str_replace(as.character(d$x), "\n", " "), "")
         smry <- setNames(dplyr::select(d, x, value, n, p), c("", "", "N", "%"))
         digits <- c(0, args$round_percent, 0)
     }
