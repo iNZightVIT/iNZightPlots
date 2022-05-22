@@ -104,8 +104,8 @@ multiplot_cat <- function(df, args) {
             xlevel <- if ("yes" %in% tolower(xlvls)) xlvls[tolower(xlvls) == "yes"] else unique(xlvls)[1]
             d <- dplyr::filter(d, .data$value == !!xlevel)
 
-            if (!is.null(args$order) && args$order %in% c("desc", "asc"))
-                d$x <- factor(d$x, levels = unique(d$x)[order(d$p, decreasing = args$order == "desc")])
+            if (!is.null(args$ordered) && args$ordered %in% c("desc", "asc"))
+                d$x <- factor(d$x, levels = unique(d$x)[order(d$p, decreasing = args$ordered == "desc")])
 
             ylab <- sprintf("%s of responses = '%s'", ylab, xlevel)
 
