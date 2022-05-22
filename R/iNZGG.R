@@ -451,9 +451,11 @@ iNZightPlotGG <- function(
       plot_exprs$plot <- rlang::expr(
         !!plot_exprs$plot +
           ggplot2::geom_point(
-            data = !!rlang::sym(data_name) %>%
-              dplyr::group_by(!!rlang::sym(plot_args$x)) %>%
-              dplyr::summarize(Mean = mean(!!rlang::sym(plot_args$y), na.rm = TRUE)),
+            data = function(x) {
+              x %>%
+                dplyr::group_by(!!rlang::sym(plot_args$x), drop = FALSE) %>%
+                dplyr::summarize(Mean = mean(!!rlang::sym(plot_args$y), na.rm = TRUE))
+            },
             ggplot2::aes(
               x = !!rlang::sym(plot_args$x),
               y = Mean
@@ -465,12 +467,12 @@ iNZightPlotGG <- function(
       )
     }
     if (type %in% c("gg_density")) {
-      dexpr <- rlang::expr(!!rlang::sym(data_name))
+      dexpr <- rlang::expr(x)
       fill <- "mean"
       mean_palette <- rlang::expr(ggplot2::scale_colour_manual(values = c(mean = "black")))
       if (!is.null(plot_args$x) && extra_args$mean_indicator == "group") {
         dexpr <- rlang::expr(!!dexpr %>%
-              dplyr::group_by(!!rlang::sym(plot_args$x))
+              dplyr::group_by(!!rlang::sym(plot_args$x), drop = FALSE)
         )
         fill <- rlang::sym(plot_args$x)
         mean_palette <- NULL
@@ -481,7 +483,9 @@ iNZightPlotGG <- function(
       plot_exprs$plot <- rlang::expr(
         !!plot_exprs$plot +
           ggplot2::geom_vline(
-            data = !!dexpr,
+            data = function(x) {
+              !!dexpr
+            },
             ggplot2::aes(
               xintercept = Mean,
               colour = !!fill
