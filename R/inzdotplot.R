@@ -14,7 +14,9 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     }
 
     boxplot <- opts$boxplot
-    mean_indicator <- opts$mean_indicator
+    mean_indicator <-
+        if (is.logical(opts$mean_indicator)) opts$mean_indicator
+        else opts$mean_indicator %in% c("grand", "group")
     if (!is.null(opts$inference.par) && !is.null(opts$inference.type)) {
         if (opts$inference.par == "mean") {
             boxplot <- FALSE
