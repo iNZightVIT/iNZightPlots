@@ -48,8 +48,8 @@ multiplot_cat <- function(df, args) {
         values_to = "value"
     )
 
+    levels <- setNames(stringr::str_replace(levels, "^x_", ""), xvars)
     d <- dplyr::mutate(d, x = factor(.data$x, levels = xvars, labels = levels[xvars]))
-    # d <- dplyr::mutate(d, x = stringr::str_replace(.data$x, "^x_", ""))
 
     if (is.null(args$keep_missing)) args$keep_missing <- FALSE
 
