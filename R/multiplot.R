@@ -62,6 +62,16 @@ multiplot_cat <- function(df, args) {
     if ("Missing" %in% lvls) lvls <- c(lvls[lvls != "Missing"], "Missing")
     d$value <- factor(d$value, levels = lvls)
 
+    print(args$outcome_value)
+    if (!is.null(args$outcome_value)) {
+        olvls <- paste(lvls[lvls != args$outcome_value], collapse = " | ")
+        d$value <- ifelse(d$value == args$outcome_value,
+            args$outcome_value,
+            olvls
+        )
+        d$value <- factor(d$value, c(args$outcome_value, olvls))
+    }
+
     if (facet == "g1") {
         d <- dplyr::mutate(d, g1 = ifelse(is.na(.data$g1), "missing", .data$g1))
         d <- dplyr::group_by(d, .data$x, .data$value, .data$g1, .drop = FALSE)
@@ -92,7 +102,7 @@ multiplot_cat <- function(df, args) {
     if (is.null(plottype) || plottype %in% c("default", "gg_multi")) {
         # binary answers?
         if (length(levels(d$value)) == 2L) plottype <- "gg_multi_binary"
-        else plottype <- "gg_multi_col"
+        else plottype <- "gg_multi_stack"
     }
 
     ylab <- "Percentage (%)"
