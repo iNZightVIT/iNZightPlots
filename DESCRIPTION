@@ -51,6 +51,7 @@ Suggests:
     gridSVG (>= 1.7-2),
     hextri,
     jsonlite,
+    kableExtra,
     knitr,
     plotly,
     RColorBrewer,

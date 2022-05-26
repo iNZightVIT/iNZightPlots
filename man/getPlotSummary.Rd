@@ -105,6 +105,8 @@ displayed in the plot}
 
 \item{privacy_controls}{optional, pass in confidentialisation and privacy controls (e.g., random rounding, suppression) for microdata}
 
+\item{html}{logical, it \code{TRUE} output will be returned as an HTML page (if supported)}
+
 \item{...}{additional arguments, see \code{inzpar}}
 
 \item{env}{compatibility argument}

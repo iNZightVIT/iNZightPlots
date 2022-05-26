@@ -1,4 +1,6 @@
 # testing of multiple variables
+skip("Tests need to be completed")
+
 cas5k <- iNZightMR::census.at.school.5000
 
 inzplot(~techtv, data = cas5k)
