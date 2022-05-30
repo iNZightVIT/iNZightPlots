@@ -62,7 +62,6 @@ multiplot_cat <- function(df, args) {
     if ("Missing" %in% lvls) lvls <- c(lvls[lvls != "Missing"], "Missing")
     d$value <- factor(d$value, levels = lvls)
 
-    print(args$outcome_value)
     if (!is.null(args$outcome_value)) {
         olvls <- paste(lvls[lvls != args$outcome_value], collapse = " | ")
         d$value <- ifelse(d$value == args$outcome_value,
@@ -249,6 +248,7 @@ summary.gg_multi_binary <- function(object, html = FALSE, ...) {
     varnames <- attr(object, "varnames", exact = TRUE)
     labels <- attr(object, "labels", exact = TRUE)
     d <- attr(object, "data", exact = TRUE)
+    response_val <- as.character(d$value[1])
 
     if ("g1" %in% colnames(d)) {
         smry <- tidyr::pivot_wider(d,
@@ -282,25 +282,71 @@ summary.gg_multi_binary <- function(object, html = FALSE, ...) {
 
     if (!requireNamespace("knitr", quietly = TRUE)) return(smry)
 
-    res <- knitr::kable(smry,
-        format = ifelse(html, "html", "simple"),
-        caption = labels$title,
-        digits = digits
-    )
+    if (is.null(labels$title) || labels$title == "") {
+        labels$title <- sprintf("Counts and percentages of responses = '%s'",
+            response_val)
+    }
 
-    if (!html) return(res)
+    opt <- options(knitr.kable.NA = '-')
+    on.exit(options(opt))
+
+    if (!html) {
+        return(
+            knitr::kable(smry,
+                format = "simple",
+                caption = labels$title,
+                digits = digits
+            )
+        )
+    }
 
     if (is.null(args$kable_styling))
         args$kable_styling <- list(bootstrap_options = NULL)
 
     if (!requireNamespace("kableExtra", quietly = TRUE)) {
+        res <- knitr::kable(smry,
+            format = "html",
+            caption = labels$title,
+            digits = digits
+        )
         tf <- tempfile(fileext = ".html")
         writeLines(res, tf)
         browseURL(tf)
         return(invisible(tf))
     }
 
-    kableExtra::kable_classic(res, full_width = FALSE)
+    tbl_groups <- NULL
+    if ("g1" %in% names(d)) {
+        # fancy header
+        cn <- colnames(smry)[-1]
+        cnl <- strsplit(cn, " (", fixed = TRUE)
+        cn_group <- sapply(cnl, function(x) x[1])
+        cn_head <- gsub(")", "", sapply(cnl, function(x) x[2]), fixed = TRUE)
+        colnames(smry)[-1] <- cn_head
+
+        cn_group <- unique(cn_group)
+        tbl_groups <- c(" ", setNames(rep(2, length(cn_group)), cn_group))
+    }
+
+    res <- knitr::kable(smry,
+        format = "html",
+        caption = labels$title,
+        digits = digits
+    )
+
+    tbl <- kableExtra::kable_classic(res, full_width = FALSE)
+
+    if (!is.null(tbl_groups)) {
+        tbl <- kableExtra::add_header_above(tbl, tbl_groups)
+    }
+
+    if (as.character(d$x[nrow(d)]) == "Total") {
+        tbl <- kableExtra::row_spec(tbl, nrow(smry),
+            extra_css = "border-top: solid 1px gray;"
+        )
+    }
+
+    tbl
 }
 
 summary.gg_multi_col <- function(object, html = FALSE, ...) {
@@ -334,23 +380,69 @@ summary.gg_multi_col <- function(object, html = FALSE, ...) {
 
     if (!requireNamespace("knitr", quietly = TRUE)) return(smry)
 
-    res <- knitr::kable(smry,
-        format = ifelse(html, "html", "simple"),
-        caption = labels$title,
-        digits = digits
-    )
-
-    if (!html) return(res)
+    if (!html) {
+        return(
+            knitr::kable(smry,
+                format = "simple",
+                caption = labels$title,
+                digits = digits
+            )
+        )
+    }
 
     if (is.null(args$kable_styling))
         args$kable_styling <- list(bootstrap_options = NULL)
 
     if (!requireNamespace("kableExtra", quietly = TRUE)) {
+        res <- knitr::kable(smry,
+            format = "html",,
+            caption = labels$title,
+            digits = digits
+        )
         tf <- tempfile(fileext = ".html")
         writeLines(res, tf)
         browseURL(tf)
         return(invisible(tf))
     }
 
-    kableExtra::kable_classic(res, full_width = FALSE)
+    row_groups <- smry[[1]]
+    row_gn <- length(unique(smry[[2]]))
+    row_gi <- which(row_groups != "")
+    row_group_names <- row_groups[row_gi]
+    row_groups <- setNames(
+        rep(row_gn, length(unique(row_group_names))),
+        row_group_names
+    )
+    smry <- smry[, -1]
+
+    tbl_groups <- NULL
+    if ("g1" %in% names(d)) {
+        # fancy header
+        cn <- colnames(smry)[-1]
+        cnl <- strsplit(cn, " (", fixed = TRUE)
+        cn_group <- sapply(cnl, function(x) x[1])
+        cn_head <- gsub(")", "", sapply(cnl, function(x) x[2]), fixed = TRUE)
+        colnames(smry)[-1] <- cn_head
+
+        cn_group <- unique(cn_group)
+        tbl_groups <- c(" ", setNames(rep(2, length(cn_group)), cn_group))
+    }
+
+    res <- knitr::kable(smry,
+        format = "html",
+        caption = labels$title,
+        digits = digits
+    )
+
+    tbl <- kableExtra::kable_classic(res, full_width = FALSE)
+
+    tbl <- kableExtra::pack_rows(tbl, index = row_groups)
+
+    if (!is.null(tbl_groups)) {
+        tbl <- kableExtra::add_header_above(tbl, tbl_groups)
+    }
+
+    tbl
 }
+
+summary.gg_multi_stack <- summary.gg_multi_col
