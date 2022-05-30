@@ -90,7 +90,10 @@ multiplot_cat <- function(df, args) {
 
     # figure out the name of X
     d$x <- factor(d$x, levels = levels[xvars])
-    xvar <- setNames(iNZightMR::substrsplit(levels(d$x)), c("name", "levels"))
+    xvar <- setNames(
+        iNZightMR::substrsplit(levels(d$x), " "),
+        c("name", "levels")
+    )
     title <- xlab <- ""
     if (xvar$name != "" && all(xvar$levels != "")) {
         newlvls <- setNames(levels(d$x), stringr::str_wrap(xvar$levels, width = 30))
