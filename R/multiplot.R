@@ -380,6 +380,9 @@ summary.gg_multi_col <- function(object, html = FALSE, ...) {
 
     if (!requireNamespace("knitr", quietly = TRUE)) return(smry)
 
+    opt <- options(knitr.kable.NA = '-')
+    on.exit(options(opt))
+
     if (!html) {
         return(
             knitr::kable(smry,
@@ -411,7 +414,7 @@ summary.gg_multi_col <- function(object, html = FALSE, ...) {
     row_group_names <- row_groups[row_gi]
     row_groups <- setNames(
         rep(row_gn, length(unique(row_group_names))),
-        row_group_names
+        gsub("\n", " ", row_group_names, fixed = TRUE)
     )
     smry <- smry[, -1]
 
