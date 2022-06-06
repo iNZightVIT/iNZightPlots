@@ -233,7 +233,13 @@ check_suggested_packages <- function() {
     pkgs <- c("ggplot2", "ggthemes", "dplyr", "tibble", "tidyr")
     inst <- sapply(pkgs, requireNamespace, quietly = TRUE)
     if (any(!inst)) {
-        stop("Please install suggested packages: install.packages('iNZightPlots', dependencies = TRUE)")
+        stop(
+            sprintf(
+                "Please install suggested packages:\n%s\n\nOr use:\n\n%s",
+                paste("-", pkgs[!inst], collapse = "\n"),
+                "install.packages('iNZightPlots', dependencies = TRUE)"
+            )
+        )
     }
 }
 
