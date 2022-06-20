@@ -458,7 +458,7 @@ iNZightPlotGG <- function(
             },
             ggplot2::aes(
               x = !!rlang::sym(plot_args$x),
-              y = Mean
+              y = !!rlang::sym("Mean")
             ),
             shape = 8,
             size = 2,
@@ -467,7 +467,7 @@ iNZightPlotGG <- function(
       )
     }
     if (type %in% c("gg_density")) {
-      dexpr <- rlang::expr(x)
+      dexpr <- rlang::expr(!!rlang::sym("x"))
       fill <- "mean"
       mean_palette <- rlang::expr(ggplot2::scale_colour_manual(values = c(mean = "black")))
       if (!is.null(plot_args$x) && extra_args$mean_indicator == "group") {
@@ -487,7 +487,7 @@ iNZightPlotGG <- function(
               !!dexpr
             },
             ggplot2::aes(
-              xintercept = Mean,
+              xintercept = !!rlang::sym("Mean"),
               colour = !!fill
             ),
             lty = 2
@@ -1174,7 +1174,7 @@ iNZightPlotGG_cumcurve <- function(data, x, y, main = sprintf("Cumulative Curve 
     plot_expr <- rlang::expr(
       ggplot2::ggplot(plot_data, ggplot2::aes(x = !!y, y = !!rlang::sym("Observation"), colour = !!x)) +
         ggplot2::geom_step(!!!dots) +
-        ggplot2::labs(title = !!main, colour = stringr::str_wrap(!!as.character(colour), 40)) +
+        ggplot2::labs(title = !!main, colour = stringr::str_wrap(!!as.character(x), 40)) +
         ggplot2::xlab(!!xlab) +
         ggplot2::ylab(!!ylab)
     )
@@ -1343,6 +1343,10 @@ iNZightPlotGG_mosaic <- function(data, x, y, main = sprintf("Mosaic plot of %s a
   # library("ggmosaic")
   # mosaic plots don't work unless the package is attached
 
+  if (!"package:ggmosaic" %in% search()) {
+    stop("Please install and load the 'ggmosaic' library\n # library(ggmosaic)")
+  }
+
   x <- rlang::sym(x)
   y <- rlang::sym(y)
 
@@ -1356,7 +1360,7 @@ iNZightPlotGG_mosaic <- function(data, x, y, main = sprintf("Mosaic plot of %s a
   plot_expr <- rlang::expr(
     ggplot2::ggplot(plot_data) +
       ggmosaic::geom_mosaic(ggplot2::aes(x = ggmosaic::product(!!x), fill = !!y)) +
-      ggplot2::labs(title = !!main, fill = stringr::str_wrap(!!as.character(fill), 40)) +
+      ggplot2::labs(title = !!main, fill = stringr::str_wrap(!!as.character(y), 40)) +
       ggplot2::xlab(!!xlab) +
       ggplot2::ylab(!!ylab)
   )

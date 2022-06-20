@@ -41,6 +41,7 @@ Imports:
 Suggests:
     covr,
     forcats,
+    DBI,
     dplyr,
     ggbeeswarm,
     ggmosaic,
@@ -55,6 +56,7 @@ Suggests:
     knitr,
     plotly,
     RColorBrewer,
+    RSQLite,
     testthat,
     tibble,
     tidyr,

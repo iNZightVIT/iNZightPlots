@@ -71,6 +71,16 @@ inzDataframe <- function(m, data = NULL, names = list(),
     # etc, and then simply add the appropriate class)
     # e.g., in future we might want to add a TimeSeries data type ...
 
+    if (inherits(data, "inzdf")) {
+        # extract variables from dataset that are needed
+        data <- iNZightTools::as_tibble(
+            iNZightTools::select(
+                data,
+                as.character(varnames)
+            )
+        )
+    }
+
     if (is_survey(data)) {
         df$data <- as.data.frame(
             lapply(m[mw], eval, data$variables, env),

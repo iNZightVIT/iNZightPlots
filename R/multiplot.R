@@ -258,10 +258,10 @@ summary.gg_multi_binary <- function(object, html = FALSE, ...) {
 
     if ("g1" %in% colnames(d)) {
         smry <- tidyr::pivot_wider(d,
-            names_from = g1,
-            values_from = c(n, p)
+            names_from = !!rlang::sym("g1"),
+            values_from = c(!!rlang::sym("n"), !!rlang::sym("p"))
         )
-        smry <- dplyr::select(smry, -value)
+        smry <- dplyr::select(smry, -!!rlang::sym("value"))
         cn <- colnames(smry)[-1]
         cn <- sapply(cn, function(x)
             paste0(paste(rev(strsplit(x, "_")[[1]]), collapse = " ("), ")")
@@ -279,7 +279,14 @@ summary.gg_multi_binary <- function(object, html = FALSE, ...) {
             n = attr(object, "n", exact = TRUE)
         )
         d$x <- factor(d$x, levels = lvls)
-        smry <- setNames(dplyr::select(d, x, n, p), c(" ", "N", "%"))
+        smry <- setNames(
+            dplyr::select(d,
+                !!rlang::sym("x"),
+                !!rlang::sym("n"),
+                !!rlang::sym("p")
+            ),
+            c(" ", "N", "%")
+        )
         digits <- c(0, args$round_percent, 0)
     }
 
@@ -363,8 +370,8 @@ summary.gg_multi_col <- function(object, html = FALSE, ...) {
 
     if ("g1" %in% colnames(d)) {
         smry <- tidyr::pivot_wider(d,
-            names_from = g1,
-            values_from = c(n, p)
+            names_from = !!rlang::sym("g1"),
+            values_from = c(!!rlang::sym("n"), !!rlang::sym("p"))
         )
         smry$x <- ifelse(smry$value == levels(smry$value)[1],
             as.character(smry$x), "")
@@ -380,7 +387,15 @@ summary.gg_multi_col <- function(object, html = FALSE, ...) {
     } else {
         d$x <- ifelse(d$value == levels(d$value)[1],
             stringr::str_replace(as.character(d$x), "\n", " "), "")
-        smry <- setNames(dplyr::select(d, x, value, n, p), c("", "", "N", "%"))
+        smry <- setNames(
+            dplyr::select(d,
+                !!rlang::sym("x"),
+                !!rlang::sym("value"),
+                !!rlang::sym("n"),
+                !!rlang::sym("p")
+            ),
+            c("", "", "N", "%")
+        )
         digits <- c(0, args$round_percent, 0)
     }
 
