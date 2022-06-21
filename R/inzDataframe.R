@@ -74,13 +74,15 @@ inzDataframe <- function(m, data = NULL, names = list(),
 
     if (inherits(data, "inzdf")) {
         # extract variables from dataset that are needed
-        if (length(as.character(varnames$x)) > 1) {
-            varnames$x <- as.character(varnames$x)[-1]
+        vn <- varnames
+        if (length(as.character(vn$x)) > 1) {
+            vn$x <- paste(as.character(vn$x)[-1], collapse = " + ")
+            vn$x <- strsplit(vn$x, " + ", fixed = TRUE)[[1]]
         }
         data <- iNZightTools::as_tibble(
             iNZightTools::select(
                 data,
-                as.character(unlist(varnames))
+                as.character(unlist(vn))
             )
         )
     }
