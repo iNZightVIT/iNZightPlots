@@ -60,8 +60,8 @@ inzDataframe <- function(m, data = NULL, names = list(),
         utils::modifyList(as.list(m[mw]), as.list(names)),
         function(x) {
             return(x)
-            if (length(x) == 1L) return(x)
-            do.call(c, x[-1])
+            # if (length(as.character(x)) == 1L) return(x)
+            # as.character(x[-1])
         }
     )
 
@@ -74,10 +74,13 @@ inzDataframe <- function(m, data = NULL, names = list(),
 
     if (inherits(data, "inzdf")) {
         # extract variables from dataset that are needed
+        if (length(as.character(varnames$x)) > 1) {
+            varnames$x <- as.character(varnames$x)[-1]
+        }
         data <- iNZightTools::as_tibble(
             iNZightTools::select(
                 data,
-                as.character(varnames)
+                as.character(unlist(varnames))
             )
         )
     }
