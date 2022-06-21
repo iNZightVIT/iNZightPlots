@@ -47,7 +47,8 @@ inzDataframe <- function(m, data = NULL, names = list(),
         "sizeby",
         "symbolby",
         "locate",
-        "locate.same.level"
+        "locate.same.level",
+        "freq"
     )
     mw <- names(m) %in% vars
     mw[1] <- FALSE  # the function name
