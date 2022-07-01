@@ -34,6 +34,14 @@ multiplot_cat <- function(df, args) {
 
     olvls <- levels(d[[1]])
 
+    var_table_groups <- sapply(d,
+        function(x) {
+            t <- attr(x, "table", exact = TRUE)
+            if (is.null(t)) return("")
+            t
+        }
+    )
+
     ## need to remove labels ...
     levels <- sapply(names(d), function(x) expss::var_lab(d[[x]]) %||% x)
     d <- tibble::as_tibble(lapply(d, as.character))
@@ -47,6 +55,10 @@ multiplot_cat <- function(df, args) {
         names_to = "x",
         values_to = "value"
     )
+
+    if (all(var_table_groups != "")) {
+        d <- dplyr::mutate(d, y = var_table_groups[.data$x])
+    }
 
     levels <- setNames(stringr::str_replace(levels, "^x_", ""), xvars)
     d <- dplyr::mutate(d, x = factor(.data$x, levels = xvars, labels = levels[xvars]))
@@ -77,9 +89,11 @@ multiplot_cat <- function(df, args) {
         d <- dplyr::tally(d)
         d <- dplyr::group_by(d, .data$x, .data$g1, .drop = FALSE)
     } else {
-        d <- dplyr::group_by(d, .data$x, .data$value, .drop = FALSE)
+        var_y <- if ("y" %in% names(d)) rlang::sym("y") else NULL
+        print(var_y)
+        d <- dplyr::group_by(d, .data$x, !!var_y, .data$value, .drop = FALSE)
         d <- dplyr::tally(d)
-        d <- dplyr::group_by(d, .data$x, .drop = FALSE)
+        d <- dplyr::group_by(d, .data$x, !!var_y, .drop = FALSE)
     }
     d <- dplyr::summarise(d,
         value = .data$value,
@@ -88,16 +102,23 @@ multiplot_cat <- function(df, args) {
     )
 
     # figure out the name of X
-    d$x <- factor(d$x, levels = levels[xvars])
-    xvar <- setNames(
-        iNZightMR::substrsplit(levels(d$x), " "),
-        c("name", "levels")
-    )
-    title <- xlab <- ""
-    if (xvar$name != "" && all(xvar$levels != "")) {
-        newlvls <- setNames(levels(d$x), stringr::str_wrap(xvar$levels, width = 30))
-        d$x <- forcats::fct_recode(d$x, !!!newlvls)
-        title <- xvar$name
+    if ("y" %in% names(d)) {
+        stop('not handled yet')
+        # tapply(d$x, d$y, function(x) {
+
+        # })
+    } else {
+        d$x <- factor(d$x, levels = levels[xvars])
+        xvar <- setNames(
+            iNZightMR::substrsplit(levels(d$x), "_"),
+            c("name", "levels")
+        )
+        title <- xlab <- ""
+        if (xvar$name != "" && all(xvar$levels != "")) {
+            newlvls <- setNames(levels(d$x), stringr::str_wrap(xvar$levels, width = 30))
+            d$x <- forcats::fct_recode(d$x, !!!newlvls)
+            title <- xvar$name
+        }
     }
 
     plottype <- args$plottype

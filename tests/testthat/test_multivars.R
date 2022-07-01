@@ -58,3 +58,22 @@ inzsummary(~bike + bus + motor + train + walk + other, data = cas, g1 = gender)
 
 inzplot(~eth5_e_y8c+eth5_m_y8c+eth5_p_y8c, data = d)
 inzplot(~tu82_0_y8c+tu82_1_y8c+tu82_2_y8c+tu82_3_y8c+tu82_4_y8c+tu82_5_y8c+tu82_6_y8c+tu82_7_y8c+tu82_8_y8c, data = d)
+
+
+## linked multi-vars
+dummy_df <- data.frame(
+    d1_varx_1 = structure(factor(sample(c("yes", "no"), 100, TRUE, c(0.2, 0.8))), table = "d1"),
+    d1_varx_2 = structure(factor(sample(c("yes", "no"), 100, TRUE, c(0.4, 0.6))), table = "d1"),
+    d1_varx_3 = structure(factor(sample(c("yes", "no"), 100, TRUE, c(0.9, 0.1))), table = "d1"),
+    d2_varx_1 = structure(factor(sample(c("yes", "no"), 100, TRUE, c(0.5, 0.5))), table = "d2"),
+    d2_varx_2 = structure(factor(sample(c("yes", "no"), 100, TRUE, c(0.3, 0.7))), table = "d2"),
+    d2_varx_3 = structure(factor(sample(c("yes", "no"), 100, TRUE, c(0.8, 0.2))), table = "d2")
+)
+dummy_df2 <- data.frame(
+    varx_1 = factor(sample(c("yes", "no"), 100, TRUE, c(0.2, 0.8))),
+    varx_2 = factor(sample(c("yes", "no"), 100, TRUE, c(0.4, 0.6))),
+    varx_3 = factor(sample(c("yes", "no"), 100, TRUE, c(0.9, 0.1)))
+)
+
+inzplot(~ d1_varx_1 + d1_varx_2 + d1_varx_3 + d2_varx_1 + d2_varx_2 + d2_varx_3, data = dummy_df)
+inzplot(~ varx_1 + varx_2 + varx_3, data = dummy_df2)
