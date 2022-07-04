@@ -44,7 +44,7 @@ multiplot_cat <- function(df, args) {
 
     ## need to remove labels ...
     levels <- sapply(names(d), function(x) expss::var_lab(d[[x]]) %||% x)
-    d <- tibble::as_tibble(lapply(d, as.character))
+    d <- tibble::as_tibble(lapply(d, expss::unlab))
 
     facet <- ""
     if ("g1" %in% names(d)) facet <- "g1"
@@ -83,14 +83,13 @@ multiplot_cat <- function(df, args) {
         d$value <- factor(d$value, c(args$outcome_value, olvls))
     }
 
+    var_y <- if ("y" %in% names(d) && length(unique(d$y)) > 1) rlang::sym("y") else NULL
     if (facet == "g1") {
         d <- dplyr::mutate(d, g1 = ifelse(is.na(.data$g1), "missing", .data$g1))
         d <- dplyr::group_by(d, .data$x, .data$value, .data$g1, .drop = FALSE)
         d <- dplyr::tally(d)
         d <- dplyr::group_by(d, .data$x, .data$g1, .drop = FALSE)
     } else {
-        var_y <- if ("y" %in% names(d)) rlang::sym("y") else NULL
-        print(var_y)
         d <- dplyr::group_by(d, .data$x, !!var_y, .data$value, .drop = FALSE)
         d <- dplyr::tally(d)
         d <- dplyr::group_by(d, .data$x, !!var_y, .drop = FALSE)
@@ -102,23 +101,44 @@ multiplot_cat <- function(df, args) {
     )
 
     # figure out the name of X
-    if ("y" %in% names(d)) {
-        stop('not handled yet')
-        # tapply(d$x, d$y, function(x) {
+    if (!is.null(var_y)) {
+        newx <- tapply(seq_len(nrow(d)), d$y, function(i) {
+            di <- d[i, ]
+            xlv <- levels[xvars]
+            xlv <- xlv[xlv %in% unique(as.character(di$x))]
+            di$x <- factor(di$x, levels = as.character(xlv))
+            xvar <- setNames(
+                iNZightMR::substrsplit(levels(di$x), " "),
+                c("name", "levels")
+            )
+            levels(di$x) <- xvar$levels
+            di$x <- as.character(di$x)
 
-        # })
+            list(d = di, name = xvar$name, levels = xvar$levels)
+        })
+
+        # combine levels
+        xlvls <- unique(do.call(c, lapply(newx, function(x) x$levels)))
+        d <- do.call(rbind, lapply(newx, function(x) x$d))
+        d$x <- factor(d$x, levels = xlvls)
+
+        xnames <- as.character(sapply(newx, function(x) x$name))
+        xnamesr <- sapply(xnames, function(z) paste(rev(strsplit(z, "")[[1]]), collapse = ""))
+        xvar <- setNames(iNZightMR::substrsplit(xnamesr, " "), c("name", "levels"))
+        xvar$name <- paste(rev(strsplit(xvar$name, "")[[1]]), collapse = "")
+        xvar$levels <- xlvls
     } else {
         d$x <- factor(d$x, levels = levels[xvars])
         xvar <- setNames(
-            iNZightMR::substrsplit(levels(d$x), "_"),
+            iNZightMR::substrsplit(levels(d$x), " "),
             c("name", "levels")
         )
-        title <- xlab <- ""
-        if (xvar$name != "" && all(xvar$levels != "")) {
-            newlvls <- setNames(levels(d$x), stringr::str_wrap(xvar$levels, width = 30))
-            d$x <- forcats::fct_recode(d$x, !!!newlvls)
-            title <- xvar$name
-        }
+    }
+    title <- xlab <- ""
+    if (xvar$name != "" && all(xvar$levels != "")) {
+        newlvls <- setNames(levels(d$x), stringr::str_wrap(xvar$levels, width = 30))
+        d$x <- forcats::fct_recode(d$x, !!!newlvls)
+        title <- xvar$name
     }
 
     plottype <- args$plottype
@@ -142,8 +162,13 @@ multiplot_cat <- function(df, args) {
 
             ylab <- sprintf("%s of responses = '%s'", ylab, xlevel)
 
-            ggplot2::ggplot(d, ggplot2::aes(.data$x, .data$p)) +
-                ggplot2::geom_bar(stat = "identity", fill = "#18afe3")
+            if (!is.null(var_y)) {
+                ggplot2::ggplot(d, ggplot2::aes(.data$x, .data$p, fill = !!var_y)) +
+                    ggplot2::geom_bar(stat = "identity", position = "dodge")
+            } else {
+                ggplot2::ggplot(d, ggplot2::aes(.data$x, .data$p)) +
+                    ggplot2::geom_bar(stat = "identity", fill = "#18afe3")
+            }
         },
         "gg_multi_stack" = {
             ggplot2::ggplot(d,

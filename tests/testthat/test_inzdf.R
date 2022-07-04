@@ -7,6 +7,7 @@ iris_species <- data.frame(
 )
 iris_data <- iris %>%
     dplyr::mutate(
+        id = seq_len(dplyr::n()),
         species_id = as.integer(iris$Species),
         Species = NULL
     )
@@ -36,7 +37,8 @@ d <- inzdf(con,
                 iris_extra = c("type_id" = "id")
             )
         )
-    )
+    ),
+    keep_con = TRUE
 )
 
 test_that("Basic plots work", {
