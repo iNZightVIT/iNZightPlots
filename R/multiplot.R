@@ -49,6 +49,12 @@ multiplot_cat <- function(df, args) {
     facet <- ""
     if ("g1" %in% names(d)) facet <- "g1"
 
+    if (!is.null(args$full_cases) && args$full_cases) {
+        print(dim(d))
+        d <- tidyr::drop_na(d)
+        print(dim(d))
+    }
+
     # mutate X's
     d <- tidyr::pivot_longer(d,
         cols = xvars,
@@ -63,44 +69,8 @@ multiplot_cat <- function(df, args) {
     levels <- setNames(stringr::str_replace(levels, "^x_", ""), xvars)
     d <- dplyr::mutate(d, x = factor(.data$x, levels = xvars, labels = levels[xvars]))
 
-    if (is.null(args$keep_missing)) args$keep_missing <- FALSE
-
-    if (args$keep_missing) {
-        d <- dplyr::mutate(d, value = ifelse(is.na(.data$value), "Missing", .data$value))
-    } else {
-        d <- dplyr::filter(d, !is.na(.data$value))
-    }
-    lvls <- unique(c(olvls, unique(d$value)))
-    if ("Missing" %in% lvls) lvls <- c(lvls[lvls != "Missing"], "Missing")
-    d$value <- factor(d$value, levels = lvls)
-
-    if (!is.null(args$outcome_value)) {
-        olvls <- paste(lvls[lvls != args$outcome_value], collapse = " | ")
-        d$value <- ifelse(d$value == args$outcome_value,
-            args$outcome_value,
-            olvls
-        )
-        d$value <- factor(d$value, c(args$outcome_value, olvls))
-    }
-
     var_y <- if ("y" %in% names(d) && length(unique(d$y)) > 1) rlang::sym("y") else NULL
-    if (facet == "g1") {
-        d <- dplyr::mutate(d, g1 = ifelse(is.na(.data$g1), "missing", .data$g1))
-        d <- dplyr::group_by(d, .data$x, .data$value, .data$g1, .drop = FALSE)
-        d <- dplyr::tally(d)
-        d <- dplyr::group_by(d, .data$x, .data$g1, .drop = FALSE)
-    } else {
-        d <- dplyr::group_by(d, .data$x, !!var_y, .data$value, .drop = FALSE)
-        d <- dplyr::tally(d)
-        d <- dplyr::group_by(d, .data$x, !!var_y, .drop = FALSE)
-    }
-    d <- dplyr::summarise(d,
-        value = .data$value,
-        n = .data$n,
-        p = .data$n / sum(.data$n) * 100
-    )
 
-    # figure out the name of X
     if (!is.null(var_y)) {
         newx <- tapply(seq_len(nrow(d)), d$y, function(i) {
             di <- d[i, ]
@@ -122,6 +92,12 @@ multiplot_cat <- function(df, args) {
         d <- do.call(rbind, lapply(newx, function(x) x$d))
         d$x <- factor(d$x, levels = xlvls)
 
+        if (!is.null(args$x_groups)) {
+            d <- dplyr::mutate(d,
+                x = forcats::fct_collapse(.data$x, !!!args$x_groups)
+            )
+        }
+
         xnames <- as.character(sapply(newx, function(x) x$name))
         xnamesr <- sapply(xnames, function(z) paste(rev(strsplit(z, "")[[1]]), collapse = ""))
         xvar <- setNames(iNZightMR::substrsplit(xnamesr, " "), c("name", "levels"))
@@ -134,8 +110,45 @@ multiplot_cat <- function(df, args) {
             c("name", "levels")
         )
     }
+
+    if (is.null(args$keep_missing)) args$keep_missing <- FALSE
+
+    if (args$keep_missing) {
+        d <- dplyr::mutate(d, value = ifelse(is.na(.data$value), "Missing", .data$value))
+    } else {
+        d <- dplyr::filter(d, !is.na(.data$value))
+    }
+    lvls <- unique(c(olvls, unique(as.character(d$value))))
+    if ("Missing" %in% lvls) lvls <- c(lvls[lvls != "Missing"], "Missing")
+    d$value <- factor(d$value, levels = lvls)
+
+    if (!is.null(args$outcome_value)) {
+        olvls <- paste(lvls[lvls != args$outcome_value], collapse = " | ")
+        d$value <- ifelse(d$value == args$outcome_value,
+            args$outcome_value,
+            olvls
+        )
+        d$value <- factor(d$value, c(args$outcome_value, olvls))
+    }
+
+    if (facet == "g1") {
+        d <- dplyr::mutate(d, g1 = ifelse(is.na(.data$g1), "missing", .data$g1))
+        d <- dplyr::group_by(d, .data$x, .data$value, .data$g1, .drop = FALSE)
+        d <- dplyr::tally(d)
+        d <- dplyr::group_by(d, .data$x, .data$g1, .drop = FALSE)
+    } else {
+        d <- dplyr::group_by(d, .data$x, !!var_y, .data$value, .drop = FALSE)
+        d <- dplyr::tally(d)
+        d <- dplyr::group_by(d, .data$x, !!var_y, .drop = FALSE)
+    }
+    d <- dplyr::summarise(d,
+        value = .data$value,
+        n = .data$n,
+        p = .data$n / sum(.data$n) * 100
+    )
+
     title <- xlab <- ""
-    if (xvar$name != "" && all(xvar$levels != "")) {
+    if (is.null(var_y) && xvar$name != "" && all(xvar$levels != "")) {
         newlvls <- setNames(levels(d$x), stringr::str_wrap(xvar$levels, width = 30))
         d$x <- forcats::fct_recode(d$x, !!!newlvls)
         title <- xvar$name

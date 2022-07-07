@@ -77,3 +77,42 @@ dummy_df2 <- data.frame(
 
 inzplot(~ d1_varx_1 + d1_varx_2 + d1_varx_3 + d2_varx_1 + d2_varx_2 + d2_varx_3, data = dummy_df)
 inzplot(~ varx_1 + varx_2 + varx_3, data = dummy_df2)
+
+
+# guinz
+guinz <- iNZightTools::load_linked('~/terourou/guinz/data/guinz_full.inzlnk')
+
+inzplot(~ eth5_e_am + eth5_m_am + eth5_p_am + eth5_a_am, data = guinz, outcome_value = "Yes")
+
+inzplot(~ eth5_e_am + eth5_m_am + eth5_p_am + eth5_a_am + eth5_mela_am +
+    eth5_o_am + eth5_nzder_am + eth5_e_m9m + eth5_m_m9m + eth5_p_m9m + eth5_a_m9m +
+    eth5_mela_m9m + eth5_o_m9m + eth5_nzder_m9m + eth5_e_y8c + eth5_m_y8c +
+    eth5_p_y8c + eth5_a_y8c + eth5_mela_y8c + eth5_o_y8c + eth5_nzder_y8c,
+    outcome_value = "Yes",
+    rotation = TRUE,
+    x_groups = list(
+        European = c("European", "New Zealand European"),
+        Pacific = c("Pacific", "Pacific people", "pacific")
+    ),
+    data = guinz)
+
+inzplot(~ eth5_e_am + eth5_m_am + eth5_p_am + eth5_a_am + eth5_mela_am +
+    eth5_o_am + eth5_nzder_am + eth5_e_m9m + eth5_m_m9m + eth5_p_m9m +
+    eth5_a_m9m + eth5_mela_m9m + eth5_o_m9m + eth5_nzder_m9m + eth5_e_m54cm +
+    eth5_m_m54cm + eth5_p_m54cm + eth5_a_m54cm + eth5_mela_m54cm +
+    eth5_o_m54cm + eth5_nzder_m54cm + eth5_e_y8c + eth5_m_y8c +
+    eth5_p_y8c + eth5_a_y8c + eth5_mela_y8c + eth5_o_y8c + eth5_nzder_y8c,
+    data = guinz,
+    x_groups = list(
+        European = c("European", "New Zealand European", "European?"),
+        Pacific = c("Pacific", "Pacific people", "pacific", "Pacific?"),
+        Maori = c("Maori", "Maori?"),
+        Asian = c("Asian", "Asian?"),
+        MELAA = c("MELAA", "MELAA?"),
+        Other = c("Other", "Other?"),
+        "New Zealander" = c("New Zealander", "New Zealander?")
+    ),
+    outcome_value = "Yes",
+    rotation = TRUE,
+    full_cases = TRUE
+)
