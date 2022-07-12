@@ -158,6 +158,7 @@ multiplot_cat <- function(df, args) {
         if (length(levels(d$value)) == 2L) plottype <- "gg_multi_binary"
         else plottype <- "gg_multi_stack"
     }
+    if (plottype == "gg_multi_col" && !is.null(var_y)) plottype <- "gg_multi_stack"
 
     ylab <- "Percentage (%)"
 
@@ -182,13 +183,25 @@ multiplot_cat <- function(df, args) {
             }
         },
         "gg_multi_stack" = {
-            ggplot2::ggplot(d,
-                ggplot2::aes(.data$x, .data$p, fill = .data$value)
-            ) +
-                ggplot2::geom_bar(
-                    stat = "identity",
-                    position = ggplot2::position_stack(reverse = TRUE)
-                )
+            if (!is.null(var_y)) {
+                # return(d)
+                ggplot2::ggplot(d,
+                    ggplot2::aes(.data$y, .data$p, fill = .data$value)
+                ) +
+                    ggplot2::geom_bar(
+                        stat = "identity",
+                        position = ggplot2::position_stack(reverse = TRUE)
+                    ) +
+                    ggplot2::facet_grid(x ~ .)
+            } else {
+                ggplot2::ggplot(d,
+                    ggplot2::aes(.data$x, .data$p, fill = .data$value)
+                ) +
+                    ggplot2::geom_bar(
+                        stat = "identity",
+                        position = ggplot2::position_stack(reverse = TRUE)
+                    )
+            }
         },
         "gg_multi_col" = {
             ggplot2::ggplot(d,
@@ -250,9 +263,14 @@ multiplot_cat <- function(df, args) {
     if (!is.null(args$rotation) && args$rotation) {
         if (plottype %in% c("gg_multi_column"))
             p <- p + ggplot2::coord_flip()
-    } else if (plottype %in% c("gg_multi_binary", "gg_multi_stack"))
-        p <- p + ggplot2::coord_flip() +
-            ggplot2::scale_x_discrete(limits = rev(levels(d$x)))
+    } else if (plottype %in% c("gg_multi_binary", "gg_multi_stack")) {
+        if (plottype == "gg_multi_stack" && !is.null(var_y))
+            p <- p + ggplot2::coord_flip() +
+                ggplot2::scale_x_discrete(limits = rev(levels(d$y)))
+        else
+            p <- p + ggplot2::coord_flip() +
+                ggplot2::scale_x_discrete(limits = rev(levels(d$x)))
+    }
 
     if (is.null(args$plot) || isTRUE(args$plot)) {
         dev.hold()
