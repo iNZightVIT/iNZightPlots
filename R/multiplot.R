@@ -50,9 +50,7 @@ multiplot_cat <- function(df, args) {
     if ("g1" %in% names(d)) facet <- "g1"
 
     if (!is.null(args$full_cases) && args$full_cases) {
-        print(dim(d))
         d <- tidyr::drop_na(d)
-        print(dim(d))
     }
 
     # mutate X's
@@ -315,7 +313,26 @@ summary.gg_multi_binary <- function(object, html = FALSE, ...) {
     d <- attr(object, "data", exact = TRUE)
     response_val <- as.character(d$value[1])
 
-    if ("g1" %in% colnames(d)) {
+    if ("y" %in% colnames(d)) {
+        # special handling of this case ...
+        # TODO: if g1 specified, will need to do some fancy subsetting...
+
+        # else, just usual:
+        smry <- tidyr::pivot_wider(d,
+            names_from = !!rlang::sym("y"),
+            values_from = c(!!rlang::sym("n"), !!rlang::sym("p"))
+        )
+        smry <- dplyr::select(smry, -!!rlang::sym("value"))
+        cn <- colnames(smry)[-1]
+        cn <- sapply(cn, function(x)
+            paste0(paste(rev(stringr::str_split(x, "_", n = 2L)[[1]]), collapse = " ("), ")")
+        )
+        smry <- setNames(smry, c("", cn))
+        smry <- smry[, c(1, order(cn) + 1L)]
+        colnames(smry) <- gsub("(p)", "(%)", colnames(smry), fixed = TRUE)
+        pcols <- grepl("(%)", colnames(smry), fixed = TRUE)
+        digits <- ifelse(pcols, args$round_percent, 0)
+    } else if ("g1" %in% colnames(d)) {
         smry <- tidyr::pivot_wider(d,
             names_from = !!rlang::sym("g1"),
             values_from = c(!!rlang::sym("n"), !!rlang::sym("p"))
@@ -388,7 +405,7 @@ summary.gg_multi_binary <- function(object, html = FALSE, ...) {
     }
 
     tbl_groups <- NULL
-    if ("g1" %in% names(d)) {
+    if (sum(c("y", "g1") %in% names(d)) == 1L) {
         # fancy header
         cn <- colnames(smry)[-1]
         cnl <- strsplit(cn, " (", fixed = TRUE)
