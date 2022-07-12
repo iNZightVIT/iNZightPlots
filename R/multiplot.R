@@ -462,7 +462,27 @@ summary.gg_multi_col <- function(object, html = FALSE, ...) {
     labels <- attr(object, "labels", exact = TRUE)
     d <- attr(object, "data", exact = TRUE)
 
-    if ("g1" %in% colnames(d)) {
+    if ("y" %in% colnames(d)) {
+        # special handling of this case ...
+        # TODO: if g1 specified, will need to do some fancy subsetting...
+
+        # else, just usual:
+        smry <- tidyr::pivot_wider(d,
+            names_from = !!rlang::sym("y"),
+            values_from = c(!!rlang::sym("n"), !!rlang::sym("p"))
+        )
+        smry$x <- ifelse(smry$value == levels(smry$value)[1],
+            as.character(smry$x), "")
+        cn <- colnames(smry)[-(1:2)]
+        cn <- sapply(cn, function(x)
+            paste0(paste(rev(stringr::str_split(x, "_", n = 2L)[[1]]), collapse = " ("), ")")
+        )
+        smry <- setNames(smry, c("", "", cn))
+        smry <- smry[, c(1:2, order(cn) + 2L)]
+        colnames(smry) <- gsub("(p)", "(%)", colnames(smry), fixed = TRUE)
+        pcols <- grepl("(%)", colnames(smry), fixed = TRUE)
+        digits <- ifelse(pcols, args$round_percent, 0)
+    } else if ("g1" %in% colnames(d)) {
         smry <- tidyr::pivot_wider(d,
             names_from = !!rlang::sym("g1"),
             values_from = c(!!rlang::sym("n"), !!rlang::sym("p"))
@@ -471,7 +491,7 @@ summary.gg_multi_col <- function(object, html = FALSE, ...) {
             as.character(smry$x), "")
         cn <- colnames(smry)[-(1:2)]
         cn <- sapply(cn, function(x)
-            paste0(paste(rev(strsplit(x, "_")[[1]]), collapse = " ("), ")")
+            paste0(paste(rev(stringr::str_split(x, "_", n = 2L)[[1]]), collapse = " ("), ")")
         )
         smry <- setNames(smry, c("", "", cn))
         smry <- smry[, c(1:2, order(cn) + 2L)]
@@ -534,7 +554,7 @@ summary.gg_multi_col <- function(object, html = FALSE, ...) {
     smry <- smry[, -1]
 
     tbl_groups <- NULL
-    if ("g1" %in% names(d)) {
+    if (sum(c("y", "g1") %in% names(d)) == 1L) {
         # fancy header
         cn <- colnames(smry)[-1]
         cnl <- strsplit(cn, " (", fixed = TRUE)
