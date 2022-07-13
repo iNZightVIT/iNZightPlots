@@ -130,7 +130,10 @@ multiplot_cat <- function(df, args) {
     }
 
     if (facet == "g1") {
-        d <- dplyr::mutate(d, g1 = ifelse(is.na(.data$g1), "missing", .data$g1))
+        glevels <- levels(d$g1)
+        d <- dplyr::mutate(d, g1 = ifelse(is.na(.data$g1), "missing", as.character(.data$g1)))
+        if ("missing" %in% unique(d$g1))
+            d$g1 <- factor(d$g1, c(glevels, "missing"))
         d <- dplyr::group_by(d, .data$x, .data$value, .data$g1, .drop = FALSE)
         d <- dplyr::tally(d)
         d <- dplyr::group_by(d, .data$x, .data$g1, .drop = FALSE)

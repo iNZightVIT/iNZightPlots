@@ -161,3 +161,9 @@ inzplot(~ eth5_e_am + eth5_m_am + eth5_p_am + eth5_a_am + eth5_mela_am +
     # rotation = TRUE,
     full_cases = TRUE
 )
+
+inzplot(~ eth5_e_am + eth5_m_am + eth5_p_am + eth5_a_am,
+    g1 = cself_proeth_y8c,
+    data = guinz,
+    outcome_value = "Yes"
+)
