@@ -1,3 +1,7 @@
+# iNZightPlots 2.14.3
+
+- fix bug where survey smoothers were not plotting (#291)
+
 # iNZightPlots 2.14.2
 
 - fix bug introduced by fix in 2.14.1
