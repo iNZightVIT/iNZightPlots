@@ -218,8 +218,11 @@ test_that("Scatter plots work for surveys", {
     sx <- sx[!is.na(sx) & !is.na(nhanes.svy$variables$Weight)]
     expect_equal(px$all$all$x, sx)
 
+    tp <- tempfile(fileext=".pdf")
+    on.exit(unlink(tp))
+    pdf(tp)
     expect_is(
-        inzplot(Weight ~ Height, design = nhanes.svy, plot = FALSE,
+        inzplot(Weight ~ Height, design = nhanes.svy, plot = TRUE,
             smooth = 0.8),
         "inzplotoutput"
     )
