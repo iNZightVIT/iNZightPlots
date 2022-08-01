@@ -13,6 +13,17 @@ inzplot(~ techtv + techmp3 + techinternet + techmobinternet + techfacebook +
     keep_missing = TRUE
 )
 
+inzplot(~ techtv + techmp3 + techinternet + techmobinternet + techfacebook +
+    techtwitter + techbebo + techmyspace + techskype + technone, data = cas5k,
+    g1 = gender
+)
+
+
+inzplot(~ techtv + techmp3 + techinternet + techmobinternet + techfacebook +
+    techtwitter + techbebo + techmyspace + techskype + technone, data = cas5k,
+    g1 = gender, g1.level = "female"
+)
+
 inzsummary(~ techtv + techmp3 + techinternet, data = cas5k)
 
 dd <- data.frame(
