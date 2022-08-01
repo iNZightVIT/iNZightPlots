@@ -178,3 +178,31 @@ inzplot(~ eth5_e_am + eth5_m_am + eth5_p_am + eth5_a_am,
     data = guinz,
     outcome_value = "Yes"
 )
+
+
+## themeing
+guinz_palette <- list(
+    primary = c("#004775", "#00a9e9", "#39b54a"),
+    secondary = c("#6f818e", "#fdb913", "#d2232a")
+)
+
+theme_guinz <- function() {
+    ggplot2::theme_classic(
+        base_family = "Myriad Pro"
+    ) +
+        ggplot2::theme(
+            legend.position = "bottom",
+            axis.line = ggplot2::element_blank(),
+            axis.ticks = ggplot2::element_blank(),
+            panel.grid.major.x = ggplot2::element_line(
+                size = 0.5,
+                color = "gray80"
+            ),
+            panel.background = ggplot2::element_rect(fill = "white")
+        )
+}
+ggplot2::update_geom_defaults("bar", list(fill = guinz_palette$primary[2]))
+
+inzplot(~techbebo+techfacebook+techinternet, data = iNZightMR::census.at.school.5000,
+    gg_theme = theme_guinz()
+)

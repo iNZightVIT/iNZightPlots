@@ -191,7 +191,7 @@ multiplot_cat <- function(df, args) {
                     ggplot2::geom_bar(stat = "identity", position = "dodge")
             } else {
                 ggplot2::ggplot(d, ggplot2::aes(.data$x, .data$p)) +
-                    ggplot2::geom_bar(stat = "identity", fill = "#18afe3")
+                    ggplot2::geom_bar(stat = "identity", width = 0.5)
             }
         },
         "gg_multi_stack" = {
@@ -262,15 +262,10 @@ multiplot_cat <- function(df, args) {
         ggplot2::xlab(xlab) +
         ggplot2::ylab(ylab) +
         ggplot2::labs(fill = "") +
-        ggplot2::ggtitle(title, subtitle = subtitle) +
-        ggplot2::theme(
-            legend.position = "bottom",
-            panel.grid.major.x = ggplot2::element_line(
-                colour = "#cccccc70",
-                size = 0.4
-            )
-            # panel.background = ggplot2::element_rect(fill = args$bg)
-        )
+        ggplot2::ggtitle(title, subtitle = subtitle)
+        # ggplot2::theme(
+        #     panel.background = ggplot2::element_rect(fill = args$bg)
+        # )
 
     if (!is.null(args$rotation) && args$rotation) {
         if (plottype %in% c("gg_multi_column"))
