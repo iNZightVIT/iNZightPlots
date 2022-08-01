@@ -134,9 +134,12 @@ multiplot_cat <- function(df, args) {
         d <- dplyr::mutate(d, g1 = ifelse(is.na(.data$g1), "missing", as.character(.data$g1)))
         if ("missing" %in% unique(d$g1))
             d$g1 <- factor(d$g1, c(glevels, "missing"))
+        else d$g1 <- factor(d$g1, glevels)
 
         if (!is.null(df$glevels) && !is.null(df$glevels$g1.level)) {
-            d <- dplyr::filter(d, g1 == df$glevels$g1.level)
+            g1level <- df$glevels$g1.level
+            if (is.numeric(g1level)) g1level <- glevels[g1level]
+            d <- dplyr::filter(d, g1 == g1level)
             d <- dplyr::mutate(d, g1 = droplevels(g1))
         }
 
