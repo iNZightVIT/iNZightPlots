@@ -1,3 +1,7 @@
+- new `multiplot()` method for handling multiple `y` variables, so formulas like `inzplot(~x1 + x2 + x3, ...)` are now supported
+
+- ability to specify default plots types with `options(inzight.default.palette.cat, inzight.default.palette.cont)`
+
 # iNZightPlots 2.14.1
 
 - fix bug in surveys where ID not consecutive
