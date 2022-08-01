@@ -151,31 +151,7 @@ inzpar <- function(...,
         col.emph       = 0L,
         col.emphn      = 4L,
         emph.on.top    = TRUE,
-        col.default    =
-            list(
-                cat  =
-                    if (.viridis) {
-                        function(n)
-                            if (n > 10) viridis::viridis(n)
-                            else c(
-                                "#E69F00", "#56AAE9", "#D55E00", "#0072B2",
-                                "#F0D705", "#ADD9FF", "#9BCD9B", "#CC79A7",
-                                "#68468C", "#8B0000"
-                            )[1:n]
-                    } else {
-                        function(n)
-                            if (n > 10) hcl( (1:n) / n * 360, c = 80, l = 50)
-                            else c(
-                                "#E69F00", "#56AAE9", "#D55E00", "#0072B2",
-                                "#F0D705", "#ADD9FF", "#9BCD9B", "#CC79A7",
-                                "#68468C", "#8B0000"
-                            )[1:n]
-                    },
-                cont =
-                    if (.viridis) viridis::viridis
-                    else function(n)
-                        hcl( (1:n) / n * 320 + 60, c = 100, l = 50)
-            ),
+        col.default    = default_palette(.viridis),
         col.missing    = "#cccccc",
         reverse.palette = FALSE,
         col.method     = "linear",
@@ -312,3 +288,48 @@ gg_defaults <- list(
     desc = FALSE,
     palette = "default"
 )
+
+default_palette <- function(use_viridis = TRUE) {
+    use_viridis <- use_viridis && requireNamespace("viridis", quietly = TRUE)
+
+    cat_pal <- c(
+        "#E69F00", "#56AAE9", "#D55E00", "#0072B2",
+        "#F0D705", "#ADD9FF", "#9BCD9B", "#CC79A7",
+        "#68468C", "#8B0000"
+    )
+    cont_pal <- function(n)
+        hcl( (1:n) / n * 320 + 60, c = 100, l = 50)
+
+    opt_cat <- getOption("inzight.default.palette.cat")
+    opt_cont <- getOption("inzight.default.palette.num")
+
+    v_cat <- use_viridis
+    if (!is.null(opt_cat) && is.character(opt_cat)) {
+        v_cat <- FALSE
+        cat_pal <- opt_cat
+    }
+    v_cont <- use_viridis
+    if (!is.null(opt_cont) && is.function(opt_cont)) {
+        t <- try(opt_cont(5), silent = TRUE)
+        if (!inherits(t, "try-error") && is.character(t) && length(t) == 5) {
+            v_cont <- FALSE
+            cont_pal <- opt_cont
+        }
+    }
+
+    list(
+        cat  =
+            if (use_viridis) {
+                function(n)
+                    if (n > length(cat_pal)) viridis::viridis(n)
+                    else cat_pal[1:n]
+            } else {
+                function(n)
+                    if (n > length(cat_pal)) hcl( (1:n) / n * 360, c = 80, l = 50)
+                    else cat_pal[1:n]
+            },
+        cont =
+            if (use_viridis) viridis::viridis
+            else cont_pal
+    )
+}
