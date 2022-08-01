@@ -232,40 +232,38 @@ multiplot_cat <- function(df, args) {
         )
     }
 
+    p <- p + ggplot2::theme(legend.position = "bottom")
+
     if (!is.null(args$gg_theme)) {
         if (is.character(args$gg_theme)) {
-            ptheme <- try(
-                eval(parse(text = sprintf("ggplot2::theme_%s", args$gg_theme))),
-                silent = TRUE
-            )
-            if (!inherits(ptheme, "try-error")) {
-                p <- p + ptheme()
-            } else {
+            if (args$gg_theme != "_default") {
                 ptheme <- try(
-                    eval(parse(text = sprintf("ggthemes::theme_%s", args$gg_theme))),
+                    eval(parse(text = sprintf("ggplot2::theme_%s", args$gg_theme))),
                     silent = TRUE
                 )
                 if (!inherits(ptheme, "try-error")) {
                     p <- p + ptheme()
+                } else {
+                    ptheme <- try(
+                        eval(parse(text = sprintf("ggthemes::theme_%s", args$gg_theme))),
+                        silent = TRUE
+                    )
+                    if (!inherits(ptheme, "try-error")) {
+                        p <- p + ptheme()
+                    }
                 }
             }
         } else {
             p <- p + do.call(ggplot2::theme, args$gg_theme)
         }
-    } else {
-        p <- p + ggplot2::theme_classic()
     }
-
-    if (is.null(args$bg)) args$bg <- "lightgray"
 
     p <- p +
         ggplot2::xlab(xlab) +
         ggplot2::ylab(ylab) +
+        ggplot2::ylim(0, 100) +
         ggplot2::labs(fill = "") +
         ggplot2::ggtitle(title, subtitle = subtitle)
-        # ggplot2::theme(
-        #     panel.background = ggplot2::element_rect(fill = args$bg)
-        # )
 
     if (!is.null(args$rotation) && args$rotation) {
         if (plottype %in% c("gg_multi_column"))

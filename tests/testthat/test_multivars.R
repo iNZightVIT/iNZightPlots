@@ -202,7 +202,14 @@ theme_guinz <- function() {
         )
 }
 ggplot2::update_geom_defaults("bar", list(fill = guinz_palette$primary[2]))
+ggplot2::theme_set(theme_guinz())
+
+options(
+    inzight.default.palette.cat = c(guinz_palette$primary, guinz_palette$secondary),
+    ggplot2.discrete.fill = c(guinz_palette$primary, guinz_palette$secondary)
+)
 
 inzplot(~techbebo+techfacebook+techinternet, data = iNZightMR::census.at.school.5000,
     gg_theme = theme_guinz()
 )
+inzplot(~sport+sport_en, data = iNZightMR::census.at.school.5000)
