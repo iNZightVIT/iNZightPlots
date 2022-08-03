@@ -98,9 +98,16 @@ multiplot_cat <- function(df, args) {
 
         xnames <- as.character(sapply(newx, function(x) x$name))
         xnamesr <- sapply(xnames, function(z) paste(rev(strsplit(z, "")[[1]]), collapse = ""))
-        xvar <- setNames(iNZightMR::substrsplit(xnamesr, " "), c("name", "levels"))
-        xvar$name <- paste(rev(strsplit(xvar$name, "")[[1]]), collapse = "")
-        xvar$levels <- xlvls
+        if (any(xnamesr == "")) {
+            xvar <- list(
+                name = "",
+                levels = xnamesr
+            )
+        } else {
+            xvar <- setNames(iNZightMR::substrsplit(xnamesr, " "), c("name", "levels"))
+            xvar$name <- paste(rev(strsplit(xvar$name, "")[[1]]), collapse = "")
+            xvar$levels <- xlvls
+        }
     } else {
         d$x <- factor(d$x, levels = levels[xvars])
         xvar <- setNames(

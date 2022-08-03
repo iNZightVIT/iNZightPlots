@@ -33,7 +33,7 @@ dd <- data.frame(
 )
 
 inzplot(~q1 + q2, data = dd)
-inzplot(~q1 + q2, data = dd, plottype = "vertical-stack")
+inzplot(~q1 + q2, data = dd, plottype = "gg_multi_col")
 
 
 cas_raw <- iNZightTools::smart_read('cas500_coded.csv')
@@ -67,8 +67,8 @@ inzsummary(~bus + train + bike, data = cas, g1 = gender)
 inzsummary(~bike + bus + motor + train + walk + other, data = cas, g1 = gender)
 
 
-inzplot(~eth5_e_y8c+eth5_m_y8c+eth5_p_y8c, data = d)
-inzplot(~tu82_0_y8c+tu82_1_y8c+tu82_2_y8c+tu82_3_y8c+tu82_4_y8c+tu82_5_y8c+tu82_6_y8c+tu82_7_y8c+tu82_8_y8c, data = d)
+# inzplot(~eth5_e_y8c+eth5_m_y8c+eth5_p_y8c, data = d)
+# inzplot(~tu82_0_y8c+tu82_1_y8c+tu82_2_y8c+tu82_3_y8c+tu82_4_y8c+tu82_5_y8c+tu82_6_y8c+tu82_7_y8c+tu82_8_y8c, data = d)
 
 
 ## linked multi-vars
@@ -91,20 +91,24 @@ inzplot(~ varx_1 + varx_2 + varx_3, data = dummy_df2)
 
 
 # guinz
+guinz <- iNZightTools::load_linked('~/terourou/guinz/data/guinz8y2.inzlnk')
+
+inzplot(~fn6_y8c, g1 = cself_proeth_y8c, data = guinz, plottype = "gg_stackedcolumn")
+
+
+inzplot(~ eth5_e_y8c + eth5_m_y8c + eth5_p_y8c + eth5_a_y8c, data = guinz, outcome_value = "Yes")
+
 guinz <- iNZightTools::load_linked('~/terourou/guinz/data/guinz_full.inzlnk')
-
-inzplot(~ eth5_e_am + eth5_m_am + eth5_p_am + eth5_a_am, data = guinz, outcome_value = "Yes")
-
 inzplot(~ eth5_e_am + eth5_m_am + eth5_p_am + eth5_a_am + eth5_mela_am +
     eth5_o_am + eth5_nzder_am + eth5_e_m9m + eth5_m_m9m + eth5_p_m9m + eth5_a_m9m +
     eth5_mela_m9m + eth5_o_m9m + eth5_nzder_m9m + eth5_e_y8c + eth5_m_y8c +
     eth5_p_y8c + eth5_a_y8c + eth5_mela_y8c + eth5_o_y8c + eth5_nzder_y8c,
     outcome_value = "Yes",
     rotation = TRUE,
-    x_groups = list(
-        European = c("European", "New Zealand European"),
-        Pacific = c("Pacific", "Pacific people", "pacific")
-    ),
+    # x_groups = list(
+    #     European = c("European", "New Zealand European"),
+    #     Pacific = c("Pacific", "Pacific people", "pacific")
+    # ),
     data = guinz)
 
 inzplot(~ eth5_e_am + eth5_m_am + eth5_p_am + eth5_a_am + eth5_mela_am +
@@ -114,15 +118,15 @@ inzplot(~ eth5_e_am + eth5_m_am + eth5_p_am + eth5_a_am + eth5_mela_am +
     eth5_o_m54cm + eth5_nzder_m54cm + eth5_e_y8c + eth5_m_y8c +
     eth5_p_y8c + eth5_a_y8c + eth5_mela_y8c + eth5_o_y8c + eth5_nzder_y8c,
     data = guinz,
-    x_groups = list(
-        European = c("European", "New Zealand European", "European?"),
-        Pacific = c("Pacific", "Pacific people", "pacific", "Pacific?"),
-        Maori = c("Maori", "Maori?"),
-        Asian = c("Asian", "Asian?"),
-        MELAA = c("MELAA", "MELAA?"),
-        Other = c("Other", "Other?"),
-        "New Zealander" = c("New Zealander", "New Zealander?")
-    ),
+    # x_groups = list(
+    #     European = c("European", "New Zealand European", "European?"),
+    #     Pacific = c("Pacific", "Pacific people", "pacific", "Pacific?"),
+    #     Maori = c("Maori", "Maori?"),
+    #     Asian = c("Asian", "Asian?"),
+    #     MELAA = c("MELAA", "MELAA?"),
+    #     Other = c("Other", "Other?"),
+    #     "New Zealander" = c("New Zealander", "New Zealander?")
+    # ),
     outcome_value = "Yes",
     rotation = TRUE,
     full_cases = TRUE
@@ -136,15 +140,15 @@ inzsummary(~ eth5_e_am + eth5_m_am + eth5_p_am + eth5_a_am + eth5_mela_am +
     eth5_o_m54cm + eth5_nzder_m54cm + eth5_e_y8c + eth5_m_y8c +
     eth5_p_y8c + eth5_a_y8c + eth5_mela_y8c + eth5_o_y8c + eth5_nzder_y8c,
     data = guinz,
-    x_groups = list(
-        European = c("European", "New Zealand European", "European?"),
-        Pacific = c("Pacific", "Pacific people", "pacific", "Pacific?"),
-        Maori = c("Maori", "Maori?"),
-        Asian = c("Asian", "Asian?"),
-        MELAA = c("MELAA", "MELAA?"),
-        Other = c("Other", "Other?"),
-        "New Zealander" = c("New Zealander", "New Zealander?")
-    ),
+    # x_groups = list(
+    #     European = c("European", "New Zealand European", "European?"),
+    #     Pacific = c("Pacific", "Pacific people", "pacific", "Pacific?"),
+    #     Maori = c("Maori", "Maori?"),
+    #     Asian = c("Asian", "Asian?"),
+    #     MELAA = c("MELAA", "MELAA?"),
+    #     Other = c("Other", "Other?"),
+    #     "New Zealander" = c("New Zealander", "New Zealander?")
+    # ),
     outcome_value = "Yes",
     rotation = TRUE,
     full_cases = TRUE
@@ -159,15 +163,15 @@ inzplot(~ eth5_e_am + eth5_m_am + eth5_p_am + eth5_a_am + eth5_mela_am +
     eth5_o_m54cm + eth5_nzder_m54cm + eth5_e_y8c + eth5_m_y8c +
     eth5_p_y8c + eth5_a_y8c + eth5_mela_y8c + eth5_o_y8c + eth5_nzder_y8c,
     data = guinz,
-    x_groups = list(
-        European = c("European", "New Zealand European", "European?"),
-        Pacific = c("Pacific", "Pacific people", "pacific", "Pacific?"),
-        Maori = c("Maori", "Maori?"),
-        Asian = c("Asian", "Asian?"),
-        MELAA = c("MELAA", "MELAA?"),
-        Other = c("Other", "Other?"),
-        "New Zealander" = c("New Zealander", "New Zealander?")
-    ),
+    # x_groups = list(
+    #     European = c("European", "New Zealand European", "European?"),
+    #     Pacific = c("Pacific", "Pacific people", "pacific", "Pacific?"),
+    #     Maori = c("Maori", "Maori?"),
+    #     Asian = c("Asian", "Asian?"),
+    #     MELAA = c("MELAA", "MELAA?"),
+    #     Other = c("Other", "Other?"),
+    #     "New Zealander" = c("New Zealander", "New Zealander?")
+    # ),
     # outcome_value = "Yes",
     # rotation = TRUE,
     full_cases = TRUE

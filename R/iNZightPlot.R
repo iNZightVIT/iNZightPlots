@@ -313,15 +313,15 @@ iNZightPlot <- function(x,
             }
 
             if ("g1" %in% names(varnames)) {
-            g1 <- varnames[["g1"]]
+                g1 <- varnames[["g1"]]
             } else {
-            g1 <- m$g1
+                g1 <- m$g1
             }
 
             if ("g2" %in% names(varnames)) {
-            g2 <- varnames[["g2"]]
+                g2 <- varnames[["g2"]]
             } else {
-            g2 <- m$g2
+                g2 <- m$g2
             }
 
             vn <- unlist(
@@ -343,9 +343,9 @@ iNZightPlot <- function(x,
                         extra_args = list(...),
                         palette = list(...)$palette,
                         gg_theme = list(...)$gg_theme,
-                        caption = list(...)$caption,
-                        g1 = as.character(g1),
-                        g2 = as.character(g2)
+                        caption = list(...)$caption
+                        # g1 = as.character(g1),
+                        # g2 = as.character(g2)
                     ),
                     vn,
                     list(
