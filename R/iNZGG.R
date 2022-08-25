@@ -21,7 +21,7 @@ optional_args <- list(
   gg_freqpolygon = c("gg_lwd", "gg_size"),
   gg_barcode2 = c("gg_height", "gg_width", "alpha"),
   gg_barcode3 = c("gg_height", "gg_width", "alpha"),
-  gg_beeswarm = c("gg_size"),
+  gg_beeswarm = c("gg_size", "rotation"),
   gg_ridgeline = c("alpha", "alpha_densitygroup"),
   gg_gridplot = c("gg_perN"),
   gg_quasirandom = c("gg_size", "gg_swarmwidth", "gg_method"),
@@ -541,7 +541,8 @@ iNZightPlotGG <- function(
     plot_exprs$plot <- rlang::expr(
       !!plot_exprs$plot + ggplot2::scale_y_discrete(limits = rev)
     )
-  } else if (type %in% c("gg_violin", "gg_boxplot", "gg_beeswarm", "gg_quasirandom")) {
+  # } else if (type %in% c("gg_violin", "gg_boxplot", "gg_beeswarm", "gg_quasirandom")) {
+  } else if (type %in% c("gg_violin", "gg_boxplot", "gg_quasirandom") && rotate) {
     plot_exprs$plot <- rlang::expr(
       !!plot_exprs$plot + ggplot2::scale_x_discrete(limits = rev)
     )
@@ -1502,10 +1503,11 @@ iNZightPlotGG_divergingstackedbar <- function(data, x, y, main = sprintf("Diverg
   )
 }
 
-iNZightPlotGG_beeswarm <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), ...) {
+iNZightPlotGG_beeswarm <- function(data, x, y, main = sprintf("Distribution of %s", as.character(y)), xlab = as.character(x), ylab = as.character(y), rotation = FALSE, ...) {
   y <- rlang::sym(y)
 
   dots <- list(...)
+
 
   if (missing(x)) {
     x <- rlang::expr(factor(1))
@@ -1523,14 +1525,27 @@ iNZightPlotGG_beeswarm <- function(data, x, y, main = sprintf("Distribution of %
     )
   } else {
     x <- rlang::sym(x)
-
-    plot_expr <- rlang::expr(
-      ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, y = !!y, colour = !!x)) +
-        ggbeeswarm::geom_beeswarm(!!!dots) +
-        ggplot2::ggtitle(!!main) +
-        ggplot2::xlab(!!xlab) +
-        ggplot2::ylab(!!ylab)
-    )
+    if (rotation) {
+      plot_expr <- rlang::expr(
+        ggplot2::ggplot(!!rlang::enexpr(data),
+          ggplot2::aes(x = !!x, y = !!y, colour = !!x)
+        ) +
+          ggbeeswarm::geom_beeswarm(!!!dots) +
+          ggplot2::ggtitle(!!main) +
+          ggplot2::xlab(!!xlab) +
+          ggplot2::ylab(!!ylab)
+      )
+    } else {
+      plot_expr <- rlang::expr(
+        ggplot2::ggplot(!!rlang::enexpr(data),
+          ggplot2::aes(x = factor(!!x, levels = rev(levels(!!x))), y = !!y, colour = !!x)
+        ) +
+          ggbeeswarm::geom_beeswarm(!!!dots) +
+          ggplot2::ggtitle(!!main) +
+          ggplot2::xlab(!!xlab) +
+          ggplot2::ylab(!!ylab)
+      )
+    }
   }
 
   list(
