@@ -229,6 +229,33 @@ iNZightPlot <- function(x,
 
     df$data <- as.data.frame(df$data)
 
+    ## FIGURE OUT PLOTTYPE
+    DEFAULT_plottypes <- getOption("inzight.default.plottypes")
+    # list(num = '', cat = '', catcat = '', numcat = '', numnum = '')
+    if ((is.null(dots$plottype) || dots$plottype == "default") &&
+        !is.null(DEFAULT_plottypes)) {
+
+        # check variable types:
+        plottype <- NULL
+
+        xnum <- is_num(df$data[["x"]])
+        if ("y" %in% names(m)) {
+            # two-variable plots
+            ynum <- is_num(df$data[["y"]])
+            pt <- paste0(ifelse(xnum, "num", "cat"), ifelse(ynum, "num", "cat"))
+            if (pt == "catnum") pt <- "numcat"
+            # num x cat plots default to the numeric plot
+            if (pt == "numcat" && is.null(DEFAULT_plottypes[["numcat"]])) pt <- "num"
+            plottype <- DEFAULT_plottypes[[pt]]
+        } else {
+            # single-variable plots
+            plottype <- DEFAULT_plottypes[[ifelse(xnum, "num", "cat")]]
+        }
+
+        if (!is.null(plottype)) dots$plottype <- plottype
+        rm(plottype)
+    }
+
     if (isTRUE(grepl("^gg_", dots$plottype))) {
 
         # Required, general packages = 1, other pkgs for specific plots = 0.
@@ -335,12 +362,12 @@ iNZightPlot <- function(x,
                 c(
                     list(
                         setNames(df$data, vn),
-                        type = list(...)$plottype,
+                        type = dots$plottype,
                         data_name = data_name,
                         main = list(...)$main,
                         xlab = if (missing(xlab)) NULL else xlab,
                         ylab = if (missing(ylab)) NULL else ylab,
-                        extra_args = list(...),
+                        extra_args = c(list(plottype = dots$plottype), list(...)),
                         palette = list(...)$palette,
                         gg_theme = list(...)$gg_theme,
                         caption = list(...)$caption
