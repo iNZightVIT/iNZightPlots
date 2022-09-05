@@ -170,6 +170,7 @@ multiplot_cat <- function(df, args) {
         d$x <- forcats::fct_recode(d$x, !!!newlvls)
         title <- xvar$name
     }
+    if (!is.null(args$main) && args$main != "") title <- args$main
 
     plottype <- args$plottype
     if (is.null(plottype) || plottype %in% c("default", "gg_multi")) {
