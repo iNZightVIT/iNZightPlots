@@ -128,6 +128,7 @@ multiplot_cat <- function(df, args) {
     d$value <- factor(d$value, levels = lvls)
 
     if (!is.null(args$outcome_value)) {
+        args$outcome_value_options <- lvls
         olvls <- paste(lvls[lvls != args$outcome_value], collapse = " | ")
         d$value <- ifelse(d$value == args$outcome_value,
             args$outcome_value,
