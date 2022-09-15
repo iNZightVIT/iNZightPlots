@@ -14,7 +14,7 @@ multiplot <- function(df, args) {
         # plotting multiple x-variables
         vtypes <- sapply(d$x, iNZightTools::vartype)
 
-        if (isTRUE(getOption("inzight.auto.remove.noncatvars"))) {
+        if (any(vtypes != "cat") && isTRUE(getOption("inzight.auto.remove.noncatvars"))) {
             warning(
                 sprintf(
                     "The following non-categorical variables were removed:\n%s",
