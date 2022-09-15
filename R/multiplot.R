@@ -14,6 +14,18 @@ multiplot <- function(df, args) {
         # plotting multiple x-variables
         vtypes <- sapply(d$x, iNZightTools::vartype)
 
+        if (isTRUE(getOption("inzight.auto.remove.noncatvars"))) {
+            warning(
+                sprintf(
+                    "The following non-categorical variables were removed:\n%s",
+                    paste0("    - ", names(d$x)[vtypes != "cat"], collapse = "\n")
+                )
+            )
+            df$data$x <- df$data$x[, vtypes == "cat", drop = FALSE]
+            d <- df$data
+            vtypes <- sapply(d$x, iNZightTools::vartype)
+        }
+
         if (all(vtypes == "cat")) {
             # unique values ?
 
@@ -25,6 +37,13 @@ multiplot <- function(df, args) {
         }
     }
 
+    stop(
+        sprintf(
+            "Please remove the following non-categorical variables:\n%s",
+            paste0("    - ", names(d$x)[vtypes != "cat"], collapse = "\n")
+        )
+    )
+
     "Not supported"
 }
 
@@ -34,10 +53,13 @@ multiplot_cat <- function(df, args) {
 
     olvls <- levels(d[[1]])
 
-    var_table_groups <- sapply(d,
+    var_table_groups <- sapply(
+        d,
         function(x) {
             t <- attr(x, "table", exact = TRUE)
-            if (is.null(t)) return("")
+            if (is.null(t)) {
+                return("")
+            }
             t
         }
     )
@@ -140,9 +162,11 @@ multiplot_cat <- function(df, args) {
     if (facet == "g1") {
         glevels <- levels(d$g1)
         d <- dplyr::mutate(d, g1 = ifelse(is.na(.data$g1), "missing", as.character(.data$g1)))
-        if ("missing" %in% unique(d$g1))
+        if ("missing" %in% unique(d$g1)) {
             d$g1 <- factor(d$g1, c(glevels, "missing"))
-        else d$g1 <- factor(d$g1, glevels)
+        } else {
+            d$g1 <- factor(d$g1, glevels)
+        }
 
         if (!is.null(df$glevels) && !is.null(df$glevels$g1.level)) {
             g1level <- df$glevels$g1.level
@@ -176,8 +200,11 @@ multiplot_cat <- function(df, args) {
     plottype <- args$plottype
     if (is.null(plottype) || plottype %in% c("default", "gg_multi")) {
         # binary answers?
-        if (length(levels(d$value)) == 2L) plottype <- "gg_multi_binary"
-        else plottype <- "gg_multi_stack"
+        if (length(levels(d$value)) == 2L) {
+            plottype <- "gg_multi_binary"
+        } else {
+            plottype <- "gg_multi_stack"
+        }
     }
     if (plottype == "gg_multi_col" && !is.null(var_y)) plottype <- "gg_multi_stack"
 
@@ -190,8 +217,9 @@ multiplot_cat <- function(df, args) {
             xlevel <- if ("yes" %in% tolower(xlvls)) xlvls[tolower(xlvls) == "yes"] else unique(xlvls)[1]
             d <- dplyr::filter(d, .data$value == !!xlevel)
 
-            if (!is.null(args$ordered) && args$ordered %in% c("desc", "asc"))
+            if (!is.null(args$ordered) && args$ordered %in% c("desc", "asc")) {
                 d$x <- factor(d$x, levels = unique(d$x)[order(d$p, decreasing = args$ordered == "desc")])
+            }
 
             ylab <- sprintf("%s of responses = '%s'", ylab, xlevel)
 
@@ -206,7 +234,8 @@ multiplot_cat <- function(df, args) {
         "gg_multi_stack" = {
             if (!is.null(var_y)) {
                 # return(d)
-                ggplot2::ggplot(d,
+                ggplot2::ggplot(
+                    d,
                     ggplot2::aes(.data$y, .data$p, fill = .data$value)
                 ) +
                     ggplot2::geom_bar(
@@ -215,7 +244,8 @@ multiplot_cat <- function(df, args) {
                     ) +
                     ggplot2::facet_grid(x ~ .)
             } else {
-                ggplot2::ggplot(d,
+                ggplot2::ggplot(
+                    d,
                     ggplot2::aes(.data$x, .data$p, fill = .data$value)
                 ) +
                     ggplot2::geom_bar(
@@ -225,7 +255,8 @@ multiplot_cat <- function(df, args) {
             }
         },
         "gg_multi_col" = {
-            ggplot2::ggplot(d,
+            ggplot2::ggplot(
+                d,
                 ggplot2::aes(.data$value, .data$p, fill = .data$x)
             ) +
                 ggplot2::geom_bar(stat = "identity", position = "dodge")
@@ -236,7 +267,8 @@ multiplot_cat <- function(df, args) {
 
     if (facet == "g1") {
         p <- p + ggplot2::facet_wrap(~g1)
-        subtitle <- sprintf("Faceted by %s",
+        subtitle <- sprintf(
+            "Faceted by %s",
             df$labels$g1 %||% df$varnames$g1
         )
     }
@@ -275,15 +307,17 @@ multiplot_cat <- function(df, args) {
         ggplot2::ggtitle(title, subtitle = subtitle)
 
     if (!is.null(args$rotation) && args$rotation) {
-        if (plottype %in% c("gg_multi_column"))
+        if (plottype %in% c("gg_multi_column")) {
             p <- p + ggplot2::coord_flip()
+        }
     } else if (plottype %in% c("gg_multi_binary", "gg_multi_stack")) {
-        if (plottype == "gg_multi_stack" && !is.null(var_y))
+        if (plottype == "gg_multi_stack" && !is.null(var_y)) {
             p <- p + ggplot2::coord_flip() +
                 ggplot2::scale_x_discrete(limits = rev(levels(d$y)))
-        else
+        } else {
             p <- p + ggplot2::coord_flip() +
                 ggplot2::scale_x_discrete(limits = rev(levels(d$x)))
+        }
     }
 
     if (is.null(args$plot) || isTRUE(args$plot)) {
@@ -356,9 +390,9 @@ summary.gg_multi_binary <- function(object, html = FALSE, ...) {
         )
         smry <- dplyr::select(smry, -!!rlang::sym("value"))
         cn <- colnames(smry)[-1]
-        cn <- sapply(cn, function(x)
+        cn <- sapply(cn, function(x) {
             paste0(paste(rev(stringr::str_split(x, "_", n = 2L)[[1]]), collapse = " ("), ")")
-        )
+        })
         smry <- setNames(smry, c("", cn))
         smry <- smry[, c(1, order(cn) + 1L)]
         colnames(smry) <- gsub("(p)", "(%)", colnames(smry), fixed = TRUE)
@@ -371,9 +405,9 @@ summary.gg_multi_binary <- function(object, html = FALSE, ...) {
         )
         smry <- dplyr::select(smry, -!!rlang::sym("value"))
         cn <- colnames(smry)[-1]
-        cn <- sapply(cn, function(x)
+        cn <- sapply(cn, function(x) {
             paste0(paste(rev(strsplit(x, "_")[[1]]), collapse = " ("), ")")
-        )
+        })
         smry <- setNames(smry, c("", cn))
         smry <- smry[, c(1, order(cn) + 1L)]
         colnames(smry) <- gsub("(p)", "(%)", colnames(smry), fixed = TRUE)
@@ -388,7 +422,8 @@ summary.gg_multi_binary <- function(object, html = FALSE, ...) {
         )
         d$x <- factor(d$x, levels = lvls)
         smry <- setNames(
-            dplyr::select(d,
+            dplyr::select(
+                d,
                 !!rlang::sym("x"),
                 !!rlang::sym("n"),
                 !!rlang::sym("p")
@@ -401,14 +436,18 @@ summary.gg_multi_binary <- function(object, html = FALSE, ...) {
     smry <- smry[order(smry[[1]]), ]
     smry[[1]] <- stringr::str_replace(as.character(smry[[1]]), "\n", " ")
 
-    if (!requireNamespace("knitr", quietly = TRUE)) return(smry)
-
-    if (is.null(labels$title) || labels$title == "") {
-        labels$title <- sprintf("Counts and percentages of responses = '%s'",
-            response_val)
+    if (!requireNamespace("knitr", quietly = TRUE)) {
+        return(smry)
     }
 
-    opt <- options(knitr.kable.NA = '-')
+    if (is.null(labels$title) || labels$title == "") {
+        labels$title <- sprintf(
+            "Counts and percentages of responses = '%s'",
+            response_val
+        )
+    }
+
+    opt <- options(knitr.kable.NA = "-")
     on.exit(options(opt))
 
     if (!html) {
@@ -421,8 +460,9 @@ summary.gg_multi_binary <- function(object, html = FALSE, ...) {
         )
     }
 
-    if (is.null(args$kable_styling))
+    if (is.null(args$kable_styling)) {
         args$kable_styling <- list(bootstrap_options = NULL)
+    }
 
     if (!requireNamespace("kableExtra", quietly = TRUE)) {
         res <- knitr::kable(smry,
@@ -486,11 +526,12 @@ summary.gg_multi_col <- function(object, html = FALSE, ...) {
             values_from = c(!!rlang::sym("n"), !!rlang::sym("p"))
         )
         smry$x <- ifelse(smry$value == levels(smry$value)[1],
-            as.character(smry$x), "")
-        cn <- colnames(smry)[-(1:2)]
-        cn <- sapply(cn, function(x)
-            paste0(paste(rev(stringr::str_split(x, "_", n = 2L)[[1]]), collapse = " ("), ")")
+            as.character(smry$x), ""
         )
+        cn <- colnames(smry)[-(1:2)]
+        cn <- sapply(cn, function(x) {
+            paste0(paste(rev(stringr::str_split(x, "_", n = 2L)[[1]]), collapse = " ("), ")")
+        })
         smry <- setNames(smry, c("", "", cn))
         smry <- smry[, c(1:2, order(cn) + 2L)]
         colnames(smry) <- gsub("(p)", "(%)", colnames(smry), fixed = TRUE)
@@ -502,11 +543,12 @@ summary.gg_multi_col <- function(object, html = FALSE, ...) {
             values_from = c(!!rlang::sym("n"), !!rlang::sym("p"))
         )
         smry$x <- ifelse(smry$value == levels(smry$value)[1],
-            as.character(smry$x), "")
-        cn <- colnames(smry)[-(1:2)]
-        cn <- sapply(cn, function(x)
-            paste0(paste(rev(stringr::str_split(x, "_", n = 2L)[[1]]), collapse = " ("), ")")
+            as.character(smry$x), ""
         )
+        cn <- colnames(smry)[-(1:2)]
+        cn <- sapply(cn, function(x) {
+            paste0(paste(rev(stringr::str_split(x, "_", n = 2L)[[1]]), collapse = " ("), ")")
+        })
         smry <- setNames(smry, c("", "", cn))
         smry <- smry[, c(1:2, order(cn) + 2L)]
         colnames(smry) <- gsub("(p)", "(%)", colnames(smry), fixed = TRUE)
@@ -514,9 +556,11 @@ summary.gg_multi_col <- function(object, html = FALSE, ...) {
         digits <- ifelse(pcols, args$round_percent, 0)
     } else {
         d$x <- ifelse(d$value == levels(d$value)[1],
-            stringr::str_replace(as.character(d$x), "\n", " "), "")
+            stringr::str_replace(as.character(d$x), "\n", " "), ""
+        )
         smry <- setNames(
-            dplyr::select(d,
+            dplyr::select(
+                d,
                 !!rlang::sym("x"),
                 !!rlang::sym("value"),
                 !!rlang::sym("n"),
@@ -527,9 +571,11 @@ summary.gg_multi_col <- function(object, html = FALSE, ...) {
         digits <- c(0, args$round_percent, 0)
     }
 
-    if (!requireNamespace("knitr", quietly = TRUE)) return(smry)
+    if (!requireNamespace("knitr", quietly = TRUE)) {
+        return(smry)
+    }
 
-    opt <- options(knitr.kable.NA = '-')
+    opt <- options(knitr.kable.NA = "-")
     on.exit(options(opt))
 
     if (!html) {
@@ -542,12 +588,13 @@ summary.gg_multi_col <- function(object, html = FALSE, ...) {
         )
     }
 
-    if (is.null(args$kable_styling))
+    if (is.null(args$kable_styling)) {
         args$kable_styling <- list(bootstrap_options = NULL)
+    }
 
     if (!requireNamespace("kableExtra", quietly = TRUE)) {
         res <- knitr::kable(smry,
-            format = "html",,
+            format = "html", ,
             caption = labels$title,
             digits = digits
         )
