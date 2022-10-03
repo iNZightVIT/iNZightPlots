@@ -169,8 +169,7 @@ inzDataframe <- function(m, data = NULL, names = list(),
                     if (length(unique(df$data[[i]])) < 10) {
                         df$data[[i]] <- as.factor(df$data[[i]])
                     } else {
-                        lvls <- scales::pretty_breaks(8)(df$data[[i]])
-
+                        lvls <- scales::breaks_pretty(8)(df$data[[i]])
                         labs <- names(lvls)
                         labs <- paste(labs[-length(labs)], labs[-1], sep = " to ")
                         df$data[[i]] <- cut(df$data[[i]], lvls, labs)
