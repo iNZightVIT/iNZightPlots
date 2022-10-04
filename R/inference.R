@@ -1018,8 +1018,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
 
         ## TODO: work out correct value of M for adjusting alpha
         alpha_m <- (length(dn$x) - 1L) * choose(length(dn$y), 2L)
-        alpha_m <- 1L
-        alpha_adjusted <- (1 - ci.width) / alpha_m
+        alpha_m <- 2L
+        alpha_adjusted <- 1 - (1 - ci.width) / alpha_m
 
         for (j in 1:ncol(phat)) {
             p <- phat[, j]

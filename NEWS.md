@@ -1,3 +1,7 @@
+# iNZightPlots 2.14.4
+
+- fix bug in CI width calculation for two-way comparisons
+
 # iNZightPlots 2.14.3
 
 - fix bug where survey smoothers were not plotting (#291)
