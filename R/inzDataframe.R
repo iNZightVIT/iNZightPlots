@@ -194,7 +194,7 @@ inzDataframe <- function(m, data = NULL, names = list(),
                 trans.extra[[i]]$tz <- attr(df$data[[i]], "tzone")
                 if (i %in% c("g1", "g2")) {
                     ## convert datetime to factor ...
-                    lvls <- scales::pretty_breaks(4)(df$data[[i]])
+                    lvls <- scales::breaks_pretty(4)(df$data[[i]])
                     labs <- names(lvls)
                     labs <- paste(labs[-length(labs)], labs[-1], sep = " to ")
                     df$data[[i]] <- cut(df$data[[i]], lvls, labs)
