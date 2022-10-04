@@ -11,8 +11,10 @@ test_that("Datetimes plot OK", {
     expect_is(iNZightPlot(origintime, felt, data = quakes), "inzplotoutput")
     expect_is(iNZightPlot(felt, origintime, data = quakes), "inzplotoutput")
 
-    expect_is(iNZightPlot(magnitude, g1 = origintime, data = quakes),
-        "inzplotoutput")
+    expect_is(
+        iNZightPlot(magnitude, g1 = origintime, data = quakes),
+        "inzplotoutput"
+    )
     expect_is(
         iNZightPlot(magnitude,
             g1 = felt,
@@ -32,8 +34,10 @@ test_that("Dates plot OK", {
     expect_is(iNZightPlot(date, felt, data = quakes), "inzplotoutput")
     expect_is(iNZightPlot(felt, date, data = quakes), "inzplotoutput")
 
-    expect_is(iNZightPlot(magnitude, g1 = date, data = quakes),
-        "inzplotoutput")
+    expect_is(
+        iNZightPlot(magnitude, g1 = date, data = quakes),
+        "inzplotoutput"
+    )
     expect_is(
         iNZightPlot(magnitude,
             g1 = felt,
@@ -53,8 +57,14 @@ test_that("Times plot OK", {
     expect_is(iNZightPlot(time, felt, data = quakes), "inzplotoutput")
     expect_is(iNZightPlot(felt, time, data = quakes), "inzplotoutput")
 
-    expect_is(iNZightPlot(magnitude, g1 = time, data = quakes),
-        "inzplotoutput")
+    skip_if(
+        packageVersion("chron") <= numeric_version("2.3.57") &&
+            getRversion() >= numeric_version("4.3")
+    )
+    expect_is(
+        iNZightPlot(magnitude, g1 = time, data = quakes),
+        "inzplotoutput"
+    )
     expect_is(
         iNZightPlot(magnitude,
             g1 = felt,
@@ -138,5 +148,5 @@ test_that("Axes switched correctly for dt/factor", {
 
 test_that("HMS time values supported", {
     d <- data.frame(t = hms::parse_hms(c("12:00:00", "13:00:00")), x = 2:3)
-    expect_is(inzplot(x~t, data = d), "inzplotoutput")
+    expect_is(inzplot(x ~ t, data = d), "inzplotoutput")
 })
