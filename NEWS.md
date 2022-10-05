@@ -1,6 +1,17 @@
 - new `multiplot()` method for handling multiple `y` variables, so formulas like `inzplot(~x1 + x2 + x3, ...)` are now supported
-
 - ability to specify default plots types with `options(inzight.default.palette.cat, inzight.default.palette.cont)`
+
+# iNZightPlots 2.14.4
+
+- fix bug in CI width calculation for two-way comparisons
+
+# iNZightPlots 2.14.3
+
+- fix bug where survey smoothers were not plotting (#291)
+
+# iNZightPlots 2.14.2
+
+- fix bug introduced by fix in 2.14.1
 
 # iNZightPlots 2.14.1
 

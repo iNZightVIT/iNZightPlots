@@ -98,6 +98,7 @@ addSmoother <- function(x, y = NULL, f, col, bs, lty = 1, opts) {
         xr <- range(x$variables$x, na.rm = TRUE)
         bw <- f * sqrt(diff(xr))
         sm <- svysmooth(y ~ x, design = x, method = "locpoly", bandwidth = bw)[[1]]
+        sm$e <- NA_real_
     } else {
         sf <- predict(
             loess(y ~ x, span = f, family = "gaussian", degree = 1),

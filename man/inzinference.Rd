@@ -39,6 +39,6 @@ A generic function used to generate inferential information for objects within t
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{formula}: Wrapper for getPlotSummary to obtain inference information about a plot
-}}
+\item \code{inzinference(formula)}: Wrapper for getPlotSummary to obtain inference information about a plot
 
+}}
