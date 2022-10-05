@@ -111,13 +111,18 @@ inzDataframe <- function(m, data = NULL, names = list(),
                 nn <- as.character(x)[-1]
                 xx <- strsplit(
                     paste(as.character(x)[-1], collapse = " + "),
-                    " + ", fixed = TRUE)[[1]]
-                x <- lapply(xx,
+                    " + ",
+                    fixed = TRUE
+                )[[1]]
+                x <- lapply(
+                    xx,
                     function(z) eval(as.name(z), data, env)
                 )
                 names(x) <- xx
                 do.call(tibble::tibble, x)
-            } else eval(x, data, env)
+            } else {
+                eval(x, data, env)
+            }
         })
         names(zz) <- names(mw)[mw]
         df$data <- do.call(tibble::tibble, zz)
@@ -181,22 +186,28 @@ inzDataframe <- function(m, data = NULL, names = list(),
         )
     }
 
-    varnames_c <- lapply(varnames,
+    varnames_c <- lapply(
+        varnames,
         function(x) {
             x <- as.character(x)
-            if (length(x) == 1L) return(x)
+            if (length(x) == 1L) {
+                return(x)
+            }
             paste(x[-1], collapse = " + ")
         }
     )
     df$labels <- structure(
-        lapply(names(df$data),
-            function(x)
+        lapply(
+            names(df$data),
+            function(x) {
                 attr(df$data[[x]], "label", exact = TRUE) %||% varnames_c[[x]]
+            }
         ),
         .Names = names(df$data)
     )
     df$short_labels <- structure(
-        lapply(names(df$labels),
+        lapply(
+            names(df$labels),
             function(x) {
                 stringr::str_trunc(df$labels[[x]], 20, "center")
             }
@@ -205,10 +216,14 @@ inzDataframe <- function(m, data = NULL, names = list(),
     )
 
     df$units <- structure(
-        lapply(df$data,
+        lapply(
+            df$data,
             function(x) {
-                if (inherits(x, "units")) units::deparse_unit(x)
-                else NULL
+                if (inherits(x, "units")) {
+                    units::deparse_unit(x)
+                } else {
+                    NULL
+                }
             }
         ),
         .Names = names(df$data)
@@ -216,10 +231,12 @@ inzDataframe <- function(m, data = NULL, names = list(),
 
     # removes labels and units
     for (i in seq_len(ncol(df$data))) {
-        if (inherits(df$data[[i]], "units"))
+        if (inherits(df$data[[i]], "units")) {
             df$data[[i]] <- units::drop_units(df$data[[i]])
-        if (inherits(df$data[[i]], "labelled"))
+        }
+        if (inherits(df$data[[i]], "labelled")) {
             df$data[[i]] <- expss::drop_var_labs(df$data[[i]])
+        }
     }
 
 
@@ -227,17 +244,24 @@ inzDataframe <- function(m, data = NULL, names = list(),
     # NOTE: this is just precautionary; as.data.frame should set any
     # character strings to factors by default.
     needs_transform <- function(x) {
-        if (tibble::is_tibble(x)) return(FALSE)
-        if (is.factor(x)) return(FALSE)
+        if (tibble::is_tibble(x)) {
+            return(FALSE)
+        }
+        if (is.factor(x)) {
+            return(FALSE)
+        }
 
-        if (inherits(x, "units"))
+        if (inherits(x, "units")) {
             x <- units::drop_units(x)
+        }
 
-        if (is.numeric(x) && class(x) %in% c("integer", "numeric"))
+        if (is.numeric(x) && class(x) %in% c("integer", "numeric")) {
             return(FALSE)
+        }
 
-        if (is.numeric(x) && class(x) %in% c("integer", "numeric"))
+        if (is.numeric(x) && class(x) %in% c("integer", "numeric")) {
             return(FALSE)
+        }
 
         ## anything else
         TRUE
@@ -315,8 +339,9 @@ inzDataframe <- function(m, data = NULL, names = list(),
     # with missing.
     for (i in colnames(df$data)) {
         if (tibble::is_tibble(df$data[[i]])) {
-            for (j in colnames(df$data[[i]]))
+            for (j in colnames(df$data[[i]])) {
                 df$data[[i]][[j]][is.infinite(df$data[[i]][[j]])] <- NA
+            }
         } else {
             df$data[[i]][is.infinite(df$data[[i]])] <- NA
         }
