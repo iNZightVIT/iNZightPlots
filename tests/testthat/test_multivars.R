@@ -24,8 +24,8 @@ test_that("Basic multi-variable plots work", {
     expect_s3_class(
         inzplot(~ techtv + techmp3 + techinternet + techmobinternet + techfacebook +
             techtwitter + techbebo + techmyspace + techskype + technone,
-        data = cas5k,
-        g1 = gender
+            data = cas5k,
+            g1 = importenergy
         ),
         "gg_multi_binary"
     )
@@ -38,12 +38,42 @@ test_that("Basic multi-variable plots work", {
         ),
         "gg_multi_binary"
     )
+
+    cas5k2 <- cas5k
+    attr(cas5k2$techmp3, "table") <- "one"
+    attr(cas5k2$techinternet, "table") <- "one"
+    attr(cas5k2$techskype, "table") <- "two"
+    attr(cas5k2$techfacebook, "table") <- "two"
+
+    expect_s3_class(
+        inzplot(~ techmp3 + techinternet + techfacebook + techskype, data = cas5k2),
+        "gg_multi_binary"
+    )
+
+    expect_s3_class(
+        inzplot(~ country_en + country_mi,
+            data = cas5k2,
+            outcome_value = "NZL"
+        ),
+        "gg_multi_binary"
+    )
 })
 
 test_that("Multi-variable summaries work", {
     expect_s3_class(
         inzsummary(~ techtv + techmp3 + techinternet, data = cas5k),
         "knitr_kable"
+    )
+})
+
+test_that("Non-cat vars are removed is option set", {
+    expect_error(
+        inzsummary(~ techtv + techmp3 + techinternet + height, data = cas5k)
+    )
+    op <- options(inzight.auto.remove.noncatvars = TRUE)
+    on.exit(options(op))
+    expect_warning(
+        inzsummary(~ techtv + techmp3 + techinternet + height, data = cas5k)
     )
 })
 
