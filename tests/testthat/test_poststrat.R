@@ -15,9 +15,7 @@ dclus1p <- postStratify(dclus1, ~stype, pop.types)
 
 test_that("Post strat designs work", {
     expect_is(
-        iNZightPlot(api00, api99, design = dclus1p),
+        iNZightPlot(api00, api99, design = dclus1p, plot = FALSE),
         "inzplotoutput"
     )
 })
-
-unlink("Rplots*.pdf")

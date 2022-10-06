@@ -59,8 +59,8 @@ test_that("Segmented bar charts are correct", {
 
 test_that("Inference information works", {
     expect_is(
-        getPlotSummary(cas_freq$travel, 
-            freq = cas_freq$count, 
+        getPlotSummary(cas_freq$travel,
+            freq = cas_freq$count,
             summary.type = "inference",
             inference.type = "conf"
         ),

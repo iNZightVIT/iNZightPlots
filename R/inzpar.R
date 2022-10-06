@@ -117,6 +117,9 @@
 #' \item{'ylim'}{a vector defining the y axis limits (default NULL will use the data)}
 #' \item{'transform'}{a list of variable transformations (e.g., list(x = 'log'))}
 #' \item{'plot.features'}{a list containing any additional features for new plots (e.g., maptype)}
+#' \item{'round'}{integer specifying optional rounding of numerical output, default NA (ignored)}
+#' \item{'round_percent'}{integer specifying rounding for percentages (default 2)}
+#' \item{'signif'}{integer specifying number of significant figured in numeric output (default 2). Ignored if \code{round} is not NA.}
 #' }
 #'
 #' @title iNZight Plotting Parameters
@@ -258,7 +261,10 @@ inzpar <- function(...,
         ylim           = NULL,
         transform      = list(),
         plot.features  = list(),
-        epi.out        = FALSE
+        epi.out        = FALSE,
+        round          = NA_integer_,
+        round_percent  = 2L,
+        signif         = 4L
     )
 
     # update any user has specified

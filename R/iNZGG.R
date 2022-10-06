@@ -222,7 +222,7 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
         } else {
           varnames["fill"] <- extra_vars$fill_colour
         }
-      } else {
+      } else if (type != "gg_cumcurve") {
         varnames["fill"] <- "darkgreen"
       }
     } else if (is.numeric(data[[varnames["x"]]])) {
@@ -464,6 +464,12 @@ iNZightPlotGG <- function(
 
   if (isTRUE(!is.null(caption) && caption != "")) {
     plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::labs(caption = caption))
+  }
+  
+  if (type %in% c("gg_barcode3", "gg_dotstrip", "gg_ridgeline")) {
+    plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::scale_y_discrete(limits = rev))
+  } else if (type %in% c("gg_violin", "gg_boxplot", "gg_beeswarm", "gg_quasirandom")) {
+    plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::scale_x_discrete(limits = rev))
   }
 
   eval_env <- rlang::env(!!rlang::sym(data_name) := data)

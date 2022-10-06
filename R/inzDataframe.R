@@ -50,14 +50,14 @@ inzDataframe <- function(m, data = NULL, names = list(),
         "locate.same.level"
     )
     mw <- names(m) %in% vars
-    mw[1] <- FALSE  # the function name
+    mw[1] <- FALSE # the function name
     mw <- mw & !sapply(as.list(m), is.null)
 
     # take the names and replace if specified
     names <- names[names != ""]
     varnames <- utils::modifyList(as.list(m[mw]), as.list(names))
 
-    df <- list()  # initialise the object
+    df <- list() # initialise the object
 
     ## ----- DATA TYPES:
     # here, it is possible to add new data types (add the necessary conditions,
@@ -69,6 +69,7 @@ inzDataframe <- function(m, data = NULL, names = list(),
             lapply(m[mw], eval, data$variables, env),
             stringsAsFactors = TRUE
         )
+        data <- repair_inz_names(data, vars)
         newDat <- cbind(data$variables, df$data)
         data$variables <- newDat
         df$design <- data
@@ -98,10 +99,11 @@ inzDataframe <- function(m, data = NULL, names = list(),
             m$locate.id <- which(df$data$locate.same.level %in% loc.lvls)
         }
         if (is.null(df$data[["locate"]])) {
-            if (is.null(m$locate.col))
+            if (is.null(m$locate.col)) {
                 locCol <- "default"
-            else
+            } else {
                 locCol <- m$locate.col
+            }
             label[eval(m$locate.id)] <- paste(" ")
         } else {
             locVar <- as.character(df$data$locate)
@@ -145,10 +147,13 @@ inzDataframe <- function(m, data = NULL, names = list(),
     # NOTE: this is just precautionary; as.data.frame should set any
     # character strings to factors by default.
     needs_transform <- function(x) {
-        if (is.factor(x)) return(FALSE)
-
-        if (is.numeric(x) && class(x) %in% c("integer", "numeric"))
+        if (is.factor(x)) {
             return(FALSE)
+        }
+
+        if (is.numeric(x) && class(x) %in% c("integer", "numeric")) {
+            return(FALSE)
+        }
 
         ## anything else
         TRUE
@@ -156,7 +161,7 @@ inzDataframe <- function(m, data = NULL, names = list(),
     makeF <- sapply(df$data, needs_transform)
     trans <- list()
     trans.extra <- list()
-    if (any(makeF))
+    if (any(makeF)) {
         for (i in colnames(df$data)[makeF]) {
             if (inherits(df$data[[i]], "Date")) {
                 trans[[i]] <- "date"
@@ -164,7 +169,7 @@ inzDataframe <- function(m, data = NULL, names = list(),
                     if (length(unique(df$data[[i]])) < 10) {
                         df$data[[i]] <- as.factor(df$data[[i]])
                     } else {
-                        lvls <- scales::pretty_breaks(8)(df$data[[i]])
+                        lvls <- scales::breaks_pretty(8)(df$data[[i]])
                         labs <- names(lvls)
                         labs <- paste(labs[-length(labs)], labs[-1], sep = " to ")
                         df$data[[i]] <- cut(df$data[[i]], lvls, labs)
@@ -172,14 +177,14 @@ inzDataframe <- function(m, data = NULL, names = list(),
                 } else if (i == "colby" && length(unique(df$data[[i]]) < 10)) {
                     df$data[[i]] <- as.factor(df$data[[i]])
                 } else if (i == "symbolby" &&
-                           length(unique(df$data[[i]] < 6))) {
+                    length(unique(df$data[[i]] < 6))) {
                     df$data[[i]] <- as.factor(df$data[[i]])
                 } else {
                     df$data[[i]] <- as.numeric(df$data[[i]])
                 }
             } else if (inherits(df$data[[i]], "POSIXct") ||
-                       inherits(df$data[[i]], "times") ||
-                       inherits(df$data[[i]], "hms")) {
+                inherits(df$data[[i]], "times") ||
+                inherits(df$data[[i]], "hms")) {
                 if (inherits(df$data[[i]], "hms")) {
                     df$data[[i]] <- chron::as.times(
                         hms::hms(as.integer(df$data[[i]]) %% 86400)
@@ -193,7 +198,7 @@ inzDataframe <- function(m, data = NULL, names = list(),
                 trans.extra[[i]]$tz <- attr(df$data[[i]], "tzone")
                 if (i %in% c("g1", "g2")) {
                     ## convert datetime to factor ...
-                    lvls <- scales::pretty_breaks(4)(df$data[[i]])
+                    lvls <- scales::breaks_pretty(4)(df$data[[i]])
                     labs <- names(lvls)
                     labs <- paste(labs[-length(labs)], labs[-1], sep = " to ")
                     df$data[[i]] <- cut(df$data[[i]], lvls, labs)
@@ -204,6 +209,7 @@ inzDataframe <- function(m, data = NULL, names = list(),
                 df$data[[i]] <- as.factor(df$data[[i]])
             }
         }
+    }
     if (length(trans.extra)) trans$extra <- trans.extra
     if (length(trans)) {
         # switch x and y axis transform if x is factor and y is numeric
@@ -223,21 +229,26 @@ inzDataframe <- function(m, data = NULL, names = list(),
     # such as 1 / x, or log(x) (which give Inf and -Inf respectively).
     # Because we can't plot these values, it is easier just to replace them
     # with missing.
-    for (i in colnames(df$data))
+    for (i in colnames(df$data)) {
         df$data[[i]][is.infinite(df$data[[i]])] <- NA
+    }
 
     # convert numeric grouping variables to factors
-    if ("g2" %in% colnames(df$data))
-        if (!is.factor(df$data$g2))
+    if ("g2" %in% colnames(df$data)) {
+        if (!is.factor(df$data$g2)) {
             df$data$g2 <- convert.to.factor(df$data$g2)
+        }
+    }
     if ("g1" %in% colnames(df$data)) {
-        if (!is.factor(df$data$g1))
+        if (!is.factor(df$data$g1)) {
             df$data$g1 <- convert.to.factor(df$data$g1)
+        }
     } else {
         if (!is.null(g2.level)) {
             # g2.level can only be of length 1
-            if (length(g2.level) > 1)
+            if (length(g2.level) > 1) {
                 stop("g2.level must be of length 1 or NULL")
+            }
 
             if (g2.level %in% c(length(levels(df$data$g2)) + 1, "_MULTI")) {
                 # need to replace g1 with g2
@@ -253,13 +264,14 @@ inzDataframe <- function(m, data = NULL, names = list(),
 
     if ("colby" %in% colnames(df$data)) {
         if (is.factor(df$data$colby)) {
-            if (length(levels(df$data$colby)) == 1)
+            if (length(levels(df$data$colby)) == 1) {
                 df$data$colby <- varnames$data$colby <- NULL
+            }
         } else {
-            if (length(unique(df$data$colby)) == 1)
+            if (length(unique(df$data$colby)) == 1) {
                 df$data$colby <- varnames$data$colby <- NULL
+            }
         }
-
     }
     if ("symbolby" %in% colnames(df$data)) {
         df$data$symbolby <- convert.to.factor(df$data$symbolby)
@@ -272,23 +284,28 @@ inzDataframe <- function(m, data = NULL, names = list(),
 
     if ("extra.vars" %in% names(m)) {
         fun.list <- attr(m$extra.vars, "fun")
-        if (is.character(m$extra.vars))
+        if (is.character(m$extra.vars)) {
             sapply(m$extra.vars, function(v) {
-                       tmp <- data[v]
-                       if (!is.null(fun.list))
-                           if (!is.null(fun.list[[v]]))
-                               tmp <- fun.list[[v]](tmp)
-                       df$data[v] <<- tmp
-                   })
-        else
+                tmp <- data[v]
+                if (!is.null(fun.list)) {
+                    if (!is.null(fun.list[[v]])) {
+                        tmp <- fun.list[[v]](tmp)
+                    }
+                }
+                df$data[v] <<- tmp
+            })
+        } else {
             warning("`extra.vars` must be supplied as a character vector.")
+        }
     }
 
     # fix a bug that ensures colby grouping variable is the same as g2
     # if both specified
-    if ("g2" %in% colnames(df$data) & "colby" %in% colnames(df$data))
-        if (varnames$g2 == varnames$colby)
+    if ("g2" %in% colnames(df$data) & "colby" %in% colnames(df$data)) {
+        if (varnames$g2 == varnames$colby) {
             df$data$colby <- df$data$g2
+        }
+    }
 
     df$varnames <-
         sapply(
@@ -298,11 +315,27 @@ inzDataframe <- function(m, data = NULL, names = list(),
     df$glevels <- list(g1.level = g1.level, g2.level = g2.level)
 
     if (!is.null(df$design)) {
-        if ("g1" %in% colnames(df$data))
+        if ("g1" %in% colnames(df$data)) {
             df$design <- update(df$design, g1 = df$data$g1)
-        if ("g2" %in% colnames(df$data))
+        }
+        if ("g2" %in% colnames(df$data)) {
             df$design <- update(df$design, g2 = df$data$g2)
+        }
     }
 
     df
+}
+
+repair_inz_names <- function(des, vars) {
+    if (!any(vars %in% names(des$variables))) {
+        return(des)
+    }
+    vars <- vars[vars %in% names(des$variables)]
+
+    for (var in vars) {
+        des$variables[[sprintf(".%s", var)]] <- des$variables[[var]]
+        des$variables[[var]] <- NULL
+    }
+
+    des
 }

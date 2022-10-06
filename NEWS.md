@@ -1,21 +1,61 @@
-- add `ci.width` argument to `inzpar()` for plots and inferences for their confidence intervals
-- suppress warnings from `RColorBrewer::brewer.pal` if `n <= 2`
+# iNZightPlots 2.14.4
 
-## iNZightPlots 2.13.4
+- fix bug in CI width calculation for two-way comparisons
+
+# iNZightPlots 2.14.3
+
+- fix bug where survey smoothers were not plotting (#291)
+
+# iNZightPlots 2.14.2
+
+- fix bug introduced by fix in 2.14.1
+
+# iNZightPlots 2.14.1
+
+- fix bug in surveys where ID not consecutive
+- fix bug in surveys using reserved column names (x, y, etc)
+
+# iNZightPlots 2.14
+
+## Major changes
+
+- add `ci.width` argument to `inzpar()` for plots and inferences for their confidence intervals
+- allow specification of random rounding and suppression rules (developmental feature)
+  - one- and two-way tables
+  - suppress values based on small counts/large RSE, and other privacy controls
+- add `table.direction` argument to `inzsummary()` to display tables horizontally (default) or vertically
+- reorganise output for inference (differences, CIs, and p-values) into a single table, rather than 2 or 3 matrices
+- one- and two-way tables' inference displays a single table, and uses correct method for calculating CIs for differences in proportions in a survey design
+
+## Minor changes
+
+- survey anova inference now provides CIs and adjusted p-values using 'emmeans' package
+- clarify wording for two-way difference tables
+
+## Bug fixes
+
+- suppress warnings from `RColorBrewer::brewer.pal` if `n <= 2`
+- fix bug in ggplot2 plots where discrete axis ordering was different to a regular iNZightPlot (#270, @daniel-barnett)
+
+# iNZightPlots 2.13.5
+
+- patch issue with summary/inference if the graphics device has minimal/no dimensions
+
+# iNZightPlots 2.13.4
 
 - fix bug in `inzsummary` and `inzinference` for survey regression output (response/predictor wrong way around)
 - disable plots for surveys with x and/or y with only 1 level (#258, @tmelliott)
 - fix handling of axis transformations for survey data (#227, @tmelliott)
 
-## iNZightPlots 2.13.3
+# iNZightPlots 2.13.3
 
 - update use of `svyquantile` for changes in 'survey' 4.1
 
-## iNZightPlots 2.13.2
+# iNZightPlots 2.13.2
 
 - fix CRAN issues on R-devel (windows), and M1 mac (all related to tests)
 
-## iNZightPlots 2.13.1
+# iNZightPlots 2.13.1
 
 - fix issue in exporting as HTML with local assets (@tmelliott, #252)
 
@@ -27,30 +67,30 @@
 - fix issue introduced by change in 'readr' package (uses 'hms' instead of 'time')
 - fix y-axis rendering of large values (now accounts for width of tick labels)
 
-## iNZightPlots 2.12.6
+# iNZightPlots 2.12.6
 
 - fix wording in inference information output ('mean' -> 'estimate') (@tmelliott, #242)
 
-## iNZightPlots 2.12.5
+# iNZightPlots 2.12.5
 
 - add Mantel-Haenszel tests when `g1` is specified in `getPlotSummary`
 - fix ordering of anova output (col - row instead of row - col)
 
-## iNZightPlots 2.12.4
+# iNZightPlots 2.12.4
 
 - pass `na.rm = TRUE` to survey methods so summaries and inference show the necessary information
 - fix bug in `inzplot()` causing axes to be the wrong way around in hex plots for surveys
 - `smooth` is respected for survey data (passed to `svysmooth`)
 
-## iNZightPlots 2.12.3
+# iNZightPlots 2.12.3
 
 - fix bug in survey inference where levels were the wrong way around (A - B instead of B - A)
 
-## iNZightPlots 2.12.2
+# iNZightPlots 2.12.2
 
 - fix bug in plots with axis range of zero (i.e., all x/y-values equal)
 
-## iNZightPlots 2.12.1
+# iNZightPlots 2.12.1
 
 - fix bug so mean indicator on dot plots works with surveys
 
@@ -58,11 +98,11 @@
 
 This release mainly consists of compatibility changes to accompany 'iNZight' 4.0.
 
-### Breaking changes
+## Breaking changes
 
 - New `inzplot`, `inzsummary`, and `inzinference` replace `iNZPlot`, `iNZSummary`, and `iNZInference`, providing a better interface to the package which better first the R ecosystem.
 
-### Minor changes
+## Minor changes
 
 - refactors exportHTML() and exportSVG() to writing file to (by default) a temporary directory, and without changing directories in the process
 - handle `col.emph`, `col.emphn`, and (by default) plot emphasized points on top
@@ -71,7 +111,7 @@ This release mainly consists of compatibility changes to accompany 'iNZight' 4.0
 - add normal inference to scatter plot trend lines
 - (survey) pop size estimates shown even if weights seem odd
 
-### Bug fixes
+## Bug fixes
 
 - fix handling of env argument
 - handle "id" value for `locate` argument
@@ -80,11 +120,11 @@ This release mainly consists of compatibility changes to accompany 'iNZight' 4.0
 
 ---
 
-## iNZightPlots 2.11.6
+# iNZightPlots 2.11.6
 
 - fix bug resulting in an invalid p-value being displayed for some two sided tests
 
-## iNZightPlots 2.11.5
+# iNZightPlots 2.11.5
 
 - provide design effects for survey summaries
 - fix bug where regions cannot be selected in interactive sparkline plots due to id issue
@@ -93,19 +133,19 @@ This release mainly consists of compatibility changes to accompany 'iNZight' 4.0
 - rename `const_palette_names()` to `cont_palette_names()` (originally misspelled)
 - fix bug in checking design call is not `as.svrepdeign`
 
-## iNZightPlots 2.11.4
+# iNZightPlots 2.11.4
 
 - fix bug that causes incorrect interactive map labels due to multipolygon regions
 
-## iNZightPlots 2.11.3
+# iNZightPlots 2.11.3
 
 - fix bug in exporting of a single numeric variable
 
-## iNZightPlots 2.11.2
+# iNZightPlots 2.11.2
 
 - fix a bug in the arguments of the getInfo() method causing exportHTML() to fail
 
-## iNZightPlots 2.11.1
+# iNZightPlots 2.11.1
 
 - fix formula interface to handle `colby`, etc.
 - fix FT plots for numeric/factor so either order displays the same plot (to match base iNZightPlots graphs)
@@ -195,7 +235,7 @@ This release mainly consists of compatibility changes to accompany 'iNZight' 4.0
 - Allow plotting of bar plots with counts (instead of %) (removes inference)
 - Allow transformations using the `transform` argument (a named list)
 
-## iNZightPlots 2.7.13
+# iNZightPlots 2.7.13
 
 **Release date**: 05 April 019
 

@@ -662,7 +662,7 @@ iNZightPlot <- function(x,
 
     if (itsADotplot) {
 
-        if (is.null(dev.list())) {
+        if (!plot || is.null(dev.list())) {
             xattr$symbol.width <- 1
         } else {
             xattr$symbol.width <- convertWidth(unit(opts$cex.dotpt, "char"),
@@ -809,7 +809,7 @@ iNZightPlot <- function(x,
                     sapply(plot.list,
                         function(x) sapply(x,
                             function(y) {
-                                if (class(y) == "inzhex" && !is.null(y$hex))
+                                if (inherits(y, "inzhex") && !is.null(y$hex))
                                     max(y$hex@count, 0, na.rm = TRUE)
                                 else 0
                             }
