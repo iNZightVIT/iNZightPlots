@@ -1,5 +1,10 @@
 - new `multiplot()` method for handling multiple `y` variables, so formulas like `inzplot(~x1 + x2 + x3, ...)` are now supported
 - ability to specify default plots types with `options(inzight.default.palette.cat, inzight.default.palette.cont)`
+- new plot modifications:
+  - mean indicator on gg box plots
+  - mean indicator on gg density plots
+- handle variable labels (from 'expss' package) in plot titles/axes/legends
+- handle units attached to variables
 
 # iNZightPlots 2.14.4
 
