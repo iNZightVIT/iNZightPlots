@@ -38,11 +38,11 @@ The iNZightPlot must be drawn to a graphics device before exporting can occur.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{function}: method for functions
+\item \code{exportSVG(`function`)}: method for functions
 
-\item \code{inzplotoutput}: method for an existing plot object
+\item \code{exportSVG(inzplotoutput)}: method for an existing plot object
+
 }}
-
 \author{
 Yu Han Soh
 }

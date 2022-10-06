@@ -20,6 +20,7 @@ Imports:
     colorspace,
     dichromat,
     emmeans,
+    expss,
     grDevices,
     grid,
     hexbin,
@@ -33,28 +34,35 @@ Imports:
     s20x,
     scales,
     stats,
+    stringr,
+    units,
     survey,
     utils
 Suggests:
     covr,
-    dplyr,
     forcats,
+    DBI,
+    dplyr,
     ggbeeswarm,
     ggmosaic,
     ggplot2,
     ggridges,
+    ggtext,
     ggthemes,
     gridSVG (>= 1.7-2),
     hextri,
     jsonlite,
+    kableExtra,
     knitr,
     plotly,
     RColorBrewer,
+    RSQLite,
     testthat,
+    tibble,
     tidyr,
     viridis,
     waffle
 License: GPL-3
 Encoding: UTF-8
 Language: en-GB
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1

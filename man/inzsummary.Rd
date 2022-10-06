@@ -28,6 +28,6 @@ A generic function used to summarize objects within the iNZight ecosystem.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{formula}: Wrapper for getPlotSummary to obtain summary information about a plot
-}}
+\item \code{inzsummary(formula)}: Wrapper for getPlotSummary to obtain summary information about a plot
 
+}}

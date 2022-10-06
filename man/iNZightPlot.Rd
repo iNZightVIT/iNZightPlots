@@ -26,8 +26,9 @@ iNZightPlot(
   design = NULL,
   freq = NULL,
   missing.info = TRUE,
-  xlab = varnames$x,
-  ylab = varnames$y,
+  xlab,
+  ylab,
+  show_units = TRUE,
   new = TRUE,
   inzpars = inzpar(),
   layout.only = FALSE,
@@ -109,6 +110,8 @@ missingness is displayed in the plot}
 \item{xlab}{the text for the x-label}
 
 \item{ylab}{the text for the y-label}
+
+\item{show_units}{logical, if `TRUE` (default) units will be shown beside axies and legend variable labels}
 
 \item{new}{logical, used for compatibility}
 

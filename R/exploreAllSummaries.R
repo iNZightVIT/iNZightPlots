@@ -13,7 +13,7 @@ exploreAllSummaries <- function(data, ...) {
 
     sums <- lapply(colnames(data),
         function(cname) {
-            paste(getPlotSummary(data[, cname], varnames = list(x = cname), ...),
+            paste(getPlotSummary(cname, varnames = list(x = cname), data = data, ...),
                 collapse = "\n"
             )
         }

@@ -34,6 +34,7 @@ getPlotSummary(
   width = 100,
   epi.out = FALSE,
   privacy_controls = NULL,
+  html = FALSE,
   ...,
   env = parent.frame()
 )
@@ -103,6 +104,8 @@ displayed in the plot}
 \item{epi.out}{logical, if \code{TRUE}, then odds/rate ratios and rate differences are printed when appropriate (\code{y} with 2 levels)}
 
 \item{privacy_controls}{optional, pass in confidentialisation and privacy controls (e.g., random rounding, suppression) for microdata}
+
+\item{html}{logical, it \code{TRUE} output will be returned as an HTML page (if supported)}
 
 \item{...}{additional arguments, see \code{inzpar}}
 

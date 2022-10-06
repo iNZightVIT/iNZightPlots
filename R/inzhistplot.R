@@ -9,11 +9,11 @@ plot.inzhist <- function(obj, gen) {
     opts <- gen$opts
     mcex <- gen$mcex
     boxplot <- opts$boxplot
-    mean_indicator <- ifelse(
-        !is.null(opts$mean_indicator),
-        opts$mean_indicator,
-        FALSE
-    )
+    mean_indicator <- FALSE
+    if (!is.null(opts$mean_indicator)) {
+        if (is.logical(opts$mean_indicator)) mean_indicator <- opts$mean_indicator
+        else mean_indicator <- opts$mean_indicator %in% c("grand", "group")
+    }
 
     addGrid(x = TRUE, gen = gen, opts = opts)
 

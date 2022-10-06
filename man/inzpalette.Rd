@@ -25,11 +25,11 @@ A list of available palettes can be obtained by
 }
 \section{Functions}{
 \itemize{
-\item \code{cat_palette_names}: List of categorical colour palettes
+\item \code{cat_palette_names()}: List of categorical colour palettes
 
-\item \code{cont_palette_names}: List of continuous  colour palettes
+\item \code{cont_palette_names()}: List of continuous  colour palettes
+
 }}
-
 \examples{
 plot(1:5, pch = 19, col = inzpalette("bright")(5))
 

@@ -130,84 +130,66 @@
 #' @export
 #' @examples
 #' # arguments can be passed directly to \code{iNZightPlot}
-#' iNZightPlot(Sepal.Length, data = iris, col.pt = "red",
-#'     box.col = "blue", box.fill = "green")
+#' iNZightPlot(Sepal.Length,
+#'     data = iris, col.pt = "red",
+#'     box.col = "blue", box.fill = "green"
+#' )
 #'
 #' # or stored and passed to it (only pars relevant to the current
 #' # plot are used)
-#' mypar <- inzpar(col.pt = "red", box.col = "blue", box.fill = "green",
-#'     trend = "linear", trend.by = TRUE)
+#' mypar <- inzpar(
+#'     col.pt = "red", box.col = "blue", box.fill = "green",
+#'     trend = "linear", trend.by = TRUE
+#' )
 #' inzplot(Sepal.Length ~ Species, data = iris, inzpar = mypar)
-#' iNZightPlot(Sepal.Length, Sepal.Width, data = iris, inzpar = mypar,
-#'     colby = Species)
+#' iNZightPlot(Sepal.Length, Sepal.Width,
+#'     data = iris, inzpar = mypar,
+#'     colby = Species
+#' )
 inzpar <- function(...,
                    .viridis = requireNamespace("viridis", quietly = TRUE)) {
     dots <- list(...)
 
     ip <- list(
-        pch            = 21L,
-        col.pt         = "grey50",
-        col.fun        = NULL,
-        col.emph       = 0L,
-        col.emphn      = 4L,
-        emph.on.top    = TRUE,
-        col.default    =
-            list(
-                cat  =
-                    if (.viridis) {
-                        function(n)
-                            if (n > 10) viridis::viridis(n)
-                            else c(
-                                "#E69F00", "#56AAE9", "#D55E00", "#0072B2",
-                                "#F0D705", "#ADD9FF", "#9BCD9B", "#CC79A7",
-                                "#68468C", "#8B0000"
-                            )[1:n]
-                    } else {
-                        function(n)
-                            if (n > 10) hcl( (1:n) / n * 360, c = 80, l = 50)
-                            else c(
-                                "#E69F00", "#56AAE9", "#D55E00", "#0072B2",
-                                "#F0D705", "#ADD9FF", "#9BCD9B", "#CC79A7",
-                                "#68468C", "#8B0000"
-                            )[1:n]
-                    },
-                cont =
-                    if (.viridis) viridis::viridis
-                    else function(n)
-                        hcl( (1:n) / n * 320 + 60, c = 100, l = 50)
-            ),
-        col.missing    = "#cccccc",
+        pch = 21L,
+        col.pt = "grey50",
+        col.fun = NULL,
+        col.emph = 0L,
+        col.emphn = 4L,
+        emph.on.top = TRUE,
+        col.default = default_palette(.viridis),
+        col.missing = "#cccccc",
         reverse.palette = FALSE,
-        col.method     = "linear",
-        cex            = 1,
-        cex.pt         = 0.8,
-        cex.dotpt      = 0.5,
-        cex.lab        = 1,
-        cex.axis       = 0.8,
-        cex.main       = 1.2,
-        cex.text       = 1,
-        resize.method  = "proportional",
-        alpha          = 1,
-        bg             = "#eeeeee",
-        grid.lines     = TRUE,
-        col.grid       = "default",
-        fill.pt        = "transparent",
-        lwd            = 1,
-        lty            = 1,
-        lwd.pt         = 2,
-        col.line       = "blue",
-        col.sub        = c("#cccccc", "#444444"),
+        col.method = "linear",
+        cex = 1,
+        cex.pt = 0.8,
+        cex.dotpt = 0.5,
+        cex.lab = 1,
+        cex.axis = 0.8,
+        cex.main = 1.2,
+        cex.text = 1,
+        resize.method = "proportional",
+        alpha = 1,
+        bg = "#eeeeee",
+        grid.lines = TRUE,
+        col.grid = "default",
+        fill.pt = "transparent",
+        lwd = 1,
+        lty = 1,
+        lwd.pt = 2,
+        col.line = "blue",
+        col.sub = c("#cccccc", "#444444"),
         locate.col.def = "red",
-        highlight.col  = "shade",
-        jitter         = "",
-        rugs           = "",
-        trend          = NULL,
-        smooth         = 0,
-        smoothby.lty   = 4,  # MUST be numeric
-        quant.smooth   = NULL,
-        LOE            = FALSE,
-        join           = FALSE,
-        lines.by       = TRUE,
+        highlight.col = "shade",
+        jitter = "",
+        rugs = "",
+        trend = NULL,
+        smooth = 0,
+        smoothby.lty = 4, # MUST be numeric
+        quant.smooth = NULL,
+        LOE = FALSE,
+        join = FALSE,
+        lines.by = TRUE,
         col.trend =
             list(
                 linear = "blue",
@@ -220,57 +202,58 @@ inzpar <- function(...,
                 quadratic = 2,
                 cubic = 3
             ),
-        trend.by       = FALSE,
+        trend.by = FALSE,
         trend.parallel = TRUE,
-        col.smooth     = c("magenta"),
-        col.LOE        = "black",
-        lty.LOE        = 2,
+        col.smooth = c("magenta"),
+        col.LOE = "black",
+        lty.LOE = 2,
         mean_indicator = FALSE,
-        boxplot        = TRUE,
-        box.lwd        = c(2, 0.7),
-        box.col        = "black",
-        box.fill       = "grey90",
-        bar.lwd        = 1,
-        bar.col        = "black",
-        bar.fill       = "darkgreen",
-        bar.counts     = FALSE,
-        full.height    = FALSE,
-        inf.lwd.comp   = 4,
-        inf.lwd.conf   = 2,
-        inf.col.comp   = c("black", "green4"),
-        inf.col.conf   = c("red", "orange"),
+        boxplot = TRUE,
+        box.lwd = c(2, 0.7),
+        box.col = "black",
+        box.fill = "grey90",
+        bar.lwd = 1,
+        bar.col = "black",
+        bar.fill = "darkgreen",
+        bar.counts = FALSE,
+        full.height = FALSE,
+        inf.lwd.comp = 4,
+        inf.lwd.conf = 2,
+        inf.col.comp = c("black", "green4"),
+        inf.col.conf = c("red", "orange"),
         inference.type = NULL,
-        inference.par  = NULL,
-        ci.width       = 0.95,
-        bs.inference   = FALSE,
-        min.count      = 5,
-        n.boot         = 1500,
+        inference.par = NULL,
+        ci.width = 0.95,
+        bs.inference = FALSE,
+        min.count = 5,
+        n.boot = 1500,
         large.sample.size = 5001,
-        largesample    = NULL,
+        largesample = NULL,
         scatter.grid.bins = 50,
-        hex.bins       = 20,
-        hex.style      = "size",
-        hex.diffuse    = TRUE,
-        hist.bins      = NULL,
-        quant.cutoff   = c(200, 1000),
-        plottype       = "default",
-        matchplots     = TRUE,
-        match.limits   = c(500, 10000),
+        hex.bins = 20,
+        hex.style = "size",
+        hex.diffuse = TRUE,
+        hist.bins = NULL,
+        quant.cutoff = c(200, 1000),
+        plottype = "default",
+        matchplots = TRUE,
+        match.limits = c(500, 10000),
         internal.labels = TRUE,
-        xlim           = NULL,
-        ylim           = NULL,
-        transform      = list(),
-        plot.features  = list(),
-        epi.out        = FALSE,
-        round          = NA_integer_,
-        round_percent  = 2L,
-        signif         = 4L
+        xlim = NULL,
+        ylim = NULL,
+        transform = list(),
+        plot.features = list(),
+        epi.out = FALSE,
+        round = NA_integer_,
+        round_percent = 2L,
+        signif = 4L
     )
 
     # update any user has specified
     if (length(dots) > 0) {
-        for (i in names(dots))
+        for (i in names(dots)) {
             ip[[i]] <- dots[[i]]
+        }
     }
 
     class(ip) <- "inzpar.list"
@@ -281,7 +264,7 @@ inzpar <- function(...,
 valid_par <- function(par, plot_type, what = c("plot", "summary", "inference")) {
     what <- substr(match.arg(what), 1, 1)
     res <- rep(TRUE, length(par))
-    if (! plot_type %in% colnames(plot_types) ) {
+    if (!plot_type %in% colnames(plot_types)) {
         warning("Invalid or unknown plot type")
         return(res)
     }
@@ -312,3 +295,60 @@ gg_defaults <- list(
     desc = FALSE,
     palette = "default"
 )
+
+default_palette <- function(use_viridis = TRUE) {
+    use_viridis <- use_viridis && requireNamespace("viridis", quietly = TRUE)
+
+    cat_pal <- c(
+        "#E69F00", "#56AAE9", "#D55E00", "#0072B2",
+        "#F0D705", "#ADD9FF", "#9BCD9B", "#CC79A7",
+        "#68468C", "#8B0000"
+    )
+    cont_pal <- function(n) {
+        hcl((1:n) / n * 320 + 60, c = 100, l = 50)
+    }
+
+    opt_cat <- getOption("inzight.default.palette.cat")
+    opt_cont <- getOption("inzight.default.palette.num")
+
+    v_cat <- use_viridis
+    if (!is.null(opt_cat) && is.character(opt_cat)) {
+        v_cat <- FALSE
+        cat_pal <- opt_cat
+    }
+    v_cont <- use_viridis
+    if (!is.null(opt_cont) && is.function(opt_cont)) {
+        t <- try(opt_cont(5), silent = TRUE)
+        if (!inherits(t, "try-error") && is.character(t) && length(t) == 5) {
+            v_cont <- FALSE
+            cont_pal <- opt_cont
+        }
+    }
+
+    list(
+        cat =
+            if (v_cat) {
+                function(n) {
+                    if (n > length(cat_pal)) {
+                        viridis::viridis(n)
+                    } else {
+                        cat_pal[1:n]
+                    }
+                }
+            } else {
+                function(n) {
+                    if (n > length(cat_pal)) {
+                        hcl((1:n) / n * 360, c = 80, l = 50)
+                    } else {
+                        cat_pal[1:n]
+                    }
+                }
+            },
+        cont =
+            if (v_cont) {
+                viridis::viridis
+            } else {
+                cont_pal
+            }
+    )
+}
