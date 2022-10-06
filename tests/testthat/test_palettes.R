@@ -54,8 +54,10 @@ test_that("Emphasize works", {
 })
 
 test_that("Emphasized points on top", {
-    p <- inzplot(Sepal.Width ~ Sepal.Length, data = iris, colby = Species,
-        pch = 19, col.fun = inzpalette("bright"), col.emph = 2L)
+    p <- inzplot(Sepal.Width ~ Sepal.Length,
+        data = iris, colby = Species,
+        pch = 19, col.fun = inzpalette("bright"), col.emph = 2L
+    )
     expect_equal(
         p$gen$opts$plot.features$order.first,
         which(iris$Species == unique(iris$Species)[2])
@@ -73,14 +75,34 @@ test_that("Plot function handles strings", {
         "Invalid palette name"
     )
 
-    p <- iNZightPlot(Sepal.Width, data = iris, colby = Species,
-        col.fun = "contrast", col.emph = 2)
+    p <- iNZightPlot(Sepal.Width,
+        data = iris, colby = Species,
+        col.fun = "contrast", col.emph = 2
+    )
     expect_equivalent(
         p$gen$col.args$f.cols,
         emphasize_pal_colour(3L, 2L, TRUE, 3L, inzpalette("contrast"))
     )
 
-    p <- iNZightPlot(Sepal.Width, Sepal.Length, data = iris, colby = Sepal.Length,
-        col.fun = "viridis", col.emph = 2, col.emphn = 5, pch = 19)
+    p <- iNZightPlot(Sepal.Width, Sepal.Length,
+        data = iris, colby = Sepal.Length,
+        col.fun = "viridis", col.emph = 2, col.emphn = 5, pch = 19
+    )
     expect_equal(length(p$gen$col.args$n.cols), 200L)
+})
+
+test_that("Global options ", {
+    cols <- c("pink", "palevioletred1", "grey90", "lavenderblush4", "tan2")
+    op <- options(
+        inzight.default.palette.cat = cols,
+        inzight.default.palette.num = function(n) cols[1:n]
+    )
+    on.exit(options(op))
+
+    p <- default_palette()
+    expect_equal(p$cat(3), cols[1:3])
+    expect_equal(
+        p$cont(5),
+        cols[1:5]
+    )
 })
