@@ -55,6 +55,7 @@
 #'        missingness is displayed in the plot
 #' @param xlab the text for the x-label
 #' @param ylab the text for the y-label
+#' @param show_units logical, if `TRUE` (default) units will be shown beside axies and legend variable labels
 #' @param new logical, used for compatibility
 #' @param df compatibility argument
 #' @param env compatibility argument
@@ -123,8 +124,9 @@ iNZightPlot <- function(x,
                         design = NULL,
                         freq = NULL,
                         missing.info = TRUE,
-                        xlab = varnames$x,
-                        ylab = varnames$y,
+                        xlab,
+                        ylab,
+                        show_units = TRUE,
                         new = TRUE,
                         inzpars = inzpar(),
                         layout.only = FALSE,
@@ -214,13 +216,52 @@ iNZightPlot <- function(x,
         )
     }
 
+    ## For the time being, just use `ggplot2` for multiple-variable plots:
+    multi_var <- any(
+        sapply(df$data,
+            function(x) tibble::is_tibble(x) && ncol(x) > 1L
+        )
+    )
+
     dots <- list(...)
+    dots$plot <- plot
+    if (multi_var) return(multiplot(df, dots))
+
+    df$data <- as.data.frame(df$data)
+
+    ## FIGURE OUT PLOTTYPE
+    DEFAULT_plottypes <- getOption("inzight.default.plottypes")
+    # list(num = '', cat = '', catcat = '', numcat = '', numnum = '')
+    if ((is.null(dots$plottype) || dots$plottype == "default") &&
+        !is.null(DEFAULT_plottypes)) {
+
+        # check variable types:
+        plottype <- NULL
+
+        xnum <- is_num(df$data[["x"]])
+        if ("y" %in% names(m)) {
+            # two-variable plots
+            ynum <- is_num(df$data[["y"]])
+            pt <- paste0(ifelse(xnum, "num", "cat"), ifelse(ynum, "num", "cat"))
+            if (pt == "catnum") pt <- "numcat"
+            # num x cat plots default to the numeric plot
+            if (pt == "numcat" && is.null(DEFAULT_plottypes[["numcat"]])) pt <- "num"
+            plottype <- DEFAULT_plottypes[[pt]]
+        } else {
+            # single-variable plots
+            plottype <- DEFAULT_plottypes[[ifelse(xnum, "num", "cat")]]
+        }
+
+        if (!is.null(plottype)) dots$plottype <- plottype
+        rm(plottype)
+    }
 
     if (isTRUE(grepl("^gg_", dots$plottype))) {
 
         # Required, general packages = 1, other pkgs for specific plots = 0.
         gg_pkgs <- c(
             "ggplot2",
+            "ggtext",
             "dplyr",
             "tidyr",
             "forcats",
@@ -299,40 +340,53 @@ iNZightPlot <- function(x,
             }
 
             if ("g1" %in% names(varnames)) {
-            g1 <- varnames[["g1"]]
+                g1 <- varnames[["g1"]]
             } else {
-            g1 <- m$g1
+                g1 <- m$g1
             }
 
             if ("g2" %in% names(varnames)) {
-            g2 <- varnames[["g2"]]
+                g2 <- varnames[["g2"]]
             } else {
-            g2 <- m$g2
+                g2 <- m$g2
             }
 
+            vn <- unlist(
+                modifyList(
+                    as.list(df$varnames),
+                    as.list(df$labels)
+                )
+            )
+            # vn <- stringr::str_trunc(vn, 50, "center")
             ret.plot <- do.call(iNZightPlotGG,
                 c(
                     list(
-                        setNames(df$data, df$varnames),
-                        type = list(...)$plottype,
+                        setNames(df$data, vn),
+                        type = dots$plottype,
                         data_name = data_name,
                         main = list(...)$main,
-                        xlab = xlab,
-                        ylab = ylab,
-                        extra_args = list(...),
+                        xlab = if (missing(xlab)) NULL else xlab,
+                        ylab = if (missing(ylab)) NULL else ylab,
+                        extra_args = c(list(plottype = dots$plottype), list(...)),
                         palette = list(...)$palette,
                         gg_theme = list(...)$gg_theme,
-                        caption = list(...)$caption,
-                        g1 = as.character(g1),
-                        g2 = as.character(g2)
+                        caption = list(...)$caption
+                        # g1 = as.character(g1),
+                        # g2 = as.character(g2)
                     ),
-                    varnames,
+                    vn,
                     list(
                         g1.level = g1.level,
                         g2.level = g2.level
                     )
                 )
             )
+
+            attr(ret.plot, "varnames") <-
+                modifyList(
+                    as.list(vn),
+                    as.list(df$varnames)
+                )
 
             return(ret.plot)
         }
@@ -887,18 +941,18 @@ iNZightPlot <- function(x,
             }
         }
 
-        if (is.null(xlab))
-            xlab <- varnames$x
-        if (is.null(ylab))
-            ylab <- varnames$y
+        if (missing(xlab))
+            xlab <- df$labels$x %||% varnames$x
+        if (missing(ylab))
+            ylab <- df$labels$y %||% varnames$y
 
         titles <- list()
         titles$main <-
             if (!is.null(dots$main))
-                makeTitle(varnames, VT, g1.level, g2.level,
+                makeTitle(df$labels, VT, g1.level, g2.level,
                     template = dots$main
                 )
-            else makeTitle(varnames, VT, g1.level, g2.level)
+            else makeTitle(df$labels, VT, g1.level, g2.level)
         titles$xlab <- xlab
         if (!ynull) {
             titles$ylab <-
@@ -908,8 +962,14 @@ iNZightPlot <- function(x,
         } else if (xfact) {
             titles$ylab <- ifelse(opts$bar.counts, "Count", "Percentage (%)")
         }
-        if ("colby" %in% df.vs) titles$legend <- varnames$colby
+        if ("colby" %in% df.vs)
+            titles$legend <- df$labels$colby %||% varnames$colby
 
+        if (show_units) {
+            titles$xlab <- add_units(titles$xlab, df$units$x)
+            titles$ylab <- add_units(titles$ylab, df$units$y)
+            titles$colby <- add_units(titles$legend, df$units$colby)
+        }
 
         ## plot.list still contains all the levels of g1 that wont be plotted
         ## - for axis scaling etc
@@ -1113,7 +1173,7 @@ iNZightPlot <- function(x,
                     f.levels <- levels(as.factor(df$data$colby)),
                     col = ptcol,
                     pch = legPch,
-                    title = varnames$colby,
+                    title = df$labels$colby %||% varnames$colby,
                     any.missing = misscol,
                     opts = opts
                 )
@@ -1131,7 +1191,10 @@ iNZightPlot <- function(x,
                 )
                 leg.grobL <- drawContLegend(
                     df$data$colby,
-                    title = varnames$colby,
+                    title = add_units(
+                        df$short_labels$colby %||% varnames$colby,
+                        df$units$colby
+                    ),
                     height = 0.4 * PAGE.height,
                     cex.mult = cex.mult,
                     any.missing = misscol,
@@ -1154,7 +1217,8 @@ iNZightPlot <- function(x,
             leg.grob1 <- drawLegend(
                 levels(as.factor(df$data$y)),
                 col = barcol, pch = 22,
-                title = varnames$y, opts = opts
+                title = df$short_labels$y %||% varnames$y,
+                opts = opts
             )
             col.args$b.cols <- barcol
         }

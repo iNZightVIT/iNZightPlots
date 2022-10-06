@@ -12,7 +12,7 @@ gg_pkgs <- c(
     "ggridges"
 )
 gg_pkgs_check <- sapply(gg_pkgs, requireNamespace, quietly = TRUE)
-skip_if(any(gg_pkgs_check), "Unable to check FT plots as some packages are missing.")
+skip_if(!all(gg_pkgs_check), "Unable to check FT plots as some packages are missing.")
 
 test_that("Inversing x/y doesn't affect graph", {
     p1 <- iNZightPlot(Species, Sepal.Length, data = iris, plottype = "gg_violin")

@@ -47,7 +47,8 @@ inzDataframe <- function(m, data = NULL, names = list(),
         "sizeby",
         "symbolby",
         "locate",
-        "locate.same.level"
+        "locate.same.level",
+        "freq"
     )
     mw <- names(m) %in% vars
     mw[1] <- FALSE # the function name
@@ -55,7 +56,14 @@ inzDataframe <- function(m, data = NULL, names = list(),
 
     # take the names and replace if specified
     names <- names[names != ""]
-    varnames <- utils::modifyList(as.list(m[mw]), as.list(names))
+    varnames <- lapply(
+        utils::modifyList(as.list(m[mw]), as.list(names)),
+        function(x) {
+            return(x)
+            # if (length(as.character(x)) == 1L) return(x)
+            # as.character(x[-1])
+        }
+    )
 
     df <- list() # initialise the object
 
@@ -63,6 +71,21 @@ inzDataframe <- function(m, data = NULL, names = list(),
     # here, it is possible to add new data types (add the necessary conditions,
     # etc, and then simply add the appropriate class)
     # e.g., in future we might want to add a TimeSeries data type ...
+
+    if (inherits(data, "inzdf")) {
+        # extract variables from dataset that are needed
+        vn <- varnames
+        if (length(as.character(vn$x)) > 1) {
+            vn$x <- paste(as.character(vn$x)[-1], collapse = " + ")
+            vn$x <- strsplit(vn$x, " + ", fixed = TRUE)[[1]]
+        }
+        data <- iNZightTools::as_tibble(
+            iNZightTools::select(
+                data,
+                as.character(unlist(vn))
+            )
+        )
+    }
 
     if (is_survey(data)) {
         df$data <- as.data.frame(
@@ -83,10 +106,26 @@ inzDataframe <- function(m, data = NULL, names = list(),
         df$max.freq <- max(df$freq)
         class(df) <- "inz.freq"
     } else {
-        df$data <- as.data.frame(
-            lapply(m[mw], eval, data, env),
-            stringsAsFactors = TRUE
-        )
+        zz <- lapply(m[mw], function(x) {
+            if (length(x) > 1L) {
+                nn <- as.character(x)[-1]
+                xx <- strsplit(
+                    paste(as.character(x)[-1], collapse = " + "),
+                    " + ",
+                    fixed = TRUE
+                )[[1]]
+                x <- lapply(
+                    xx,
+                    function(z) eval(as.name(z), data, env)
+                )
+                names(x) <- xx
+                do.call(tibble::tibble, x)
+            } else {
+                eval(x, data, env)
+            }
+        })
+        names(zz) <- names(mw)[mw]
+        df$data <- do.call(tibble::tibble, zz)
         class(df) <- "inz.simple"
     }
 
@@ -121,13 +160,16 @@ inzDataframe <- function(m, data = NULL, names = list(),
         } else {
             label <- rep(" ", nrow(df$data))
         }
-        df$data$extreme.label <- label
-        df$data$pointIDs <- 1:nrow(df$data)
-    } else {
+        df$data <- tibble::add_column(
+            df$data,
+            extreme.label = label,
+            pointIDs = seq_len(nrow(df$data))
+        )
+    } else if ("locate.same.level" %in% names(df$data)) {
         df$data$locate.same.level <- NULL
     }
 
-    if (!is.null(df$data$locate.same.level)) {
+    if ("locate.same.level" %in% names(df$data)) {
         df$data$locate.same.level <- as.factor(
             ifelse(
                 is.na(df$data$locate.same.level),
@@ -138,16 +180,82 @@ inzDataframe <- function(m, data = NULL, names = list(),
     }
 
     if (!is.null(m$highlight)) {
-        df$data$highlight <- as.logical((1:nrow(df$data)) %in% eval(m$highlight))
+        df$data <- tibble::add_column(
+            df$data,
+            highlight = as.logical((1:nrow(df$data)) %in% eval(m$highlight))
+        )
     }
 
+    varnames_c <- lapply(
+        varnames,
+        function(x) {
+            x <- as.character(x)
+            if (length(x) == 1L) {
+                return(x)
+            }
+            paste(x[-1], collapse = " + ")
+        }
+    )
+    df$labels <- structure(
+        lapply(
+            names(df$data),
+            function(x) {
+                attr(df$data[[x]], "label", exact = TRUE) %||% varnames_c[[x]]
+            }
+        ),
+        .Names = names(df$data)
+    )
+    df$short_labels <- structure(
+        lapply(
+            names(df$labels),
+            function(x) {
+                stringr::str_trunc(df$labels[[x]], 20, "center")
+            }
+        ),
+        .Names = names(df$labels)
+    )
+
+    df$units <- structure(
+        lapply(
+            df$data,
+            function(x) {
+                if (inherits(x, "units")) {
+                    units::deparse_unit(x)
+                } else {
+                    NULL
+                }
+            }
+        ),
+        .Names = names(df$data)
+    )
+
+    # removes labels and units
+    for (i in seq_len(ncol(df$data))) {
+        if (inherits(df$data[[i]], "units")) {
+            df$data[[i]] <- units::drop_units(df$data[[i]])
+        }
+        if (inherits(df$data[[i]], "labelled")) {
+            df$data[[i]] <- expss::drop_var_labs(df$data[[i]])
+        }
+    }
 
 
     # convert anything that isn't a numeric variable to a factor
     # NOTE: this is just precautionary; as.data.frame should set any
     # character strings to factors by default.
     needs_transform <- function(x) {
+        if (tibble::is_tibble(x)) {
+            return(FALSE)
+        }
         if (is.factor(x)) {
+            return(FALSE)
+        }
+
+        if (inherits(x, "units")) {
+            x <- units::drop_units(x)
+        }
+
+        if (is.numeric(x) && class(x) %in% c("integer", "numeric")) {
             return(FALSE)
         }
 
@@ -230,7 +338,13 @@ inzDataframe <- function(m, data = NULL, names = list(),
     # Because we can't plot these values, it is easier just to replace them
     # with missing.
     for (i in colnames(df$data)) {
-        df$data[[i]][is.infinite(df$data[[i]])] <- NA
+        if (tibble::is_tibble(df$data[[i]])) {
+            for (j in colnames(df$data[[i]])) {
+                df$data[[i]][[j]][is.infinite(df$data[[i]][[j]])] <- NA
+            }
+        } else {
+            df$data[[i]][is.infinite(df$data[[i]])] <- NA
+        }
     }
 
     # convert numeric grouping variables to factors
@@ -312,6 +426,7 @@ inzDataframe <- function(m, data = NULL, names = list(),
             varnames,
             function(x) ifelse(!is.character(x), deparse(x), x)
         )
+
     df$glevels <- list(g1.level = g1.level, g2.level = g2.level)
 
     if (!is.null(df$design)) {

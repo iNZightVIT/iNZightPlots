@@ -40,6 +40,7 @@
 #' @param width width for the output, default is 100 characters
 #' @param epi.out logical, if \code{TRUE}, then odds/rate ratios and rate differences are printed when appropriate (\code{y} with 2 levels)
 #' @param privacy_controls optional, pass in confidentialisation and privacy controls (e.g., random rounding, suppression) for microdata
+#' @param html logical, it \code{TRUE} output will be returned as an HTML page (if supported)
 #' @param ... additional arguments, see \code{inzpar}
 #' @param env compatibility argument
 #' @return an \code{inzight.plotsummary} object with a print method
@@ -95,6 +96,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            width = 100,
                            epi.out = FALSE,
                            privacy_controls = NULL,
+                           html = FALSE,
                            ...,
                            env = parent.frame()) {
 
@@ -207,6 +209,7 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
         width = width,
         epi.out = epi.out,
         privacy_controls = privacy_controls,
+        html = html,
         inzpars = inzpars
     )
 }
