@@ -1,4 +1,3 @@
-
 # iNZightPlots
 
 ![R-CMD-check](https://github.com/iNZightVIT/iNZightPlots/workflows/R-CMD-check/badge.svg)
@@ -14,13 +13,13 @@ allowing beginners to explore and visualize data easily.
 
 Easily install the latest release version from CRAN:
 
-``` r
+```r
 install.packages("iNZightPlots")
 ```
 
 For the latest development version:
 
-``` r
+```r
 # install.packages("devtools")
 devtools::install_github("iNZightVIT/iNZightTools")
 devtools::install_github("iNZightVIT/iNZightMR")
@@ -32,7 +31,7 @@ devtools::install_github("iNZightVIT/iNZightPlots")
 `iNZightPlots` provides a simple interface to graphics, which are most
 easily produced using the following function:
 
-``` r
+```r
 library(iNZightPlots)
 inzplot(~Sepal.Length, data = iris)
 ```
@@ -42,7 +41,7 @@ inzplot(~Sepal.Length, data = iris)
 From there, formula notation can be used to explore relationships
 between variables:
 
-``` r
+```r
 inzplot(Sepal.Length ~ Species, data = iris)
 inzplot(Sepal.Length ~ Sepal.Width, data = iris)
 inzplot(Sepal.Length ~ Sepal.Width | Species, data = iris)
@@ -60,25 +59,25 @@ variables (e.g., `y ~ x | g1 + g2`).
 There are additionally two companion functions for summary and inference
 information, which are
 
-``` r
+```r
 inzsummary(~Sepal.Length, data = iris)
 #> ====================================================================================================
 #>                                           iNZight Summary
 #> ----------------------------------------------------------------------------------------------------
 #>    Primary variable of interest: Sepal.Length (numeric)
-#>                                  
+#>
 #>    Total number of observations: 150
 #> ====================================================================================================
-#> 
+#>
 #> Summary of Sepal.Length:
 #> ------------------------
-#> 
+#>
 #> Estimates
-#> 
+#>
 #>    Min   25%   Median   75%   Max    Mean       SD   Sample Size
 #>    4.3   5.1      5.8   6.4   7.9   5.843   0.8281           150
-#> 
-#> 
+#>
+#>
 #> ====================================================================================================
 inzinference(Sepal.Length ~ Species, data = iris)
 #> ====================================================================================================
@@ -86,52 +85,52 @@ inzinference(Sepal.Length ~ Species, data = iris)
 #> ----------------------------------------------------------------------------------------------------
 #>    Primary variable of interest: Sepal.Length (numeric)
 #>              Secondary variable: Species (categorical)
-#>                                  
+#>
 #>    Total number of observations: 150
 #> ====================================================================================================
-#> 
+#>
 #> Inference of Sepal.Length by Species:
 #> -------------------------------------
-#> 
+#>
 #> Group Means with 95% Confidence Intervals
-#> 
+#>
 #>                 Lower   Estimate   Upper
 #>        setosa   4.906      5.006   5.106
 #>    versicolor   5.789      5.936   6.083
 #>     virginica   6.407      6.588   6.769
-#> 
+#>
 #> One-way Analysis of Variance (ANOVA F-test)
-#> 
+#>
 #>    F = 119.26, df = 2 and 147, p-value < 2.22e-16
-#> 
+#>
 #>           Null Hypothesis: true group means are all equal
 #>    Alternative Hypothesis: true group means are not all equal
-#> 
-#> 
+#>
+#>
 #> ### Difference in mean Sepal.Length between Species groups
 #>     (col group - row group)
-#> 
+#>
 #> Estimates
-#> 
+#>
 #>                 setosa   versicolor
-#>    versicolor   -0.930             
+#>    versicolor   -0.930
 #>     virginica   -1.582       -0.652
-#> 
+#>
 #> 95% Confidence Intervals (adjusted for multiple comparisons)
-#> 
+#>
 #>                  setosa   versicolor
-#>    versicolor   -1.1738             
-#>                 -0.6862             
+#>    versicolor   -1.1738
+#>                 -0.6862
 #>     virginica   -1.8258      -0.8958
 #>                 -1.3382      -0.4082
-#> 
+#>
 #> P-values
-#> 
+#>
 #>                 setosa   versicolor
-#>    versicolor        0             
+#>    versicolor        0
 #>     virginica        0            0
-#> 
-#> 
+#>
+#>
 #> ====================================================================================================
 ```
 
@@ -151,7 +150,7 @@ Probably the most common features to add to a graph, we have the
 `sizeby` and `colby` arguments which map an additional variable to size
 and colour, respectively:
 
-``` r
+```r
 inzplot(Sepal.Length ~ Sepal.Width, data = iris, colby = Species)
 ```
 
@@ -165,7 +164,7 @@ significance, and `iNZightPlots` makes this easy. We also provide
 “overlapping comparison intervals indicate no significant difference
 between groups”.
 
-``` r
+```r
 # Add confidence intervals
 inzplot(Sepal.Length ~ Species, data = iris,
   inference.type = c("conf", "comp"), # red and black, respectively
@@ -178,7 +177,7 @@ inzplot(Sepal.Length ~ Species, data = iris,
 For scatter plots, inference uses linear trends. You can add a bootstrap
 sample of trend estimates using the `bs.inference` argument:
 
-``` r
+```r
 inzplot(Sepal.Length ~ Sepal.Width, data = iris,
   trend = "linear",
   bs.inference = TRUE
