@@ -1,5 +1,6 @@
 # R script
 github_deps <- c(
+    "gdemin/expss",
     "iNZightVIT/iNZightTools@dev",
     "iNZightVIT/iNZightMR@dev"
 )
