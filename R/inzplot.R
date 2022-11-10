@@ -12,8 +12,9 @@ inzplot <- function(x, ..., env = parent.frame()) {
     UseMethod("inzplot")
 }
 
-inzplot.default <- function(x, ..., env = parent.frame())
+inzplot.default <- function(x, ..., env = parent.frame()) {
     stop("That type of object is not supported.")
+}
 
 #' iNZight Plot
 #'
@@ -49,7 +50,8 @@ inzplot.default <- function(x, ..., env = parent.frame())
 #' inzplot(uptake ~ Treatment, data = CO2)
 #' inzplot(uptake ~ Treatment | Type, data = CO2)
 #' inzplot(uptake ~ Treatment | Type,
-#' data = CO2, g1.level = "Quebec")
+#'     data = CO2, g1.level = "Quebec"
+#' )
 inzplot.formula <- function(x, data = NULL, design = NULL, ..., env = parent.frame()) {
     dots <- rlang::enexprs(...)
     fmla <- parse_formula(x)
@@ -72,7 +74,7 @@ inzplot.formula <- function(x, data = NULL, design = NULL, ..., env = parent.fra
     }
 
     exp <- rlang::expr(
-        iNZightPlot(
+        iNZightPlots::iNZightPlot(
             x = !!fmla$x,
             y = !!fmla$y,
             g1 = !!fmla$g1,
