@@ -171,8 +171,8 @@ multiplot_cat <- function(df, args) {
         if (!is.null(df$glevels) && !is.null(df$glevels$g1.level)) {
             g1level <- df$glevels$g1.level
             if (is.numeric(g1level)) g1level <- glevels[g1level]
-            d <- dplyr::filter(d, g1 == g1level)
-            d <- dplyr::mutate(d, g1 = droplevels(g1))
+            d <- dplyr::filter(d, .data$g1 == g1level)
+            d <- dplyr::mutate(d, g1 = droplevels(.data$g1))
         }
 
         d <- dplyr::group_by(d, .data$x, .data$value, .data$g1, .drop = FALSE)
