@@ -62,7 +62,6 @@ Suggests:
     tidyr,
     viridis,
     waffle
-SystemRequirements: udunits-2
 License: GPL-3
 Encoding: UTF-8
 Language: en-GB
