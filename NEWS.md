@@ -1,3 +1,5 @@
+# iNZightPlots 2.15.0
+
 - new `multiplot()` method for handling multiple `y` variables, so formulas like `inzplot(~x1 + x2 + x3, ...)` are now supported
 - ability to specify default plots types with `options(inzight.default.palette.cat, inzight.default.palette.cont)`
 - new plot modifications:
