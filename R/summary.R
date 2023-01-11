@@ -14,8 +14,10 @@ summary.inzdot <- function(object, opts, des, survey.options, privacy_controls, 
             smrytype <- object$boxinfo[[1]]$opts$transform$x
         }
 
-        mat <- do.call(rbind,
-            lapply(names(toplot),
+        mat <- do.call(
+            rbind,
+            lapply(
+                names(toplot),
                 function(p) {
                     x <- toplot[[p]]$x
                     s <- suppressWarnings(
@@ -39,7 +41,8 @@ summary.inzdot <- function(object, opts, des, survey.options, privacy_controls, 
                                 c(
                                     as.character(min(xd, na.rm = TRUE)),
                                     as.character(max(xd, na.rm = TRUE)),
-                                    sprintf("%i days",
+                                    sprintf(
+                                        "%i days",
                                         as.integer(diff(range(xd, na.rm = TRUE)))
                                     ),
                                     length(x)
@@ -193,16 +196,20 @@ summary.inzdot <- function(object, opts, des, survey.options, privacy_controls, 
                     se = TRUE
                 )
             }
-            smry_mean <- svymean(~x, des, na.rm = TRUE,
-                deff = survey.options$deff)
+            smry_mean <- svymean(~x, des,
+                na.rm = TRUE,
+                deff = survey.options$deff
+            )
             smry_var <- svyvar(~x, des, na.rm = TRUE)
-            smry_total <- svytotal(~x, des, na.rm = TRUE,
-                deff = survey.options$deff)
+            smry_total <- svytotal(~x, des,
+                na.rm = TRUE,
+                deff = survey.options$deff
+            )
             smry_popsize <- svytotal(ones, des, na.rm = TRUE)
 
             mat <- cbind(
                 if (inherits(smry_q, "newsvyquantile")) {
-                    rbind(smry_q$x[, 'quantile'])
+                    rbind(smry_q$x[, "quantile"])
                 } else if (is_svyrep(des)) {
                     t(rbind(coef(smry_q)))
                 } else {
@@ -221,9 +228,12 @@ summary.inzdot <- function(object, opts, des, survey.options, privacy_controls, 
             semat <- cbind(
                 if (inherits(smry_q, "newsvyquantile")) {
                     cn <- colnames(smry_q$x)
-                    cnse <- grep('se', cn)
-                    if (length(cnse)) rbind(smry_q$x[, cnse[1]])
-                    else rbind(rep(NA, nrow(smry_q$x)))
+                    cnse <- grep("se", cn)
+                    if (length(cnse)) {
+                        rbind(smry_q$x[, cnse[1]])
+                    } else {
+                        rbind(rep(NA, nrow(smry_q$x)))
+                    }
                 } else if (is_svyrep(des)) {
                     t(rbind(SE(smry_q)))
                 } else {
@@ -265,7 +275,8 @@ summary.inzdot <- function(object, opts, des, survey.options, privacy_controls, 
     }
 
     mat <- matrix(
-        apply(mat, 2,
+        apply(
+            mat, 2,
             function(col) {
                 format(col, digits = 4, scientific = FALSE)
             }
@@ -277,8 +288,9 @@ summary.inzdot <- function(object, opts, des, survey.options, privacy_controls, 
         mat[, 4L] <- privacy_controls$suppress(mat[, 4L], s_mat_mag)
         mat[, 6L] <- privacy_controls$suppress(mat[, 6L], s_mat_mag)
     }
-    if (!is.null(s_mat))
+    if (!is.null(s_mat)) {
         mat[, 7L] <- privacy_controls$suppress(mat[, 7L], s_mat)
+    }
     if (!is.null(n_mat_q)) {
         mat[, 1L] <- privacy_controls$suppress_quantile(
             mat[, 1L], n_mat_q, 0.25
@@ -296,7 +308,7 @@ summary.inzdot <- function(object, opts, des, survey.options, privacy_controls, 
     mat <- gsub("NaN", "|", mat)
 
     ## Text formatting to return a character vector - each row of matrix
-    mat <- rbind(rns,  mat)
+    mat <- rbind(rns, mat)
     colnames(mat) <- NULL
 
     if (!is.null(privacy_controls)) {
@@ -321,7 +333,8 @@ summary.inzdot <- function(object, opts, des, survey.options, privacy_controls, 
     rownames(mat) <- NULL
 
     mat <- matrix(
-        apply(mat, 2,
+        apply(
+            mat, 2,
             function(col) {
                 format(col, justify = "right")
             }
@@ -329,14 +342,15 @@ summary.inzdot <- function(object, opts, des, survey.options, privacy_controls, 
         nrow = nrow(mat)
     )
 
-    mat <- apply(mat, 1,
+    mat <- apply(
+        mat, 1,
         function(x) paste0("   ", paste(x, collapse = "   "))
     )
 
     if (exists("semat") & exists("deffmat")) {
-        top <- 1:((length(mat)-1)/3+1)
-        mid <- ((length(mat)-1)/3+2):(2*(length(mat)-1)/3+1)
-        bot <- (2*(length(mat)-1)/3+2):length(mat)
+        top <- 1:((length(mat) - 1) / 3 + 1)
+        mid <- ((length(mat) - 1) / 3 + 2):(2 * (length(mat) - 1) / 3 + 1)
+        bot <- (2 * (length(mat) - 1) / 3 + 2):length(mat)
         out <- c(
             ifelse(is.null(des), "Estimates", "Population estimates:"),
             "",
@@ -351,8 +365,8 @@ summary.inzdot <- function(object, opts, des, survey.options, privacy_controls, 
             mat[bot]
         )
     } else if (exists("semat")) {
-        top <- 1:((length(mat)-1)/2+1)
-        bot <- ((length(mat)-1)/2+2):length(mat)
+        top <- 1:((length(mat) - 1) / 2 + 1)
+        bot <- ((length(mat) - 1) / 2 + 2):length(mat)
         out <- c(
             ifelse(is.null(des), "Estimates", "Population estimates:"),
             "",
@@ -373,8 +387,9 @@ summary.inzdot <- function(object, opts, des, survey.options, privacy_controls, 
     out
 }
 
-summary.inzhist <- function(object, opts, des, survey.options, privacy_controls, ...)
+summary.inzhist <- function(object, opts, des, survey.options, privacy_controls, ...) {
     summary.inzdot(object, opts, des, survey.options, privacy_controls, ...)
+}
 
 
 summary.inzbar <- function(object, opts, vn, des, survey.options,
@@ -431,22 +446,29 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
             }
         }
 
-        perc <- round(as.matrix(perc), opts$round_percent)
+        perc <- format(
+            round(as.matrix(perc), opts$round_percent),
+            nsmall = opts$round_percent
+        )
         perc <- t(
-            apply(perc, 1,
+            apply(
+                perc, 1,
                 function(p) {
-                    if (all(is.finite(p)))
-                        paste0(c(format(p, digits = 3), "100"), "%")
-                    else
+                    if (!any(grepl("NA", p))) {
+                        paste0(c(p, "100"), "%")
+                    } else {
                         rep("", length(p) + 1)
+                    }
                 }
             )
         )
 
         cm1 <- cbind(tab, rowSums(tab))
         mat1 <- rbind(
-            c(colnames(tab),
-                sprintf("%s Total",
+            c(
+                colnames(tab),
+                sprintf(
+                    "%s Total",
                     switch(table.direction,
                         vertical = "Column",
                         horizontal = "Row"
@@ -468,7 +490,8 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
         }
 
         mat1 <- matrix(
-            apply(mat1, 2,
+            apply(
+                mat1, 2,
                 function(col) {
                     format(col, justify = "right")
                 }
@@ -479,7 +502,8 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
         if (!is.null(s_mat_tab)) {
             mat1[-1, -1] <- privacy_controls$markup(mat1[-1, -1], rse_mat_tab)
             mat1 <- matrix(
-                apply(mat1, 2,
+                apply(
+                    mat1, 2,
                     function(col) {
                         format(col, justify = "left")
                     }
@@ -488,7 +512,8 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
             )
         }
 
-        mat1 <- apply(mat1, 1,
+        mat1 <- apply(
+            mat1, 1,
             function(x) paste0("   ", paste(x, collapse = "   "))
         )
 
@@ -502,24 +527,29 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
 
         cm2 <- cbind(perc, rowSums(tab))
         mat2 <- rbind(
-            c(colnames(tab), "Total",
-                sprintf("%s N",
+            c(
+                colnames(tab), "Total",
+                sprintf(
+                    "%s N",
                     switch(table.direction,
                         vertical = "Column",
                         horizontal = "Row"
                     )
                 )
             ),
-
-            if (!is.null(s_mat_tab))
-                privacy_controls$suppress(cm2,
+            if (!is.null(s_mat_tab)) {
+                privacy_controls$suppress(
+                    cm2,
                     t(apply(s_mat_tab, 1, function(x) c(x | x[length(x)], x[length(x)])))
                 )
-            else if (!is.null(s_mat))
-                privacy_controls$suppress(cm2,
+            } else if (!is.null(s_mat)) {
+                privacy_controls$suppress(
+                    cm2,
                     t(apply(s_mat, 1, function(x) c(x | x[length(x)], x[length(x)])))
                 )
-            else cm2
+            } else {
+                cm2
+            }
         )
         mat2 <- cbind(c("", rownames(tab)), mat2)
 
@@ -528,7 +558,8 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
         }
 
         mat2 <- matrix(
-            apply(mat2, 2,
+            apply(
+                mat2, 2,
                 function(col) {
                     format(col, justify = "right")
                 }
@@ -536,7 +567,8 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
             nrow = nrow(mat2)
         )
 
-        mat2 <- apply(mat2, 1,
+        mat2 <- apply(
+            mat2, 1,
             function(x) paste0("   ", paste(x, collapse = "   "))
         )
 
@@ -549,13 +581,15 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
         }
 
         out <- c(
-            sprintf("Table of %sCounts:",
+            sprintf(
+                "Table of %sCounts:",
                 ifelse(is.survey, "Estimated Population ", "")
             ),
             "",
             mat1,
             "",
-            sprintf("Table of %sPercentages (within categories of %s):",
+            sprintf(
+                "Table of %sPercentages (within categories of %s):",
                 ifelse(is.survey, "Estimated Population ", ""),
                 vn$y
             ),
@@ -569,10 +603,11 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
                 nsmall = opts$round_percent
             )
             mat <- as.matrix(mat)
-            if (!is.null(s_mat_tab))
-                mat <- privacy_controls$suppress(mat, s_mat_tab[,-ncol(s_mat_tab)])
-            else if (!is.null(s_mat))
-                mat <- privacy_controls$suppress(mat, s_mat_tab[,-ncol(s_mat)])
+            if (!is.null(s_mat_tab)) {
+                mat <- privacy_controls$suppress(mat, s_mat_tab[, -ncol(s_mat_tab)])
+            } else if (!is.null(s_mat)) {
+                mat <- privacy_controls$suppress(mat, s_mat_tab[, -ncol(s_mat)])
+            }
 
             mat <- cbind(
                 c("", rownames(tab)),
@@ -584,7 +619,8 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
             }
 
             mat <- matrix(
-                apply(mat, 2,
+                apply(
+                    mat, 2,
                     function(col) {
                         format(col, justify = "right")
                     }
@@ -592,7 +628,8 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
                 nrow = nrow(mat)
             )
             mat[grep("NA", mat)] <- ""
-            mat <- apply(mat, 1,
+            mat <- apply(
+                mat, 1,
                 function(x) paste0("   ", paste(x, collapse = "   "))
             )
             out <- c(
@@ -606,10 +643,11 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
             if (!isFALSE(survey.options$deff)) {
                 mat <- format(deff(smry_mean), digits = 3)
                 mat <- as.matrix(mat)
-                if (!is.null(s_mat_tab))
-                    mat <- privacy_controls$suppress(mat, s_mat_tab[,-ncol(s_mat_tab)])
-                else if (!is.null(s_mat))
-                    mat <- privacy_controls$suppress(mat, s_mat_tab[,-ncol(s_mat)])
+                if (!is.null(s_mat_tab)) {
+                    mat <- privacy_controls$suppress(mat, s_mat_tab[, -ncol(s_mat_tab)])
+                } else if (!is.null(s_mat)) {
+                    mat <- privacy_controls$suppress(mat, s_mat_tab[, -ncol(s_mat)])
+                }
 
                 mat <- cbind(
                     c("", rownames(tab)),
@@ -619,7 +657,8 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
                     mat <- t(mat)
                 }
                 mat <- matrix(
-                    apply(mat, 2,
+                    apply(
+                        mat, 2,
                         function(col) {
                             format(col, justify = "right")
                         }
@@ -627,7 +666,8 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
                     nrow = nrow(mat)
                 )
                 mat[grep("NA", mat)] <- ""
-                mat <- apply(mat, 1,
+                mat <- apply(
+                    mat, 1,
                     function(x) paste0("   ", paste(x, collapse = "   "))
                 )
 
@@ -658,8 +698,9 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
                 ),
                 "%"
             )
-            if (!is.null(s_mat))
+            if (!is.null(s_mat)) {
                 semat <- privacy_controls$suppress(semat, s_mat[-ncol(s_mat)])
+            }
             mat <- rbind(
                 mat[1:2, ],
                 "",
@@ -674,9 +715,11 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
                     ),
                     ""
                 )
-                if (!is.null(s_mat))
+                if (!is.null(s_mat)) {
                     deffmat <- privacy_controls$suppress(deffmat, s_mat[-ncol(s_mat)])
-                mat <- rbind(mat,
+                }
+                mat <- rbind(
+                    mat,
                     "",
                     c("Design effects", deffmat, NA)
                 )
@@ -688,7 +731,8 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
         }
 
         mat <- matrix(
-            apply(mat, 2,
+            apply(
+                mat, 2,
                 function(col) {
                     format(col, justify = "right")
                 }
@@ -698,7 +742,8 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
 
         mat[grep("NA", mat)] <- ""
 
-        mat <- apply(mat, 1,
+        mat <- apply(
+            mat, 1,
             function(x) paste0("   ", paste(x, collapse = "   "))
         )
 
@@ -731,21 +776,26 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
 
     out <- character()
     if ("linear" %in% trend) {
-        beta <- try({
-            if (is.survey)
-                signif(coef(svyglm(y ~ x, design = des)), 4)
-            else
-                signif(coef(lm(y ~ x)), 4)
-        }, silent = TRUE)
+        beta <- try(
+            {
+                if (is.survey) {
+                    signif(coef(svyglm(y ~ x, design = des)), 4)
+                } else {
+                    signif(coef(lm(y ~ x)), 4)
+                }
+            },
+            silent = TRUE
+        )
 
-        if (inherits(beta, "try-error"))
+        if (inherits(beta, "try-error")) {
             out <- "Unable to fit linear trend."
-        else
+        } else {
             out <- c(
                 out,
                 "Linear trend:",
                 "",
-                sprintf("    %s = %s %s %s * %s",
+                sprintf(
+                    "    %s = %s %s %s * %s",
                     vn$y,
                     beta[1],
                     ifelse(beta[2] < 0, "-", "+"),
@@ -754,42 +804,46 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
                 ),
                 paste0(
                     "    Linear correlation: ",
-                    if (is.survey)
+                    if (is.survey) {
                         round(
                             cov2cor(as.matrix(svyvar(y ~ x, design = des)))[1, 2],
                             2
                         )
-                    else
+                    } else {
                         round(cor(x, y), 2)
+                    }
                 ),
                 ""
             )
+        }
     }
     if ("quadratic" %in% trend) {
         beta <- try(
             {
-                if (is.survey)
+                if (is.survey) {
                     signif(
                         coef(svyglm(y ~ x + I(x^2), design = des)),
                         4
                     )
-                else
+                } else {
                     signif(
                         coef(lm(y ~ x + I(x^2))),
                         4
                     )
+                }
             },
             silent = TRUE
         )
 
-        if (inherits(beta, "try-error"))
+        if (inherits(beta, "try-error")) {
             out <- "Unable to fit quadratic trend."
-        else
+        } else {
             out <- c(
                 out,
                 "Quadratic trend:",
                 "",
-                sprintf("    %s = %s %s %s * %s %s %s * %s^2",
+                sprintf(
+                    "    %s = %s %s %s * %s %s %s * %s^2",
                     vn$y,
                     beta[1],
                     ifelse(beta[2] < 0, "-", "+"),
@@ -801,32 +855,35 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
                 ),
                 ""
             )
+        }
     }
     if ("cubic" %in% trend) {
         beta <- beta <- try(
             {
-                if (is.survey)
+                if (is.survey) {
                     signif(
                         coef(svyglm(y ~ x + I(x^2) + I(x^3), design = des)),
                         4
                     )
-                else
+                } else {
                     signif(
                         coef(lm(y ~ x + I(x^2) + I(x^3))),
                         4
                     )
+                }
             },
             silent = TRUE
         )
 
-        if (inherits(beta, "try-error"))
+        if (inherits(beta, "try-error")) {
             out <- "Unable to fit linear trend."
-        else
+        } else {
             out <- c(
                 out,
                 "Cubic trend:",
                 "",
-                sprintf("    %s = %s %s %s * %s %s %s * %s^2 %s %s * %s^3",
+                sprintf(
+                    "    %s = %s %s %s * %s %s %s * %s^2 %s %s * %s^3",
                     vn$y,
                     beta[1],
                     ifelse(beta[2] < 0, "-", "+"),
@@ -841,13 +898,14 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
                 ),
                 ""
             )
+        }
     }
 
     if (is.survey) {
         ## rank.cor <- cov2cor(coef(svyvar(rank(y) ~ rank(x), design = des)))[1,2]
         if (!"linear" %in% trend) {
             cor <- round(
-                cov2cor(as.matrix(svyvar(y~x, design = des, na.rm = TRUE)))[1,2],
+                cov2cor(as.matrix(svyvar(y ~ x, design = des, na.rm = TRUE)))[1, 2],
                 2
             )
             out <- c(
@@ -873,8 +931,10 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
 
     out
 }
-summary.inzgrid <- function(object, opts, vn, des, survey.options, ...)
+summary.inzgrid <- function(object, opts, vn, des, survey.options, ...) {
     summary.inzscatter(object, opts, vn, des, ...)
+}
 
-summary.inzhex <- function(object, opts, vn, des, survey.options, ...)
+summary.inzhex <- function(object, opts, vn, des, survey.options, ...) {
     summary.inzscatter(object, opts, vn, des, ...)
+}
