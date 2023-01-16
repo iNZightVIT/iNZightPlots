@@ -25,7 +25,7 @@ Imports:
     grid,
     hexbin,
     hms,
-    iNZightMR (>= 2.2.5),
+    iNZightMR (>= 2.2.7),
     iNZightTools (>= 1.9),
     lubridate,
     magrittr,
@@ -65,4 +65,4 @@ Suggests:
 License: GPL-3
 Encoding: UTF-8
 Language: en-GB
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3

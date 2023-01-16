@@ -43,3 +43,6 @@ releasePRs:
 README.md: README.Rmd
 	@$(RCMD) -e 'rmarkdown::render("$<")'
 	@rm README.html
+
+site: README.md document install
+	@$(RCMD) -e 'pkgdown::build_site()'
