@@ -70,7 +70,7 @@ jobs:
         run: |
           options(repos = "https://cloud.r-project.org")
           revdepcheck::revdep_reset()
-          revdepcheck::revdep_check(num_workers = 4L)
+          revdepcheck::revdep_check(num_workers = 4L, quiet = FALSE)
           revdepcheck::revdep_summary()
         shell: Rscript {0}
 
