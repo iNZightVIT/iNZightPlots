@@ -84,13 +84,13 @@ Currently only handles single panel plots. Coloured hex plots are currently not 
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{function}: method for an iNZightPlot-generating function
+\item \code{exportHTML(`function`)}: method for an iNZightPlot-generating function
 
-\item \code{ggplot}: method for iNZightMaps or other supported ggplot graphs
+\item \code{exportHTML(ggplot)}: method for iNZightMaps or other supported ggplot graphs
 
-\item \code{inzplotoutput}: method for output from iNZightPlot
+\item \code{exportHTML(inzplotoutput)}: method for output from iNZightPlot
+
 }}
-
 \examples{
 \dontrun{
 x <- iNZightPlot(Petal.Width, Petal.Length, data = iris, colby = Species)

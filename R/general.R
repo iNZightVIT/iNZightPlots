@@ -97,6 +97,7 @@ shade <- Vectorize(Shade)
 #' f <- convert.to.factor(runif(100, 0, 10))
 #' levels(f)
 convert.to.factor <- function(x) {
+    lbls <- expss::var_lab(x)
     if (is_cat(x)) {
         # to simplify coding elsewhere, allow convert to factor to simply return
         # the supplied x vector if it is already a factor.
@@ -195,7 +196,9 @@ convert.to.factor <- function(x) {
     }
 
     # Remove any empty levels -_-
-    factor(x.fact)
+    x <- factor(x.fact)
+    if (!is.null(lbls)) expss::set_var_lab(x, lbls)
+    x
 }
 
 
@@ -455,26 +458,28 @@ mend_call <- function(call, data, design_name, plot) {
         ## and remove invalid vars (for plot_type/method combination)
         cnames <- names(call[[1]])
         ptype <- attr(plot, "plottype")
-        if (ptype == "bar") {
-            vnames <- attr(plot, "varnames")
-            vtypes <- attr(plot, "vartypes")
-            xcat <- vtypes[[vnames$x]] == "factor"
-            ycat <- !is.null(vnames$y) && vtypes[[vnames$y]] == "factor"
-            if (xcat && ycat)
-                ptype <- "bar2"
-            else if (length(levels(data[[vnames$x]])) == 2L)
-                ptype <- "barBinary"
-        }
-        keep <- valid_par(
-            cnames,
-            ptype,
-            switch(as.character(call[[1]])[1],
-                "inzplot" = "plot",
-                "inzsummary" = "summary",
-                "inzinference" = "inference"
+        if (!is.null(ptype)) {
+            if (ptype == "bar") {
+                vnames <- attr(plot, "varnames")
+                vtypes <- attr(plot, "vartypes")
+                xcat <- vtypes[[vnames$x]] == "factor"
+                ycat <- !is.null(vnames$y) && vtypes[[vnames$y]] == "factor"
+                if (xcat && ycat)
+                    ptype <- "bar2"
+                else if (length(levels(data[[vnames$x]])) == 2L)
+                    ptype <- "barBinary"
+            }
+            keep <- valid_par(
+                cnames,
+                ptype,
+                switch(as.character(call[[1]])[1],
+                    "inzplot" = "plot",
+                    "inzsummary" = "summary",
+                    "inzinference" = "inference"
+                )
             )
-        )
-        call[[1]] <- call[[1]][keep]
+            call[[1]] <- call[[1]][keep]
+        }
     }
 
     code <- as.character(call)
@@ -509,15 +514,25 @@ parse_formula <- function(fmla) {
         # no grouping vars
         x <- f.list2[[1]]
     } else {
-        # grouping vars
-        x <- f.list2[[2]]
+        if (as.character(f.list2[[1]]) == "|") {
+            f.list3 <- as.list(f.list2[[3]])
+            if (length(f.list3) == 1) {
+                g1 <- f.list3[[1]]
+            } else {
+                g1 <- f.list3[[2]]
+                g2 <- f.list3[[3]]
+            }
 
-        f.list3 <- as.list(f.list2[[3]])
-        if (length(f.list3) == 1) {
-            g1 <- f.list3[[1]]
+            x <- f.list2[[2]]
+        } else if (as.character(f.list2[[1]]) == "+") {
+            s1 <- as.character(f.list2[[2]])
+            s2 <- as.character(f.list2[[3]])
+            if (length(s1) > 1L) s1 <- paste(s1[-1], collapse = " + ")
+            if (length(s2) > 1L) s2 <- paste(s2[-1], collapse = " + ")
+            str <- sprintf("%s + %s", s1, s2)
+            x <- as.call(str2lang(str))
         } else {
-            g1 <- f.list3[[2]]
-            g2 <- f.list3[[3]]
+            stop("unsupported formula")
         }
     }
 
@@ -525,7 +540,20 @@ parse_formula <- function(fmla) {
 }
 
 single_level_factors <- function(df, vars = c("x", "y")) {
-    vars <- vars %in% names(df)
+    vars <- vars[vars %in% names(df)]
     df <- df[, vars, drop = FALSE]
-    sapply(df, function(x) length(levels(x)) == 1L)
+    sapply(df, function(x) {
+        if (tibble::is_tibble(x) && ncol(x) > 1L) return(FALSE)
+        if (tibble::is_tibble(x)) x <- x[[1]]
+        length(levels(x)) == 1L
+    })
+}
+
+`%||%` <- function(a, b) {
+    if (!is.null(a)) a else b
+}
+
+add_units <- function(x, unit) {
+    if (is.null(unit)) return(x)
+    sprintf("%s (%s)", x, unit)
 }

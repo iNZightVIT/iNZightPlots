@@ -143,14 +143,20 @@ smaller, while values larger than 1 will magnify everything}
 }
 \examples{
 # arguments can be passed directly to \code{iNZightPlot}
-iNZightPlot(Sepal.Length, data = iris, col.pt = "red",
-    box.col = "blue", box.fill = "green")
+iNZightPlot(Sepal.Length,
+    data = iris, col.pt = "red",
+    box.col = "blue", box.fill = "green"
+)
 
 # or stored and passed to it (only pars relevant to the current
 # plot are used)
-mypar <- inzpar(col.pt = "red", box.col = "blue", box.fill = "green",
-    trend = "linear", trend.by = TRUE)
+mypar <- inzpar(
+    col.pt = "red", box.col = "blue", box.fill = "green",
+    trend = "linear", trend.by = TRUE
+)
 inzplot(Sepal.Length ~ Species, data = iris, inzpar = mypar)
-iNZightPlot(Sepal.Length, Sepal.Width, data = iris, inzpar = mypar,
-    colby = Species)
+iNZightPlot(Sepal.Length, Sepal.Width,
+    data = iris, inzpar = mypar,
+    colby = Species
+)
 }
