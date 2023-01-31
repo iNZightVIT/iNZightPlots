@@ -494,11 +494,11 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                 mat[, 4] <- format.pval(as.numeric(mat[, 4]))
                 mat[grep("NA", mat)] <- ""
 
-                rnames <- lapply(strsplit(rownames(mc), " "), trimws)
+                rnames <- lapply(strsplit(rownames(mc), " - "), trimws)
                 rnames <- do.call(rbind, rnames)
                 rnames[, 1] <- format(rnames[, 1], justify = "right")
-                rnames[, 3] <- format(rnames[, 3], justify = "left")
-                rnames <- apply(rnames, 1, paste, collapse = " ")
+                rnames[, 2] <- format(rnames[, 2], justify = "left")
+                rnames <- apply(rnames, 1, paste, collapse = " - ")
                 mat <- cbind(format(rnames, justify = "left"), mat)
 
                 mat <- rbind(c("", "Estimate", "Lower", "Upper", "P-value"), mat)

@@ -175,15 +175,12 @@ iNZightPlotGG_facet <- function(data, data_name, exprs, g1, g2, g1.level, g2.lev
       } else {
         exprs$data[[3]] <- insert_into_first_place(exprs$data[[3]], rlang::expr(dplyr::filter(!!rlang::sym(g2) == !!g2.level)))
         exprs$data[[3]] <- add_to_group(exprs$data[[3]], rlang::sym(g2))
-
       }
-
     } else {
       if (!is.null(exprs$data)) {
         exprs$data[[3]] <- add_to_group(exprs$data[[3]], rlang::sym(g2))
       }
     }
-
   }
 
   if (isTRUE(is.null(g2) || length(g2) == 0)) {
@@ -272,31 +269,31 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
       if ("barSize" %in% names(varnames)) {
         names(varnames) <- replace(names(varnames), names(varnames) == "barSize", "size")
       } else {
-        varnames[['size']] <- 16
+        varnames[["size"]] <- 16
       }
     }
 
     if (type %in% c("gg_barcode2")) {
       if ("width" %in% names(varnames)) {
-        varnames[['width']] <- as.numeric(varnames[['width']])
+        varnames[["width"]] <- as.numeric(varnames[["width"]])
         # names(non_mapped) <- replace(names(non_mapped), names(non_mapped) == "gg_width", "width")
       }
 
       if ("height" %in% names(varnames)) {
-        varnames[['height']] <- as.numeric(varnames[['height']])
+        varnames[["height"]] <- as.numeric(varnames[["height"]])
         # names(non_mapped) <- replace(names(non_mapped), names(non_mapped) == "gg_height", "height")
       }
     }
 
     if (type %in% c("gg_barcode3")) {
       if ("width" %in% names(varnames)) {
-        varnames[['size']] <- as.numeric(varnames[['width']])
-        varnames[['width']] <- NULL
+        varnames[["size"]] <- as.numeric(varnames[["width"]])
+        varnames[["width"]] <- NULL
       }
 
       if ("height" %in% names(varnames)) {
-        varnames[['radius']] <- as.numeric(varnames[['height']])
-        varnames[['height']] <- NULL
+        varnames[["radius"]] <- as.numeric(varnames[["height"]])
+        varnames[["height"]] <- NULL
       }
     }
 
@@ -308,7 +305,7 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
         if (!is.null(varnames[["alpha_densitygroup"]])) {
           names(varnames) <- replace(names(varnames), names(varnames) == "alpha_densitygroup", "alpha")
         } else {
-          varnames[['alpha']] <- 0.6
+          varnames[["alpha"]] <- 0.6
         }
       }
 
@@ -332,7 +329,7 @@ iNZightPlotGG_decide <- function(data, varnames, type, extra_vars) {
 
   if (type %in% c("gg_lollipop", "gg_lollipop2", "gg_freqpolygon", "gg_dotstrip", "gg_beeswarm", "gg_quasirandom")) {
     if (!("size" %in% names(varnames))) {
-      varnames[['size']] <- 6
+      varnames[["size"]] <- 6
     }
   }
 
@@ -365,18 +362,17 @@ iNZightPlotGG_extraargs <- function(extra_args) {
 ##' @importFrom magrittr "%>%"
 ##' @importFrom rlang ":="
 iNZightPlotGG <- function(
-  data,
-  type,
-  data_name = "data",
-  ...,
-  main = NULL,
-  xlab = NULL,
-  ylab = NULL,
-  caption = NULL,
-  extra_args = c(),
-  palette = "default",
-  gg_theme = "grey"
-) {
+    data,
+    type,
+    data_name = "data",
+    ...,
+    main = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    caption = NULL,
+    extra_args = c(),
+    palette = "default",
+    gg_theme = "grey") {
   dots <- list(...)
 
   if (length(extra_args) > 0) {
@@ -413,18 +409,18 @@ iNZightPlotGG <- function(
 
   if (length(gg_theme) > 0 && gg_theme != "grey") {
     theme_fun <- list(
-      "bw"      = rlang::expr(ggplot2::theme_bw()),
-      "light"   = rlang::expr(ggplot2::theme_light()),
-      "dark"    = rlang::expr(ggplot2::theme_dark()),
+      "bw" = rlang::expr(ggplot2::theme_bw()),
+      "light" = rlang::expr(ggplot2::theme_light()),
+      "dark" = rlang::expr(ggplot2::theme_dark()),
       "minimal" = rlang::expr(ggplot2::theme_minimal()),
       "classic" = rlang::expr(ggplot2::theme_classic()),
-      "void"    = rlang::expr(ggplot2::theme_void()),
-      "stata"   = rlang::expr(ggthemes::theme_stata()),
-      "wsj"     = rlang::expr(ggthemes::theme_wsj()),
-      "tufte"   = rlang::expr(ggthemes::theme_tufte()),
-      "gdocs"   = rlang::expr(ggthemes::theme_gdocs()),
+      "void" = rlang::expr(ggplot2::theme_void()),
+      "stata" = rlang::expr(ggthemes::theme_stata()),
+      "wsj" = rlang::expr(ggthemes::theme_wsj()),
+      "tufte" = rlang::expr(ggthemes::theme_tufte()),
+      "gdocs" = rlang::expr(ggthemes::theme_gdocs()),
       "fivethirtyeight" = rlang::expr(ggthemes::theme_fivethirtyeight()),
-      "excel"     = rlang::expr(ggthemes::theme_excel()),
+      "excel" = rlang::expr(ggthemes::theme_excel()),
       "economist" = rlang::expr(ggthemes::theme_economist())
     )[[gg_theme]]
 
@@ -441,8 +437,7 @@ iNZightPlotGG <- function(
         halign = 0.5,
         margin = ggplot2::margin(10, 0, 8, 0)
       )
-    )
-  )
+    ))
 
   if (!is.null(extra_args$mean_indicator) && (
     isTRUE(extra_args$mean_indicator) || extra_args$mean_indicator %in% c("grand", "group")
@@ -472,14 +467,12 @@ iNZightPlotGG <- function(
       mean_palette <- rlang::expr(ggplot2::scale_colour_manual(values = c(mean = "black")))
       if (!is.null(plot_args$x) && extra_args$mean_indicator == "group") {
         dexpr <- rlang::expr(!!dexpr %>%
-              dplyr::group_by(!!rlang::sym(plot_args$x), drop = FALSE)
-        )
+          dplyr::group_by(!!rlang::sym(plot_args$x), drop = FALSE))
         fill <- rlang::sym(plot_args$x)
         mean_palette <- NULL
       }
       dexpr <- rlang::expr(!!dexpr %>%
-        dplyr::summarise(Mean = mean(!!rlang::sym(plot_args$y), na.rm = TRUE))
-      )
+        dplyr::summarise(Mean = mean(!!rlang::sym(plot_args$y), na.rm = TRUE)))
       plot_exprs$plot <- rlang::expr(
         !!plot_exprs$plot +
           ggplot2::geom_vline(
@@ -503,11 +496,11 @@ iNZightPlotGG <- function(
 
   if (exists("rotate_labels") && !(type %in% c("gg_pie", "gg_donut", "gg_cumcurve", "gg_gridplot"))) {
     if (isTRUE(rotate_labels$x)) {
-      plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1)))
+      plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust = 1)))
     }
 
     if (isTRUE(rotate_labels$y)) {
-      plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 45, vjust = 1, hjust=1)))
+      plot_exprs$plot <- rlang::expr(!!plot_exprs$plot + ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 45, vjust = 1, hjust = 1)))
     }
   }
 
@@ -541,7 +534,7 @@ iNZightPlotGG <- function(
     plot_exprs$plot <- rlang::expr(
       !!plot_exprs$plot + ggplot2::scale_y_discrete(limits = rev)
     )
-  # } else if (type %in% c("gg_violin", "gg_boxplot", "gg_beeswarm", "gg_quasirandom")) {
+    # } else if (type %in% c("gg_violin", "gg_boxplot", "gg_beeswarm", "gg_quasirandom")) {
   } else if (type %in% c("gg_violin", "gg_boxplot", "gg_quasirandom") && rotate) {
     plot_exprs$plot <- rlang::expr(
       !!plot_exprs$plot + ggplot2::scale_x_discrete(limits = rev)
@@ -564,7 +557,7 @@ iNZightPlotGG <- function(
   attr(plot_object, "data_name") <- data_name
   attr(plot_object, "plottype") <- c(type)
   attr(plot_object, "varnames") <- unlist(dots)
-  attr(plot_object, "use.plotly") <- !type %in%  c("gg_pie", "gg_donut", "gg_gridplot", "gg_barcode2", "gg_barcode", "gg_ridgeline")
+  attr(plot_object, "use.plotly") <- !type %in% c("gg_pie", "gg_donut", "gg_gridplot", "gg_barcode2", "gg_barcode", "gg_ridgeline")
 
   if (type %in% c("gg_lollipop", "gg_column2")) {
     attr(plot_object, "varnames") <- attr(plot_object, "varnames")[names(attr(plot_object, "varnames")) != "y"]
@@ -596,7 +589,8 @@ iNZightPlotGG_pie <- function(data, fill, main = sprintf("Pie Chart of %s", as.c
     ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = factor(1), fill = !!fill)) +
       ggplot2::geom_bar(
         ggplot2::aes(
-          y = !!rlang::sym("..count..") / sum(!!rlang::sym("..count.."))
+          y = ggplot2::after_stat(!!rlang::sym("count")) /
+            sum(ggplot2::after_stat(!!rlang::sym("count")))
         ),
         position = "fill"
       ) +
@@ -605,7 +599,7 @@ iNZightPlotGG_pie <- function(data, fill, main = sprintf("Pie Chart of %s", as.c
       ggplot2::ylab("") +
       ggplot2::scale_y_reverse() +
       ggplot2::scale_x_discrete(breaks = NULL) +
-      ggplot2::ggtitle(!!main)  +
+      ggplot2::ggtitle(!!main) +
       ggplot2::theme(
         panel.grid.major = ggplot2::element_blank(),
         panel.grid.minor = ggplot2::element_blank(),
@@ -672,7 +666,7 @@ iNZightPlotGG_donut <- function(data, fill, main = sprintf("Donut Chart of %s", 
       ggplot2::ylab("") +
       ggplot2::scale_x_continuous(breaks = NULL, limits = c(0, 4)) +
       ggplot2::scale_y_continuous(labels = scales::percent) +
-      ggplot2::ggtitle(!!main)  +
+      ggplot2::ggtitle(!!main) +
       ggplot2::theme(
         panel.grid.major = ggplot2::element_blank(),
         panel.grid.minor = ggplot2::element_blank(),
@@ -736,7 +730,6 @@ iNZightPlotGG_column <- function(data, x, group, main = sprintf("Column chart of
       plot = plot_expr
     )
   }
-
 }
 
 rotate <- function(plot_expr) {
@@ -808,7 +801,7 @@ iNZightPlotGG_heatmap <- function(data, x, y, main = sprintf("Heatmap of %s and 
 }
 
 iNZightPlotGG_stackedcolumn <- function(data, fill, main = sprintf("Stacked column of %s", as.character(fill)), x, xlab = as.character(x), ylab = "Percent", ...) {
-  fill = rlang::sym(fill)
+  fill <- rlang::sym(fill)
 
   if (missing(x)) {
     x <- rlang::expr(factor(1))
@@ -822,8 +815,10 @@ iNZightPlotGG_stackedcolumn <- function(data, fill, main = sprintf("Stacked colu
     ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!x, fill = !!fill)) +
       ggplot2::geom_bar(
         ggplot2::aes(
-          y = !!rlang::sym("..count..") / sum(!!rlang::sym("..count.."))
-        ), position = "fill"
+          y = ggplot2::after_stat(!!rlang::sym("count")) /
+            sum(ggplot2::after_stat(!!rlang::sym("count")))
+        ),
+        position = "fill"
       ) +
       ggplot2::scale_y_continuous(labels = scales::percent) +
       ggplot2::labs(title = !!main, fill = stringr::str_wrap(!!as.character(fill), 40)) +
@@ -984,9 +979,15 @@ iNZightPlotGG_barcode3 <- function(data, x, y, fill = "darkgreen", main = sprint
   if (missing(x)) {
     x <- rlang::expr(factor(1))
 
+    if (!is.null(dots$size)) {
+      # ggplot2::geom_spoke has deprecated `size` in favor of `linewidth`
+      dots$linewidth <- dots$size
+      dots$size <- NULL
+    }
+
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x)) +
-        ggplot2::geom_spoke(angle = pi/2, position = ggplot2::position_nudge(y = -!!radius/2), !!!dots) +
+        ggplot2::geom_spoke(angle = pi / 2, position = ggplot2::position_nudge(y = -!!radius / 2), !!!dots) +
         ggplot2::labs(title = !!main) +
         ggplot2::xlab(!!xlab) +
         ggplot2::ylab("") +
@@ -1001,7 +1002,7 @@ iNZightPlotGG_barcode3 <- function(data, x, y, fill = "darkgreen", main = sprint
 
     plot_expr <- rlang::expr(
       ggplot2::ggplot(!!rlang::enexpr(data), ggplot2::aes(x = !!y, y = !!x, colour = !!colour)) +
-        ggplot2::geom_spoke(angle = pi/2, position = ggplot2::position_nudge(y = -!!radius/2), !!!dots) +
+        ggplot2::geom_spoke(angle = pi / 2, position = ggplot2::position_nudge(y = -!!radius / 2), !!!dots) +
         ggplot2::labs(title = !!main, colour = stringr::str_wrap(!!as.character(colour), 40)) +
         ggplot2::xlab(!!xlab) +
         ggplot2::ylab(!!ylab)
@@ -1070,7 +1071,6 @@ iNZightPlotGG_column2 <- function(data, x, y, main = sprintf("Distribution of %s
           dplyr::mutate(!!x := forcats::fct_reorder(!!x, !!y))
       )
     }
-
   } else {
     x <- rlang::sym(x)
 
@@ -1122,7 +1122,6 @@ iNZightPlotGG_lollipop <- function(data, x, y, main = sprintf("Distribution of %
           dplyr::mutate(!!x := forcats::fct_reorder(!!x, !!y))
       )
     }
-
   } else {
     x <- rlang::sym(x)
 
@@ -1189,7 +1188,6 @@ iNZightPlotGG_cumcurve <- function(data, x, y, main = sprintf("Cumulative Curve 
     data = data_expr,
     plot = plot_expr
   )
-
 }
 
 iNZightPlotGG_poppyramid <- function(data, x, fill, main = sprintf("Count of %s by %s", as.character(x), as.character(fill)), xlab = as.character(x), ylab = "Count", ...) {
@@ -1206,7 +1204,7 @@ iNZightPlotGG_poppyramid <- function(data, x, fill, main = sprintf("Count of %s 
           !!fill == levels(!!fill)[2]
         ),
         ggplot2::aes(
-          y = !!rlang::sym("..count..") * -1
+          y = ggplot2::after_stat(!!rlang::sym("count")) * -1
         ),
         !!!dots
       ) +
@@ -1219,7 +1217,6 @@ iNZightPlotGG_poppyramid <- function(data, x, fill, main = sprintf("Count of %s 
   list(
     plot = plot_expr
   )
-
 }
 
 iNZightPlotGG_spine <- function(data, x, fill, main = sprintf("Count of %s by %s", as.character(x), as.character(fill)), xlab = as.character(x), ylab = "Count", ...) {
@@ -1236,7 +1233,7 @@ iNZightPlotGG_spine <- function(data, x, fill, main = sprintf("Count of %s by %s
           !!fill == levels(!!fill)[2]
         ),
         ggplot2::aes(
-          y = !!rlang::sym("..count..") * -1
+          y = !!rlang::sym("count") * -1
         ),
         !!!dots
       ) +
@@ -1250,7 +1247,6 @@ iNZightPlotGG_spine <- function(data, x, fill, main = sprintf("Count of %s by %s
   list(
     plot = plot_expr
   )
-
 }
 
 iNZightPlotGG_freqpolygon <- function(data, x, colour, main = sprintf("Count of %s by %s", as.character(x), as.character(colour)), xlab = as.character(x), ylab = "Count", ...) {
@@ -1296,7 +1292,6 @@ iNZightPlotGG_dotstrip <- function(data, x, y, fill = "darkgreen", main = sprint
           axis.ticks.y = ggplot2::element_blank()
         )
     )
-
   } else {
     x <- rlang::sym(x)
     colour <- rlang::sym(x)
@@ -1466,7 +1461,7 @@ iNZightPlotGG_gridplot <- function(data, x, main = sprintf("Gridplot of %s", as.
   )
 }
 
-iNZightPlotGG_divergingstackedbar <- function(data, x, y, main = sprintf("Diverging stacked bar of %s by %s", as.character(y), as.character(x)), xlab = as.character(x), ylab = "Count", cutpoint = NULL,...) {
+iNZightPlotGG_divergingstackedbar <- function(data, x, y, main = sprintf("Diverging stacked bar of %s by %s", as.character(y), as.character(x)), xlab = as.character(x), ylab = "Count", cutpoint = NULL, ...) {
   orig_x <- x
   x <- rlang::sym(y)
 
@@ -1527,7 +1522,8 @@ iNZightPlotGG_beeswarm <- function(data, x, y, main = sprintf("Distribution of %
     x <- rlang::sym(x)
     if (rotation) {
       plot_expr <- rlang::expr(
-        ggplot2::ggplot(!!rlang::enexpr(data),
+        ggplot2::ggplot(
+          !!rlang::enexpr(data),
           ggplot2::aes(x = !!x, y = !!y, colour = !!x)
         ) +
           ggbeeswarm::geom_beeswarm(!!!dots) +
@@ -1537,7 +1533,8 @@ iNZightPlotGG_beeswarm <- function(data, x, y, main = sprintf("Distribution of %
       )
     } else {
       plot_expr <- rlang::expr(
-        ggplot2::ggplot(!!rlang::enexpr(data),
+        ggplot2::ggplot(
+          !!rlang::enexpr(data),
           ggplot2::aes(x = factor(!!x, levels = rev(levels(!!x))), y = !!y, colour = !!x)
         ) +
           ggbeeswarm::geom_beeswarm(!!!dots) +

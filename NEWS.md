@@ -1,3 +1,8 @@
+# iNZightPlots 2.15.1
+
+- fix a bug in `inzinference()` where spaces in categories led to some weird formatting
+- update some deprecated functions and arguments from 'dplyr' and 'ggplot2'
+
 # iNZightPlots 2.15.0
 
 - new `multiplot()` method for handling multiple `y` variables, so formulas like `inzplot(~x1 + x2 + x3, ...)` are now supported
