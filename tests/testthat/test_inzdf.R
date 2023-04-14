@@ -42,5 +42,6 @@ d <- inzdf(con,
 )
 
 test_that("Basic plots work", {
-    expect_silent(inzplot(~Sepal.Width, data = d))
+    p <- inzplot(~Sepal.Width, data = d)
+    expect_is(p, "inzplotoutput")
 })
