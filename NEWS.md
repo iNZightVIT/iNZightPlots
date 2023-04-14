@@ -1,3 +1,7 @@
+# iNZightPlots 2.15.2
+
+- modify tests that were randomly creating spurious messages on CRAN
+
 # iNZightPlots 2.15.1
 
 - fix a bug in `inzinference()` where spaces in categories led to some weird formatting
