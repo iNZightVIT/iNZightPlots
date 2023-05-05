@@ -183,7 +183,7 @@ multiplot_cat <- function(df, args) {
         d <- dplyr::tally(d)
         d <- dplyr::group_by(d, .data$x, !!var_y, .drop = FALSE)
     }
-    d <- dplyr::summarise(d,
+    d <- dplyr::reframe(d,
         value = .data$value,
         n = .data$n,
         p = .data$n / sum(.data$n) * 100

@@ -34,7 +34,7 @@ test_that("Barcode plots work", {
     expect_match(attr(p1, "code"), "ggplot2::geom_spoke")
 
     p1 <- iNZightPlot(Sepal.Length, data = iris, plottype = "gg_barcode3", gg_width = 2, gg_height = 1.5)
-    expect_equal(p1$layers[[1]]$aes_params$size, 2)
+    expect_equal(p1$layers[[1]]$aes_params$linewidth, 2)
     expect_equal(p1$layers[[1]]$aes_params$radius, 1.5)
 })
 

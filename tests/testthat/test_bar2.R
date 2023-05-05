@@ -83,22 +83,27 @@ test_that("Inference information is correct", {
 
 cas <- read.csv("cas.csv", stringsAsFactors = TRUE)
 test_that("Subsetting works", {
-    expect_silent(
+    expect_is(
         iNZightPlot(travel, gender, g1 = cellsource, g2 = getlunch,
-            g2.level = "_MULTI", data = cas)
+            g2.level = "_MULTI", data = cas),
+        "inzplotoutput"
     )
-    expect_silent(
-        iNZightPlot(travel, gender, g1 = cellsource, data = cas)
+    expect_is(
+        iNZightPlot(travel, gender, g1 = cellsource, data = cas),
+        "inzplotoutput"
     )
-    expect_silent(
+    expect_is(
         iNZightPlot(travel, gender, g1 = cellsource, data = cas,
-            bar.counts = TRUE)
+            bar.counts = TRUE),
+        "inzplotoutput"
     )
-    expect_silent(
-        iNZightPlot(travel, g1 = cellsource, data = cas)
+    expect_is(
+        iNZightPlot(travel, g1 = cellsource, data = cas),
+        "inzplotoutput"
     )
-    expect_silent(
+    expect_is(
         iNZightPlot(travel, g1 = cellsource, data = cas,
-            bar.counts = TRUE)
+            bar.counts = TRUE),
+        "inzplotoutput"
     )
 })

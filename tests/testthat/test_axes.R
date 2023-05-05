@@ -1,6 +1,7 @@
 context("Plot axes")
 
 require(grid)
+set.seed(58926)
 
 test_that("Axis label formatting is consistent for large values", {
     d <- data.frame(
@@ -9,7 +10,8 @@ test_that("Axis label formatting is consistent for large values", {
         stringsAsFactors = TRUE
     )
 
-    expect_silent(iNZightPlot(x, y, data = d))
+    p <- inzplot(y ~ x, data = d)
+    expect_is(p, "inzplotoutput")
     labs <- grid.get("inz-xaxis-bottom.1.1")$label
 
     skip_if(length(labs) != 4)
@@ -21,7 +23,12 @@ test_that("Axis label formatting is consistent for large values", {
 })
 
 test_that("Axis tick labels don't overlap axis label", {
-    d <- data.frame(x = runif(1e2), y = runif(1e2, 1e5, 2e5), z = sample(LETTERS[1:4], 100, replace = TRUE))
-    inzplot(y ~ x | z, data = d, ylab = "A very long title", transform = list(y = "log"))
-
+    d <- data.frame(
+        x = runif(1e2),
+        y = runif(1e2, 1e5, 2e5),
+        z = sample(LETTERS[1:4], 100, replace = TRUE)
+    )
+    inzplot(y ~ x | z, data = d, ylab = "A very long title",
+        transform = list(y = "log")
+    )
 })

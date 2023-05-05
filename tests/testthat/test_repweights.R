@@ -56,17 +56,19 @@ test_that("Replicate weight designs supported - plot inference - hist", {
 })
 
 test_that("Replicate weight designs supported - plot inference - scatter", {
-    expect_silent(
+    expect_is(
         suppressWarnings(
             iNZightPlot(bmi_p, marit, design = dchis, trend = "linear",
                 plot = FALSE)
-        )
+        ),
+        "inzplotoutput"
     )
 
-    expect_silent(
+    expect_is(
         suppressWarnings(iNZightPlot(bmi_p, marit, design = dchis,
             colby = smoke, plot = FALSE)
-        )
+        ),
+        "inzplotoutput"
     )
 })
 

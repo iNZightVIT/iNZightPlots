@@ -1,5 +1,6 @@
-inference <- function(object, survey.options, ...)
+inference <- function(object, survey.options, ...) {
     UseMethod("inference")
+}
 
 
 inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
@@ -7,8 +8,9 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
     toplot <- object$toplot
     inf <- object$inference.info
 
-    if (is.character(inf))
+    if (is.character(inf)) {
         return("Sample too small to get inference")
+    }
 
     if (is.null(inf[[1]]$conf)) {
         warning("Please specify `inference.type = conf` to get inference information.")
@@ -21,7 +23,8 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
     mat <- inf$mean$conf[, c("mean", "lower", "upper"), drop = FALSE]
 
     mat <- matrix(
-        apply(mat, 2,
+        apply(
+            mat, 2,
             function(col) {
                 format(col, digits = 4)
             }
@@ -38,12 +41,14 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
 
     byFactor <- length(toplot) > 1
 
-    if (byFactor)
+    if (byFactor) {
         mat <- cbind(c("", names(toplot)), mat)
+    }
     rownames(mat) <- NULL
 
     mat <- matrix(
-        apply(mat, 2,
+        apply(
+            mat, 2,
             function(col) {
                 format(col, justify = "right")
             }
@@ -51,7 +56,8 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
         nrow = nrow(mat)
     )
 
-    out <- apply(mat, 1,
+    out <- apply(
+        mat, 1,
         function(x) paste0("   ", paste(x, collapse = "   "))
     )
 
@@ -73,14 +79,16 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
     )
 
     if (bs) {
-        if (is.survey)
+        if (is.survey) {
             return("Bootstrap inference not yet implemented for survey data.")
+        }
 
         ## BOOTSTRAP MEDIAN
         mat <- inf$median$conf[, c("mean", "lower", "upper"), drop = FALSE]
 
         mat <- matrix(
-            apply(mat, 2,
+            apply(
+                mat, 2,
                 function(col) {
                     format(col, digits = 4)
                 }
@@ -97,12 +105,14 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
 
         byFactor <- length(toplot) > 1
 
-        if (byFactor)
+        if (byFactor) {
             mat <- cbind(c("", names(toplot)), mat)
+        }
         rownames(mat) <- NULL
 
         mat <- matrix(
-            apply(mat, 2,
+            apply(
+                mat, 2,
                 function(col) {
                     format(col, justify = "right")
                 }
@@ -110,7 +120,8 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
             nrow = nrow(mat)
         )
 
-        mat <- apply(mat, 1,
+        mat <- apply(
+            mat, 1,
             function(x) paste0("   ", paste(x, collapse = "   "))
         )
 
@@ -133,7 +144,8 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
         mat <- inf$iqr$conf[, c("mean", "lower", "upper"), drop = FALSE]
 
         mat <- matrix(
-            apply(mat, 2,
+            apply(
+                mat, 2,
                 function(col) {
                     format(col, digits = 4)
                 }
@@ -150,12 +162,14 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
 
         byFactor <- length(toplot) > 1
 
-        if (byFactor)
+        if (byFactor) {
             mat <- cbind(c("", names(toplot)), mat)
+        }
         rownames(mat) <- NULL
 
         mat <- matrix(
-            apply(mat, 2,
+            apply(
+                mat, 2,
                 function(col) {
                     format(col, justify = "right")
                 }
@@ -163,7 +177,8 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
             nrow = nrow(mat)
         )
 
-        mat <- apply(mat, 1,
+        mat <- apply(
+            mat, 1,
             function(x) paste0("   ", paste(x, collapse = "   "))
         )
 
@@ -281,23 +296,30 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
             }
         }
 
-        dat <- do.call(rbind,
-            lapply(names(toplot),
+        dat <- do.call(
+            rbind,
+            lapply(
+                names(toplot),
                 function(t) {
-                    if (is.null(toplot[[t]]$x))
+                    if (is.null(toplot[[t]]$x)) {
                         NULL
-                    else
-                        data.frame(x = toplot[[t]]$x, y = t,
+                    } else {
+                        data.frame(
+                            x = toplot[[t]]$x, y = t,
                             stringsAsFactors = TRUE
                         )
+                    }
                 }
             )
         )
         if (is.survey) {
             fmla <- if (is.numeric(des$variables$x)) x ~ y else y ~ x
             fit <- try(
-                if (is.numeric(des$variables$x)) svyglm(x ~ y, des)
-                else svyglm(y ~ x, des),
+                if (is.numeric(des$variables$x)) {
+                    svyglm(x ~ y, des)
+                } else {
+                    svyglm(y ~ x, des)
+                },
                 silent = TRUE
             )
         } else {
@@ -306,9 +328,9 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
 
         if (!is.null(hypothesis) &&
             (length(toplot) > 2 | hypothesis$test == "anova")) {
-
             if (is.survey) {
-                fstat <- regTermTest(fit,
+                fstat <- regTermTest(
+                    fit,
                     if (is.numeric(des$variables$x)) ~y else ~x
                     # hypothesis values here
                     # null = ...
@@ -406,7 +428,8 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                 )
 
                 mat <- matrix(
-                    apply(mat, 2,
+                    apply(
+                        mat, 2,
                         function(col) {
                             format(col, justify = "right")
                         }
@@ -414,7 +437,8 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                     nrow = nrow(mat)
                 )
 
-                mat <- apply(mat, 1,
+                mat <- apply(
+                    mat, 1,
                     function(x) paste0("   ", paste(x, collapse = "   "))
                 )
 
@@ -448,9 +472,8 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                 )
 
                 mc <- mc$contrasts
-                rownames(mc) <- mc[,1]
+                rownames(mc) <- mc[, 1]
                 mc <- mc[, c("estimate", "lower.CL", "upper.CL", "p.value")]
-
             } else {
                 mc <- try(
                     s20x::multipleComp(fit, conf.level = ci.width),
@@ -459,28 +482,29 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
             }
 
             if (!inherits(mc, "try-error")) {
-
                 mat <- matrix(
-                    apply(mc, 2,
+                    apply(
+                        mc, 2,
                         function(col) {
                             format(col, digits = 4, justify = "right")
                         }
                     ),
                     nrow = nrow(mc)
                 )
-                mat[,4] <- format.pval(as.numeric(mat[,4]))
+                mat[, 4] <- format.pval(as.numeric(mat[, 4]))
                 mat[grep("NA", mat)] <- ""
 
-                rnames <- lapply(strsplit(rownames(mc), " "), trimws)
+                rnames <- lapply(strsplit(rownames(mc), " - "), trimws)
                 rnames <- do.call(rbind, rnames)
                 rnames[, 1] <- format(rnames[, 1], justify = "right")
-                rnames[, 3] <- format(rnames[, 3], justify = "left")
-                rnames <- apply(rnames, 1, paste, collapse = " ")
+                rnames[, 2] <- format(rnames[, 2], justify = "left")
+                rnames <- apply(rnames, 1, paste, collapse = " - ")
                 mat <- cbind(format(rnames, justify = "left"), mat)
 
-                mat<- rbind(c("", "Estimate", "Lower", "Upper", "P-value"), mat)
+                mat <- rbind(c("", "Estimate", "Lower", "Upper", "P-value"), mat)
                 mat <- matrix(
-                    apply(mat, 2,
+                    apply(
+                        mat, 2,
                         function(col) {
                             format(col, justify = "right")
                         }
@@ -488,7 +512,8 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                     nrow = nrow(mat)
                 )
 
-                mat <- apply(mat, 1,
+                mat <- apply(
+                    mat, 1,
                     function(x) paste(x, collapse = "   ")
                 )
                 mat <- c(
@@ -505,7 +530,8 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                 out <- c(
                     out,
                     "",
-                    sprintf("Pairwise differences in %sgroup means with %s%s Confidence Intervals and P-values",
+                    sprintf(
+                        "Pairwise differences in %sgroup means with %s%s Confidence Intervals and P-values",
                         ifelse(is.survey, "population ", ""),
                         ci.width * 100,
                         "%"
@@ -517,7 +543,6 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                     "          Null Hypothesis: true difference in group means is zero",
                     "   Alternative Hypothesis: true difference in group means is not zero"
                 )
-
             } else {
                 # make standard table ...
                 out <- c(
@@ -527,7 +552,6 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                 )
             }
         }
-
     } else if (!is.null(hypothesis) & !bs) {
         ## hypothesis testing - one sample
         if (is.survey) {
@@ -543,7 +567,8 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
         out <- c(
             out,
             "",
-            sprintf("%sOne Sample t-test",
+            sprintf(
+                "%sOne Sample t-test",
                 ifelse(is.survey, "Design-based ", "")
             ),
             "",
@@ -583,7 +608,8 @@ formatTriMat <- function(mat, names) {
     mat <- mat[-1, , drop = FALSE]
 
     mat <- matrix(
-        apply(mat, 2,
+        apply(
+            mat, 2,
             function(col) {
                 format(col, digits = 4)
             }
@@ -601,7 +627,8 @@ formatTriMat <- function(mat, names) {
     mat <- mat[, -ncol(mat)]
 
     mat <- matrix(
-        apply(mat, 2,
+        apply(
+            mat, 2,
             function(col) {
                 format(col, justify = "right")
             }
@@ -617,13 +644,15 @@ formatMat <- function(mat, digits = 4) {
 
     mat <- apply(mat, 1, function(x) suppressWarnings(as.numeric(x)))
     ## If the matrix has a single column, apply returns a vector rather than a matrix
-    if (is.matrix(mat))
+    if (is.matrix(mat)) {
         mat <- t(mat)
-    else
+    } else {
         mat <- matrix(mat, ncol = 1)
+    }
 
-    mat <-  matrix(
-        apply(mat, 2,
+    mat <- matrix(
+        apply(
+            mat, 2,
             function(col) {
                 format(col, digits = digits)
             }
@@ -639,7 +668,8 @@ formatMat <- function(mat, digits = 4) {
     )
 
     mat <- matrix(
-        apply(mat, 2,
+        apply(
+            mat, 2,
             function(col) {
                 format(col, justify = "right")
             }
@@ -650,9 +680,12 @@ formatMat <- function(mat, digits = 4) {
     mat
 }
 inference.inzhist <- function(object, des, bs, class, width, vn, hypothesis,
-                              survey.options, ...)
-    inference.inzdot(object, des, bs, class, width, vn, hypothesis,
-        survey.options, ...)
+                              survey.options, ...) {
+    inference.inzdot(
+        object, des, bs, class, width, vn, hypothesis,
+        survey.options, ...
+    )
+}
 
 
 
@@ -663,14 +696,17 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
     is.survey <- !is.null(des)
     ci.width <- attr(inf, "ci.width")
 
-    if (! "conf" %in% names(inf))
+    if (!"conf" %in% names(inf)) {
         stop("Please specify `inference.type = conf` to get inference information.")
+    }
 
-    if (is.null(inf$conf))
+    if (is.null(inf$conf)) {
         return("Unable to obtain inference information.")
+    }
 
-    if (bs & sum(object$tab) < 10)
+    if (bs & sum(object$tab) < 10) {
         return("Not enough data to perform bootstraps.")
+    }
 
     twoway <- nrow(phat) > 1
     alpha <- 1 - (1 - ci.width) / 2
@@ -699,20 +735,25 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                         HypOut <- c(
                             "One-sample test of a proportion",
                             "",
-                            sprintf("   Z-score = %s, p-value %s%s",
+                            sprintf(
+                                "   Z-score = %s, p-value %s%s",
                                 format(signif(prtest$statistic, 5)),
                                 ifelse(prtest$p.value < 2.2e-16, "", "= "),
                                 format.pval(prtest$p.value, digits = 5)
                             ),
                             "",
-                            sprintf("          Null Hypothesis: %s",
-                                sprintf("true proportion of %s = %s is %s",
+                            sprintf(
+                                "          Null Hypothesis: %s",
+                                sprintf(
+                                    "true proportion of %s = %s is %s",
                                     vn$x, colnames(object$tab)[1],
                                     hypothesis$value
                                 )
                             ),
-                            sprintf("   Alternative Hypothesis: %s",
-                                sprintf("true proportion of %s = %s is %s %s",
+                            sprintf(
+                                "   Alternative Hypothesis: %s",
+                                sprintf(
+                                    "true proportion of %s = %s is %s %s",
                                     vn$x, colnames(object$tab)[1],
                                     ifelse(hypothesis$alternative == "two.sided",
                                         "not equal to",
@@ -754,20 +795,23 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                         }
 
                         HypOut <- c(
-                            sprintf("%s",
+                            sprintf(
+                                "%s",
                                 ifelse(hypothesis$use.exact,
                                     "Exact binomial test",
                                     "One-sample test of a proportion"
                                 )
                             ),
                             "",
-                            sprintf("   %s, p-value %s%s",
+                            sprintf(
+                                "   %s, p-value %s%s",
                                 ifelse(hypothesis$use.exact,
                                     sprintf(
                                         "Number of successes = %s, number of trials = %s",
                                         prtest$statistic, prtest$parameter
                                     ),
-                                    sprintf("Z-score = %s",
+                                    sprintf(
+                                        "Z-score = %s",
                                         format(signif(prtest$statistic, 5))
                                     )
                                 ),
@@ -775,14 +819,18 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                                 format.pval(prtest$p.value, digits = 5)
                             ),
                             "",
-                            sprintf("          Null Hypothesis: %s",
-                                sprintf("true proportion of %s = %s is %s",
+                            sprintf(
+                                "          Null Hypothesis: %s",
+                                sprintf(
+                                    "true proportion of %s = %s is %s",
                                     vn$x, colnames(object$tab)[1],
                                     hypothesis$value
                                 )
                             ),
-                            sprintf("   Alternative Hypothesis: %s",
-                                sprintf("true proportion of %s = %s is %s %s",
+                            sprintf(
+                                "   Alternative Hypothesis: %s",
+                                sprintf(
+                                    "true proportion of %s = %s is %s %s",
                                     vn$x, colnames(object$tab)[1],
                                     ifelse(hypothesis$alternative == "two.sided",
                                         "not equal to",
@@ -793,7 +841,6 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                             ),
                             ""
                         )
-
                     } else {
                         HypOut <- NULL
                     }
@@ -804,13 +851,14 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
             "default" = {
                 chi2sim <- NULL
                 if (is.survey) {
-                    chi2 <- try(svychisq(~y+x, des, na.rm = TRUE), TRUE)
+                    chi2 <- try(svychisq(~ y + x, des, na.rm = TRUE), TRUE)
                 } else {
                     chi2 <- suppressWarnings(chisq.test(object$tab))
                     # from experimenting, tables bigger than this
                     # start taking too long to simulate the p-value
-                    if (prod(dim(object$tab)) > 2000)
+                    if (prod(dim(object$tab)) > 2000) {
                         hypothesis$simulated.p.value <- FALSE
+                    }
                     if (any(chi2$expected < 5) || hypothesis$simulated.p.value) {
                         chi2 <- suppressWarnings(
                             chisq.test(object$tab, correct = FALSE)
@@ -839,7 +887,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                         chi2out <- " (since some expected counts < 5)"
                     }
                     if (!is.null(chi2sim)) {
-                        simpval <- sprintf("\n   Simulated p-value%s %s%s",
+                        simpval <- sprintf(
+                            "\n   Simulated p-value%s %s%s",
                             chi2out,
                             ifelse(chi2sim$p.value < 2.2e-16, "", "= "),
                             format.pval(chi2sim$p.value, digits = 5)
@@ -847,7 +896,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                     }
 
                     HypOut <- c(
-                        sprintf("Chi-square test for equal %s",
+                        sprintf(
+                            "Chi-square test for equal %s",
                             ifelse(twoway, "distributions", "proportions")
                         ),
                         "",
@@ -871,7 +921,6 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                         sprintf("   Alternative Hypothesis: %s", piece2),
                         ""
                     )
-
                 }
                 HypOut
             }
@@ -885,7 +934,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
         dn <- dimnames(object$tab)
 
         mat <- matrix(
-            apply(mat, 2,
+            apply(
+                mat, 2,
                 function(col) {
                     format(col, digits = 3)
                 }
@@ -909,7 +959,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
         rownames(mat) <- NULL
 
         mat <- matrix(
-            apply(mat, 2,
+            apply(
+                mat, 2,
                 function(col) {
                     format(col, justify = "right")
                 }
@@ -917,17 +968,19 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
             nrow = nrow(mat)
         )
 
-        out <- apply(mat, 1,
+        out <- apply(
+            mat, 1,
             function(x) paste0("   ", paste(x, collapse = "   "))
         )
-        out <- c("Estimated Proportions", "",  out)
+        out <- c("Estimated Proportions", "", out)
 
         cis <- inf$conf
         cis <- rbind(cis$lower, cis$upper)
         cis <- cis[rep(1:nrow(phat), each = 2) + c(0, nrow(phat)), ]
 
         cis <- matrix(
-            apply(cis, 2,
+            apply(
+                cis, 2,
                 function(col) {
                     format(col, digits = 3)
                 }
@@ -947,7 +1000,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
         colnames(cis) <- NULL
 
         cis <- matrix(
-            apply(cis, 2,
+            apply(
+                cis, 2,
                 function(col) {
                     format(col, justify = "right")
                 }
@@ -961,7 +1015,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
             "",
             paste0(100 * ci.width, "%", bsCI, " Confidence Intervals"),
             "",
-            apply(cis, 1,
+            apply(
+                cis, 1,
                 function(x) paste0("   ", paste(x, collapse = "   "))
             )
         )
@@ -998,7 +1053,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                     pp <- sweep(tt, 1L, nn, "/")
 
                     cm <- utils::combn(n1, 2L)
-                    t(apply(cm, 2L,
+                    t(apply(
+                        cm, 2L,
                         function(x) {
                             pp[x[1], ] - pp[x[2], ]
                         }
@@ -1006,7 +1062,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                 },
                 R = nb
             )
-            bmat <- apply(b$t, 2L,
+            bmat <- apply(
+                b$t, 2L,
                 function(x) {
                     c(mean(x), quantile(x, probs = c(1 - alpha, alpha)))
                 }
@@ -1048,7 +1105,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
             rnames <- apply(rnames, 1, paste, collapse = " ")
 
             mat <- matrix(
-                apply(diffs[3:5], 2,
+                apply(
+                    diffs[3:5], 2,
                     function(col) {
                         format(col, digits = 4L, justify = "right")
                     }
@@ -1059,9 +1117,10 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
 
             mat <- cbind(format(rnames, justify = "left"), mat)
 
-            mat<- rbind(c("", "Estimate", "Lower", "Upper"), mat)
+            mat <- rbind(c("", "Estimate", "Lower", "Upper"), mat)
             mat <- matrix(
-                apply(mat, 2,
+                apply(
+                    mat, 2,
                     function(col) {
                         format(col, justify = "right")
                     }
@@ -1069,7 +1128,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                 nrow = nrow(mat)
             )
 
-            mat <- apply(mat, 1,
+            mat <- apply(
+                mat, 1,
                 function(x) paste(x, collapse = "   ")
             )
             mat <- c(
@@ -1177,12 +1237,12 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
             )
         }
         ##### END CALCS #####
-
     } else { ## one-way table
         mat <- t(rbind(inf$conf$estimate, inf$conf$lower, inf$conf$upper))
 
         mat <- matrix(
-            apply(mat, 2,
+            apply(
+                mat, 2,
                 function(col) {
                     format(col, digits = 3)
                 }
@@ -1202,7 +1262,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
         rownames(mat) <- NULL
 
         mat <- matrix(
-            apply(mat, 2,
+            apply(
+                mat, 2,
                 function(col) {
                     format(col, justify = "right")
                 }
@@ -1210,14 +1271,16 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
             nrow = nrow(mat)
         )
 
-        out <- apply(mat, 1,
+        out <- apply(
+            mat, 1,
             function(x) paste0("   ", paste(x, collapse = "   "))
         )
 
         bsCI <- ifelse(bs, " Percentile Bootstrap", "")
         out <- c(
             paste0(
-                sprintf("Estimated %sProportions with %s%s",
+                sprintf(
+                    "Estimated %sProportions with %s%s",
                     ifelse(is.survey, "Population ", ""),
                     ci.width * 100, "%"
                 ),
@@ -1246,16 +1309,19 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                     pp <- tt / nn
 
                     d <- c()
-                    for (ii in 2:ni)
-                        for (jj in 1:(ii - 1))
+                    for (ii in 2:ni) {
+                        for (jj in 1:(ii - 1)) {
                             d <- c(d, pp[ii] - pp[jj])
+                        }
+                    }
 
                     d
                 },
                 R = nb
             )
 
-            diffs <- apply(b$t, 2L,
+            diffs <- apply(
+                b$t, 2L,
                 function(x) {
                     c(mean(x), quantile(x, probs = c(1 - alpha, alpha)))
                 }
@@ -1278,7 +1344,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
         rnames <- apply(rnames, 1, paste, collapse = " ")
 
         mat <- matrix(
-            apply(diffs[3:5], 2,
+            apply(
+                diffs[3:5], 2,
                 function(col) {
                     format(col, digits = 4L, justify = "right")
                 }
@@ -1289,9 +1356,10 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
 
         mat <- cbind(format(rnames, justify = "left"), mat)
 
-        mat<- rbind(c("", "Estimate", "Lower", "Upper"), mat)
+        mat <- rbind(c("", "Estimate", "Lower", "Upper"), mat)
         mat <- matrix(
-            apply(mat, 2,
+            apply(
+                mat, 2,
                 function(col) {
                     format(col, justify = "right")
                 }
@@ -1299,7 +1367,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
             nrow = nrow(mat)
         )
 
-        mat <- apply(mat, 1,
+        mat <- apply(
+            mat, 1,
             function(x) paste(x, collapse = "   ")
         )
         mat <- c(
@@ -1318,7 +1387,8 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
             "",
             HypOut,
             "",
-            sprintf("### Difference in %sproportions of %s",
+            sprintf(
+                "### Difference in %sproportions of %s",
                 ifelse(is.survey, "population ", ""),
                 vn$x
             ),
@@ -1365,10 +1435,10 @@ freq1way.edited <- function(tbl, conf.level = 0.95) {
     for (i in seq_len(ncatsC2)) {
         a <- comp_results[i, "a"]
         b <- comp_results[i, "b"]
-        comp_results[i, "estimate"] <- phat[,a] - phat[,b]
-        ci <- phat[,a] - phat[,b] +
+        comp_results[i, "estimate"] <- phat[, a] - phat[, b]
+        ci <- phat[, a] - phat[, b] +
             qval.adjusted * c(-1, 1) *
-                sqrt(((phat[,a] + phat[,b]) - ((phat[,a] - phat[,b])^2)) / n)
+                sqrt(((phat[, a] + phat[, b]) - ((phat[, a] - phat[, b])^2)) / n)
         comp_results[i, "lower"] <- ci[1]
         comp_results[i, "upper"] <- ci[2]
     }
@@ -1390,7 +1460,8 @@ freq1way.survey <- function(des, conf.level = 0.95) {
         },
         simplify = FALSE
     )
-    names(contrast_mat) <- apply(cmb, 2L,
+    names(contrast_mat) <- apply(
+        cmb, 2L,
         function(i) paste(lvls[i], collapse = " - ")
     )
 
@@ -1411,7 +1482,8 @@ freq2way <- function(p, n, alpha) {
     cn <- utils::combn(names(p), 2L)
     data.frame(
         t(cn),
-        t(apply(cn, 2L,
+        t(apply(
+            cn, 2L,
             function(x) {
                 c(
                     p[x[1]] - p[x[2]],
@@ -1434,7 +1506,8 @@ freq2way.survey <- function(fit, lvls, alpha) {
         },
         simplify = FALSE
     )
-    names(contrast_mat) <- apply(cmb, 2L,
+    names(contrast_mat) <- apply(
+        cmb, 2L,
         function(i) paste(lvls[i], collapse = " - ")
     )
     ctr <- try(svycontrast(fit, contrast_mat), silent = TRUE)
@@ -1474,11 +1547,13 @@ inference.inzscatter <- function(object, des, bs, nb, vn, survey.options, ...) {
     )
     trend <- object$trend
 
-    if (is.null(trend))
+    if (is.null(trend)) {
         return("Please specify a trend line to obtain inference information.")
+    }
 
-    if (bs & nrow(d) < 10)
+    if (bs & nrow(d) < 10) {
         return("Not enough observations to perform bootstrap simulation.")
+    }
 
     is.survey <- !is.null(des)
     ci.width <- object$ci.width
@@ -1500,15 +1575,20 @@ inference.inzscatter <- function(object, des, bs, nb, vn, survey.options, ...) {
                     "Not enough observations (n = ",
                     nrow(d),
                     ") to fit ",
-                    switch(t, "Linear", "Quadratic", "Cubic"),
+                    switch(t,
+                        "Linear",
+                        "Quadratic",
+                        "Cubic"
+                    ),
                     " trend"
                 )
             )
             break
         } else {
             if (bs) {
-                if (is.survey)
+                if (is.survey) {
                     return("Bootstrap inference not yet implemented for survey data.")
+                }
 
                 b <- boot(d,
                     function(dat, f) {
@@ -1517,8 +1597,10 @@ inference.inzscatter <- function(object, des, bs, nb, vn, survey.options, ...) {
                             lm(y ~ x + I(x^2), data = dat[f, ]),
                             lm(y ~ x + I(x^2) + I(x^3), data = dat[f, ])
                         )
-                        c(coef(fit),
-                        if (t == 1) cor(d[f, "x"], d[f, "y"]))
+                        c(
+                            coef(fit),
+                            if (t == 1) cor(d[f, "x"], d[f, "y"])
+                        )
                     },
                     R = object$n.boot
                 )
@@ -1527,7 +1609,6 @@ inference.inzscatter <- function(object, des, bs, nb, vn, survey.options, ...) {
                     sprintf("%.5g", apply(b$t, 2, quantile, probs = 1 - alpha, na.rm = TRUE)),
                     sprintf("%.5g", apply(b$t, 2, quantile, probs = alpha, na.rm = TRUE))
                 )
-
             } else {
                 if (is.survey) {
                     fit <- switch(t,
@@ -1570,7 +1651,8 @@ inference.inzscatter <- function(object, des, bs, nb, vn, survey.options, ...) {
             if (bs & t == 1) {
                 mat <- rbind(mat, "", c("correlation", covMat))
             }
-            mat <- apply(mat, 2,
+            mat <- apply(
+                mat, 2,
                 function(x) format(x, justify = "right")
             )
 
@@ -1578,13 +1660,18 @@ inference.inzscatter <- function(object, des, bs, nb, vn, survey.options, ...) {
                 out,
                 "",
                 paste0(
-                    switch(t, "Linear", "Quadratic", "Cubic"),
+                    switch(t,
+                        "Linear",
+                        "Quadratic",
+                        "Cubic"
+                    ),
                     " Trend Coefficients with ", ci.width * 100, "% ",
                     ifelse(bs, "Percentile Bootstrap ", ""),
                     "Confidence Intervals"
                 ),
                 "",
-                apply(mat, 1,
+                apply(
+                    mat, 1,
                     function(x) paste0("   ", paste(x, collapse = "   "))
                 )
             )
@@ -1603,8 +1690,10 @@ inference.inzscatter <- function(object, des, bs, nb, vn, survey.options, ...) {
 
     out
 }
-inference.inzgrid <- function(object, bs, nboot, vn, survey.options, ...)
+inference.inzgrid <- function(object, bs, nboot, vn, survey.options, ...) {
     inference.inzscatter(object, bs, nboot, vn, survey.options, ...)
+}
 
-inference.inzhex <- function(object, bs, nboot, vn, survey.options, ...)
+inference.inzhex <- function(object, bs, nboot, vn, survey.options, ...) {
     inference.inzscatter(object, bs, nboot, vn, survey.options, ...)
+}
