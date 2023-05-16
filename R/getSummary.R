@@ -653,6 +653,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                                 ),
                             "inference" =
                                 inference(pl, bs, inzclass,
+                                    opts = inzpars,
                                     des = pl.design,
                                     width = width,
                                     vn = vnames,

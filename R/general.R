@@ -557,3 +557,7 @@ add_units <- function(x, unit) {
     if (is.null(unit)) return(x)
     sprintf("%s (%s)", x, unit)
 }
+
+format_pval <- function(x, opts, ...) {
+    format.pval(x, ..., eps = opts$min_pval, scientific = FALSE)
+}

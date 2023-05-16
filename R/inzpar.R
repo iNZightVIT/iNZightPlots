@@ -120,6 +120,7 @@
 #' \item{'round'}{integer specifying optional rounding of numerical output, default NA (ignored)}
 #' \item{'round_percent'}{integer specifying rounding for percentages (default 2)}
 #' \item{'signif'}{integer specifying number of significant figured in numeric output (default 2). Ignored if \code{round} is not NA.}
+#' \item{'min.pval'}{numeric specifying the minimum p-value to display (default 0.0001)}
 #' }
 #'
 #' @title iNZight Plotting Parameters
@@ -246,7 +247,8 @@ inzpar <- function(...,
         epi.out = FALSE,
         round = NA_integer_,
         round_percent = 2L,
-        signif = 4L
+        signif = 4L,
+        min_pval = 1e-4
     )
 
     # update any user has specified
