@@ -3,6 +3,9 @@ context("Survey design inference functions")
 data(api, package = "survey")
 dclus1 <- svydesign(id = ~dnum, weights = ~pw, data = apiclus1, fpc = ~fpc)
 
+op <- options(scipen = 999)
+on.exit(options(op))
+
 test_that("One sample t-test", {
     svy_mean <- svymean(~api00, dclus1)
     svy_ci <- confint(svy_mean, level = 0.9)
@@ -14,7 +17,8 @@ test_that("One sample t-test", {
             inference.type = "conf",
             # hypothesis.value = 600
             ci.width = 0.9,
-            width = 80
+            width = 80,
+            min_pval = 1e-16
         )
     )
     inz_inf <-
@@ -182,7 +186,8 @@ test_that("Survey regression", {
             design = dclus1,
             inference.type = "conf",
             trend = "linear",
-            ci.width = 0.9
+            ci.width = 0.9,
+            min_pval = 1e-16
         )
     )
 
@@ -337,7 +342,8 @@ test_that("Subset inference - one sample t-test", {
         inzinference(~api00,
             design = dclus1,
             g1 = stype,
-            inference.type = "conf"
+            inference.type = "conf",
+            min_pval = 1e-16
         )
     )
 
@@ -483,7 +489,8 @@ test_that("Subset twice inference - one sample t-test", {
             design = dclus1,
             g1 = awards,
             g2 = stype, g2.level = "_MULTI",
-            inference.type = "conf"
+            inference.type = "conf",
+            min_pval = 1e-16
         )
     )
 

@@ -3,7 +3,8 @@ inference <- function(object, survey.options, ...) {
 }
 
 
-inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
+inference.inzdot <- function(object, des, bs, opts, class, width,
+                             vn, hypothesis,
                              survey.options, ...) {
     toplot <- object$toplot
     inf <- object$inference.info
@@ -221,7 +222,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                 }
 
                 if (!inherits(test.out, "try-error")) {
-                    pval <- format.pval(test.out$p.value)
+                    pval <- format_pval(test.out$p.value, opts)
                     out <- c(
                         out,
                         "",
@@ -268,7 +269,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                         svar <- sapply(toplot, function(d) var(d$x))
                         sn <- sapply(toplot, function(d) length(d$x))
                         var.pooled <- sum((sn - 1) * svar) / sum(sn - 1)
-                        pval <- format.pval(ftest$p.value)
+                        pval <- format_pval(ftest$p.value, opts)
                         out <- c(
                             out,
                             "",
@@ -349,7 +350,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                 fpval <- pf(fstat[1], fstat[2], fstat[3], lower.tail = FALSE)
                 Fname <- "One-way Analysis of Variance (ANOVA F-test)"
             }
-            fpval <- format.pval(fpval, digits = 5)
+            fpval <- format_pval(fpval, opts, digits = 5)
 
             Ftest <- c(
                 Fname,
@@ -491,7 +492,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                     ),
                     nrow = nrow(mc)
                 )
-                mat[, 4] <- format.pval(as.numeric(mat[, 4]))
+                mat[, 4] <- format_pval(as.numeric(mat[, 4]), opts)
                 mat[grep("NA", mat)] <- ""
 
                 rnames <- lapply(strsplit(rownames(mc), " - "), trimws)
@@ -563,7 +564,7 @@ inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                 mu = hypothesis$value
             )
         }
-        pval <- format.pval(test.out$p.value)
+        pval <- format_pval(test.out$p.value, opts)
         out <- c(
             out,
             "",
@@ -679,17 +680,18 @@ formatMat <- function(mat, digits = 4) {
 
     mat
 }
-inference.inzhist <- function(object, des, bs, class, width, vn, hypothesis,
+inference.inzhist <- function(object, des, bs, opts, class, width,
+                              vn, hypothesis,
                               survey.options, ...) {
     inference.inzdot(
-        object, des, bs, class, width, vn, hypothesis,
+        object, des, bs, opts, class, width, vn, hypothesis,
         survey.options, ...
     )
 }
 
 
 
-inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
+inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
                              survey.options, epi.out = FALSE, ...) {
     phat <- object$phat
     inf <- object$inference.info
@@ -739,7 +741,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                                 "   Z-score = %s, p-value %s%s",
                                 format(signif(prtest$statistic, 5)),
                                 ifelse(prtest$p.value < 2.2e-16, "", "= "),
-                                format.pval(prtest$p.value, digits = 5)
+                                format_pval(prtest$p.value, opts, digits = 5)
                             ),
                             "",
                             sprintf(
@@ -816,7 +818,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                                     )
                                 ),
                                 ifelse(prtest$p.value < 2.2e-16, "", "= "),
-                                format.pval(prtest$p.value, digits = 5)
+                                format_pval(prtest$p.value, opts, digits = 5)
                             ),
                             "",
                             sprintf(
@@ -891,7 +893,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                             "\n   Simulated p-value%s %s%s",
                             chi2out,
                             ifelse(chi2sim$p.value < 2.2e-16, "", "= "),
-                            format.pval(chi2sim$p.value, digits = 5)
+                            format_pval(chi2sim$p.value, opts, digits = 5)
                         )
                     }
 
@@ -913,7 +915,7 @@ inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                             ", ",
                             "p-value ",
                             ifelse(chi2$p.value < 2.2e-16, "", "= "),
-                            format.pval(chi2$p.value, digits = 5),
+                            format_pval(chi2$p.value, opts, digits = 5),
                             simpval
                         ),
                         "",
@@ -1539,7 +1541,8 @@ pDiffCI <- function(p1, p2, n1, n2, z = 1.96) {
 }
 
 
-inference.inzscatter <- function(object, des, bs, nb, vn, survey.options, ...) {
+inference.inzscatter <- function(object, des, bs, opts, nb, vn,
+                                 survey.options, ...) {
     d <- data.frame(
         x = object$x,
         y = object$y,
@@ -1631,7 +1634,7 @@ inference.inzscatter <- function(object, des, bs, nb, vn, survey.options, ...) {
                     sprintf("%.5g", cc[, 1]),
                     sprintf("%.5g", ci[, 1]),
                     sprintf("%.5g", ci[, 2]),
-                    format.pval(cc[, 4], digits = 2)
+                    format_pval(cc[, 4], opts, digits = 2)
                 )
             }
 
@@ -1690,10 +1693,10 @@ inference.inzscatter <- function(object, des, bs, nb, vn, survey.options, ...) {
 
     out
 }
-inference.inzgrid <- function(object, bs, nboot, vn, survey.options, ...) {
-    inference.inzscatter(object, bs, nboot, vn, survey.options, ...)
+inference.inzgrid <- function(object, bs, opts, nboot, vn, survey.options, ...) {
+    inference.inzscatter(object, bs, opts, nboot, vn, survey.options, ...)
 }
 
-inference.inzhex <- function(object, bs, nboot, vn, survey.options, ...) {
-    inference.inzscatter(object, bs, nboot, vn, survey.options, ...)
+inference.inzhex <- function(object, bs, opts, nboot, vn, survey.options, ...) {
+    inference.inzscatter(object, bs, opts, nboot, vn, survey.options, ...)
 }

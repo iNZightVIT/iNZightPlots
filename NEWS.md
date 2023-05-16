@@ -1,4 +1,5 @@
 - modify tests that were randomly creating spurious messages on CRAN
+- change default min p-value from base R default (1e-16) to 0.0001, and add override paramater (`min.pval`)
 
 # iNZightPlots 2.15.1
 
