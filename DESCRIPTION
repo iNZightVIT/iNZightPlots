@@ -43,6 +43,7 @@ Suggests:
     forcats,
     DBI,
     dplyr,
+    dbplyr,
     ggbeeswarm,
     ggmosaic,
     ggplot2,

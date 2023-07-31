@@ -8,6 +8,9 @@ cas_dict <- read_dictionary("casdict.csv",
 
 cas <- apply_dictionary(cas_raw, cas_dict)
 
+skip_if_not_installed("ggmosaic")
+skip_if_not_installed("waffle")
+
 test_that("Variable lables used if present", {
     # devtools::load_all()
     expect_is(inzplot(~height, cas), "inzplotoutput")
