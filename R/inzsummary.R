@@ -11,8 +11,10 @@ inzsummary <- function(x, ..., env = parent.frame()) {
     UseMethod("inzsummary")
 }
 
-inzsummary.default <- function(x, ..., env = parent.frame())
+#' @export
+inzsummary.default <- function(x, ..., env = parent.frame()) {
     stop("That type of object is not supported.")
+}
 
 #' @describeIn inzsummary Wrapper for getPlotSummary to obtain summary information about a plot
 #' @param data Dataset to plotq

@@ -12,6 +12,7 @@ inzplot <- function(x, ..., env = parent.frame()) {
     UseMethod("inzplot")
 }
 
+#' @export
 inzplot.default <- function(x, ..., env = parent.frame()) {
     stop("That type of object is not supported.")
 }
