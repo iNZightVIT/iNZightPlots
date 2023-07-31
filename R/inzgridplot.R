@@ -1,5 +1,5 @@
 #' @export
-create.inz.gridplot <- function(obj) {
+create.inz.gridplot <- function(obj, ...) {
     ## The original "grid" style plot for large sample sizes. This will only be used for
     ## simple iid data, and instead hexagonal binning will be used for frequency and
     ## survey data plots.

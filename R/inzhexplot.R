@@ -1,5 +1,5 @@
 #' @export
-create.inz.hexplot <- function(obj) {
+create.inz.hexplot <- function(obj, ...) {
     # make a plot using hexagonal binning
 
     # take the dataframe and settings from the object

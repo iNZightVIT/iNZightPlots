@@ -1,5 +1,5 @@
 #' @export
-create.inz.dotplot <- function(obj, hist = FALSE) {
+create.inz.dotplot <- function(obj, hist = FALSE, ...) {
     df <- obj$df
     opts <- obj$opts
     xattr <- obj$xattr

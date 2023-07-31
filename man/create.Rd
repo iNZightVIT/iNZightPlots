@@ -4,10 +4,12 @@
 \alias{create}
 \title{Create plots for iNZight}
 \usage{
-create(obj)
+create(obj, ...)
 }
 \arguments{
 \item{obj}{an object}
+
+\item{...}{additional arguments}
 }
 \value{
 an iNZight plot object with class determined by data type

@@ -1,5 +1,5 @@
 #' @export
-create.inz.scatterplot <- function(obj) {
+create.inz.scatterplot <- function(obj, ...) {
     # take the dataframe and settings from the object
     df <- obj$df
     opts <- obj$opts

@@ -1,4 +1,4 @@
-inference <- function(object, survey.options, ...) {
+inference <- function(object, ...) {
     UseMethod("inference")
 }
 
