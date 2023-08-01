@@ -1,4 +1,5 @@
-create.inz.hexplot <- function(obj) {
+#' @export
+create.inz.hexplot <- function(obj, ...) {
     # make a plot using hexagonal binning
 
     # take the dataframe and settings from the object
@@ -6,14 +7,15 @@ create.inz.hexplot <- function(obj) {
     opts <- obj$opts
     xattr <- obj$xattr
 
-    if (xattr$class == "inz.survey")
+    if (xattr$class == "inz.survey") {
         df <- df$variables
+    }
 
     v <- colnames(df)
     vn <- xattr$varnames
 
     # first need to remove missing values
-    missing <- apply(df[ , v %in% c("x", "y")], 1, function(x) any(is.na(x)))
+    missing <- apply(df[, v %in% c("x", "y")], 1, function(x) any(is.na(x)))
     n.missing <- sum(missing)
     df <- df[!missing, ]
 
@@ -35,12 +37,14 @@ create.inz.hexplot <- function(obj) {
 
         hb@count <- as.vector(tapply(W, cellid, sum))
         hb@xcm <- as.vector(
-            tapply(1:length(df$x), cellid,
+            tapply(
+                1:length(df$x), cellid,
                 function(i) weighted.mean(df$x[i], W[i])
             )
         )
         hb@ycm <- as.vector(
-            tapply(1:length(df$y), cellid,
+            tapply(
+                1:length(df$y), cellid,
                 function(i) weighted.mean(df$y[i], W[i])
             )
         )
@@ -53,7 +57,7 @@ create.inz.hexplot <- function(obj) {
         hex = hb,
         n.missing = n.missing,
         svy = obj$df,
-        colby = if("colby" %in% v) convert.to.factor(df$colby) else NULL,
+        colby = if ("colby" %in% v) convert.to.factor(df$colby) else NULL,
         nacol = if ("colby" %in% v) any(is.na(df$colby)) else FALSE,
         xlim = xlim,
         ylim = ylim,
@@ -80,10 +84,14 @@ plot.inzhex <- function(obj, gen) {
 
     addGrid(x = TRUE, y = TRUE, gen = gen, opts = opts)
 
-    if (is.null(obj$hex)) return()
+    if (is.null(obj$hex)) {
+        return()
+    }
 
     try_hextri <- function() {
-        if (requireNamespace("hextri", quietly = TRUE)) return(TRUE)
+        if (requireNamespace("hextri", quietly = TRUE)) {
+            return(TRUE)
+        }
         warning("Please install the `hextri` package to use colby with hexbins.")
         FALSE
     }
@@ -113,8 +121,9 @@ plot.inzhex <- function(obj, gen) {
             style <- "colorscale"
             colRGB <- col2rgb(opts$col.pt[1]) / 255
             colramp <- function(n) {
-                rgb(colRGB[1], colRGB[2], colRGB[3],
-                    seq(0, 1, length = n+1)[-1]
+                rgb(
+                    colRGB[1], colRGB[2], colRGB[3],
+                    seq(0, 1, length = n + 1)[-1]
                 )
             }
         } else {
@@ -125,7 +134,7 @@ plot.inzhex <- function(obj, gen) {
             obj$hex,
             style = style,
             maxcnt = gen$maxcount,
-            border = 0, #if (style == "size") opts$col.pt else FALSE,
+            border = 0, # if (style == "size") opts$col.pt else FALSE,
             pen = opts$col.pt[1],
             colramp = colramp
         )

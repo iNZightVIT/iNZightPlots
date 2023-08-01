@@ -1,4 +1,5 @@
-create.inz.barplot <- function(obj) {
+#' @export
+create.inz.barplot <- function(obj, ...) {
     # take the dataframe and settings from the object
     df <- obj$df
     opts <- obj$opts
@@ -60,17 +61,19 @@ create.inz.barplot <- function(obj) {
 
         ## colby: (segmented bar plot)
         SEG <- "colby" %in% colnames(df)
-        if (SEG & !is.factor(df$colby))
+        if (SEG & !is.factor(df$colby)) {
             SEG <- FALSE
+        }
 
         if (SEG) {
             tab2 <-
-                if (!is.null(svy))
-                    svytable(~colby + x, design = svy)
-                else if (!is.null(df$freq))
+                if (!is.null(svy)) {
+                    svytable(~ colby + x, design = svy)
+                } else if (!is.null(df$freq)) {
                     xtabs(df$freq ~ df$colby + df$x)
-                else
+                } else {
                     table(df$colby, df$x)
+                }
             p2 <- sweep(tab2, 2, colSums(tab2), "/")
         }
     } else {
@@ -79,7 +82,7 @@ create.inz.barplot <- function(obj) {
             phat <- sweep(tab, 1, 1, "*")
             nn <- rowSums(tab)
         } else if (!is.null(svy)) {
-            tab <- svytable(~y + x, design = svy)
+            tab <- svytable(~ y + x, design = svy)
             phat <- svyby(~x, by = ~y, svy, FUN = svymean, drop.empty.groups = FALSE, na.rm = TRUE)
             phat <- phat[, 1 + 1:ncol(tab)]
             nn <- rowSums(tab)
@@ -94,23 +97,33 @@ create.inz.barplot <- function(obj) {
         }
 
         widths <-
-            if (counts) rep(1 / length(nn), length(nn))
-            else nn / sum(nn)
+            if (counts) {
+                rep(1 / length(nn), length(nn))
+            } else {
+                nn / sum(nn)
+            }
         edges <- c(0, cumsum(widths))
     }
 
     ## Cannot have inference on segmented plot (too complicated for now)
     inflist <-
-        if (!SEG && !counts) barinference(obj, tab, phat, counts)
-        else NULL
+        if (!SEG && !counts) {
+            barinference(obj, tab, phat, counts)
+        } else {
+            NULL
+        }
 
     ## y-axis limits are based on opts$bar.counts
     # true: use tab
     # false: use phat
     ymax <-
-        if (counts) max(tab, na.rm = TRUE)
-        else if (all(is.na(phat))) 0
-        else max(phat, na.rm = TRUE)
+        if (counts) {
+            max(tab, na.rm = TRUE)
+        } else if (all(is.na(phat))) {
+            0
+        } else {
+            max(phat, na.rm = TRUE)
+        }
     if (!is.null(ZOOM)) {
         if (ZOOM[1] <= ncol(phat)) {
             ww <- ZOOM[1]:(sum(ZOOM) - 1)
@@ -199,7 +212,7 @@ plot.inzbar <- function(obj, gen) {
 
         ## separating lines
         mat <- apply(sweep(obj$p.colby, 2, tops[2, ], "*"), 2, cumsum)
-        mat <- mat[-nrow(mat), , drop = FALSE]  # drop the last one
+        mat <- mat[-nrow(mat), , drop = FALSE] # drop the last one
 
         yl <- rep(c(mat), each = 2)
         xl <- rep(edges[2:3], length = length(yl)) +
@@ -220,28 +233,34 @@ plot.inzbar <- function(obj, gen) {
 
     id <- rep(1:prod(dim(p)), each = 4)
     colz <-
-        if (is.null(gen$col.args$b.cols)) opts$bar.fill
-        else rep(gen$col.args$b.cols, nx)
+        if (is.null(gen$col.args$b.cols)) {
+            opts$bar.fill
+        } else {
+            rep(gen$col.args$b.cols, nx)
+        }
 
     grid.polygon(unit(xx, "native"), unit(yy, "native"),
         id = id,
         gp =
-        gpar(
-            fill = if (SEG) "transparent" else colz,
-            col = opts$bar.col,
-            lwd = opts$bar.lwd
-        ),
+            gpar(
+                fill = if (SEG) "transparent" else colz,
+                col = opts$bar.col,
+                lwd = opts$bar.lwd
+            ),
         name = paste("inz-BAR", opts$rowNum, opts$colNum, sep = ".")
     )
 
-    center <- apply(matrix(xx, ncol = 4, byrow = TRUE), 1,
-        function(x) x[2] + (x[3] - x[2]) / 2)
+    center <- apply(
+        matrix(xx, ncol = 4, byrow = TRUE), 1,
+        function(x) x[2] + (x[3] - x[2]) / 2
+    )
     bounds <- apply(matrix(xx, ncol = 4, byrow = TRUE), 1, function(x) x[2:3])
 
     if (!is.null(inflist)) {
         addBarInference(inflist, center, opts, obj$zoom.index)
-        if (!is.null(inflist$comp))
+        if (!is.null(inflist$comp)) {
             addBarCompLines(inflist$comp, bounds, p, opts, obj$zoom.index)
+        }
     }
 }
 
@@ -261,7 +280,7 @@ barinference <- function(obj, tab, phat, counts) {
         return(NULL)
     }
 
-    twoway <- length(dim(tab)) == 2  # two way comparison (two factors ...)
+    twoway <- length(dim(tab)) == 2 # two way comparison (two factors ...)
     svy <- obj$xattr$class == "inz.survey"
 
     if (length(dim(tab)) == 1) {
@@ -286,28 +305,31 @@ barinference <- function(obj, tab, phat, counts) {
                             ## For now, we will just all over and not return
                             ## intervals
                             ## IN FUTURE: might want to bootstrap another way?
-                            inf <- try({
-                                n <- rowSums(tab)
-                                b <- boot(dat,
-                                    function(d, f) {
-                                        tt <- t(table(d[f, 1], d[f, 2]))
-                                        sweep(tt, 1, n, "/")
-                                    },
-                                    R = 1000
-                                )
-                                cis <- apply(b$t, 2,
-                                    function(x) {
-                                        c(
-                                            quantile(x, probs = c(1 - alpha, alpha)),
-                                            mean(x)
-                                        )
-                                    }
-                                )
-                            },
-                            silent = TRUE)
-                            if (inherits(inf, "try-error"))
+                            inf <- try(
+                                {
+                                    n <- rowSums(tab)
+                                    b <- boot(dat,
+                                        function(d, f) {
+                                            tt <- t(table(d[f, 1], d[f, 2]))
+                                            sweep(tt, 1, n, "/")
+                                        },
+                                        R = 1000
+                                    )
+                                    cis <- apply(
+                                        b$t, 2,
+                                        function(x) {
+                                            c(
+                                                quantile(x, probs = c(1 - alpha, alpha)),
+                                                mean(x)
+                                            )
+                                        }
+                                    )
+                                },
+                                silent = TRUE
+                            )
+                            if (inherits(inf, "try-error")) {
                                 NULL
-                            else
+                            } else {
                                 list(
                                     lower =
                                         matrix(cis[1, ],
@@ -325,14 +347,18 @@ barinference <- function(obj, tab, phat, counts) {
                                             byrow = FALSE
                                         )
                                 )
+                            }
                         } else {
                             n <- sum(tab)
-                            if (n == 0) return(NULL)
+                            if (n == 0) {
+                                return(NULL)
+                            }
                             b <- boot(dat,
                                 function(d, f) table(d[f, 1]) / n,
                                 R = opts$n.boot
                             )
-                            cis <- apply(b$t, 2,
+                            cis <- apply(
+                                b$t, 2,
                                 function(x) {
                                     c(
                                         quantile(x, probs = c(1 - alpha, alpha)),
@@ -350,7 +376,8 @@ barinference <- function(obj, tab, phat, counts) {
                 } else {
                     if (svy) {
                         if (twoway) {
-                            fit <- svyby(~x, by = ~y, obj$df,
+                            fit <- svyby(~x,
+                                by = ~y, obj$df,
                                 FUN = svymean,
                                 drop.empty.groups = FALSE,
                                 na.rm = TRUE
@@ -379,7 +406,8 @@ barinference <- function(obj, tab, phat, counts) {
                     } else {
                         ## Standard confidence interval:
                         size <- t(
-                            apply(tab, 1,
+                            apply(
+                                tab, 1,
                                 function(x) {
                                     n <- sum(x)
                                     p <- ifelse(x >= opts$min.count, x / n, NA)
@@ -412,34 +440,41 @@ barinference <- function(obj, tab, phat, counts) {
                             ## several ways in which this can fall over;
                             ## rather than testing for each, just try and
                             ## iNZightMR will fail with an error
-                            int <- try({
-                                n <- rowSums(tab)
-                                ## ii - only use rows that have at least 1 count
-                                ## (due to subsetting, can be 0 counts for row)
-                                ii <- n > 0
+                            int <- try(
+                                {
+                                    n <- rowSums(tab)
+                                    ## ii - only use rows that have at least 1 count
+                                    ## (due to subsetting, can be 0 counts for row)
+                                    ii <- n > 0
 
-                                lapply(1:ncol(tab), function(i) {
-                                    if(sum(tab[ii, ] > 0) < 2)
-                                        return(list(compL = NA, compU = NA))
+                                    lapply(1:ncol(tab), function(i) {
+                                        if (sum(tab[ii, ] > 0) < 2) {
+                                            return(list(compL = NA, compU = NA))
+                                        }
 
-                                    suppressWarnings(
-                                        iNZightMR::moecalc(
-                                            seBinprops(n[ii], phat[ii, i]),
-                                            est = phat[ii, i]
+                                        suppressWarnings(
+                                            iNZightMR::moecalc(
+                                                seBinprops(n[ii], phat[ii, i]),
+                                                est = phat[ii, i]
+                                            )
                                         )
-                                    )
-                                }) -> out
+                                    }) -> out
 
-                                low <- upp <- phat * 0
-                                low[ii, ] <- sapply(out, function(x) x$compL)
-                                upp[ii, ] <- sapply(out, function(x) x$compU)
-                            }, silent = TRUE)
-                            if (inherits(int, "try-error"))
+                                    low <- upp <- phat * 0
+                                    low[ii, ] <- sapply(out, function(x) x$compL)
+                                    upp[ii, ] <- sapply(out, function(x) x$compU)
+                                },
+                                silent = TRUE
+                            )
+                            if (inherits(int, "try-error")) {
                                 NULL
-                            else
+                            } else {
                                 list(lower = low, upper = upp)
+                            }
                         } else {
-                            if (sum(tab) == 0) return(NULL)
+                            if (sum(tab) == 0) {
+                                return(NULL)
+                            }
                             phat <- c(phat) # don't want matrix
                             res <- with(
                                 suppressWarnings(
@@ -450,7 +485,8 @@ barinference <- function(obj, tab, phat, counts) {
                                 ),
                                 list(lower = t(compL), upper = t(compU))
                             )
-                            lapply(res,
+                            lapply(
+                                res,
                                 function(r) {
                                     colnames(r) <- colnames(tab)
                                     r[tab < opts$min.count] <- NA
@@ -460,7 +496,8 @@ barinference <- function(obj, tab, phat, counts) {
                         }
                     }
                 }
-            })
+            }
+        )
     }) -> result
     names(result) <- inf.type
 
@@ -468,11 +505,15 @@ barinference <- function(obj, tab, phat, counts) {
     if (counts) {
         # loop over [conf, comp]
         Ns <- if (twoway) rowSums(tab) else sum(tab)
-        result <- lapply(result,
+        result <- lapply(
+            result,
             function(res) {
-                if (is.null(res)) return(res)
+                if (is.null(res)) {
+                    return(res)
+                }
                 # loop over [lower, upper, estimate]
-                lapply(res,
+                lapply(
+                    res,
                     function(r) {
                         sweep(r, 1, Ns, "*")
                     }
@@ -482,10 +523,14 @@ barinference <- function(obj, tab, phat, counts) {
     }
 
     # make everything a matrix
-    result <- lapply(result,
+    result <- lapply(
+        result,
         function(res) {
-            if (is.null(res)) return(res)
-            lapply(res,
+            if (is.null(res)) {
+                return(res)
+            }
+            lapply(
+                res,
                 function(r) {
                     unclass(r)
                 }
@@ -495,18 +540,26 @@ barinference <- function(obj, tab, phat, counts) {
 
     attr(result, "bootstrap") <- bs
     attr(result, "max") <- max(
-        sapply(result,
+        sapply(
+            result,
             function(r) {
-                if (is.null(r)) 0
-                else max(
-                    sapply(r,
-                        function(x) {
-                            if (is.null(x)) 0
-                            else max(c(0, x), na.rm = TRUE)
-                        }
-                    ),
-                    na.rm = TRUE
-                )
+                if (is.null(r)) {
+                    0
+                } else {
+                    max(
+                        sapply(
+                            r,
+                            function(x) {
+                                if (is.null(x)) {
+                                    0
+                                } else {
+                                    max(c(0, x), na.rm = TRUE)
+                                }
+                            }
+                        ),
+                        na.rm = TRUE
+                    )
+                }
             }
         ),
         na.rm = TRUE

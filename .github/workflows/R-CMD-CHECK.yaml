@@ -28,6 +28,7 @@ jobs:
       RSPM: ${{ matrix.config.rspm }}
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       _R_CHECK_DONTTEST_EXAMPLES_: false
+      _R_CHECK_S3_METHODS_SHOW_POSSIBLE_ISSUES_: true
 
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.config.os }}-${{ matrix.config.r }}

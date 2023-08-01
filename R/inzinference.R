@@ -11,8 +11,10 @@ inzinference <- function(x, ..., env = parent.frame()) {
     UseMethod("inzinference")
 }
 
-inzinference.default <- function(x, ..., env = parent.frame())
+#' @export
+inzinference.default <- function(x, ..., env = parent.frame()) {
     stop("That type of object is not supported.")
+}
 
 #' @describeIn inzinference Wrapper for getPlotSummary to obtain inference information about a plot
 #' @export

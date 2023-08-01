@@ -1,3 +1,5 @@
+# iNZightPlots 2.15.3
+
 - modify tests that were randomly creating spurious messages on CRAN
 
 # iNZightPlots 2.15.1

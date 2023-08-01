@@ -1,8 +1,8 @@
 on:
   push:
     branches:
-      - master
       - dev
+      - "release/**"
 
 name: Check reverse dependencies
 
