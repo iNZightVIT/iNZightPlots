@@ -2,8 +2,9 @@ createPlot <- function(df, opts, xattr) {
     ## This function takes a data.frame object and creates the necessary object which will have a
     ## `plot` method.
 
-    if (is.null(df))
+    if (is.null(df)) {
         return(nullPlot(opts, xattr))
+    }
 
     large <- ifelse(
         is.null(lg <- opts$largesample),
@@ -15,7 +16,7 @@ createPlot <- function(df, opts, xattr) {
     v <- xattr$v
     vt <- xattr$vartypes
     xfact <- vt$x == "factor"
-    ynull <- ! "y" %in% v
+    ynull <- !"y" %in% v
     yfact <- if (ynull) FALSE else vt$y == "factor"
     xnum <- !xfact
     ynum <- if (ynull) FALSE else !yfact
@@ -23,7 +24,7 @@ createPlot <- function(df, opts, xattr) {
     ## allow forcing the plot type:
     ## -- here, the switch takes the given plot type, checks the data types are correct,
     ## and if they aren't, just uses the default
-    plottype <- gsub("plot", "", opts$plottype)  # remove `plot` from type, if specified
+    plottype <- gsub("plot", "", opts$plottype) # remove `plot` from type, if specified
     type <- switch(plottype,
         "bar" = ifelse(xfact & (ynull | yfact), plottype, "default"),
         "hist" = ,
@@ -35,8 +36,9 @@ createPlot <- function(df, opts, xattr) {
     )
 
     ## throw a warning if they give an invalid type
-    if (type != plottype & type != "other")
+    if (type != plottype & type != "other") {
         warning("The plot type specified does not match the supplied data.")
+    }
 
     if (type %in% c("default", "other")) {
         if (ynull) {
@@ -60,8 +62,11 @@ createPlot <- function(df, opts, xattr) {
             )
         }
 
-        type <- if (type == "other") c(paste0(plottype, "plot"), newtype)
-                else newtype
+        type <- if (type == "other") {
+            c(paste0(plottype, "plot"), newtype)
+        } else {
+            newtype
+        }
     } else {
         type <- paste0(type, "plot")
     }
@@ -77,10 +82,11 @@ createPlot <- function(df, opts, xattr) {
 
     tryCatch(create(obj),
         error = function(e) {
-            if (grepl('no applicable method for \'create\'', e))
+            if (grepl("no applicable method for 'create'", e)) {
                 stop(paste0('No method available for plottype = "', plottype, '"'))
-            else
+            } else {
                 stop(e)
+            }
         }
     )
 }
@@ -94,8 +100,10 @@ createPlot <- function(df, opts, xattr) {
 #'
 #' @title Create plots for iNZight
 #' @param obj an object
+#' @param ... additional arguments
 #' @return an iNZight plot object with class determined by data type
 #' @author Tom Elliott
 #' @export
-create <- function(obj)
+create <- function(obj, ...) {
     UseMethod("create")
+}

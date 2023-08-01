@@ -1,4 +1,5 @@
-create.inz.scatterplot <- function(obj) {
+#' @export
+create.inz.scatterplot <- function(obj, ...) {
     # take the dataframe and settings from the object
     df <- obj$df
     opts <- obj$opts
@@ -32,7 +33,7 @@ create.inz.scatterplot <- function(obj) {
     vn <- xattr$varnames
 
     # first need to remove missing values
-    missing <- apply(df[ , v %in% c("x", "y")], 1, function(x) any(is.na(x)))
+    missing <- apply(df[, v %in% c("x", "y")], 1, function(x) any(is.na(x)))
     n.missing <- sum(missing)
     df <- df[!missing, ]
     ## order should match the length of non-missing:
@@ -60,12 +61,13 @@ create.inz.scatterplot <- function(obj) {
         if (length(unique(df$weights)) == 1) {
             resize <- FALSE
             propsize <- opts$cex.pt
-        } else
+        } else {
             propsize <- df$weights / xattr$max.weight * 2 + 0.5
+        }
     } else if ("sizeby" %in% v) {
         propsize <- df$.cex
     } else {
-        propsize <- 1# opts$cex.pt
+        propsize <- 1 # opts$cex.pt
         resize <- FALSE
     }
 
@@ -79,7 +81,8 @@ create.inz.scatterplot <- function(obj) {
         eLab <- as.character(df$extreme.label)
         m <- cbind(df$x, df$y)
         if (sum(apply(m, 1, function(k) all(!is.na(k)))) > 0) {
-            dist <- mahalanobis(m,
+            dist <- mahalanobis(
+                m,
                 colMeans(m, na.rm = TRUE),
                 cov(m, use = "complete.obs")
             )
@@ -122,10 +125,12 @@ create.inz.scatterplot <- function(obj) {
         ci.width = opts$ci.width
     )
 
-    if (xattr$class == "inz.survey")
+    if (xattr$class == "inz.survey") {
         out$svy <- obj$df
-    if ("highlight" %in% colnames(df))
+    }
+    if ("highlight" %in% colnames(df)) {
         out$highlight <- as.logical(df$highlight)
+    }
 
     class(out) <- "inzscatter"
 
@@ -141,14 +146,17 @@ plot.inzscatter <- function(obj, gen) {
 
     addGrid(x = TRUE, y = TRUE, gen = gen, opts = opts)
 
-    if (length(obj$x) == 0)
+    if (length(obj$x) == 0) {
         return()
+    }
 
     ## Jitter on x and y
-    if ("x" %in% strsplit(opts$jitter, '')[[1]])
+    if ("x" %in% strsplit(opts$jitter, "")[[1]]) {
         obj$x <- jitter(obj$x)
-    if ("y" %in% strsplit(opts$jitter, '')[[1]])
+    }
+    if ("y" %in% strsplit(opts$jitter, "")[[1]]) {
         obj$y <- jitter(obj$y)
+    }
 
     ptCols <- colourPoints(obj$colby, col.args, opts)
 
@@ -163,8 +171,9 @@ plot.inzscatter <- function(obj, gen) {
             if (!is.null(col.args$locate.col)) {
                 newCol <- col.args$locate.col
 
-                if (length(ptCols) == 1)
+                if (length(ptCols) == 1) {
                     ptCols <- rep(ptCols, length(obj$x))
+                }
                 ptCols[labID] <- newCol
 
                 ## make them solid:
@@ -176,33 +185,34 @@ plot.inzscatter <- function(obj, gen) {
 
     NotInView <-
         obj$x < min(xlim) |
-        obj$x > max(xlim) |
-        obj$y < min(ylim) |
-        obj$y > max(ylim)
+            obj$x > max(xlim) |
+            obj$y < min(ylim) |
+            obj$y > max(ylim)
 
     obj$pch[NotInView] <- NA
     ptOrdering <-
-    grid.points(obj$x, obj$y,
-        pch = obj$pch,
-        gp = gpar(
-            col = ptCols,
-            cex = obj$propsize,
-            lwd = opts$lwd.pt,
-            alpha = opts$alpha,
-            fill = if (obj$fill.pt == "fill") ptCols else obj$fill.pt
-        ),
-        name = paste("inz-SCATTERPOINTS", opts$rowNum, opts$colNum, sep = ".")
-    )
+        grid.points(obj$x, obj$y,
+            pch = obj$pch,
+            gp = gpar(
+                col = ptCols,
+                cex = obj$propsize,
+                lwd = opts$lwd.pt,
+                alpha = opts$alpha,
+                fill = if (obj$fill.pt == "fill") ptCols else obj$fill.pt
+            ),
+            name = paste("inz-SCATTERPOINTS", opts$rowNum, opts$colNum, sep = ".")
+        )
 
     ## Highlighting:
     if (!is.null(obj$highlight) & length(ptCols) > 1) {
         hl <- as.logical(obj$highlight)
         if (sum(hl) > 0) {
             hcol <-
-                if (opts$highlight.col == "shade")
+                if (opts$highlight.col == "shade") {
                     shade(ptCols[hl], 0.6)
-                else
+                } else {
                     opts$highlight.col
+                }
 
             grid.points(obj$x[hl], obj$y[hl],
                 pch = 19,
@@ -230,8 +240,8 @@ plot.inzscatter <- function(obj, gen) {
         labx <- unit(obj$x[labID], "native")
         laby <- unit(obj$y[labID], "native") +
             (grobHeight(textGrob("0", gp = gpar(cex = obj$propsize))) +
-             grobHeight(textGrob("0", gp = gpar(cex = 0.6)))) *
-                 ifelse(obj$y[labID] < mean(ylim), 1, -1)
+                grobHeight(textGrob("0", gp = gpar(cex = 0.6)))) *
+                ifelse(obj$y[labID] < mean(ylim), 1, -1)
 
         grid.text(labs, labx, laby, gp = gpar(cex = 0.6))
     }
@@ -248,15 +258,17 @@ plot.inzscatter <- function(obj, gen) {
                 )
             )
         } else {
-            byy <- as.factor(obj$colby)  # pseudo-by-variable
-            xtmp <- lapply(levels(byy),
+            byy <- as.factor(obj$colby) # pseudo-by-variable
+            xtmp <- lapply(
+                levels(byy),
                 function(c) obj$x[obj$colby == c]
             )
-            ytmp <- lapply(levels(byy),
+            ytmp <- lapply(
+                levels(byy),
                 function(c) obj$y[obj$colby == c]
             )
 
-            for (b in 1:length(levels(byy)))
+            for (b in 1:length(levels(byy))) {
                 grid.lines(xtmp[[b]], ytmp[[b]],
                     default.units = "native",
                     gp = gpar(
@@ -265,20 +277,21 @@ plot.inzscatter <- function(obj, gen) {
                         col = col.args$f.cols[b]
                     )
                 )
+            }
         }
     }
 
     ## add rugs --- these only make sense for a scatter plot
-    if ("x" %in% strsplit(opts$rug, '')[[1]]) {
-      # Add marks on the x-axis at the location of every data point
+    if ("x" %in% strsplit(opts$rug, "")[[1]]) {
+        # Add marks on the x-axis at the location of every data point
         grid.polyline(
             x = unit(rep(obj$x, each = 2), "native"),
             y = unit(rep(c(0, 0.5), length(obj$x)), "char"),
             id.lengths = rep(2, length(obj$x))
         )
     }
-    if ("y" %in% strsplit(opts$rug, '')[[1]]) {
-      # Same, but for the y-axis
+    if ("y" %in% strsplit(opts$rug, "")[[1]]) {
+        # Same, but for the y-axis
         grid.polyline(
             y = unit(rep(obj$y, each = 2), "native"),
             x = unit(rep(c(0, 0.5), length(obj$y)), "char"),
@@ -299,9 +312,11 @@ plot.inzscatter <- function(obj, gen) {
         )
     }
 
-    if (opts$trend.by)
-        if (is.null(col.args$f.cols))
+    if (opts$trend.by) {
+        if (is.null(col.args$f.cols)) {
             opts$trend.by <- FALSE
+        }
+    }
 
     # Add additional features to plot:
     addXYsmoother(obj, opts, col.args, xlim, ylim)

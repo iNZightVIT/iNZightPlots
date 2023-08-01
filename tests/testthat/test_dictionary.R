@@ -8,10 +8,13 @@ cas_dict <- read_dictionary("casdict.csv",
 
 cas <- apply_dictionary(cas_raw, cas_dict)
 
+skip_if_not_installed("ggmosaic")
+skip_if_not_installed("waffle")
+
 test_that("Variable lables used if present", {
     # devtools::load_all()
-    expect_silent(inzplot(~height, cas))
-    expect_silent(inzplot(~height, cas, plottype = "gg_barcode"))
+    expect_is(inzplot(~height, cas), "inzplotoutput")
+    expect_is(inzplot(~height, cas, plottype = "gg_barcode"), "gg")
 
-    expect_silent(inzplot(~travel, cas, plottype = "gg_column"))
+    expect_is(inzplot(~travel, cas, plottype = "gg_column"), "gg")
 })

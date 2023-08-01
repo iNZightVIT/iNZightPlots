@@ -1,10 +1,6 @@
-## Resubmission
-
-This is a resubmission, previous submission failed for some unknown error during CRAN pretests. This same error was occuring on the current CRAN version, but the latest R-devel seems to pass all checks, so attempting a resubmisison.
-
 ## Test environments
 
-- local ubuntu 21.10, R 4.1.0
+- ubuntu 22.04 (local), R 4.2.3
 - ubuntu 20.04 (GitHub Actions) R release, R devel
 - macos (GitHub Actions), R release
 - win-builder, R release and devel
@@ -16,7 +12,3 @@ This is a resubmission, previous submission failed for some unknown error during
 ## Downstream dependencies
 
 I have run R CMD CHECK on the 2 downstream dependencies of iNZightPlots, and both passed.
-
-## CRAN check results
-
-There is one ERROR for Windows r-devel new UL, failing when running tests but there's no additional information for me to ascertain what the problem is, and whether or not its coming from this package or a bug related to the developmental version of R.

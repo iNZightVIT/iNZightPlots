@@ -1,4 +1,5 @@
- skip_if_not_installed("RSQLite")
+skip_if_not_installed("RSQLite")
+skip_if_not_installed("dbplyr")
 
 iris_species <- data.frame(
     species_id = 1:3,
@@ -14,10 +15,14 @@ iris_data <- iris %>%
 
 db <- tempfile(fileext = ".db")
 con <- DBI::dbConnect(RSQLite::SQLite(), db)
-on.exit({DBI::dbDisconnect(con); unlink(db)})
+on.exit({
+    DBI::dbDisconnect(con)
+    unlink(db)
+})
 DBI::dbWriteTable(con, "iris_species", iris_species)
 DBI::dbWriteTable(con, "iris_data", iris_data)
-DBI::dbWriteTable(con, "iris_extra",
+DBI::dbWriteTable(
+    con, "iris_extra",
     data.frame(
         id = 1:2,
         type = c("Fluffy", "Hard")
@@ -42,5 +47,6 @@ d <- inzdf(con,
 )
 
 test_that("Basic plots work", {
-    expect_silent(inzplot(~Sepal.Width, data = d))
+    p <- inzplot(~Sepal.Width, data = d)
+    expect_is(p, "inzplotoutput")
 })

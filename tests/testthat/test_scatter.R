@@ -79,6 +79,6 @@ test_that("Adding inference information", {
 
 test_that("Scatter plot with single unique x/y value", {
     d <- data.frame(x = rep(10, 10), y = rnorm(10))
-    expect_silent(inzplot(y ~ x, data = d, plot = FALSE))
-    expect_silent(inzplot(x ~ y, data = d, plot = FALSE))
+    expect_is(inzplot(y ~ x, data = d, plot = FALSE), "inzplotoutput")
+    expect_is(inzplot(x ~ y, data = d, plot = FALSE), "inzplotoutput")
 })

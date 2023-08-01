@@ -14,3 +14,5 @@
 ^CRAN-SUBMISSION$
 ^\.git$
 ^docs$
+^_pkgdown.yml$
+^\.better-commits.json$

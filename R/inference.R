@@ -1,8 +1,8 @@
-inference <- function(object, survey.options, ...) {
+inference <- function(object, ...) {
     UseMethod("inference")
 }
 
-
+#' @export
 inference.inzdot <- function(object, des, bs, class, width, vn, hypothesis,
                              survey.options, ...) {
     toplot <- object$toplot
@@ -679,6 +679,8 @@ formatMat <- function(mat, digits = 4) {
 
     mat
 }
+
+#' @export
 inference.inzhist <- function(object, des, bs, class, width, vn, hypothesis,
                               survey.options, ...) {
     inference.inzdot(
@@ -688,7 +690,7 @@ inference.inzhist <- function(object, des, bs, class, width, vn, hypothesis,
 }
 
 
-
+#' @export
 inference.inzbar <- function(object, des, bs, nb, vn, hypothesis,
                              survey.options, epi.out = FALSE, ...) {
     phat <- object$phat
@@ -1538,7 +1540,7 @@ pDiffCI <- function(p1, p2, n1, n2, z = 1.96) {
     p + c(-1, 1) * z * se
 }
 
-
+#' @export
 inference.inzscatter <- function(object, des, bs, nb, vn, survey.options, ...) {
     d <- data.frame(
         x = object$x,
@@ -1690,10 +1692,13 @@ inference.inzscatter <- function(object, des, bs, nb, vn, survey.options, ...) {
 
     out
 }
+
+#' @export
 inference.inzgrid <- function(object, bs, nboot, vn, survey.options, ...) {
     inference.inzscatter(object, bs, nboot, vn, survey.options, ...)
 }
 
+#' @export
 inference.inzhex <- function(object, bs, nboot, vn, survey.options, ...) {
     inference.inzscatter(object, bs, nboot, vn, survey.options, ...)
 }

@@ -235,10 +235,11 @@ test_that("Factors with one level return error", {
 })
 
 test_that("Log transformation works with surveys", {
-    expect_silent(
+    expect_is(
         inzplot(~meals, design = dclus1, transform = list(x = "log"),
             plot = FALSE
-        )
+        ),
+        "inzplotoutput"
     )
 })
 
@@ -249,5 +250,5 @@ test_that("SRS fpc-only works", {
     )
     srs_des <- svydesign(~1, fpc = ~y, data = srs_data)
 
-    expect_silent(inzplot(~v, design = srs_des))
+    expect_is(inzplot(~v, design = srs_des), "inzplotoutput")
 })
