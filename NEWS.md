@@ -1,6 +1,7 @@
 # iNZightPlots 2.15.3
 
 - modify tests that were randomly creating spurious messages on CRAN
+- add 'dbplyr' to Suggests
 
 # iNZightPlots 2.15.1
 
