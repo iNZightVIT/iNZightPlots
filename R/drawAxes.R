@@ -1,7 +1,6 @@
 drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts,
                      sub = 0, heightOnly = FALSE,
                      layout.only = FALSE, pos = NULL) {
-
     ## inzight has two basic axis types - numeric, and categorical
     fun <- ifelse(is.numeric(x), .numericAxis, .categoricalAxis)
     fun(x, which, main, label, opts, sub, heightOnly, layout.only, pos)
@@ -10,7 +9,6 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts,
 .numericAxis <- function(x, which = "x", main = TRUE, label = TRUE, opts,
                          sub = 0, heightOnly = FALSE,
                          layout.only = FALSE, pos = NULL) {
-
     x <- transform_axes(x, which, opts, label)
     at <- x$at
     labs <- x$labs
@@ -41,7 +39,8 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts,
                     label = labs,
                     main = FALSE,
                     name = paste("inz-xaxis-top", opts$rowNum, opts$colNum,
-                        sep = ".")
+                        sep = "."
+                    )
                 )
                 upViewport()
             }
@@ -57,7 +56,7 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts,
                     sep = "."
                 )
             )
-            if (label)
+            if (label) {
                 yax <- editGrob(
                     yax,
                     edits = gEdit(
@@ -67,6 +66,7 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts,
                         vjust = ifelse(main, 0, -0.5)
                     )
                 )
+            }
             grid.draw(yax)
         }
     )
@@ -75,9 +75,9 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts,
 .categoricalAxis <- function(x, which = "x", main = TRUE, label = TRUE, opts,
                              sub = 0, heightOnly = FALSE,
                              layout.only = FALSE, pos = NULL) {
-    if (is.null(opts$ZOOM))
+    if (is.null(opts$ZOOM)) {
         x.lev <- levels(x)
-    else {
+    } else {
         ZOOM <- opts$ZOOM
         ww <- ZOOM[1]:(sum(ZOOM) - 1)
         nl <- length(levels(x))
@@ -90,13 +90,13 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts,
             rot <- opts$rot
             labText <- textGrob(
                 x.lev,
-                x = unit( (0:length(x.lev))[-1] - 0.5, "native"),
+                x = unit((0:length(x.lev))[-1] - 0.5, "native"),
                 y = if (rot) unit(-0.5, "mm") else unit(-1, "lines"),
                 just = if (rot) c("right", "top") else "center",
                 rot = ifelse(rot, 30, 0),
                 gp = gpar(cex = opts$cex.axis * ifelse(rot, 0.8, 1)),
                 name = "inz-labelText"
-            )  # label is important!
+            ) # label is important!
             wm <- which.max(nchar(as.character(x.lev)))
             tt <- textGrob(levels(x)[wm])
             # save label widths
@@ -115,7 +115,8 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts,
                 for (i in 1:Nlab) {
                     seekViewport(paste0("VP:plotregion-", i))
                     grid.text(
-                        labels[i], x = unit(-0.5, "lines"),
+                        labels[i],
+                        x = unit(-0.5, "lines"),
                         just = "right", gp = gpar(cex = opts$cex.axis)
                     )
                     upViewport()
@@ -126,8 +127,12 @@ drawAxes <- function(x, which = "x", main = TRUE, label = TRUE, opts,
 }
 
 addGrid <- function(x = FALSE, y = FALSE, gen, opts) {
-    if (!opts$grid.lines) return()
-    if (!any(x, y)) return()
+    if (!opts$grid.lines) {
+        return()
+    }
+    if (!any(x, y)) {
+        return()
+    }
 
     col.grid <- opts$col.grid
     if (col.grid == "default") {
@@ -143,7 +148,8 @@ addGrid <- function(x = FALSE, y = FALSE, gen, opts) {
         at.X <- rep(at.x, each = 2)
         at.Y <- rep(current.viewport()$yscale, length(at.x))
         grid.polyline(
-            at.X, at.Y, id.lengths = rep(2, length(at.X) / 2),
+            at.X, at.Y,
+            id.lengths = rep(2, length(at.X) / 2),
             default.units = "native",
             gp = gpar(col = col.grid, lwd = 1),
             name = paste("inz-x-grid", opts$rowNum, opts$colNum, sep = ".")
@@ -154,7 +160,8 @@ addGrid <- function(x = FALSE, y = FALSE, gen, opts) {
         at.Y <- rep(at.y, each = 2)
         at.X <- rep(current.viewport()$xscale, length(at.y))
         grid.polyline(
-            at.X, at.Y, id.lengths = rep(2, length(at.Y) / 2),
+            at.X, at.Y,
+            id.lengths = rep(2, length(at.Y) / 2),
             default.units = "native",
             gp = gpar(col = col.grid, lwd = 1),
             name = paste("inz-y-grid", opts$rowNum, opts$colNum, sep = ".")
@@ -190,9 +197,9 @@ transform_axes <- function(x, which, opts, label, adjust.vp = TRUE) {
             "log" = {
                 breaks <- scales::log_trans()$breaks(exp(x))
                 breaks <- log(breaks)
-                if (all(round(breaks) == breaks))
+                if (all(round(breaks) == breaks)) {
                     names(breaks) <- paste0("e^", breaks)
-                else {
+                } else {
                     names(breaks) <- round(exp(breaks))
                 }
             },
@@ -225,10 +232,14 @@ transform_axes <- function(x, which, opts, label, adjust.vp = TRUE) {
         breaks <- scales::breaks_pretty()(xt)
     }
     if (adjust.vp) {
-        xl <- current.viewport()[[switch(which, "x" = "xscale", y = "yscale")]]
+        xl <- current.viewport()[[switch(which,
+            "x" = "xscale",
+            y = "yscale"
+        )]]
         breaks <- breaks[breaks > xl[1] & breaks < xl[2]]
-        if (length(breaks) == 0)
+        if (length(breaks) == 0) {
             breaks <- seq(min(xl), max(xl), by = 1)
+        }
     }
     at <- as.numeric(breaks)
     labs <- FALSE
