@@ -30,7 +30,7 @@ jobs:
       cancel-in-progress: true
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: r-lib/actions/setup-r@v2
         with:
@@ -45,7 +45,7 @@ jobs:
         shell: Rscript {0}
 
       - name: Cache R packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ env.R_LIBS_USER }}
           key: ${{ runner.os }}-r-${{ matrix.config.r }}-1-${{ hashFiles('.github/depends.Rds') }}
@@ -68,7 +68,7 @@ jobs:
 
       - name: Test coverage
         continue-on-error: true
-        uses: nick-invision/retry@v1
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
