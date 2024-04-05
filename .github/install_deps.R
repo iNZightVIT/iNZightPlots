@@ -18,7 +18,7 @@ if (OS != "Linux" && !requireNamespace("XML", quietly = TRUE)) {
 }
 
 # install estimability package version 1.4.1, if not already installed
-if (getRversion() < numeric_version(4.3) &&
+if (getRversion() < numeric_version("4.3") &&
     !requireNamespace("estimability", quietly = TRUE)) {
     remotes::install_version("estimability", version = "1.4.1")
 }
