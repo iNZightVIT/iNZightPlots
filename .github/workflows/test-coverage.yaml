@@ -62,9 +62,13 @@ jobs:
         shell: bash
 
       - name: Test coverage
-        continue-on-error: true
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 10
-          max_attempts: 5
-          command: Rscript -e "covr::codecov()"
+        run: Rscript -e "covr::codecov()"
+        shell: bash
+
+      # - name: Test coverage
+      #   continue-on-error: true
+      #   uses: nick-fields/retry@v3
+      #   with:
+      #     timeout_minutes: 10
+      #     max_attempts: 5
+      #     command: Rscript -e "covr::codecov()"
