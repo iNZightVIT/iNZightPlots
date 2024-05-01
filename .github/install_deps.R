@@ -13,6 +13,8 @@ options(
     install.packages.compile.from.source = "never"
 )
 
+install.packages("pak")
+
 if (OS != "Linux" && !requireNamespace("XML", quietly = TRUE)) {
     install.packages("XML", type = "binary")
 }
@@ -23,6 +25,10 @@ if (getRversion() < numeric_version("4.3") &&
     remotes::install_version("estimability", version = "1.4.1")
 }
 
-remotes::install_github(github_deps)
-remotes::install_deps(dependencies = TRUE)
-remotes::install_cran("rcmdcheck")
+pak::pkg_install(github_deps)
+pak::local_install_deps(dependencies = TRUE)
+pak::pkg_install("rcmdcheck")
+
+# remotes::install_github(github_deps)
+# remotes::install_deps(dependencies = TRUE)
+# remotes::install_cran("rcmdcheck")
