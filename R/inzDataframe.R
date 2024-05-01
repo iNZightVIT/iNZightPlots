@@ -1,6 +1,5 @@
 inzDataframe <- function(m, data = NULL, names = list(),
                          g1.level, g2.level, env) {
-
     # This function takes the given arguments and converts them into a
     # data frame for easy use by iNZightPlot.
     # It returns an object with a class: `inz.(simple|freq|survey)`
@@ -82,7 +81,7 @@ inzDataframe <- function(m, data = NULL, names = list(),
         data <- iNZightTools::as_tibble(
             iNZightTools::select(
                 data,
-                as.character(unlist(vn))
+                dplyr::any_of(as.character(unlist(vn)))
             )
         )
     }
