@@ -46,6 +46,7 @@ jobs:
             install-pandoc: true
 
       - uses: r-lib/actions/setup-r-dependencies@v2
+        if ${{ matrix.config.r }} != "4.2":
         with:
           cache-version: ${{ matrix.config.cache  }}
           needs: |
