@@ -36,7 +36,7 @@ jobs:
           extra-repositories: "https://r.docker.stat.auckland.ac.nz"
 
       - uses: r-lib/actions/setup-r-dependencies@v2
-        if ${{ matrix.config.r }} == "4.1":
+        if: matrix.config.r == "4.1"
         with:
           cache-version: ${{ matrix.config.cache  }}
           extra-packages: cran/MatrixModels@0.5-0
@@ -46,7 +46,7 @@ jobs:
           install-pandoc: true
 
       - uses: r-lib/actions/setup-r-dependencies@v2
-        if ${{ matrix.config.r }} != "4.2":
+        if: matrix.config.r != "4.2"
         with:
           cache-version: ${{ matrix.config.cache  }}
           needs: |
