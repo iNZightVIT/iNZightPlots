@@ -70,11 +70,11 @@ RoxygenNote: 7.2.3
 Config/Needs/dependencies:
     tmelliott/surveyspec@develop,
     iNZightVIT/iNZightTools@1.13.0,
-    iNZightVIT/iNZightMR@2.2.7
+    iNZightVIT/iNZightMR@2.2.7,
     rcmdcheck,
     curl
 Config/Needs/coverage:
     tmelliott/surveyspec@develop,
     iNZightVIT/iNZightTools@1.13.0,
-    iNZightVIT/iNZightMR@2.2.7
+    iNZightVIT/iNZightMR@2.2.7,
     covr
