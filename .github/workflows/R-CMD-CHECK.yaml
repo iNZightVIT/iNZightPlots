@@ -35,22 +35,11 @@ jobs:
           use-public-rspm: true
           extra-repositories: "https://r.docker.stat.auckland.ac.nz"
 
-      - if: ${{ contains(matrix.config.r, '4.1') }}
-        name: Install dependencies (R == 4.1)
-        uses: r-lib/actions/setup-r-dependencies@v2
+      - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           cache-version: ${{ matrix.config.cache  }}
-          extra-packages: cran/MatrixModels@0.5-0
-          needs: |
-            check
-            dependencies
-          install-pandoc: true
-
-      - if: ${{ ! contains(matrix.config.r, '4.1') }}
-        name: Install dependencies (R >= 4.2)
-        uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          cache-version: ${{ matrix.config.cache  }}
+          # extra packages based on R version
+          extra-packages: ${{ matrix.config.r == '4.1' && 'cran/MatrixModels@0.5-0' || '' }}
           needs: |
             check
             dependencies
