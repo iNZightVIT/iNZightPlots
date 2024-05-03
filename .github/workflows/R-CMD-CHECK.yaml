@@ -35,7 +35,7 @@ jobs:
           use-public-rspm: true
           extra-repositories: "https://r.docker.stat.auckland.ac.nz"
 
-      - if: ${{ matrix.config.r }} == "4.1"
+      - if: ${{ matrix.config.r == "4.1" }}
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
           cache-version: ${{ matrix.config.cache  }}
@@ -45,7 +45,7 @@ jobs:
             dependencies
           install-pandoc: true
 
-      - if: ${{ matrix.config.r }} != "4.1"
+      - if: ${{ matrix.config.r != "4.1" }}
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
           cache-version: ${{ matrix.config.cache  }}
