@@ -22,6 +22,10 @@
 - handle variable labels (from 'expss' package) in plot titles/axes/legends
 - handle units attached to variables
 
+# iNZightPlots 2.14.5
+
+- add option to disable variable-width barplot (i.e., spineplots)
+
 # iNZightPlots 2.14.4
 
 - fix bug in CI width calculation for two-way comparisons
