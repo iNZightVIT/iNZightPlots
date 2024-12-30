@@ -1,4 +1,4 @@
-# iNZightPlots 2.15.5
+# iNZightPlots 2.14.5
 
 - add option to disable variable-width barplot (i.e., spineplots)
 
