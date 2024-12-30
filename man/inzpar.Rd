@@ -99,6 +99,7 @@ smaller, while values larger than 1 will magnify everything}
      the box plot drawn}
 \item{'bar.lwd', 'bar.col', 'bar.fill'}{the line width, colour, and fill colour of bars in a bar plot}
 \item{'bar.counts'}{logical, if \code{TRUE} bar graphs will display counts instead of percentages (the default)}
+\item{'bar.relative.width'}{logical, if \code{TRUE} the width of bars will be proportional to the number of observations in each group (colour)}
 \item{'full.height'}{may no longer be necessary ...}
 \item{'inf.lwd.comp', 'inf.lwd.conf'}{the line width of comparison and confidence intervals, respectively}
 \item{'inf.col.comp', 'inf.col.conf'}{the colour of comparison and confidence intervals, respectively.
@@ -143,14 +144,20 @@ smaller, while values larger than 1 will magnify everything}
 }
 \examples{
 # arguments can be passed directly to \code{iNZightPlot}
-iNZightPlot(Sepal.Length, data = iris, col.pt = "red",
-    box.col = "blue", box.fill = "green")
+iNZightPlot(Sepal.Length,
+    data = iris, col.pt = "red",
+    box.col = "blue", box.fill = "green"
+)
 
 # or stored and passed to it (only pars relevant to the current
 # plot are used)
-mypar <- inzpar(col.pt = "red", box.col = "blue", box.fill = "green",
-    trend = "linear", trend.by = TRUE)
+mypar <- inzpar(
+    col.pt = "red", box.col = "blue", box.fill = "green",
+    trend = "linear", trend.by = TRUE
+)
 inzplot(Sepal.Length ~ Species, data = iris, inzpar = mypar)
-iNZightPlot(Sepal.Length, Sepal.Width, data = iris, inzpar = mypar,
-    colby = Species)
+iNZightPlot(Sepal.Length, Sepal.Width,
+    data = iris, inzpar = mypar,
+    colby = Species
+)
 }

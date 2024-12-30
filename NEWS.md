@@ -1,3 +1,7 @@
+# iNZightPlots 2.15.5
+
+- add option to disable variable-width barplot (i.e., spineplots)
+
 # iNZightPlots 2.14.4
 
 - fix bug in CI width calculation for two-way comparisons

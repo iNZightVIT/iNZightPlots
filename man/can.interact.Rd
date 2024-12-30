@@ -35,17 +35,17 @@ by one of the packages in the iNZight collection.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{default}: Default interaction helper (always returns `FALSE`)
+\item \code{can.interact(default)}: Default interaction helper (always returns `FALSE`)
 
-\item \code{inzplotoutput}: Graphs from `iNZightPlot()`, many of which
+\item \code{can.interact(inzplotoutput)}: Graphs from `iNZightPlot()`, many of which
 have interaction enabled, but some do not (for example, hex plots)
 
-\item \code{ggplot}: Those `iNZight*` plotting functions which return
+\item \code{can.interact(ggplot)}: Those `iNZight*` plotting functions which return
 a `ggplot2` object and have been tested to work with plotly
 will be tagged as such; this is just a helper to check for
 the necessary attribute.
-}}
 
+}}
 \examples{
 can.interact(iNZightPlot(Sepal.Length, data = iris))
 }

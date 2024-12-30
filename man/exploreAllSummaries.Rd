@@ -22,11 +22,11 @@ allSummaries object, a concatenation of summaries from all variables
 \description{
 Allows easy access to a summary for every variable in the data set.
 }
-\section{Methods (by generic)}{
+\section{Functions}{
 \itemize{
-\item \code{print}: print method for allSummaries object
-}}
+\item \code{print(allSummaries)}: print method for allSummaries object
 
+}}
 \examples{
 exploreAllSummaries(iris)
 }
