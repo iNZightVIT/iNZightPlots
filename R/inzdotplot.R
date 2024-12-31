@@ -1,4 +1,5 @@
-create.inz.dotplot <- function(obj, hist = FALSE) {
+#' @export
+create.inz.dotplot <- function(obj, hist = FALSE, ...) {
     df <- obj$df
     opts <- obj$opts
     xattr <- obj$xattr
@@ -15,8 +16,11 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
 
     boxplot <- opts$boxplot
     mean_indicator <-
-        if (is.logical(opts$mean_indicator)) opts$mean_indicator
-        else opts$mean_indicator %in% c("grand", "group")
+        if (is.logical(opts$mean_indicator)) {
+            opts$mean_indicator
+        } else {
+            opts$mean_indicator %in% c("grand", "group")
+        }
     if (!is.null(opts$inference.par) && !is.null(opts$inference.type)) {
         if (opts$inference.par == "mean") {
             boxplot <- FALSE
@@ -31,13 +35,15 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     v <- colnames(df)
     vn <- xattr$varnames
 
-    #trimX <- xattr$trimX
+    # trimX <- xattr$trimX
 
-    if (xattr$class != "inz.simple")
+    if (xattr$class != "inz.simple") {
         hist <- TRUE
+    }
 
-    if (xattr$class == "inz.survey")
+    if (xattr$class == "inz.survey") {
         df <- df$variables
+    }
 
     # May need to switch around X and Y:
     if (all(c("x", "y") %in% v)) {
@@ -57,9 +63,9 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     }
 
     # 'trim' X values
-    #if (!is.null(trimX)) {
+    # if (!is.null(trimX)) {
     #    df <- df[df$x > min(trimX) & df$x < max(trimX), , drop = FALSE]
-    #}
+    # }
 
     # first need to remove missing values
     missing <- is.na(df$x)
@@ -98,13 +104,15 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     }
 
     for (i in unique(id)) {
-        if (xattr$class == "inz.freq")
-            di <- svydesign(ids=~1, weights = dfi$freq, data = dfi)
-        else if (xattr$class == "inz.survey") {
+        if (xattr$class == "inz.freq") {
+            di <- svydesign(ids = ~1, weights = dfi$freq, data = dfi)
+        } else if (xattr$class == "inz.survey") {
             if ("y" %in% colnames(obj$df$variables)) {
                 ss <- obj$df$variables$y == i & !is.na(obj$df$variables$y)
                 di <- obj$df[ss]
-            } else di <- obj$df
+            } else {
+                di <- obj$df
+            }
         } else {
             ss <- id == i & !is.na(id)
             dfi <- df[ss, , drop = FALSE]
@@ -116,7 +124,9 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     }
 
     makeHist <- function(d, nbins, xlim, bins = NULL) {
-        if (is.null(d)) return(NULL)
+        if (is.null(d)) {
+            return(NULL)
+        }
 
         if (is.null(nbins)) {
             range <- range(bins)
@@ -143,7 +153,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
             options(survey.lonely.psu = "certainty")
             probs <- coef(
                 svymean(
-                    ~cut(d$variables$x, h$breaks,
+                    ~ cut(d$variables$x, h$breaks,
                         include.lowest = TRUE,
                         deff = FALSE,
                         estimate.only = TRUE
@@ -180,7 +190,7 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
                 ret$colby <- d$colby[order(x)]
             }
             if ("pch" %in% colnames(d)) {
-              ret$pch <- d$pch[order(x)]
+                ret$pch <- d$pch[order(x)]
             }
         }
 
@@ -200,10 +210,12 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
                 max <- (nrow(d) - nx[2] + 1):nrow(d)
 
                 text.labels <- character(nrow(d))
-                if (nx[1] > 0)
+                if (nx[1] > 0) {
                     text.labels[min] <- eLab[min]
-                if (nx[2] > 0)
+                }
+                if (nx[2] > 0) {
                     text.labels[max] <- eLab[max]
+                }
 
                 pointIDs <- d$pointIDs[order(x)]
                 # now - are we labelling points with same-level-of??
@@ -223,19 +235,26 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
 
         ret$text.labels <- text.labels
 
-        if ("highlight" %in% colnames(d))
+        if ("highlight" %in% colnames(d)) {
             ret$highlight <- d$highlight[order(x)]
+        }
 
         attr(ret, "order") <- order(x)
         ret
     }
 
 
-    boxinfo <- if (boxplot & (!"mean" %in% opts$inference.par) & nrow(df) > 5)
-        boxSummary(out, opts) else NULL
+    boxinfo <- if (boxplot & (!"mean" %in% opts$inference.par) & nrow(df) > 5) {
+        boxSummary(out, opts)
+    } else {
+        NULL
+    }
 
-    meaninfo <- if (mean_indicator)
-        meanSummary(out, opts) else NULL
+    meaninfo <- if (mean_indicator) {
+        meanSummary(out, opts)
+    } else {
+        NULL
+    }
 
 
     nbins <- bins <- NULL
@@ -254,20 +273,20 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
     } else {
         ## compute the smallest non-zero difference, and deduce if it is a common
         ## factor of all the differences:
-        #diffs <- do.call(c, lapply(out, function(d) {
+        # diffs <- do.call(c, lapply(out, function(d) {
         #    if (is.null(d$x)) return(NULL)
         #
         #    diffs <- diff(sort(d$x))
         #    diffs[diffs > 0]
-        #}))
+        # }))
 
-        #mdiff <- if (length(diffs) > 0) min(diffs) else 0
-        #fdiff <- diffs / mdiff
-        #isDiscrete <- all(round(fdiff) == fdiff)
+        # mdiff <- if (length(diffs) > 0) min(diffs) else 0
+        # fdiff <- diffs / mdiff
+        # isDiscrete <- all(round(fdiff) == fdiff)
 
-        #xr <- diff(range(sapply(out, function(d) if (is.null(d$x)) 0 else range(d$x))))
+        # xr <- diff(range(sapply(out, function(d) if (is.null(d$x)) 0 else range(d$x))))
 
-        #mult.width <- ifelse(isDiscrete, 1, 1.2)
+        # mult.width <- ifelse(isDiscrete, 1, 1.2)
 
         dp <- xattr$dotplotstuff
         mdiff <- dp$mdiff
@@ -275,21 +294,24 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         isDiscrete <- dp$isDiscrete
         mult.width <- dp$mult.width
 
-        if ("symbol.width" %in% names(xattr))
+        if ("symbol.width" %in% names(xattr)) {
             symbol.width <- xattr$symbol.width * xr
-        else
+        } else {
             symbol.width <- convertWidth(
                 unit(opts$cex.dotpt, "char"),
                 "native",
                 valueOnly = TRUE
             )
+        }
 
         if (symbol.width < mdiff) {
             ## If the symbols are smaller than the smallest differences,
             ## then just use all of the values as bins!
             xx <- unique(
-                do.call(c,
-                    lapply(out,
+                do.call(
+                    c,
+                    lapply(
+                        out,
                         function(d) unique(d$x)
                     )
                 )
@@ -342,28 +364,39 @@ create.inz.dotplot <- function(obj, hist = FALSE) {
         fill.pt = opts$fill.pt,
         meaninfo = meaninfo,
         nacol =
-            if ("colby" %in% v)
+            if ("colby" %in% v) {
                 any(
-                    sapply(plist,
-                        function(T)
+                    sapply(
+                        plist,
+                        function(T) {
                             if (is.null(T$colby)) FALSE else any(is.na(T$colby))
+                        }
                     )
                 )
-            else FALSE,
+            } else {
+                FALSE
+            },
         xlim =
-            if (nrow(df) > 0) range(df$x, na.rm = TRUE)
-            else c(-Inf, Inf),
+            if (nrow(df) > 0) {
+                range(df$x, na.rm = TRUE)
+            } else {
+                c(-Inf, Inf)
+            },
         ylim = c(
             0,
             max(
-                sapply(plist,
+                sapply(
+                    plist,
                     function(p) if (is.null(p)) 0 else max(p$counts)
                 )
             )
         ),
         n.label =
-            if (is.null(xattr$nextreme)) NULL
-            else rep(xattr$nextreme, length = 2)
+            if (is.null(xattr$nextreme)) {
+                NULL
+            } else {
+                rep(xattr$nextreme, length = 2)
+            }
     )
 
     class(out) <- ifelse(hist, "inzhist", "inzdot")
@@ -381,7 +414,7 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
     boxplot <- opts$boxplot
     mean_indicator <- !is.null(obj$meaninfo)
 
-    expand.points <- 1# if (is.null(opts$expand.points)) 1 else opts$expand.points
+    expand.points <- 1 # if (is.null(opts$expand.points)) 1 else opts$expand.points
 
     addGrid(x = TRUE, gen = gen, opts = opts)
 
@@ -398,8 +431,11 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
             clip = "on"
         )
     )
-    Hgts <- if (!is.null(boxinfo) || !is.null(meaninfo) || !is.null(inflist)) c(3, 1)
-        else c(1, 0)
+    Hgts <- if (!is.null(boxinfo) || !is.null(meaninfo) || !is.null(inflist)) {
+        c(3, 1)
+    } else {
+        c(1, 0)
+    }
     dpLayout <- grid.layout(nrow = 2, heights = unit(Hgts, "null"))
 
     # we need to make the dots stack nicely, if they fit
@@ -407,7 +443,7 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
     seekViewport("VP:dotplot-levels")
     pushViewport(viewport(layout.pos.row = 1))
     pushViewport(viewport(layout = dpLayout))
-    pushViewport(viewport(layout.pos.row = 1))  # this is where dots will go
+    pushViewport(viewport(layout.pos.row = 1)) # this is where dots will go
 
     ht <- convertHeight(
         unit(opts$cex.dotpt, "char"),
@@ -426,8 +462,11 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
     ylim <- c(0, maxdots * 1.05)
 
     GROUP.names <-
-        if (nlev > 1 & opts$internal.labels) names(toplot)
-        else NULL
+        if (nlev > 1 & opts$internal.labels) {
+            names(toplot)
+        } else {
+            NULL
+        }
 
     for (i in 1:nlev) {
         pp <- toplot[[i]]
@@ -444,14 +483,17 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
             )
         )
 
-        if (boxplot)
+        if (boxplot) {
             addBoxplot(boxinfo[[i]], opts, i)
+        }
 
-        if (mean_indicator)
+        if (mean_indicator) {
             addMean(meaninfo[[i]], opts, i)
+        }
 
-        if (!is.null(inflist))
+        if (!is.null(inflist)) {
             addUnivarInference(inflist, i, opts)
+        }
 
         upViewport()
 
@@ -470,8 +512,9 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
         )
 
         ptCols <- colourPoints(pp$colby, col.args, opts)
-        if (length(ptCols) == 1)
+        if (length(ptCols) == 1) {
             ptCols <- rep(ptCols, length(pp$x))
+        }
 
         ptPch <- rep(opts$pch, length(pp$x))
 
@@ -503,10 +546,11 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
                 hl <- as.logical(pp$highlight)
                 if (sum(hl) > 0) {
                     hcol <-
-                        if (opts$highlight.col == "shade")
+                        if (opts$highlight.col == "shade") {
                             shade(ptCols[hl], 0.6)
-                        else
+                        } else {
                             opts$highlight.col
+                        }
 
                     grid.points(pp$x[hl], pp$y[hl],
                         pch = 19,
@@ -544,8 +588,8 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
         }
 
         ## Label extremes
-        if (!is.null(pp$text.labels))
-            if (sum(!is.na(pp$text.labels) > 0) & (length(locID) > 0))
+        if (!is.null(pp$text.labels)) {
+            if (sum(!is.na(pp$text.labels) > 0) & (length(locID) > 0)) {
                 grid.text(
                     paste0("  ", pp$text.labels[locID]),
                     pp$x[locID],
@@ -556,9 +600,11 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
                     gp = gpar(cex = 0.6),
                     name = paste("inz-label-extreme", i, sep = ".")
                 )
+            }
+        }
 
         ## Label group
-        if (!is.null(GROUP.names))
+        if (!is.null(GROUP.names)) {
             grid.text(
                 GROUP.names[i],
                 x = 0.01,
@@ -567,15 +613,17 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
                 gp = gpar(cex = 0.8),
                 name = paste("inz-group-label", i, sep = ".")
             )
+        }
     }
 
     seekViewport("VP:dotplot-levels")
     upViewport()
 
-    if (!is.null(inflist))
-        if ("comp" %in% names(inflist[[1]]))
+    if (!is.null(inflist)) {
+        if ("comp" %in% names(inflist[[1]])) {
             addUnivarCompLines(inflist)
-
+        }
+    }
 }
 
 
@@ -583,13 +631,17 @@ plot.inzdot <- function(obj, gen, hist = FALSE) {
 
 
 boxSummary <- function(obj, opts) {
-    lapply(obj,
+    lapply(
+        obj,
         function(o) {
-            if (is.null(o))
+            if (is.null(o)) {
                 return(NULL)
+            }
 
             if (is_survey(o)) {
-                if (nrow(o$variables) < 5) return(NULL)
+                if (nrow(o$variables) < 5) {
+                    return(NULL)
+                }
                 svyobj <- o
                 if (utils::packageVersion("survey") >= "4.1") {
                     quant <- svyquantile(~x, svyobj,
@@ -606,7 +658,7 @@ boxSummary <- function(obj, opts) {
 
                 min <- min(svyobj$variables$x, na.rm = TRUE)
                 max <- max(svyobj$variables$x, na.rm = TRUE)
-            } else{
+            } else {
                 quant <- quantile(o$x,
                     probs = c(0.25, 0.5, 0.75),
                     na.rm = TRUE
@@ -633,8 +685,9 @@ addBoxplot <- function(x, opts, i) {
     c <- opts$colNum
     opts <- x$opts
 
-    if (is.null(x))
+    if (is.null(x)) {
         return()
+    }
 
     xx <- rep(x$quantiles, each = 4)[3:10]
     yy <- rep(c(0.2, 0.8, 0.8, 0.2), 2)
@@ -654,14 +707,15 @@ addBoxplot <- function(x, opts, i) {
         gp = gpar(lwd = opts$box.lwd[2]),
         name = paste("inz-box-line", r, c, i, sep = ".")
     )
-
 }
 
 meanSummary <- function(obj, opts) {
-    lapply(obj,
+    lapply(
+        obj,
         function(o) {
-            if (is.null(o))
+            if (is.null(o)) {
                 return(NULL)
+            }
 
             if (is_survey((o))) {
                 xhat <- svymean(~x, o, na.rm = TRUE)
@@ -682,8 +736,9 @@ addMean <- function(x, opts, i) {
     c <- opts$colNum
     opts <- x$opts
 
-    if (is.null(x))
+    if (is.null(x)) {
         return()
+    }
 
     grid.points(unit(x$mean, "native"), unit(0.4, "npc"),
         gp = gpar(
@@ -705,15 +760,18 @@ dotinference <- function(obj) {
     xattr <- obj$xattr
     inf.par <- opts$inference.par
     inf.type <- opts$inference.type
-    if (!is.null(inf.type) & is.null(inf.par))
+    if (!is.null(inf.type) & is.null(inf.par)) {
         inf.par <- c("mean", "median", "iqr")
+    }
     bs <- opts$bs.inference
 
     if (is.null(inf.par) & is.null(inf.type)) {
         return(NULL)
     }
 
-    if (nrow(obj$df) < opts$min.count) return(NULL)
+    if (nrow(obj$df) < opts$min.count) {
+        return(NULL)
+    }
 
     ## for simplicity, if no 'y' factor, just make all the same level for tapply later:
     if (obj$xattr$class == "inz.simple") {
@@ -740,11 +798,13 @@ dotinference <- function(obj) {
     alpha <- 1 - (1 - opts$ci.width) / 2
 
     if (!is.null(inf.par)) {
-        result.list <- lapply(inf.par,
+        result.list <- lapply(
+            inf.par,
             function(ip) {
                 result <- switch(ip,
                     "mean" = {
-                        lapply(inf.type,
+                        lapply(
+                            inf.type,
                             function(type) {
                                 switch(type,
                                     "conf" = {
@@ -759,8 +819,9 @@ dotinference <- function(obj) {
                                             } else {
                                                 b <- boot(dat,
                                                     strata = dat$y,
-                                                    function(d, f)
-                                                        tapply(d[f, 1], d[f, 2], mean, na.rm = TRUE),
+                                                    function(d, f) {
+                                                        tapply(d[f, 1], d[f, 2], mean, na.rm = TRUE)
+                                                    },
                                                     R = opts$n.boot
                                                 )
                                                 ci <- cbind(
@@ -804,7 +865,8 @@ dotinference <- function(obj) {
                                                 }
                                                 ci
                                             } else {
-                                                n <- tapply(dat$x, dat$y,
+                                                n <- tapply(
+                                                    dat$x, dat$y,
                                                     function(z) sum(!is.na(z))
                                                 )
                                                 n <- ifelse(n < 5, NA, n)
@@ -828,8 +890,9 @@ dotinference <- function(obj) {
                                             } else {
                                                 b <- boot(dat,
                                                     strata = dat$y,
-                                                    function(d, f)
-                                                        tapply(d[f, 1], d[f, 2], mean, na.rm = TRUE),
+                                                    function(d, f) {
+                                                        tapply(d[f, 1], d[f, 2], mean, na.rm = TRUE)
+                                                    },
                                                     R = opts$n.boot
                                                 )
                                                 cov <- cov(b$t)
@@ -858,7 +921,8 @@ dotinference <- function(obj) {
                                                     iNZightMR::moecalc(fit, factorname = "y", est = est)
                                                 )
                                                 cbind(
-                                                    with(mfit,
+                                                    with(
+                                                        mfit,
                                                         cbind(
                                                             lower = compL,
                                                             upper = compU
@@ -881,7 +945,8 @@ dotinference <- function(obj) {
                                                 if (any(is.na(tapply(dat$x, dat$y, length)))) {
                                                     NULL
                                                 } else {
-                                                    ycounts <- with(dat,
+                                                    ycounts <- with(
+                                                        dat,
                                                         tapply(x, y, function(x) sum(!is.na(x)))
                                                     )
                                                     if (any(ycounts < 5)) {
@@ -908,7 +973,8 @@ dotinference <- function(obj) {
                                                                 nrow = length(levels(dat$y))
                                                             )
                                                             coef.mat[wi, ] <- cbind(
-                                                                with(mfit,
+                                                                with(
+                                                                    mfit,
                                                                     cbind(
                                                                         lower = compL,
                                                                         upper = compU
@@ -935,7 +1001,8 @@ dotinference <- function(obj) {
                                                             iNZightMR::moecalc(ses, est = est, base = FALSE)
                                                         )
                                                         mat <- cbind(
-                                                            with(mfit,
+                                                            with(
+                                                                mfit,
                                                                 cbind(lower = compL, upper = compU)
                                                             ),
                                                             mean = est
@@ -952,7 +1019,8 @@ dotinference <- function(obj) {
                         )
                     },
                     "median" = {
-                        lapply(inf.type,
+                        lapply(
+                            inf.type,
                             function(type) {
                                 switch(type,
                                     "conf" = {
@@ -962,11 +1030,12 @@ dotinference <- function(obj) {
                                             } else {
                                                 b <- boot(dat,
                                                     strata = dat$y,
-                                                    function(d, f)
+                                                    function(d, f) {
                                                         tapply(d[f, 1], d[f, 2], quantile,
                                                             probs = 0.5,
                                                             na.rm = TRUE
-                                                        ),
+                                                        )
+                                                    },
                                                     R = 2 * opts$n.boot
                                                 )
                                                 ci <- cbind(
@@ -989,15 +1058,16 @@ dotinference <- function(obj) {
                                                 NULL
                                             } else {
                                                 ## YEAR 12 INTERVALS
-                                                #iqr <-
+                                                # iqr <-
 
                                                 n <- tapply(dat$x, dat$y, function(z) sum(!is.na(z)))
                                                 n <- ifelse(n < 2, NA, n)
-                                                wd <- 1.5 * #qt(0.975, df = n - 1) *
-                                                    tapply(dat$x, dat$y,
-                                                        function(z)
-                                                            diff(quantile(z, c(0.25, 0.75), na.rm = TRUE)
-                                                        )
+                                                wd <- 1.5 * # qt(0.975, df = n - 1) *
+                                                    tapply(
+                                                        dat$x, dat$y,
+                                                        function(z) {
+                                                            diff(quantile(z, c(0.25, 0.75), na.rm = TRUE))
+                                                        }
                                                     ) / sqrt(n)
                                                 mn <- tapply(dat$x, dat$y, median, na.rm = TRUE)
                                                 cbind(lower = mn - wd, upper = mn + wd, mean = mn)
@@ -1011,8 +1081,9 @@ dotinference <- function(obj) {
                                             } else {
                                                 b <- boot(dat,
                                                     strata = dat$y,
-                                                    function(d, f)
-                                                        tapply(d[f, 1], d[f, 2], median, na.rm = TRUE),
+                                                    function(d, f) {
+                                                        tapply(d[f, 1], d[f, 2], median, na.rm = TRUE)
+                                                    },
                                                     R = opts$n.boot
                                                 )
                                                 cov <- cov(b$t)
@@ -1028,13 +1099,16 @@ dotinference <- function(obj) {
                                             if (svy) {
                                                 NULL
                                             } else {
-                                                n <- tapply(dat$x, dat$y,
+                                                n <- tapply(
+                                                    dat$x, dat$y,
                                                     function(z) sum(!is.na(z))
                                                 )
                                                 wd <- 1.5 *
-                                                    tapply(dat$x, dat$y,
-                                                        function(z)
+                                                    tapply(
+                                                        dat$x, dat$y,
+                                                        function(z) {
                                                             abs(diff(quantile(z, c(0.25, 0.75), na.rm = TRUE)))
+                                                        }
                                                     ) / sqrt(n)
                                                 mn <- tapply(dat$x, dat$y, quantile,
                                                     probs = 0.5,
@@ -1057,11 +1131,14 @@ dotinference <- function(obj) {
                                     } else {
                                         b <- boot(dat,
                                             strata = dat$y,
-                                            function(d, f)
-                                                tapply(d[f, 1], d[f, 2],
-                                                    function(x)
+                                            function(d, f) {
+                                                tapply(
+                                                    d[f, 1], d[f, 2],
+                                                    function(x) {
                                                         diff(quantile(x, probs = c(0.25, 0.75), na.rm = TRUE))
-                                                ),
+                                                    }
+                                                )
+                                            },
                                             R = 2 * opts$n.boot
                                         )
                                         iqr <- cbind(

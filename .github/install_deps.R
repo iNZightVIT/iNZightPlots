@@ -13,10 +13,22 @@ options(
     install.packages.compile.from.source = "never"
 )
 
+install.packages("pak")
+
 if (OS != "Linux" && !requireNamespace("XML", quietly = TRUE)) {
     install.packages("XML", type = "binary")
 }
 
-remotes::install_github(github_deps)
-remotes::install_deps(dependencies = TRUE)
-remotes::install_cran("rcmdcheck")
+# install estimability package version 1.4.1, if not already installed
+if (getRversion() < numeric_version("4.3") &&
+    !requireNamespace("estimability", quietly = TRUE)) {
+    remotes::install_version("estimability", version = "1.4.1")
+}
+
+pak::pkg_install(github_deps)
+pak::local_install_deps(dependencies = TRUE)
+pak::pkg_install("rcmdcheck")
+
+# remotes::install_github(github_deps)
+# remotes::install_deps(dependencies = TRUE)
+# remotes::install_cran("rcmdcheck")

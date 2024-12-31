@@ -99,6 +99,7 @@ smaller, while values larger than 1 will magnify everything}
      the box plot drawn}
 \item{'bar.lwd', 'bar.col', 'bar.fill'}{the line width, colour, and fill colour of bars in a bar plot}
 \item{'bar.counts'}{logical, if \code{TRUE} bar graphs will display counts instead of percentages (the default)}
+\item{'bar.relative.width'}{logical, if \code{TRUE} the width of bars will be proportional to the number of observations in each group (colour)}
 \item{'full.height'}{may no longer be necessary ...}
 \item{'inf.lwd.comp', 'inf.lwd.conf'}{the line width of comparison and confidence intervals, respectively}
 \item{'inf.col.comp', 'inf.col.conf'}{the colour of comparison and confidence intervals, respectively.

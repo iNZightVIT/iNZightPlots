@@ -1,4 +1,5 @@
-create.inz.gridplot <- function(obj) {
+#' @export
+create.inz.gridplot <- function(obj, ...) {
     ## The original "grid" style plot for large sample sizes. This will only be used for
     ## simple iid data, and instead hexagonal binning will be used for frequency and
     ## survey data plots.
@@ -16,7 +17,7 @@ create.inz.gridplot <- function(obj) {
     vn <- xattr$varnames
 
     # first need to remove missing values
-    missing <- apply(df[ , v %in% c("x", "y")], 1, function(x) any(is.na(x)))
+    missing <- apply(df[, v %in% c("x", "y")], 1, function(x) any(is.na(x)))
     n.missing <- sum(missing)
     df <- df[!missing, ]
 
@@ -30,7 +31,7 @@ create.inz.gridplot <- function(obj) {
 
         # Set up the grid
         # (for now, we will scale the bin size by point size)
-        Npt <- min(250, round(opts$scatter.grid.bins))  # / (opts$cex.pt * 2)))
+        Npt <- min(250, round(opts$scatter.grid.bins)) # / (opts$cex.pt * 2)))
 
         #  scatter.grid <- matrix(0, nrow = Npt, ncol = Npt)
         xbrk <- seq(xlim[1], xlim[2], length = Npt + 1)
@@ -47,15 +48,15 @@ create.inz.gridplot <- function(obj) {
         which.quant <- as.numeric(cut(c(scatter.grid), breaks = c(-1, br)))
 
         hcols <- hcl(0, 0, seq(100 * (1 - opts$alpha / 2), 0,
-            length = length(br))
-        )
+            length = length(br)
+        ))
         shade <- matrix(hcols[which.quant], nrow = nrow(scatter.grid))
 
         is0 <- c(scatter.grid) == 0
 
         # centers of all grid boxes
-        xv = (rep(1:Npt, each = Npt) - 0.5) / Npt
-        yv = (rep(Npt:1, Npt) - 0.5) / Npt
+        xv <- (rep(1:Npt, each = Npt) - 0.5) / Npt
+        yv <- (rep(Npt:1, Npt) - 0.5) / Npt
 
         # We will attempt to use grid.polygon() to draw all of the
         # grid squares at the same time!
