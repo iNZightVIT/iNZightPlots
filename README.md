@@ -15,7 +15,7 @@ allowing beginners to explore and visualize data easily.
 Easily install the latest release version from CRAN:
 
 ``` r
-install.packages("iNZightPlots")
+install.packages("iNZightRegression")
 ```
 
 For the latest development version:
@@ -95,10 +95,10 @@ inzinference(Sepal.Length ~ Species, data = iris)
 #> 
 #> Group Means with 95% Confidence Intervals
 #> 
-#>                 Lower   Estimate   Upper
-#>        setosa   4.906      5.006   5.106
-#>    versicolor   5.789      5.936   6.083
-#>     virginica   6.407      6.588   6.769
+#>                 Estimate   Lower   Upper
+#>        setosa      5.006   4.906   5.106
+#>    versicolor      5.936   5.789   6.083
+#>     virginica      6.588   6.407   6.769
 #> 
 #> One-way Analysis of Variance (ANOVA F-test)
 #> 
@@ -107,29 +107,19 @@ inzinference(Sepal.Length ~ Species, data = iris)
 #>           Null Hypothesis: true group means are all equal
 #>    Alternative Hypothesis: true group means are not all equal
 #> 
+#> Pairwise differences in group means with 95% Confidence Intervals and P-values
+#> (The CIs and P-values have been adjusted for multiple comparisons)
 #> 
-#> ### Difference in mean Sepal.Length between Species groups
-#>     (col group - row group)
+#>                              Estimate     Lower     Upper      P-value
+#>  ---------------------------------------------------------------------
+#>      setosa  -  versicolor     -0.930   -1.1738   -0.6862   < 2.22e-16
+#>      setosa  -  virginica      -1.582   -1.8258   -1.3382   < 2.22e-16
 #> 
-#> Estimates
+#>  versicolor  -  virginica      -0.652   -0.8958   -0.4082   < 2.22e-16
 #> 
-#>                 setosa   versicolor
-#>    versicolor   -0.930             
-#>     virginica   -1.582       -0.652
 #> 
-#> 95% Confidence Intervals (adjusted for multiple comparisons)
-#> 
-#>                  setosa   versicolor
-#>    versicolor   -1.1738             
-#>                 -0.6862             
-#>     virginica   -1.8258      -0.8958
-#>                 -1.3382      -0.4082
-#> 
-#> P-values
-#> 
-#>                 setosa   versicolor
-#>    versicolor        0             
-#>     virginica        0            0
+#>           Null Hypothesis: true difference in group means is zero
+#>    Alternative Hypothesis: true difference in group means is not zero
 #> 
 #> 
 #> ====================================================================================================

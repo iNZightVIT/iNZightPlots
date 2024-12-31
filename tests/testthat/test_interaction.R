@@ -21,15 +21,20 @@ test_that("Unsupported plots return FALSE", {
     ))
 })
 
-df <- data.frame(x=x, y=y, a=a, b=b, stringsAsFactors = TRUE)
+df <- data.frame(x = x, y = y, a = a, b = b, stringsAsFactors = TRUE)
 test_that("FT plots return the correct response", {
+    skip_if_not_installed("ggmosaic")
+    skip_if_not_installed("waffle")
+
     # expect_true(can.interact(
     #     iNZightPlot(a, plottype = "gg_column",
     #         varnames = list(x = "a"), data_name = "df")
     # ))
     expect_false(can.interact(
-        iNZightPlot(a, plottype = "gg_pie",
-            varnames = list(x = "a"), data_name = "df")
+        iNZightPlot(a,
+            plottype = "gg_pie",
+            varnames = list(x = "a"), data_name = "df"
+        )
     ))
 })
 
@@ -74,7 +79,7 @@ test_that("Directory for local can be specified", {
     skip_if(inherits(url, "try-error"))
     expect_is(url, "inzHTML")
     expect_true(file.exists(file.path(td, "index.html")))
-    #expect_equal(dirname(as.character(url)), td)
+    # expect_equal(dirname(as.character(url)), td)
     expect_true(dir.exists(file.path(td, "assets")))
 })
 

@@ -11,7 +11,7 @@ check:
 
 revcheck:
 	@$(RCMD) -e "if (!requireNamespace('revdepcheck')) install.packages('revdepcheck')"
-	@$(RCMD) -e "revdepcheck::revdep_check()"
+	@$(RCMD) -e "revdepcheck::revdep_check(quiet = FALSE)"
 	@$(RCMD) -f "revdep/check.R"
 
 revcheck_reset:
@@ -43,3 +43,6 @@ releasePRs:
 README.md: README.Rmd
 	@$(RCMD) -e 'rmarkdown::render("$<")'
 	@rm README.html
+
+site: README.md document install
+	@$(RCMD) -e 'pkgdown::build_site()'

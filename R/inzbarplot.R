@@ -1,4 +1,5 @@
-create.inz.barplot <- function(obj) {
+#' @export
+create.inz.barplot <- function(obj, ...) {
     # take the dataframe and settings from the object
     df <- obj$df
     opts <- obj$opts

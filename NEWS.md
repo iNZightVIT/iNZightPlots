@@ -1,3 +1,29 @@
+- change default min p-value from base R default (1e-16) to 0.0001, and add override paramater (`min.pval`)
+
+# iNZightPlots 2.15.4
+
+- fix bug where additional variables (e.g., "id" for locate) were missing (but not required) in the data
+
+# iNZightPlots 2.15.3
+
+- modify tests that were randomly creating spurious messages on CRAN
+- add 'dbplyr' to Suggests
+
+# iNZightPlots 2.15.1
+
+- fix a bug in `inzinference()` where spaces in categories led to some weird formatting
+- update some deprecated functions and arguments from 'dplyr' and 'ggplot2'
+
+# iNZightPlots 2.15.0
+
+- new `multiplot()` method for handling multiple `y` variables, so formulas like `inzplot(~x1 + x2 + x3, ...)` are now supported
+- ability to specify default plots types with `options(inzight.default.palette.cat, inzight.default.palette.cont)`
+- new plot modifications:
+  - mean indicator on gg box plots
+  - mean indicator on gg density plots
+- handle variable labels (from 'expss' package) in plot titles/axes/legends
+- handle units attached to variables
+
 # iNZightPlots 2.14.5
 
 - add option to disable variable-width barplot (i.e., spineplots)

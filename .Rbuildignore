@@ -8,7 +8,11 @@
 ^.lintr$
 ^cran-comments\.md$
 ^data-raw$
-^.github$
+^\.github$
 ^CRAN-RELEASE$
 ^README.Rmd$
 ^CRAN-SUBMISSION$
+^\.git$
+^docs$
+^_pkgdown.yml$
+^\.better-commits.json$

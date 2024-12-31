@@ -2,6 +2,8 @@ makeTitle <- function(names, types, g1.level = NULL, g2.level = NULL,
                       template = NULL) {
   # creates the title text for the plot
     varnames <- names(names)
+    names <- lapply(names, stringr::str_trunc, width = 60)
+    names(names) <- varnames
     if (types$x == "factor") {
       # Need a different title for barplots:
       # Distribution of X by Y

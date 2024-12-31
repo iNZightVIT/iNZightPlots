@@ -6,13 +6,12 @@ cas_freq <- suppressMessages(iNZightTools::smart_read("cas_freq.csv"))
 # cas_freq <- suppressMessages(iNZightTools::smart_read("tests/testthat/cas_freq.csv"))
 
 test_that("One way tables give the same results", {
-    expect_silent(
-        p0 <- iNZightPlot(travel, data = cas, inference.type = "conf")
-    )
-    expect_silent(
-        p1 <- iNZightPlot(travel, data = cas_freq, freq = count,
-            inference.type = "conf")
-    )
+    p0 <- iNZightPlot(travel, data = cas, inference.type = "conf")
+    expect_is(p0, "inzplotoutput")
+
+    p1 <- iNZightPlot(travel, data = cas_freq, freq = count,
+        inference.type = "conf")
+    expect_is(p1, "inzplotoutput")
 
     expect_equivalent(p0$all$all$phat, p1$all$all$phat)
 
@@ -24,13 +23,11 @@ test_that("One way tables give the same results", {
 
 
 test_that("Two way tables give the same results", {
-    expect_silent(
-        p0 <- iNZightPlot(travel, gender, data = cas, inference.type = "conf")
-    )
-    expect_silent(
-        p1 <- iNZightPlot(travel, gender, data = cas_freq, freq = count,
-            inference.type = "conf")
-    )
+    p0 <- iNZightPlot(travel, gender, data = cas, inference.type = "conf")
+    expect_is(p0, "inzplotoutput")
+    p1 <- iNZightPlot(travel, gender, data = cas_freq, freq = count,
+        inference.type = "conf")
+    expect_is(p1, "inzplotoutput")
 
     expect_equivalent(
         unclass(p0$all$all$phat),
@@ -44,12 +41,10 @@ test_that("Two way tables give the same results", {
 })
 
 test_that("Segmented bar charts are correct", {
-    expect_silent(
-        p0 <- iNZightPlot(travel, colby = gender, data = cas)
-    )
-    expect_silent(
-        p1 <- iNZightPlot(travel, colby = gender, data = cas_freq, freq = count)
-    )
+    p0 <- iNZightPlot(travel, colby = gender, data = cas)
+    expect_is(p0, "inzplotoutput")
+    p1 <- iNZightPlot(travel, colby = gender, data = cas_freq, freq = count)
+    expect_is(p1, "inzplotoutput")
 
     expect_equivalent(
         p0$all$all$p.colby,
