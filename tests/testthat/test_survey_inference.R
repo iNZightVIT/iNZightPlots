@@ -1000,7 +1000,7 @@ test_that("Missing values are handled appropriately", {
     r <- cov2cor(as.matrix(r))[1, 2]
     expect_match(
         out,
-        sprintf("Correlation: %.02f", r),
+        sprintf("Correlation: %s", signif(r, 4)),
         all = FALSE
     )
 })
