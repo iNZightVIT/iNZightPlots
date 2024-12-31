@@ -1297,6 +1297,14 @@ iNZightPlot <- function(x,
                 )
             }
 
+            if (TYPE == "bar" && !ynull &&
+                opts$bar.relative.width && !opts$bar.counts) {
+                subtitle <- paste(subtitle,
+                    sprintf("Bar widths relative to %s counts", varnames$y),
+                    "",
+                    sep = ifelse(subtitle == "", "", ". "))
+            }
+
             if (subtitle == "")
                 SUB <- NULL
             else
