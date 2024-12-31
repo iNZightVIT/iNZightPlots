@@ -328,7 +328,7 @@ test_that("Confidence level can be adjusted - dot plots", {
         rep(1 / 3, 3),
         1 / 3 - t,
         1 / 3 + t
-    ) |> round(3)
+    ) |> signif(4)
     expect_equivalent(m0, m)
 
     expect_match(inf, "with 92% Confidence Intervals", all = FALSE)

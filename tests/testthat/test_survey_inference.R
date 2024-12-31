@@ -9,7 +9,7 @@ on.exit(options(op))
 test_that("One sample t-test", {
     svy_mean <- svymean(~api00, dclus1)
     svy_ci <- confint(svy_mean, level = 0.9)
-    svy_test <- svyttest(api00~1, dclus1)
+    svy_test <- svyttest(api00 ~ 1, dclus1)
 
     inz_test <- capture.output(
         inzinference(~api00,
@@ -22,10 +22,12 @@ test_that("One sample t-test", {
         )
     )
     inz_inf <-
-        eval(parse(text =
-            gsub("p-", "p",
-                sprintf("list(%s)", inz_test[grep("p-value = ", inz_test)])
-            )
+        eval(parse(
+            text =
+                gsub(
+                    "p-", "p",
+                    sprintf("list(%s)", inz_test[grep("p-value = ", inz_test)])
+                )
         ))
     est_tbl <-
         read.table(
@@ -65,7 +67,8 @@ test_that("Two sample inference", {
     xhat <- round(coef(x), 1)
     ci <- round(confint(x, level = 0.99), 1)
     reg <- paste("\\s+", rownames(ci), "\\s+", xhat, "\\s+", ci[, 1], "\\s+", ci[, 2],
-        sep = "", collapse = " ")
+        sep = "", collapse = " "
+    )
     expect_match(
         paste(smry, collapse = " "),
         gsub(".", "\\.", reg, fixed = TRUE),
@@ -77,14 +80,15 @@ test_that("Two sample inference", {
     ci <- sprintf("%.2f", confint(ttest, level = 0.99) * -1)
     reg <- gsub(".", "\\.",
         paste("No - Yes", -x, ci[2], ci[1], sep = "\\s+"),
-        fixed = TRUE)
+        fixed = TRUE
+    )
     expect_match(smry, reg, all = FALSE)
 })
 
 test_that("Two sample t-test", {
     svy_mean <- svyby(~api00, ~awards, dclus1, svymean)
     svy_ci <- confint(svy_mean, level = 0.8)
-    svy_test <- svyttest(api00~awards, dclus1)
+    svy_test <- svyttest(api00 ~ awards, dclus1)
 
     inz_test <- capture.output(
         inzinference(api00 ~ awards,
@@ -94,10 +98,12 @@ test_that("Two sample t-test", {
         )
     )
     inz_inf <-
-        eval(parse(text =
-            gsub("p-", "p",
-                sprintf("list(%s)", inz_test[grep("p-value = ", inz_test)])
-            )
+        eval(parse(
+            text =
+                gsub(
+                    "p-", "p",
+                    sprintf("list(%s)", inz_test[grep("p-value = ", inz_test)])
+                )
         ))
     est_tbl <-
         read.table(
@@ -111,9 +117,9 @@ test_that("Two sample t-test", {
     expect_equal(
         est_tbl,
         data.frame(
-            Estimate = round(svy_mean[,2], 1),
-            Lower = round(svy_ci[,1], 1),
-            Upper = round(svy_ci[,2], 1),
+            Estimate = round(svy_mean[, 2], 1),
+            Lower = round(svy_ci[, 1], 1),
+            Upper = round(svy_ci[, 2], 1),
             stringsAsFactors = TRUE
         )
     )
@@ -142,10 +148,12 @@ test_that("ANOVA (equivalent)", {
         )
     )
     inz_inf <-
-        eval(parse(text =
-            gsub("and", ", ddf =", gsub("p-", "p",
-                sprintf("list(%s)", inz_test[grep("p-value = ", inz_test)])
-            ))
+        eval(parse(
+            text =
+                gsub("and", ", ddf =", gsub(
+                    "p-", "p",
+                    sprintf("list(%s)", inz_test[grep("p-value = ", inz_test)])
+                ))
         ))
     est_tbl <-
         read.table(
@@ -159,9 +167,9 @@ test_that("ANOVA (equivalent)", {
     expect_equal(
         est_tbl,
         data.frame(
-            Estimate = round(svy_mean[,2], 2),
-            Lower = round(svy_ci[,1], 2),
-            Upper = round(svy_ci[,2], 2),
+            Estimate = round(svy_mean[, 2], 2),
+            Lower = round(svy_ci[, 1], 2),
+            Upper = round(svy_ci[, 2], 2),
             stringsAsFactors = TRUE
         )
     )
@@ -231,10 +239,12 @@ test_that("Single proportion survey (binary variable)", {
     )
 
     inz_inf <-
-        eval(parse(text =
-            gsub("Z-", "Z", gsub("p-", "p",
-                sprintf("list(%s)", inz_test[grep("p-value = ", inz_test)])
-            ))
+        eval(parse(
+            text =
+                gsub("Z-", "Z", gsub(
+                    "p-", "p",
+                    sprintf("list(%s)", inz_test[grep("p-value = ", inz_test)])
+                ))
         ))
     expect_equal(
         inz_inf,
@@ -271,7 +281,7 @@ test_that("Single proportion survey (binary variable)", {
 test_that("Two way Chi-square contingency tables", {
     svy_prop <- svyby(~stype, ~awards, dclus1, svymean)
     svy_ci <- confint(svy_prop, level = 0.8)
-    svy_test <- suppressWarnings(svychisq(~awards+stype, dclus1))
+    svy_test <- suppressWarnings(svychisq(~ awards + stype, dclus1))
 
     inz_test <- suppressWarnings(capture.output(
         inzinference(stype ~ awards,
@@ -291,19 +301,21 @@ test_that("Two way Chi-square contingency tables", {
             stringsAsFactors = TRUE
         )
     inz_inf <-
-        eval(parse(text =
-            gsub("\\^", "", gsub("and", ", df2 =", gsub("p-", "p",
-                sprintf("list(%s)", inz_test[grep("p-value = ", inz_test)])
-            )))
+        eval(parse(
+            text =
+                gsub("\\^", "", gsub("and", ", df2 =", gsub(
+                    "p-", "p",
+                    sprintf("list(%s)", inz_test[grep("p-value = ", inz_test)])
+                )))
         ))
 
     expect_equal(
         est_tbl,
         data.frame(
             Level = c("No", "Yes"),
-            E = as.numeric(format(svy_prop[, 2], digits = 3)),
-            H = as.numeric(format(svy_prop[, 3], digits = 3)),
-            M = as.numeric(format(svy_prop[, 4], digits = 3)),
+            E = as.numeric(format(svy_prop[, 2], digits = 4)),
+            H = as.numeric(format(svy_prop[, 3], digits = 4)),
+            M = as.numeric(format(svy_prop[, 4], digits = 4)),
             Sums = rep(1, 2),
             stringsAsFactors = TRUE
         )
@@ -324,18 +336,24 @@ test_that("Two way Chi-square contingency tables", {
 
 
 test_that("Subset inference - one sample t-test", {
-    svy_list <- lapply(levels(apiclus1$stype),
-        function(st)
+    svy_list <- lapply(
+        levels(apiclus1$stype),
+        function(st) {
             subset(dclus1, stype == st)
+        }
     )
-    svy_means <- lapply(svy_list,
-        function(d)
+    svy_means <- lapply(
+        svy_list,
+        function(d) {
             svymean(~api00, d)
+        }
     )
     # svy_cis <- lapply(svy_means, confint)
-    svy_tests <- lapply(svy_list,
-        function(d)
-            svyttest(api00~1, d)
+    svy_tests <- lapply(
+        svy_list,
+        function(d) {
+            svyttest(api00 ~ 1, d)
+        }
     )
 
     inz_test <- capture.output(
@@ -347,8 +365,9 @@ test_that("Subset inference - one sample t-test", {
         )
     )
 
-    inz_tabs <- lapply(grep("Population Mean", inz_test),
-        function(i)
+    inz_tabs <- lapply(
+        grep("Population Mean", inz_test),
+        function(i) {
             est_tbl <-
                 read.table(
                     textConnection(
@@ -357,8 +376,10 @@ test_that("Subset inference - one sample t-test", {
                     header = TRUE,
                     stringsAsFactors = TRUE
                 )
+        }
     )
-    svy_tabs <- lapply(svy_means,
+    svy_tabs <- lapply(
+        svy_means,
         function(svy_mean) {
             svy_ci <- confint(svy_mean)
             data.frame(
@@ -371,39 +392,51 @@ test_that("Subset inference - one sample t-test", {
     )
     expect_equal(inz_tabs, svy_tabs)
 
-    inz_ests <- lapply(grep("p-value", inz_test),
-        function(i)
-            eval(parse(text =
-                gsub("p-", "p",
-                    sprintf("list(%s)", inz_test[i])
-                )
+    inz_ests <- lapply(
+        grep("p-value", inz_test),
+        function(i) {
+            eval(parse(
+                text =
+                    gsub(
+                        "p-", "p",
+                        sprintf("list(%s)", inz_test[i])
+                    )
             ))
+        }
     )
-    svy_ests <- lapply(svy_tests,
-        function(svy_test)
+    svy_ests <- lapply(
+        svy_tests,
+        function(svy_test) {
             list(
                 t = as.numeric(format(svy_test$statistic[[1]], digits = 5)),
                 df = svy_test$parameter[[1]],
                 pvalue = as.numeric(format.pval(svy_test$p.value[[1]]))
             )
+        }
     )
     expect_equal(inz_ests, svy_ests)
 })
 
 
 test_that("Subset inference - two sample t-test", {
-    svy_list <- lapply(levels(apiclus1$stype),
-        function(st)
+    svy_list <- lapply(
+        levels(apiclus1$stype),
+        function(st) {
             subset(dclus1, stype == st)
+        }
     )
-    svy_means <- lapply(svy_list,
-        function(d)
+    svy_means <- lapply(
+        svy_list,
+        function(d) {
             svyby(~api00, ~awards, d, svymean)
+        }
     )
     # svy_cis <- lapply(svy_means, confint)
-    svy_tests <- lapply(svy_list,
-        function(d)
-            svyttest(api00~awards, d)
+    svy_tests <- lapply(
+        svy_list,
+        function(d) {
+            svyttest(api00 ~ awards, d)
+        }
     )
 
     inz_test <- capture.output(
@@ -414,8 +447,9 @@ test_that("Subset inference - two sample t-test", {
         )
     )
 
-    inz_tabs <- lapply(grep("Population Means", inz_test),
-        function(i)
+    inz_tabs <- lapply(
+        grep("Population Means", inz_test),
+        function(i) {
             est_tbl <-
                 read.table(
                     textConnection(
@@ -424,35 +458,43 @@ test_that("Subset inference - two sample t-test", {
                     header = TRUE,
                     stringsAsFactors = TRUE
                 )
+        }
     )
-    svy_tabs <- lapply(svy_means,
+    svy_tabs <- lapply(
+        svy_means,
         function(svy_mean) {
             svy_ci <- confint(svy_mean)
             data.frame(
-                Estimate = round(svy_mean[,2], 1),
-                Lower = round(svy_ci[,1], 1),
-                Upper = round(svy_ci[,2], 1),
+                Estimate = round(svy_mean[, 2], 1),
+                Lower = round(svy_ci[, 1], 1),
+                Upper = round(svy_ci[, 2], 1),
                 stringsAsFactors = TRUE
             )
         }
     )
     expect_equal(inz_tabs, svy_tabs)
 
-    inz_ests <- lapply(grep("p-value", inz_test),
-        function(i)
-            eval(parse(text =
-                gsub("p-", "p",
-                    sprintf("list(%s)", inz_test[i])
-                )
+    inz_ests <- lapply(
+        grep("p-value", inz_test),
+        function(i) {
+            eval(parse(
+                text =
+                    gsub(
+                        "p-", "p",
+                        sprintf("list(%s)", inz_test[i])
+                    )
             ))
+        }
     )
-    svy_ests <- lapply(svy_tests,
-        function(svy_test)
+    svy_ests <- lapply(
+        svy_tests,
+        function(svy_test) {
             list(
                 t = as.numeric(format(svy_test$statistic[[1]], digits = 5)),
                 df = svy_test$parameter[[1]],
                 pvalue = as.numeric(format.pval(svy_test$p.value[[1]]))
             )
+        }
     )
     expect_equal(inz_ests, svy_ests)
 
@@ -463,25 +505,35 @@ test_that("Subset inference - two sample t-test", {
 
 
 test_that("Subset twice inference - one sample t-test", {
-    svy_list <- lapply(levels(apiclus1$stype),
-        function(g2)
-            lapply(levels(apiclus1$awards),
-                function(g1)
+    svy_list <- lapply(
+        levels(apiclus1$stype),
+        function(g2) {
+            lapply(
+                levels(apiclus1$awards),
+                function(g1) {
                     subset(dclus1, stype == g2 & awards == g1)
+                }
             )
+        }
     )
-    svy_means <- lapply(svy_list,
-        function(dl)
-            lapply(dl,
-                function(d)
+    svy_means <- lapply(
+        svy_list,
+        function(dl) {
+            lapply(
+                dl,
+                function(d) {
                     svymean(~api00, d)
+                }
             )
+        }
     )
-    svy_tests <- lapply(svy_list,
-        function(dl)
-            lapply(dl, function(d)
-                svyttest(api00~1, d)
-            )
+    svy_tests <- lapply(
+        svy_list,
+        function(dl) {
+            lapply(dl, function(d) {
+                svyttest(api00 ~ 1, d)
+            })
+        }
     )
 
     inz_test <- capture.output(
@@ -494,8 +546,9 @@ test_that("Subset twice inference - one sample t-test", {
         )
     )
 
-    inz_tabs <- lapply(grep("Population Mean", inz_test),
-        function(i)
+    inz_tabs <- lapply(
+        grep("Population Mean", inz_test),
+        function(i) {
             est_tbl <-
                 read.table(
                     textConnection(
@@ -504,8 +557,10 @@ test_that("Subset twice inference - one sample t-test", {
                     header = TRUE,
                     stringsAsFactors = TRUE
                 )
+        }
     )
-    svy_tabs <- lapply(do.call(c, svy_means),
+    svy_tabs <- lapply(
+        do.call(c, svy_means),
         function(svy_mean) {
             svy_ci <- confint(svy_mean)
             data.frame(
@@ -518,21 +573,27 @@ test_that("Subset twice inference - one sample t-test", {
     )
     expect_equal(inz_tabs, svy_tabs)
 
-    inz_ests <- lapply(grep("p-value", inz_test),
-        function(i)
-            eval(parse(text =
-                gsub("p-", "p",
-                    sprintf("list(%s)", inz_test[i])
-                )
+    inz_ests <- lapply(
+        grep("p-value", inz_test),
+        function(i) {
+            eval(parse(
+                text =
+                    gsub(
+                        "p-", "p",
+                        sprintf("list(%s)", inz_test[i])
+                    )
             ))
+        }
     )
-    svy_ests <- lapply(do.call(c, svy_tests),
-        function(svy_test)
+    svy_ests <- lapply(
+        do.call(c, svy_tests),
+        function(svy_test) {
             list(
                 t = as.numeric(format(svy_test$statistic[[1]], digits = 5)),
                 df = svy_test$parameter[[1]],
                 pvalue = as.numeric(format.pval(svy_test$p.value[[1]]))
             )
+        }
     )
     expect_equal(inz_ests, svy_ests)
 })
@@ -540,18 +601,24 @@ test_that("Subset twice inference - one sample t-test", {
 
 
 test_that("Subset (only g2) inference - two sample t-test", {
-    svy_list <- lapply(levels(apiclus1$stype),
-        function(st)
+    svy_list <- lapply(
+        levels(apiclus1$stype),
+        function(st) {
             subset(dclus1, stype == st)
+        }
     )
-    svy_means <- lapply(svy_list,
-        function(d)
+    svy_means <- lapply(
+        svy_list,
+        function(d) {
             svyby(~api00, ~awards, d, svymean)
+        }
     )
     # svy_cis <- lapply(svy_means, confint)
-    svy_tests <- lapply(svy_list,
-        function(d)
-            svyttest(api00~awards, d)
+    svy_tests <- lapply(
+        svy_list,
+        function(d) {
+            svyttest(api00 ~ awards, d)
+        }
     )
 
     assign("dclus1", dclus1, envir = .GlobalEnv)
@@ -564,8 +631,9 @@ test_that("Subset (only g2) inference - two sample t-test", {
     )
     rm(dclus1, envir = .GlobalEnv)
 
-    inz_tabs <- lapply(grep("Population Means", inz_test),
-        function(i)
+    inz_tabs <- lapply(
+        grep("Population Means", inz_test),
+        function(i) {
             est_tbl <-
                 read.table(
                     textConnection(
@@ -574,35 +642,43 @@ test_that("Subset (only g2) inference - two sample t-test", {
                     header = TRUE,
                     stringsAsFactors = TRUE
                 )
+        }
     )
-    svy_tabs <- lapply(svy_means,
+    svy_tabs <- lapply(
+        svy_means,
         function(svy_mean) {
             svy_ci <- confint(svy_mean)
             data.frame(
-                Estimate = round(svy_mean[,2], 1),
-                Lower = round(svy_ci[,1], 1),
-                Upper = round(svy_ci[,2], 1),
+                Estimate = round(svy_mean[, 2], 1),
+                Lower = round(svy_ci[, 1], 1),
+                Upper = round(svy_ci[, 2], 1),
                 stringsAsFactors = TRUE
             )
         }
     )
     expect_equal(inz_tabs, svy_tabs)
 
-    inz_ests <- lapply(grep("p-value", inz_test),
-        function(i)
-            eval(parse(text =
-                gsub("p-", "p",
-                    sprintf("list(%s)", inz_test[i])
-                )
+    inz_ests <- lapply(
+        grep("p-value", inz_test),
+        function(i) {
+            eval(parse(
+                text =
+                    gsub(
+                        "p-", "p",
+                        sprintf("list(%s)", inz_test[i])
+                    )
             ))
+        }
     )
-    svy_ests <- lapply(svy_tests,
-        function(svy_test)
+    svy_ests <- lapply(
+        svy_tests,
+        function(svy_test) {
             list(
                 t = as.numeric(format(svy_test$statistic[[1]], digits = 5)),
                 df = svy_test$parameter[[1]],
                 pvalue = as.numeric(format.pval(svy_test$p.value[[1]]))
             )
+        }
     )
     expect_equal(inz_ests, svy_ests)
 })
@@ -744,11 +820,13 @@ test_that("Replicate weight designs - two way table", {
 ############################################ Poststratified designs
 
 data(api, package = "survey")
-dclus1 <- svydesign(id = ~dnum, weights = ~pw,
-    data = apiclus1, fpc = ~fpc)
+dclus1 <- svydesign(
+    id = ~dnum, weights = ~pw,
+    data = apiclus1, fpc = ~fpc
+)
 pop.types <- data.frame(
-    stype = c("E","H","M"),
-    Freq = c(4421,755,1018),
+    stype = c("E", "H", "M"),
+    Freq = c(4421, 755, 1018),
     stringsAsFactors = TRUE
 )
 dclus1p <- postStratify(dclus1, ~stype, pop.types)
@@ -901,15 +979,17 @@ test_that("Missing values are handled appropriately", {
     )
     skip_if(inherits(nhanes, "try-error"), "Unable to load resource")
 
-    nhanes.svy <- svydesign(~SDMVPSU, strata = ~SDMVSTRA,
-        weights = ~WTINT2YR, data = nhanes, nest = TRUE)
+    nhanes.svy <- svydesign(~SDMVPSU,
+        strata = ~SDMVSTRA,
+        weights = ~WTINT2YR, data = nhanes, nest = TRUE
+    )
 
     r <- svyby(~Weight, ~Gender.cat, nhanes.svy, svymean, na.rm = TRUE)
     rci <- confint(r)
     out <- inzinference(Weight ~ Gender.cat, design = nhanes.svy)
     outi <- grep("Population Means", out) + 3:4
     obs <- scan(textConnection(gsub("[a-zA-Z]", "", out[outi])))
-    exp <- cbind(coef(r), rci[,1], rci[,2])
+    exp <- cbind(coef(r), rci[, 1], rci[, 2])
     exp <- round(c(exp[1, ], exp[2, ]), 2)
 
     expect_equal(obs, exp)
@@ -917,7 +997,7 @@ test_that("Missing values are handled appropriately", {
     # correlation
     out <- inzsummary(Weight ~ Height, design = nhanes.svy)
     r <- survey::svyvar(Weight ~ Height, design = nhanes.svy, na.rm = TRUE)
-    r <- cov2cor(as.matrix(r))[1,2]
+    r <- cov2cor(as.matrix(r))[1, 2]
     expect_match(
         out,
         sprintf("Correlation: %.02f", r),

@@ -27,7 +27,7 @@ inference.inzdot <- function(object, des, bs, opts, class, width,
         apply(
             mat, 2,
             function(col) {
-                format(col, digits = 4)
+                format(col, digits = opts$signif)
             }
         ),
         nrow = nrow(mat)
@@ -91,7 +91,7 @@ inference.inzdot <- function(object, des, bs, opts, class, width,
             apply(
                 mat, 2,
                 function(col) {
-                    format(col, digits = 4)
+                    format(col, digits = opts$signif)
                 }
             ),
             nrow = nrow(mat)
@@ -148,7 +148,7 @@ inference.inzdot <- function(object, des, bs, opts, class, width,
             apply(
                 mat, 2,
                 function(col) {
-                    format(col, digits = 4)
+                    format(col, digits = opts$signif)
                 }
             ),
             nrow = nrow(mat)
@@ -397,7 +397,7 @@ inference.inzdot <- function(object, des, bs, opts, class, width,
                     ci <- confint(ttest, level = ci.width)
                     mat <- rbind(
                         c("Estimate", "Lower", "Upper"),
-                        format(-c(ttest$estimate[[1]], ci[[2]], ci[[1]]), digits = 4)
+                        format(-c(ttest$estimate[[1]], ci[[2]], ci[[1]]), digits = opts$signif)
                     )
                     colnames(mat) <- NULL
                 }
@@ -414,7 +414,7 @@ inference.inzdot <- function(object, des, bs, opts, class, width,
                             ttest$conf.int[1],
                             ttest$conf.int[2]
                         ),
-                        digits = 4
+                        digits = opts$signif
                     )
                 )
                 colnames(mat) <- NULL
@@ -487,7 +487,7 @@ inference.inzdot <- function(object, des, bs, opts, class, width,
                     apply(
                         mc, 2,
                         function(col) {
-                            format(col, digits = 4, justify = "right")
+                            format(col, digits = opts$signif, justify = "right")
                         }
                     ),
                     nrow = nrow(mc)
@@ -602,7 +602,7 @@ inference.inzdot <- function(object, des, bs, opts, class, width,
     out
 }
 
-formatTriMat <- function(mat, names) {
+formatTriMat <- function(mat, names, digits = 3) {
     ## Formats a (lower) triangular matrix nicely for display:
 
     mat[!lower.tri(mat)] <- NA
@@ -612,7 +612,7 @@ formatTriMat <- function(mat, names) {
         apply(
             mat, 2,
             function(col) {
-                format(col, digits = 4)
+                format(col, digits = digits)
             }
         ),
         nrow = nrow(mat)
@@ -942,7 +942,7 @@ inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
             apply(
                 mat, 2,
                 function(col) {
-                    format(col, digits = 3)
+                    format(col, digits = opts$signif)
                 }
             ),
             nrow = nrow(mat)
@@ -987,7 +987,7 @@ inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
             apply(
                 cis, 2,
                 function(col) {
-                    format(col, digits = 3)
+                    format(col, digits = opts$signif)
                 }
             ),
             nrow = nrow(cis)
@@ -1113,7 +1113,7 @@ inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
                 apply(
                     diffs[3:5], 2,
                     function(col) {
-                        format(col, digits = 4L, justify = "right")
+                        format(col, digits = opts$signif, justify = "right")
                     }
                 ),
                 nrow = nrow(diffs)
@@ -1249,7 +1249,7 @@ inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
             apply(
                 mat, 2,
                 function(col) {
-                    format(col, digits = 3)
+                    format(col, digits = opts$signif)
                 }
             ),
             nrow = nrow(mat)
@@ -1352,7 +1352,7 @@ inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
             apply(
                 diffs[3:5], 2,
                 function(col) {
-                    format(col, digits = 4L, justify = "right")
+                    format(col, digits = opts$signif, justify = "right")
                 }
             ),
             nrow = nrow(diffs)
@@ -1636,7 +1636,7 @@ inference.inzscatter <- function(object, des, bs, opts, nb, vn, survey.options, 
                     sprintf("%.5g", cc[, 1]),
                     sprintf("%.5g", ci[, 1]),
                     sprintf("%.5g", ci[, 2]),
-                    format_pval(cc[, 4], opts, digits = 2)
+                    format_pval(cc[, 4], opts, digits = opts$signif)
                 )
             }
 
@@ -1695,7 +1695,7 @@ inference.inzscatter <- function(object, des, bs, opts, nb, vn, survey.options, 
 
     out
 }
-              
+
 #' @export
 inference.inzgrid <- function(object, bs, opts, nboot, vn, survey.options, ...) {
     inference.inzscatter(object, bs, opts, nboot, vn, survey.options, ...)
