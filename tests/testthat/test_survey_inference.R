@@ -309,13 +309,14 @@ test_that("Two way Chi-square contingency tables", {
                 )))
         ))
 
+    EHM <- format(as.matrix(svy_prop[, 2:4]), digits = 4)
     expect_equal(
         est_tbl,
         data.frame(
             Level = c("No", "Yes"),
-            E = as.numeric(format(svy_prop[, 2], digits = 4)),
-            H = as.numeric(format(svy_prop[, 3], digits = 4)),
-            M = as.numeric(format(svy_prop[, 4], digits = 4)),
+            E = as.numeric(EHM[, 1]),
+            H = as.numeric(EHM[, 2]),
+            M = as.numeric(EHM[, 3]),
             Sums = rep(1, 2),
             stringsAsFactors = TRUE
         )
