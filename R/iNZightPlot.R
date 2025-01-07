@@ -1006,8 +1006,6 @@ iNZightPlot <- function(x,
             ylab <- df$labels$y %||% varnames$y
         }
 
-        cat("XLAB: ", xlab, "\n")
-
         titles <- list()
         titles$main <-
             if (!is.null(dots$main)) {
