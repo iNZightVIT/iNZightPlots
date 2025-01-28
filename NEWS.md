@@ -1,3 +1,5 @@
+- change default min p-value from base R default (1e-16) to 0.0001, and add override paramater (`min.pval`)
+
 # iNZightPlots 2.15.4
 
 - fix bug where additional variables (e.g., "id" for locate) were missing (but not required) in the data

@@ -278,7 +278,7 @@ summary.inzdot <- function(object, opts, des, survey.options, privacy_controls, 
         apply(
             mat, 2,
             function(col) {
-                format(col, digits = 4, scientific = FALSE)
+                format(col, digits = opts$signif, scientific = FALSE)
             }
         ),
         nrow = nrow(mat)
@@ -641,7 +641,7 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
             )
 
             if (!isFALSE(survey.options$deff)) {
-                mat <- format(deff(smry_mean), digits = 3)
+                mat <- format(deff(smry_mean), digits = opts$signif)
                 mat <- as.matrix(mat)
                 if (!is.null(s_mat_tab)) {
                     mat <- privacy_controls$suppress(mat, s_mat_tab[, -ncol(s_mat_tab)])
@@ -779,9 +779,9 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
         beta <- try(
             {
                 if (is.survey) {
-                    signif(coef(svyglm(y ~ x, design = des)), 4)
+                    signif(coef(svyglm(y ~ x, design = des)), opts$signif)
                 } else {
-                    signif(coef(lm(y ~ x)), 4)
+                    signif(coef(lm(y ~ x)), opts$signif)
                 }
             },
             silent = TRUE
@@ -805,12 +805,12 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
                 paste0(
                     "    Linear correlation: ",
                     if (is.survey) {
-                        round(
+                        signif(
                             cov2cor(as.matrix(svyvar(y ~ x, design = des)))[1, 2],
-                            2
+                            opts$signif
                         )
                     } else {
-                        round(cor(x, y), 2)
+                        signif(cor(x, y), opts$signif)
                     }
                 ),
                 ""
@@ -823,12 +823,12 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
                 if (is.survey) {
                     signif(
                         coef(svyglm(y ~ x + I(x^2), design = des)),
-                        4
+                        opts$signif
                     )
                 } else {
                     signif(
                         coef(lm(y ~ x + I(x^2))),
-                        4
+                        opts$signif
                     )
                 }
             },
@@ -863,12 +863,12 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
                 if (is.survey) {
                     signif(
                         coef(svyglm(y ~ x + I(x^2) + I(x^3), design = des)),
-                        4
+                        opts$signif
                     )
                 } else {
                     signif(
                         coef(lm(y ~ x + I(x^2) + I(x^3))),
-                        4
+                        opts$signif
                     )
                 }
             },
@@ -904,15 +904,15 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
     if (is.survey) {
         ## rank.cor <- cov2cor(coef(svyvar(rank(y) ~ rank(x), design = des)))[1,2]
         if (!"linear" %in% trend) {
-            cor <- round(
+            cor <- signif(
                 cov2cor(as.matrix(svyvar(y ~ x, design = des, na.rm = TRUE)))[1, 2],
-                2
+                opts$signif
             )
             out <- c(
                 out,
                 paste0(
                     "Correlation: ",
-                    sprintf("%.2f", cor),
+                    signif(cor, opts$signif),
                     "  (using Pearson's Correlation)"
                 )
             )
@@ -923,7 +923,7 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
             out,
             paste0(
                 "Rank correlation: ",
-                sprintf("%.2f", rank.cor),
+                signif(rank.cor, opts$signif),
                 "  (using Spearman's Rank Correlation)"
             )
         )
