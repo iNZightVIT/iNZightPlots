@@ -996,9 +996,18 @@ iNZightPlot <- function(x,
                 my <- missing$y
                 missing$y <- missing$x
                 missing$x <- my
+
+                # swap labels, if they exist
+                l_x <- df$labels$x
+                l_y <- df$labels$y
+                df$labels$x <- l_y
+                df$labels$y <- l_x
             }
         }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4b5704c (Fix bug where x/y labels were wrong for some multi-dot plots)
         if (missing(xlab) || is.null(xlab)) {
             xlab <- df$labels$x %||% varnames$x
         }
