@@ -1004,10 +1004,6 @@ iNZightPlot <- function(x,
                 df$labels$y <- l_x
             }
         }
-<<<<<<< HEAD
-
-=======
->>>>>>> 4b5704c (Fix bug where x/y labels were wrong for some multi-dot plots)
         if (missing(xlab) || is.null(xlab)) {
             xlab <- df$labels$x %||% varnames$x
         }
