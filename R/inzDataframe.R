@@ -128,6 +128,10 @@ inzDataframe <- function(m, data = NULL, names = list(),
         class(df) <- "inz.simple"
     }
 
+    if (!is.null(df$data$locate) && all(df$data$locate == "id")) {
+        df$data$locate <- as.character(seq_len(nrow(df$data)))
+    }
+
     if (!is.null(m$locate.id)) {
         m$locate.id <- eval(m$locate.id, envir = data, env)
         if (is.logical(m$locate.id)) m$locate.id <- which(m$locate.id)
@@ -145,15 +149,17 @@ inzDataframe <- function(m, data = NULL, names = list(),
             label[eval(m$locate.id)] <- paste(" ")
         } else {
             locVar <- as.character(df$data$locate)
-            if (all(locVar == "id")) locVar <- as.character(seq_len(nrow(df$data)))
+            # if (all(locVar == "id")) locVar <- as.character(seq_len(nrow(df$data)))
             locVar[is.na(locVar)] <- "missing"
             label[eval(m$locate.id)] <- locVar[m$locate.id]
         }
         df$data$locate <- label
     } else if (!is.null(m$locate.extreme)) {
-        label <- character(nrow(df$data))
+        label <- character(seq_along(nrow(df$data)))
         if (!is.null(df$data$locate)) {
             locVar <- as.character(df$data$locate)
+            # if (all(locVar == "id"))
+            # locVar <- as.character(seq_len(nrow(df$data)))
             locVar[is.na(locVar)] <- "missing"
             label <- locVar
         } else {
