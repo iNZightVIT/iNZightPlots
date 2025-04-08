@@ -1034,7 +1034,6 @@ iNZightPlot <- function(x,
         if ("colby" %in% df.vs) {
             titles$legend <- df$labels$colby %||% varnames$colby
         }
-        print(titles)
 
         if (show_units) {
             titles$xlab <- add_units(titles$xlab, df$units$x)

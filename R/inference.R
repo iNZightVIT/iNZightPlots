@@ -23,15 +23,7 @@ inference.inzdot <- function(object, des, bs, opts, class, width,
     ci.width <- attr(inf, "ci.width")
     mat <- inf$mean$conf[, c("mean", "lower", "upper"), drop = FALSE]
 
-    mat <- matrix(
-        apply(
-            mat, 2,
-            function(col) {
-                format(col, digits = opts$signif)
-            }
-        ),
-        nrow = nrow(mat)
-    )
+    mat <- format(mat, digits = opts$signif)
 
     ## Remove NA's and replace with an empty space
     mat[grep("NA", mat)] <- ""
@@ -87,15 +79,16 @@ inference.inzdot <- function(object, des, bs, opts, class, width,
         ## BOOTSTRAP MEDIAN
         mat <- inf$median$conf[, c("mean", "lower", "upper"), drop = FALSE]
 
-        mat <- matrix(
-            apply(
-                mat, 2,
-                function(col) {
-                    format(col, digits = opts$signif)
-                }
-            ),
-            nrow = nrow(mat)
-        )
+        mat <- format(mat, digits = opts$signif)
+        # mat <- matrix(
+        #     apply(
+        #         mat, 2,
+        #         function(col) {
+        #             format(col, digits = opts$signif)
+        #         }
+        #     ),
+        #     nrow = nrow(mat)
+        # )
 
         ## Remove NA's and replace with an empty space
         mat[grep("NA", mat)] <- ""
@@ -144,15 +137,16 @@ inference.inzdot <- function(object, des, bs, opts, class, width,
         ## BOOTSTRAP INTERQUARTILE RANGE
         mat <- inf$iqr$conf[, c("mean", "lower", "upper"), drop = FALSE]
 
-        mat <- matrix(
-            apply(
-                mat, 2,
-                function(col) {
-                    format(col, digits = opts$signif)
-                }
-            ),
-            nrow = nrow(mat)
-        )
+        mat <- format(mat, digits = opts$signif)
+        # mat <- matrix(
+        #     apply(
+        #         mat, 2,
+        #         function(col) {
+        #             format(col, digits = opts$signif)
+        #         }
+        #     ),
+        #     nrow = nrow(mat)
+        # )
 
         ## Remove NA's and replace with an empty space
         mat[grep("NA", mat)] <- ""
@@ -608,15 +602,16 @@ formatTriMat <- function(mat, names, digits = 3) {
     mat[!lower.tri(mat)] <- NA
     mat <- mat[-1, , drop = FALSE]
 
-    mat <- matrix(
-        apply(
-            mat, 2,
-            function(col) {
-                format(col, digits = digits)
-            }
-        ),
-        nrow = nrow(mat)
-    )
+    mat <- format(mat, digits = digits)
+    # mat <- matrix(
+    #     apply(
+    #         mat, 2,
+    #         function(col) {
+    #             format(col, digits = digits)
+    #         }
+    #     ),
+    #     nrow = nrow(mat)
+    # )
 
     mat[grep("NA", mat)] <- ""
     mat[grep("NaN", mat)] <- ""
@@ -651,15 +646,16 @@ formatMat <- function(mat, digits = 4) {
         mat <- matrix(mat, ncol = 1)
     }
 
-    mat <- matrix(
-        apply(
-            mat, 2,
-            function(col) {
-                format(col, digits = digits)
-            }
-        ),
-        nrow = nrow(mat)
-    )
+    mat <- format(mat, digits = digits)
+    # mat <- matrix(
+    #     apply(
+    #         mat, 2,
+    #         function(col) {
+    #             format(col, digits = digits)
+    #         }
+    #     ),
+    #     nrow = nrow(mat)
+    # )
     mat[grep("NA", mat)] <- ""
     mat[grep("NaN", mat)] <- ""
 
@@ -938,15 +934,16 @@ inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
         mat <- inf$conf$estimate
         dn <- dimnames(object$tab)
 
-        mat <- matrix(
-            apply(
-                mat, 2,
-                function(col) {
-                    format(col, digits = opts$signif)
-                }
-            ),
-            nrow = nrow(mat)
-        )
+        mat <- format(mat, digits = opts$signif)
+        # mat <- matrix(
+        #     apply(
+        #         mat, 2,
+        #         function(col) {
+        #             format(col, digits = opts$signif)
+        #         }
+        #     ),
+        #     nrow = nrow(mat)
+        # )
 
         ## Remove NA's and replace with an empty space
         mat[grep("NA", mat)] <- ""
@@ -983,15 +980,16 @@ inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
         cis <- rbind(cis$lower, cis$upper)
         cis <- cis[rep(1:nrow(phat), each = 2) + c(0, nrow(phat)), ]
 
-        cis <- matrix(
-            apply(
-                cis, 2,
-                function(col) {
-                    format(col, digits = opts$signif)
-                }
-            ),
-            nrow = nrow(cis)
-        )
+        cis <- format(cis, digits = opts$signif)
+        # cis <- matrix(
+        #     apply(
+        #         cis, 2,
+        #         function(col) {
+        #             format(col, digits = opts$signif)
+        #         }
+        #     ),
+        #     nrow = nrow(cis)
+        # )
         cis[grep("NA", cis)] <- ""
         cis[grep("NaN", cis)] <- ""
 
@@ -1245,15 +1243,16 @@ inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
     } else { ## one-way table
         mat <- t(rbind(inf$conf$estimate, inf$conf$lower, inf$conf$upper))
 
-        mat <- matrix(
-            apply(
-                mat, 2,
-                function(col) {
-                    format(col, digits = opts$signif)
-                }
-            ),
-            nrow = nrow(mat)
-        )
+        mat <- format(mat, digits = opts$signif)
+        # mat <- matrix(
+        #     apply(
+        #         mat, 2,
+        #         function(col) {
+        #             format(col, digits = opts$signif)
+        #         }
+        #     ),
+        #     nrow = nrow(mat)
+        # )
 
         ## Remove NA's and replace with an empty space
         mat[grep("NA", mat)] <- ""
