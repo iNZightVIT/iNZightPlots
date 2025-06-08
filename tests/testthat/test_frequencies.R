@@ -9,8 +9,10 @@ test_that("One way tables give the same results", {
     p0 <- iNZightPlot(travel, data = cas, inference.type = "conf")
     expect_is(p0, "inzplotoutput")
 
-    p1 <- iNZightPlot(travel, data = cas_freq, freq = count,
-        inference.type = "conf")
+    p1 <- iNZightPlot(travel,
+        data = cas_freq, freq = count,
+        inference.type = "conf"
+    )
     expect_is(p1, "inzplotoutput")
 
     expect_equivalent(p0$all$all$phat, p1$all$all$phat)
@@ -25,8 +27,10 @@ test_that("One way tables give the same results", {
 test_that("Two way tables give the same results", {
     p0 <- iNZightPlot(travel, gender, data = cas, inference.type = "conf")
     expect_is(p0, "inzplotoutput")
-    p1 <- iNZightPlot(travel, gender, data = cas_freq, freq = count,
-        inference.type = "conf")
+    p1 <- iNZightPlot(travel, gender,
+        data = cas_freq, freq = count,
+        inference.type = "conf"
+    )
     expect_is(p1, "inzplotoutput")
 
     expect_equivalent(
@@ -47,8 +51,8 @@ test_that("Segmented bar charts are correct", {
     expect_is(p1, "inzplotoutput")
 
     expect_equivalent(
-        p0$all$all$p.colby,
-        p1$all$all$p.colby
+        as.vector(p0$all$all$p.colby),
+        as.vector(p1$all$all$p.colby)
     )
 })
 

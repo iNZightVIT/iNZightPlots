@@ -1,3 +1,7 @@
+# iNZightPlots 2.15.5
+
+- fix failing test introduced by change in R devel (https://bugs.r-project.org/show_bug.cgi?id=18845)
+
 # iNZightPlots 2.15.4
 
 - fix bug where additional variables (e.g., "id" for locate) were missing (but not required) in the data
