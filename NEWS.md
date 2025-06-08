@@ -3,6 +3,7 @@
 - change default min p-value from base R default (1e-16) to 0.0001, and add override paramater (`min.pval`)
 - add option to adjust rounding of values (signif) and percentages (round_percent)
 - fix bug in locate points
+- fix failing test introduced by change in R devel (https://bugs.r-project.org/show_bug.cgi?id=18845)
 
 # iNZightPlots 2.15.4
 
