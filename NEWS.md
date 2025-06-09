@@ -1,3 +1,10 @@
+# iNZightPlots 2.16
+
+- change default min p-value from base R default (1e-16) to 0.0001, and add override paramater (`min.pval`)
+- add option to adjust rounding of values (signif) and percentages (round_percent)
+- fix bug in locate points
+- fix failing test introduced by change in R devel (https://bugs.r-project.org/show_bug.cgi?id=18845)
+
 # iNZightPlots 2.15.4
 
 - fix bug where additional variables (e.g., "id" for locate) were missing (but not required) in the data
@@ -21,6 +28,10 @@
   - mean indicator on gg density plots
 - handle variable labels (from 'expss' package) in plot titles/axes/legends
 - handle units attached to variables
+
+# iNZightPlots 2.14.5
+
+- add option to disable variable-width barplot (i.e., spineplots)
 
 # iNZightPlots 2.14.4
 

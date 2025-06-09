@@ -2,7 +2,7 @@ context("Get plot inference")
 
 set.seed(100)
 d <- data.frame(
-    x = rnorm(100, c(150, 155), c(10, 20)),
+    x = rnorm(100, c(150, 151), c(10, 20)),
     y = factor(c("A", "B")),
     stringsAsFactors = TRUE
 )
@@ -31,10 +31,10 @@ test_that("Two-sample tests use appropriate CI", {
     })
     expect_equal(
         pvals,
-        c(
+        signif(c(
             t.test(x ~ y, data = d, var.equal = TRUE)$p.value,
             t.test(x ~ y, data = d)$p.value
-        )
+        ), 5)
     )
 
     cis <- lapply(list(pTRUE, pFALSE), function(p) {
@@ -89,15 +89,15 @@ s3 <- getPlotSummary(x,
 test_that("One-sample tests give correct p-value", {
     expect_match(
         paste(s1, collapse = "\n"),
-        sprintf("p-value = %s", format.pval(ptest$p.value, digits = 5))
+        sprintf("p-value = %s", format.pval(ptest$p.value, digits = 5, eps = 1e-4, scientific = FALSE))
     )
     expect_match(
         paste(s2, collapse = "\n"),
-        sprintf("p-value = %s", format.pval(btest$p.value, digits = 5))
+        sprintf("p-value = %s", format.pval(btest$p.value, digits = 5, eps = 1e-4, scientific = FALSE))
     )
     expect_match(
         paste(s3, collapse = "\n"),
-        sprintf("p-value = %s", format.pval(ctest$p.value, digits = 5))
+        sprintf("p-value = %s", format.pval(ctest$p.value, digits = 5, eps = 1e-4, scientific = FALSE))
     )
 })
 
@@ -328,7 +328,7 @@ test_that("Confidence level can be adjusted - dot plots", {
         rep(1 / 3, 3),
         1 / 3 - t,
         1 / 3 + t
-    ) |> round(3)
+    ) |> signif(4)
     expect_equivalent(m0, m)
 
     expect_match(inf, "with 92% Confidence Intervals", all = FALSE)

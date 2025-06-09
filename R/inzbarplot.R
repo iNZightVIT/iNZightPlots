@@ -4,6 +4,7 @@ create.inz.barplot <- function(obj, ...) {
     df <- obj$df
     opts <- obj$opts
     counts <- opts$bar.counts
+    relative.width <- opts$bar.relative.width
     xattr <- obj$xattr
 
     ZOOM <- xattr$zoom
@@ -97,7 +98,7 @@ create.inz.barplot <- function(obj, ...) {
         }
 
         widths <-
-            if (counts) {
+            if (counts || !relative.width) {
                 rep(1 / length(nn), length(nn))
             } else {
                 nn / sum(nn)

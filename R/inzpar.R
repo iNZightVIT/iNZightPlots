@@ -80,6 +80,7 @@
 #'      the box plot drawn}
 #' \item{'bar.lwd', 'bar.col', 'bar.fill'}{the line width, colour, and fill colour of bars in a bar plot}
 #' \item{'bar.counts'}{logical, if \code{TRUE} bar graphs will display counts instead of percentages (the default)}
+#' \item{'bar.relative.width'}{logical, if \code{TRUE} the width of bars will be proportional to the number of observations in each group (colour)}
 #' \item{'full.height'}{may no longer be necessary ...}
 #' \item{'inf.lwd.comp', 'inf.lwd.conf'}{the line width of comparison and confidence intervals, respectively}
 #' \item{'inf.col.comp', 'inf.col.conf'}{the colour of comparison and confidence intervals, respectively.
@@ -120,6 +121,7 @@
 #' \item{'round'}{integer specifying optional rounding of numerical output, default NA (ignored)}
 #' \item{'round_percent'}{integer specifying rounding for percentages (default 2)}
 #' \item{'signif'}{integer specifying number of significant figured in numeric output (default 2). Ignored if \code{round} is not NA.}
+#' \item{'min.pval'}{numeric specifying the minimum p-value to display (default 0.0001)}
 #' }
 #'
 #' @title iNZight Plotting Parameters
@@ -216,6 +218,7 @@ inzpar <- function(...,
         bar.col = "black",
         bar.fill = "darkgreen",
         bar.counts = FALSE,
+        bar.relative.width = TRUE,
         full.height = FALSE,
         inf.lwd.comp = 4,
         inf.lwd.conf = 2,
@@ -246,7 +249,8 @@ inzpar <- function(...,
         epi.out = FALSE,
         round = NA_integer_,
         round_percent = 2L,
-        signif = 4L
+        signif = 4L,
+        min_pval = 1e-4
     )
 
     # update any user has specified
