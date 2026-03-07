@@ -1,7 +1,9 @@
 # R script
 github_deps <- c(
     "iNZightVIT/iNZightTools@1.13.0",
-    "iNZightVIT/iNZightMR@2.2.7"
+    "iNZightVIT/iNZightMR@2.2.7",
+    "haleyjeppson/ggmosaic",
+    "hrbrmstr/waffle"
 )
 
 OS <- Sys.getenv("OS_TYPE")
