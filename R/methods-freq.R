@@ -1,5 +1,6 @@
 ## All of the methods only used for SIMPLE data types:
 
+#' @exportS3Method gSubset inz.freq
 gSubset.inz.freq <- function(df, g1.level, g2.level, df.vs, missing) {
     # subset the data by g2 (keep everything, so xlims can be calculated)
     # g2 can take values (0 = "_ALL", 1:ng2, ng2+1 = "_MULTI")

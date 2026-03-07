@@ -3,6 +3,7 @@
 gSubset <- function(df, g1.level, g2.level, df.vs, missing)
     UseMethod("gSubset")
 
+#' @exportS3Method gSubset default
 gSubset.default <- function(df, g1.level, g2.level, df.vs, missing) {
     # subset the data by g2 (keep everything, so xlims can be calculated)
     # g2 can take values (0 = "_ALL", 1:ng2, ng2+1 = "_MULTI")

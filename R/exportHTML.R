@@ -393,6 +393,7 @@ getInfo <- function(plot, x = NULL, data = NULL, extra.vars = NULL)  {
     UseMethod("getInfo")
 }
 
+#' @exportS3Method getInfo inzbar
 getInfo.inzbar <- function(plot, x, ...) {
     # generation of table of counts:
     # plot <- x$all$all
@@ -500,6 +501,7 @@ getInfo.inzbar <- function(plot, x, ...) {
     return(list(tbl = tableInfo, js = JSData))
 }
 
+#' @exportS3Method getInfo inzhist
 getInfo.inzhist <- function(plot, x, ...) {
     #plot <- x$all$all or plot <- x$all[[1]]
 
@@ -572,6 +574,7 @@ getInfo.inzhist <- function(plot, x, ...) {
     return(list(tbl = tableInfo, js = JSData))
 }
 
+#' @exportS3Method getInfo inzdot
 getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
     plots <- plot$toplot
     levels <- names(plots)
@@ -696,6 +699,7 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
     return(list(tbl = tableInfo, js = JSData))
 }
 
+#' @exportS3Method getInfo inzscatter
 getInfo.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
     obj <- x
     x <- plot$x
@@ -767,6 +771,7 @@ getInfo.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
     return(list(tbl = tbl, js = JSData))
 }
 
+#' @exportS3Method getInfo inzhex
 getInfo.inzhex <- function(plot, x = NULL, ...) {
     warning("No table available for hexbin plots.")
     tbl <- NULL
@@ -791,6 +796,7 @@ getInfo.inzhex <- function(plot, x = NULL, ...) {
     return(list(tbl = tbl, js = JSData))
 }
 
+#' @exportS3Method getInfo default
 getInfo.default <- function(plot, x, ...) {
     warning("There may not be an interactive version of this plot yet...")
     return()
