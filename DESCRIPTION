@@ -63,9 +63,6 @@ Suggests:
     tidyr,
     viridis,
     waffle
-Remotes:
-    haleyjeppson/ggmosaic,
-    hrbrmstr/waffle
 License: GPL-3
 Encoding: UTF-8
 Language: en-GB
