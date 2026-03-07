@@ -93,3 +93,48 @@ test_that("out_table per-column justify works", {
     lines <- format_plain(node)
     expect_equal(length(lines), 3) # header + 2 rows
 })
+
+# --- text primitives ---------------------------------------------------------
+
+test_that("out_text creates text node", {
+    node <- out_text("hello ", "world")
+    expect_s3_class(node, "out_text")
+    expect_equal(node$text, "hello world")
+    expect_equal(format_plain(node), "hello world")
+})
+
+test_that("out_text stores styling attributes", {
+    node <- out_text("bold text", .bold = TRUE, .colour = "red")
+    expect_true(node$.bold)
+    expect_equal(node$.colour, "red")
+    # plain text ignores styling
+    expect_equal(format_plain(node), "bold text")
+})
+
+test_that("out_blank produces empty lines", {
+    node <- out_blank(3L)
+    expect_s3_class(node, "out_blank")
+    lines <- format_plain(node)
+    expect_equal(lines, c("", "", ""))
+})
+
+test_that("out_bullet formats bulleted list", {
+    node <- out_bullet(c("item1", "item2", "item3"))
+    lines <- format_plain(node)
+    expect_equal(length(lines), 3)
+    expect_equal(lines[1], "  * item1")
+    expect_equal(lines[2], "  * item2")
+})
+
+test_that("out_bullet custom indent and bullet", {
+    node <- out_bullet(c("a", "b"), indent = 4L, bullet = "- ")
+    lines <- format_plain(node)
+    expect_equal(lines[1], "    - a")
+})
+
+test_that("out_indent wraps another node", {
+    inner <- out_text("indented")
+    node <- out_indent(inner, n = 5L)
+    lines <- format_plain(node)
+    expect_equal(lines, "     indented")
+})

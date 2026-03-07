@@ -127,3 +127,50 @@ format_plain.out_table <- function(x, ...) {
 
     lines
 }
+
+# --- text primitives ---------------------------------------------------------
+
+out_text <- function(..., .bold = FALSE, .italic = FALSE,
+                     .colour = NULL, .css_class = NULL) {
+    text <- paste0(..., collapse = "")
+    out_node("text",
+        text = text,
+        .bold = .bold,
+        .italic = .italic,
+        .colour = .colour,
+        .css_class = .css_class
+    )
+}
+
+format_plain.out_text <- function(x, ...) {
+    x$text
+}
+
+out_blank <- function(n = 1L) {
+    out_node("blank", n = as.integer(n))
+}
+
+format_plain.out_blank <- function(x, ...) {
+    rep("", x$n)
+}
+
+out_bullet <- function(items, indent = 2L, bullet = "* ") {
+    out_node("bullet",
+        items = items,
+        indent = as.integer(indent),
+        bullet = bullet
+    )
+}
+
+format_plain.out_bullet <- function(x, ...) {
+    paste0(strrep(" ", x$indent), x$bullet, x$items)
+}
+
+out_indent <- function(node, n = 3L) {
+    out_node("indent", node = node, n = as.integer(n))
+}
+
+format_plain.out_indent <- function(x, ...) {
+    lines <- format_plain(x$node, ...)
+    paste0(strrep(" ", x$n), lines)
+}
