@@ -17,6 +17,7 @@ format.out_node <- function(x, format = c("plain", "html"), width = 100L, ...) {
     )
 }
 
+#' @keywords internal
 format_plain <- function(x, ...) {
     UseMethod("format_plain")
 }
@@ -57,6 +58,7 @@ out_table <- function(mat,
     )
 }
 
+#' @exportS3Method format_plain out_table
 format_plain.out_table <- function(x, ...) {
     mat <- x$mat
 
@@ -142,6 +144,7 @@ out_text <- function(..., .bold = FALSE, .italic = FALSE,
     )
 }
 
+#' @exportS3Method format_plain out_text
 format_plain.out_text <- function(x, ...) {
     x$text
 }
@@ -150,6 +153,7 @@ out_blank <- function(n = 1L) {
     out_node("blank", n = as.integer(n))
 }
 
+#' @exportS3Method format_plain out_blank
 format_plain.out_blank <- function(x, ...) {
     rep("", x$n)
 }
@@ -162,6 +166,7 @@ out_bullet <- function(items, indent = 2L, bullet = "* ") {
     )
 }
 
+#' @exportS3Method format_plain out_bullet
 format_plain.out_bullet <- function(x, ...) {
     paste0(strrep(" ", x$indent), x$bullet, x$items)
 }
@@ -170,6 +175,7 @@ out_indent <- function(node, n = 3L) {
     out_node("indent", node = node, n = as.integer(n))
 }
 
+#' @exportS3Method format_plain out_indent
 format_plain.out_indent <- function(x, ...) {
     lines <- format_plain(x$node, ...)
     paste0(strrep(" ", x$n), lines)
@@ -181,6 +187,7 @@ out_h1 <- function(text, width = 100L) {
     out_node("h1", text = text, width = as.integer(width))
 }
 
+#' @exportS3Method format_plain out_h1
 format_plain.out_h1 <- function(x, ...) {
     pad <- floor((x$width - nchar(x$text)) / 2)
     c(
@@ -194,6 +201,7 @@ out_h2 <- function(text) {
     out_node("h2", text = text)
 }
 
+#' @exportS3Method format_plain out_h2
 format_plain.out_h2 <- function(x, ...) {
     c(x$text, strrep("-", nchar(x$text)))
 }
@@ -203,6 +211,7 @@ out_rule <- function(char = "=", width = 100L) {
     out_node("rule", char = char, width = as.integer(width))
 }
 
+#' @exportS3Method format_plain out_rule
 format_plain.out_rule <- function(x, ...) {
     strrep(x$char, x$width)
 }
@@ -213,6 +222,7 @@ out_group <- function(...) {
     out_node("group", nodes = nodes)
 }
 
+#' @exportS3Method format_plain out_group
 format_plain.out_group <- function(x, ...) {
     unlist(lapply(x$nodes, function(node) {
         if (is.character(node)) return(node)
@@ -226,6 +236,7 @@ out_doc <- function(..., width = 100L) {
     out_node("doc", nodes = nodes, width = as.integer(width))
 }
 
+#' @exportS3Method format_plain out_doc
 format_plain.out_doc <- function(x, ...) {
     unlist(lapply(x$nodes, function(node) {
         if (is.character(node)) return(node)
@@ -243,6 +254,7 @@ out_kv <- function(..., indent = 3L) {
     out_node("kv", pairs = pairs, indent = as.integer(indent))
 }
 
+#' @exportS3Method format_plain out_kv
 format_plain.out_kv <- function(x, ...) {
     keys <- format(paste0(names(x$pairs), ": "), justify = "right")
     paste0(strrep(" ", x$indent), keys, x$pairs)
@@ -262,6 +274,7 @@ out_test <- function(name, statistic, parameter, p_value,
     )
 }
 
+#' @exportS3Method format_plain out_test
 format_plain.out_test <- function(x, ...) {
     stat_parts <- paste0(
         names(x$statistic), " = ",
@@ -300,6 +313,7 @@ out_table_tri <- function(mat, names, digits = 3L) {
     )
 }
 
+#' @exportS3Method format_plain out_table_tri
 format_plain.out_table_tri <- function(x, ...) {
     mat <- x$mat
     mat[!lower.tri(mat)] <- NA
@@ -329,6 +343,7 @@ out_table_pairwise <- function(mat, levels = NULL, digits = 4L, indent = 1L) {
     )
 }
 
+#' @exportS3Method format_plain out_table_pairwise
 format_plain.out_table_pairwise <- function(x, ...) {
     mat <- x$mat
 
