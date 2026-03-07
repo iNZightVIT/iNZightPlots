@@ -391,3 +391,39 @@ test_that("out_privacy_section builds privacy output", {
     expect_match(rendered, "suppression")
     expect_match(rendered, "NOTE:")
 })
+
+# --- bridge utilities --------------------------------------------------------
+
+test_that("flatten_node converts out_node to character", {
+    node <- out_text("hello")
+    result <- flatten_node(node)
+    expect_equal(result, "hello")
+})
+
+test_that("flatten_node passes through character vectors", {
+    result <- flatten_node(c("a", "b"))
+    expect_equal(result, c("a", "b"))
+})
+
+test_that("flatten_node handles out_doc with width", {
+    doc <- out_doc(
+        out_text("line1"),
+        out_blank(),
+        out_text("line2"),
+        width = 80L
+    )
+    result <- flatten_node(doc, width = 80L)
+    expect_equal(result, c("line1", "", "line2"))
+})
+
+test_that("print.inzight.plotsummary handles out_doc", {
+    doc <- out_doc(out_text("test output"), width = 80L)
+    class(doc) <- c("inzight.plotsummary", class(doc))
+    expect_output(print(doc), "test output")
+})
+
+test_that("print.inzight.plotsummary handles legacy character", {
+    out <- c("line1", "line2")
+    class(out) <- "inzight.plotsummary"
+    expect_output(print(out), "line1\nline2")
+})

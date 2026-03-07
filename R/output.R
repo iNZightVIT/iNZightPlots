@@ -356,3 +356,10 @@ format_plain.out_table_pairwise <- function(x, ...) {
 
     paste0(strrep(" ", x$indent), lines)
 }
+
+# --- bridge utilities --------------------------------------------------------
+
+flatten_node <- function(x, width = 100L) {
+    if (is.character(x)) return(x)
+    format_plain(x, width = width)
+}

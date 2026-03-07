@@ -837,7 +837,11 @@ summary.inzdata <- function(object, des, width = 100, ...) {
 
 #' @export
 print.inzight.plotsummary <- function(x, ...) {
-    cat(x, sep = "\n")
+    if (inherits(x, "out_doc")) {
+        cat(format(x, format = "plain"), sep = "\n")
+    } else {
+        cat(x, sep = "\n")
+    }
 }
 
 
