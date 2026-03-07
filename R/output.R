@@ -174,3 +174,185 @@ format_plain.out_indent <- function(x, ...) {
     lines <- format_plain(x$node, ...)
     paste0(strrep(" ", x$n), lines)
 }
+
+# --- structural primitives ---------------------------------------------------
+
+out_h1 <- function(text, width = 100L) {
+    out_node("h1", text = text, width = as.integer(width))
+}
+
+format_plain.out_h1 <- function(x, ...) {
+    pad <- floor((x$width - nchar(x$text)) / 2)
+    c(
+        strrep("=", x$width),
+        paste0(strrep(" ", pad), x$text),
+        strrep("-", x$width)
+    )
+}
+
+out_h2 <- function(text) {
+    out_node("h2", text = text)
+}
+
+format_plain.out_h2 <- function(x, ...) {
+    c(x$text, strrep("-", nchar(x$text)))
+}
+
+out_rule <- function(char = "=", width = 100L) {
+    stopifnot(nchar(char) == 1L)
+    out_node("rule", char = char, width = as.integer(width))
+}
+
+format_plain.out_rule <- function(x, ...) {
+    strrep(x$char, x$width)
+}
+
+out_group <- function(...) {
+    nodes <- list(...)
+    nodes <- nodes[!vapply(nodes, is.null, logical(1))]
+    out_node("group", nodes = nodes)
+}
+
+format_plain.out_group <- function(x, ...) {
+    unlist(lapply(x$nodes, function(node) {
+        if (is.character(node)) return(node)
+        format_plain(node, ...)
+    }))
+}
+
+out_doc <- function(..., width = 100L) {
+    nodes <- list(...)
+    nodes <- nodes[!vapply(nodes, is.null, logical(1))]
+    out_node("doc", nodes = nodes, width = as.integer(width))
+}
+
+format_plain.out_doc <- function(x, ...) {
+    unlist(lapply(x$nodes, function(node) {
+        if (is.character(node)) return(node)
+        format_plain(node, width = x$width)
+    }))
+}
+
+out_kv <- function(..., indent = 3L) {
+    args <- list(...)
+    if (length(args) == 1L && is.list(args[[1]])) {
+        pairs <- args[[1]]
+    } else {
+        pairs <- args
+    }
+    out_node("kv", pairs = pairs, indent = as.integer(indent))
+}
+
+format_plain.out_kv <- function(x, ...) {
+    keys <- format(paste0(names(x$pairs), ": "), justify = "right")
+    paste0(strrep(" ", x$indent), keys, x$pairs)
+}
+
+out_test <- function(name, statistic, parameter, p_value,
+                     null_hyp, alt_hyp, extras = NULL, opts = NULL) {
+    out_node("test",
+        name = name,
+        statistic = statistic,
+        parameter = parameter,
+        p_value = p_value,
+        null_hyp = null_hyp,
+        alt_hyp = alt_hyp,
+        extras = extras,
+        opts = opts
+    )
+}
+
+format_plain.out_test <- function(x, ...) {
+    stat_parts <- paste0(
+        names(x$statistic), " = ",
+        format(x$statistic, digits = 5)
+    )
+    param_parts <- paste0(
+        names(x$parameter), " = ",
+        format(x$parameter, digits = 5)
+    )
+    pval <- format_pval(x$p_value, x$opts %||% list(min_pval = 2.2e-16))
+    pval_prefix <- if (startsWith(pval, "<")) "" else "= "
+
+    stat_line <- paste0(
+        "   ",
+        paste(c(stat_parts, param_parts), collapse = ", "),
+        ", p-value ", pval_prefix, pval
+    )
+
+    c(
+        x$name,
+        "",
+        stat_line,
+        "",
+        paste0("          Null Hypothesis: ", x$null_hyp),
+        paste0("   Alternative Hypothesis: ", x$alt_hyp),
+        if (!is.null(x$extras)) c("", x$extras)
+    )
+}
+
+out_table_tri <- function(mat, names, digits = 3L) {
+    stopifnot(is.matrix(mat), nrow(mat) == ncol(mat))
+    out_node("table_tri",
+        mat = mat,
+        names = names,
+        digits = as.integer(digits)
+    )
+}
+
+format_plain.out_table_tri <- function(x, ...) {
+    mat <- x$mat
+    mat[!lower.tri(mat)] <- NA
+    mat <- mat[-1, , drop = FALSE]
+    mat <- format(mat, digits = x$digits)
+    mat[grep("NA", mat)] <- ""
+    mat[grep("NaN", mat)] <- ""
+
+    full <- cbind(c("", x$names[-1]), rbind(x$names, mat))
+    full <- full[, -ncol(full)]
+    full <- matrix(
+        apply(full, 2, function(col) format(col, justify = "right")),
+        nrow = nrow(full)
+    )
+
+    apply(full, 1, function(row) paste0("   ", paste(row, collapse = "   ")))
+}
+
+out_table_pairwise <- function(mat, levels = NULL, digits = 4L, indent = 1L) {
+    stopifnot(is.matrix(mat) || is.data.frame(mat))
+    mat <- as.matrix(mat)
+    out_node("table_pairwise",
+        mat = mat,
+        levels = levels,
+        digits = as.integer(digits),
+        indent = as.integer(indent)
+    )
+}
+
+format_plain.out_table_pairwise <- function(x, ...) {
+    mat <- x$mat
+
+    mat_fmt <- matrix(
+        apply(mat, 2, function(col) format(col, justify = "right")),
+        nrow = nrow(mat)
+    )
+
+    lines <- apply(mat_fmt, 1, function(row) paste(row, collapse = "   "))
+    sep_line <- strrep("-", nchar(lines[1]))
+
+    # Insert separator after header
+    lines <- c(lines[1], sep_line, lines[-1])
+
+    # Insert group breaks
+    if (!is.null(x$levels) && length(x$levels) > 2L) {
+        rl <- (length(x$levels) - 1L):1L
+        rl <- cumsum(rl) + 2L # +2 for header + separator
+        for (i in rev(rl)) {
+            if (i <= length(lines)) {
+                lines[i] <- paste0(lines[i], "\n")
+            }
+        }
+    }
+
+    paste0(strrep(" ", x$indent), lines)
+}

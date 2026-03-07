@@ -138,3 +138,185 @@ test_that("out_indent wraps another node", {
     lines <- format_plain(node)
     expect_equal(lines, "     indented")
 })
+
+# --- structural primitives ---------------------------------------------------
+
+test_that("out_h1 renders centered title with rules", {
+    node <- out_h1("Test Title", width = 20L)
+    lines <- format_plain(node)
+    expect_equal(length(lines), 3)
+    expect_equal(lines[1], strrep("=", 20))
+    expect_match(lines[2], "Test Title")
+    expect_match(lines[2], "^\\s+Test Title$") # centered with left padding
+    expect_equal(lines[3], strrep("-", 20))
+})
+
+test_that("out_h2 renders text with underline", {
+    node <- out_h2("Section")
+    lines <- format_plain(node)
+    expect_equal(lines[1], "Section")
+    expect_equal(lines[2], strrep("-", nchar("Section")))
+})
+
+test_that("out_rule renders horizontal rule", {
+    node <- out_rule("=", 50L)
+    expect_equal(format_plain(node), strrep("=", 50))
+
+    node2 <- out_rule("-", 30L)
+    expect_equal(format_plain(node2), strrep("-", 30))
+})
+
+test_that("out_group composes multiple nodes", {
+    node <- out_group(
+        out_text("line1"),
+        out_blank(),
+        out_text("line2")
+    )
+    lines <- format_plain(node)
+    expect_equal(lines, c("line1", "", "line2"))
+})
+
+test_that("out_group filters NULL entries", {
+    node <- out_group(
+        out_text("a"),
+        NULL,
+        out_text("b")
+    )
+    lines <- format_plain(node)
+    expect_equal(lines, c("a", "b"))
+})
+
+test_that("out_doc composes nodes with width", {
+    node <- out_doc(
+        out_h1("Title", width = 40L),
+        out_blank(),
+        out_text("content"),
+        width = 40L
+    )
+    lines <- format_plain(node)
+    expect_equal(lines[1], strrep("=", 40))
+    expect_match(lines[2], "Title")
+    expect_equal(lines[4], "")
+    expect_equal(lines[5], "content")
+})
+
+test_that("out_doc handles character nodes for backward compat", {
+    node <- out_doc(
+        out_text("structured"),
+        c("legacy", "lines"),
+        width = 80L
+    )
+    lines <- format_plain(node)
+    expect_equal(lines, c("structured", "legacy", "lines"))
+})
+
+test_that("out_kv formats key-value pairs", {
+    node <- out_kv("Name" = "Alice", "Age" = "30")
+    lines <- format_plain(node)
+    expect_equal(length(lines), 2)
+    expect_match(lines[1], "Name:")
+    expect_match(lines[1], "Alice")
+    expect_match(lines[2], "Age:")
+    expect_match(lines[2], "30")
+})
+
+test_that("out_kv right-justifies keys", {
+    node <- out_kv("Short" = "a", "Much Longer Key" = "b")
+    lines <- format_plain(node)
+    # Both keys should have same padding (right-justified)
+    key_width1 <- regexpr("[^ ]", lines[1]) - 1 # leading spaces
+    key_width2 <- regexpr("[^ ]", lines[2]) - 1
+    # The shorter key should have more leading whitespace
+    expect_true(key_width1 > key_width2)
+})
+
+test_that("out_test stores raw values", {
+    node <- out_test(
+        name = "Welch Two Sample t-test",
+        statistic = c(t = 2.345),
+        parameter = c(df = 98.2),
+        p_value = 0.0211,
+        null_hyp = "true difference in means is equal to 0",
+        alt_hyp = "true difference in means is not equal to 0"
+    )
+    expect_s3_class(node, "out_test")
+    expect_equal(node$p_value, 0.0211)
+    expect_equal(node$statistic, c(t = 2.345))
+})
+
+test_that("out_test renders hypothesis block layout", {
+    node <- out_test(
+        name = "Welch Two Sample t-test",
+        statistic = c(t = 2.345),
+        parameter = c(df = 98.2),
+        p_value = 0.0211,
+        null_hyp = "true difference in means is equal to 0",
+        alt_hyp = "true difference in means is not equal to 0"
+    )
+    lines <- format_plain(node)
+    expect_equal(lines[1], "Welch Two Sample t-test")
+    expect_equal(lines[2], "")
+    expect_match(lines[3], "t = ")
+    expect_match(lines[3], "df = ")
+    expect_match(lines[3], "p-value")
+    expect_equal(lines[4], "")
+    expect_match(lines[5], "Null Hypothesis:")
+    expect_match(lines[6], "Alternative Hypothesis:")
+})
+
+test_that("out_table_tri renders lower triangular matrix", {
+    mat <- matrix(c(0, 0.5, 0.3, 0.5, 0, 0.8, 0.3, 0.8, 0), nrow = 3)
+    node <- out_table_tri(mat, names = c("A", "B", "C"), digits = 2L)
+    expect_s3_class(node, "out_table_tri")
+    lines <- format_plain(node)
+    # Header row + 2 data rows (B, C)
+    expect_equal(length(lines), 3)
+    # First line is header row
+    expect_match(lines[1], "A")
+    expect_match(lines[1], "B")
+    # B row has only one value (B-A)
+    expect_match(lines[2], "B")
+    # C row has two values
+    expect_match(lines[3], "C")
+})
+
+test_that("out_table_tri matches formatTriMat output", {
+    mat <- matrix(c(0, 0.5, 0.3, 0.5, 0, 0.8, 0.3, 0.8, 0), nrow = 3)
+    nms <- c("A", "B", "C")
+
+    old_result <- formatTriMat(mat, nms, digits = 3)
+    old_lines <- apply(old_result, 1, function(row) {
+        paste0("   ", paste(row, collapse = "   "))
+    })
+
+    node <- out_table_tri(mat, names = nms, digits = 3L)
+    new_lines <- format_plain(node)
+
+    expect_equal(new_lines, old_lines)
+})
+
+test_that("out_table_pairwise renders with header separator", {
+    mat <- matrix(
+        c("A - B", "A - C", "0.5", "0.3", "-0.1", "-0.2", "1.1", "0.8"),
+        nrow = 2
+    )
+    node <- out_table_pairwise(mat, digits = 3L)
+    lines <- format_plain(node)
+    # First line is header, second is separator
+    expect_match(lines[2], "^\\s*-+$")
+})
+
+test_that("out_table_pairwise adds group breaks", {
+    # 3 levels = 3 comparisons: A-B, A-C, B-C
+    mat <- rbind(
+        c("Comparison", "Diff", "Lower", "Upper"),
+        c("A - B", "0.5", "-0.1", "1.1"),
+        c("A - C", "0.3", "-0.2", "0.8"),
+        c("B - C", "0.1", "-0.4", "0.6")
+    )
+    node <- out_table_pairwise(mat, levels = c("A", "B", "C"), digits = 3L)
+    lines <- format_plain(node)
+    # Check that some lines end with \n (group break)
+    has_break <- any(grepl("\n$", lines))
+    expect_true(has_break)
+})
