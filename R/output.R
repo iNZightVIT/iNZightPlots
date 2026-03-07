@@ -5,8 +5,10 @@ out_node <- function(type, ...) {
 }
 
 #' format method for nodes
+#' @param x a node object to be formatted
 #' @param format the desired output format ("plain" or "html" at present)
 #' @param width the width of the output
+#' @param ... additional arguments
 #'
 #' @export
 format.out_node <- function(x, format = c("plain", "html"), width = 100L, ...) {
@@ -225,7 +227,9 @@ out_group <- function(...) {
 #' @exportS3Method format_plain out_group
 format_plain.out_group <- function(x, ...) {
     unlist(lapply(x$nodes, function(node) {
-        if (is.character(node)) return(node)
+        if (is.character(node)) {
+            return(node)
+        }
         format_plain(node, ...)
     }))
 }
@@ -239,7 +243,9 @@ out_doc <- function(..., width = 100L) {
 #' @exportS3Method format_plain out_doc
 format_plain.out_doc <- function(x, ...) {
     unlist(lapply(x$nodes, function(node) {
-        if (is.character(node)) return(node)
+        if (is.character(node)) {
+            return(node)
+        }
         format_plain(node, width = x$width)
     }))
 }
@@ -375,6 +381,8 @@ format_plain.out_table_pairwise <- function(x, ...) {
 # --- bridge utilities --------------------------------------------------------
 
 flatten_node <- function(x, width = 100L) {
-    if (is.character(x)) return(x)
+    if (is.character(x)) {
+        return(x)
+    }
     format_plain(x, width = width)
 }

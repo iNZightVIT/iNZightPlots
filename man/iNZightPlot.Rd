@@ -168,18 +168,26 @@ controlled by the user through a GUI.
 iNZightPlot(Species, data = iris)
 iNZightPlot(Petal.Width, g1 = Species, data = iris)
 
-iNZightPlot(Sepal.Length, Sepal.Width, data = iris,
-    colby = Species)
-iNZightPlot(Sepal.Length, Sepal.Width, data = iris,
+iNZightPlot(Sepal.Length, Sepal.Width,
+    data = iris,
+    colby = Species
+)
+iNZightPlot(Sepal.Length, Sepal.Width,
+    data = iris,
     colby = Species, trend = c("linear", "quadratic"),
-    trend.by = TRUE, trend.parallel = FALSE)
+    trend.by = TRUE, trend.parallel = FALSE
+)
 
 # add inference information
-iNZightPlot(Petal.Width, data = iris,
-    inference.type = "conf", inference.par = "mean")
-iNZightPlot(Petal.Width, data = iris,
+iNZightPlot(Petal.Width,
+    data = iris,
+    inference.type = "conf", inference.par = "mean"
+)
+iNZightPlot(Petal.Width,
+    data = iris,
     inference.type = "conf", inference.par = "mean",
-    bootstrap = TRUE)
+    bootstrap = TRUE
+)
 
 # alternatively, use the formula interface
 inzplot(Sepal.Length ~ Sepal.Width | Species, data = iris)
