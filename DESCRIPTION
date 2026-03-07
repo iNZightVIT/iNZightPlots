@@ -68,12 +68,16 @@ Encoding: UTF-8
 Language: en-GB
 RoxygenNote: 7.3.3
 Config/Needs/dependencies:
+    haleyjeppson/ggmosaic,
+    hrbrmstr/waffle,
     tmelliott/surveyspec@develop,
     iNZightVIT/iNZightTools@1.13.0,
     iNZightVIT/iNZightMR@2.2.7,
     rcmdcheck,
     curl
 Config/Needs/coverage:
+    haleyjeppson/ggmosaic,
+    hrbrmstr/waffle,
     tmelliott/surveyspec@develop,
     iNZightVIT/iNZightTools@1.13.0,
     iNZightVIT/iNZightMR@2.2.7,
