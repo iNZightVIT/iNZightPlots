@@ -320,3 +320,74 @@ test_that("out_table_pairwise adds group breaks", {
     has_break <- any(grepl("\n$", lines))
     expect_true(has_break)
 })
+
+# --- domain helpers ----------------------------------------------------------
+
+test_that("out_ci_section builds CI output", {
+    node <- out_ci_section(
+        estimates = c(5.0, 6.0),
+        lower = c(4.0, 5.0),
+        upper = c(6.0, 7.0),
+        label = "Mean",
+        ci_width = 0.95,
+        factor_names = c("A", "B"),
+        digits = 2L
+    )
+    expect_s3_class(node, "out_group")
+    lines <- format_plain(node)
+    expect_match(lines[1], "Mean with 95% Confidence Interval")
+    # Should contain table with Estimate, Lower, Upper headers
+    rendered <- paste(lines, collapse = " ")
+    expect_match(rendered, "Estimate")
+    expect_match(rendered, "Lower")
+    expect_match(rendered, "Upper")
+})
+
+test_that("out_ci_section bootstrap label", {
+    node <- out_ci_section(
+        estimates = 5.0, lower = 4.0, upper = 6.0,
+        label = "Median", ci_width = 0.90,
+        bootstrap = TRUE, digits = 2L
+    )
+    lines <- format_plain(node)
+    expect_match(lines[1], "Percentile Bootstrap")
+    expect_match(lines[1], "90%")
+})
+
+test_that("out_ci_section plural CIs", {
+    node <- out_ci_section(
+        estimates = c(5.0, 6.0), lower = c(4.0, 5.0), upper = c(6.0, 7.0),
+        label = "Mean", ci_width = 0.95,
+        by_factor = TRUE, factor_names = c("A", "B"), digits = 2L
+    )
+    lines <- format_plain(node)
+    expect_match(lines[1], "Intervals$") # plural
+})
+
+test_that("out_privacy_section returns NULL for NULL controls", {
+    result <- out_privacy_section(NULL)
+    expect_null(result)
+})
+
+test_that("out_privacy_section builds privacy output", {
+    # Mock privacy controls
+    pc <- list(
+        has = function(key) key %in% c("rounding", "suppression"),
+        get = function(key) {
+            switch(key,
+                "rounding" = "RR3",
+                "suppression" = 6L,
+                "symbol" = "S",
+                "secondary_suppression" = TRUE
+            )
+        }
+    )
+    node <- out_privacy_section(pc, width = 80L)
+    expect_s3_class(node, "out_group")
+    lines <- format_plain(node)
+    rendered <- paste(lines, collapse = " ")
+    expect_match(rendered, "Privacy and confidentialisation")
+    expect_match(rendered, "RR3")
+    expect_match(rendered, "suppression")
+    expect_match(rendered, "NOTE:")
+})
