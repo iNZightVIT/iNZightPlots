@@ -229,27 +229,8 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
     if (!summary.type %in% c("summary", "inference"))
         stop("`summary.type` must be either `summary` or `inference`")
 
-    obj <- object  ## same typing ... but match default `summary` method arguments
+    obj <- object
     table.direction <- match.arg(table.direction)
-
-    ## set up some variables/functions to make text processing easier ...
-
-    out <- character()
-    rule <- function(char, width)
-        paste0(rep(char, width), collapse = "")
-    Hrule <- rule("=", width)
-    hrule <- rule("-", width)
-    srule <- rule("*", width)
-    center <- centerText
-    ind <- function(x, indent = 3)
-        paste0(paste0(rep(" ", indent), collapse = ""), x)
-
-    add <- function(..., underline = FALSE) {
-        x <- paste0(..., collapse = "")
-        out <<- c(out, x)
-        if (underline)
-            out <<- c(out, rule("-", width = nchar(x)))
-    }
 
     vnames <- attr(obj, "varnames")
     g.levels <- attr(obj, "glevels")
@@ -259,36 +240,34 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
     total.obs <- attr(obj, "total.obs")
     bs <- attr(obj, "bootstrap")
     inzclass <- attr(obj, "inzclass")
+    is.survey <- inzclass == "inz.survey"
 
-    is.survey <- attr(obj, "inzclass") == "inz.survey"
-
-    ## Handle survey options
     survey.options <- modifyList(default.survey.options, survey.options)
 
-    ## Handle privacy/confidentialisation
     privacy_controls <- make_privacy_controls(privacy_controls)
     if (!is.null(privacy_controls) && privacy_controls$has("seed")) {
         set.seed(privacy_controls$get("seed"))
     }
 
-    add(Hrule)
-    add(
-        center(
-            switch(summary.type,
-                "summary" =
-                    paste0("iNZight Summary",
-                            ifelse(is.survey, " - Survey Design", "")),
-                "inference" =
-                    paste("iNZight Inference using",
-                        ifelse(bs,
-                                "the Nonparametric Bootstrap",
-                                "Normal Theory"))
-            ),
-            width
-        )
-    )
-    add(hrule)
+    ind <- function(x, indent = 3)
+        paste0(paste0(rep(" ", indent), collapse = ""), x)
 
+    parts <- list()
+
+    ## --- Title ---
+    title_text <- switch(summary.type,
+        "summary" =
+            paste0("iNZight Summary",
+                ifelse(is.survey, " - Survey Design", "")),
+        "inference" =
+            paste("iNZight Inference using",
+                ifelse(bs,
+                    "the Nonparametric Bootstrap",
+                    "Normal Theory"))
+    )
+    parts <- c(parts, list(out_h1(title_text, width)))
+
+    ## --- Header metadata ---
     scatter <- FALSE
     if ("y" %in% names(vnames)) {
         if (vartypes[[vnames$x]] == "numeric" & vartypes[[vnames$y]] == "numeric") {
@@ -296,7 +275,6 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
         }
     }
 
-    ## A tidy header that formats the vames of the variables
     mat <- cbind(
         ind(
             ifelse(scatter,
@@ -358,8 +336,6 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                 )
             )
         )
-        #if (is.survey)
-        #    mat <- rbind(mat, c("NOTE: ", "survey summaries are not yet reliable for subsets."))
     }
 
     mat <- rbind(mat, "", cbind("Total number of observations: ", total.obs))
@@ -404,286 +380,217 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
         )
     }
     mat <- cbind(format(mat[, 1], justify = "right"), mat[, 2])
-    apply(mat, 1, add)
+    header_lines <- apply(mat, 1, function(row) paste0(row, collapse = ""))
+    names(header_lines) <- NULL
+    parts <- c(parts, list(header_lines))
 
+    ## --- Survey design info ---
+    design.list <- NULL
     if (is.survey) {
-        add(hrule)
         tmpdesign <- attr(object, "main.design")
         tmpdesign$call <- NULL
-        sapply(capture.output(print(tmpdesign)),
-            function(o) if (o != "NULL") add(ind(gsub("Call: NULL", "Replicate weights design", o)))
-        )
+        design_output <- capture.output(print(tmpdesign))
+        design_lines <- character()
+        for (o in design_output) {
+            if (o != "NULL") {
+                design_lines <- c(design_lines,
+                    ind(gsub("Call: NULL", "Replicate weights design", o)))
+            }
+        }
         design.list <- attr(object, "design")
         if (!is.null(tmpdesign$postStrata))
-            add(ind("(calibrated)"))
+            design_lines <- c(design_lines, ind("(calibrated)"))
+
+        parts <- c(parts, list(out_rule("-", width), design_lines))
     }
 
-    add(Hrule)
-    add("")
+    parts <- c(parts, list(out_rule("=", width), out_blank()))
 
+    ## --- Privacy section ---
     if (!is.null(privacy_controls)) {
-        add("Privacy and confidentialisation information", underline = TRUE)
-        add("")
-        if (privacy_controls$has("rounding")) {
-            add(
-                sprintf("  * counts are rounded using %s",
-                    switch(privacy_controls$get("rounding"),
-                        "RR3" = "RR3 (random rounding to base 3)",
-                        paste0("other (", privacy_controls$get("rounding"), ")")
-                    )
-                )
-            )
-        }
-        if (privacy_controls$has("suppression")) {
-            add(
-                sprintf("  * suppression of counts smaller than %d, indicated by %s%s",
-                    privacy_controls$get("suppression"),
-                    privacy_controls$get("symbol"),
-                    ifelse(privacy_controls$get("secondary_suppression"),
-                        ", with secondary suppression where necessary",
-                        ""
-                    )
-                )
-            )
-        }
-        if (privacy_controls$has("suppression_raw_counts")) {
-            add(
-                sprintf("  * suppression of weighted counts with corresponding unweighted counts < %s",
-                    privacy_controls$get("suppression_raw_counts")
-                )
-            )
-        }
-        if (privacy_controls$has("suppression_magnitude")) {
-            add(
-                sprintf("  * suppression of totals and means where underlying unrounded count < %s",
-                    privacy_controls$get("suppression_magnitude")
-                )
-            )
-        }
-        if (privacy_controls$has("suppression_quantiles")) {
-            add("  * suppression of quantiles")
-            q_values <- do.call(cbind, privacy_controls$get("suppression_quantiles"))
-            apply(q_values, 1L,
-                function(qv) {
-                    add(
-                        sprintf("    - %s%s if underlying unrounded count < %s",
-                            qv[1] * 100, "%", qv[2]
-                        )
-                    )
-                }
-            )
-        }
-        if (privacy_controls$has("check_rse")) {
-            rse_values <- do.call(cbind, privacy_controls$get("check_rse"))
-            add("  * for estimates with large relative sampling error (RSE),")
-            apply(rse_values, 1L,
-                function(rv) {
-                    add(ifelse(rv[2] == "suppress",
-                        sprintf("    - estimates with RSE >= %s%s suppressed",
-                            rv[1], "%"
-                        ),
-                        sprintf("    - estimates with RSE >= %s%s marked with %s",
-                            rv[1], "%", rv[2]
-                        )
-                    ))
-                }
-            )
-        }
-        if (privacy_controls$has("seed")) {
-            add(sprintf("  * using RNG seed %d", privacy_controls$get("seed")))
-        }
-        add("")
-        add(
-            "NOTE: this feature is still experimental, and all output should be manually\n",
-            "checked before being made public. This is simply to aid that process.\n"
-        )
-        add(Hrule)
-        add("")
+        parts <- c(parts, list(out_privacy_section(privacy_controls, width)))
     }
 
+    ## --- Section header helper ---
     simpleCap <- function(x) {
         s <- strsplit(x, " ")[[1]]
-        paste(toupper(substring(s, 1,1)), substring(s, 2),
-            sep="",
-            collapse=" "
+        paste(toupper(substring(s, 1, 1)), substring(s, 2),
+            sep = "",
+            collapse = " "
         )
     }
     stype <- simpleCap(summary.type)
 
-    if ( !is.null(vnames$y) &&
+    if (!is.null(vnames$y) &&
          vartypes[[vnames$x]] == "factor" &&
-         vartypes[[vnames$y]] == "numeric" ) {
+         vartypes[[vnames$y]] == "numeric") {
         tmpx <- vnames$y
         vnames$y <- vnames$x
         vnames$x <- tmpx
     }
 
-    ## Cycle through G2 first
-    lapply(names(obj),
-        function(this) {
-            if (this != "all") {
-                add(Hrule)
-                add(ind("For the subset where ", 5), vnames$g2, " = ", this)
-            }
+    ## --- Main content loop ---
+    epi.out <- list(...)[["epi.out"]]
 
+    for (this in names(obj)) {
+        if (this != "all") {
+            parts <- c(parts, list(
+                out_rule("=", width),
+                paste0(ind("For the subset where ", 5),
+                    vnames$g2, " = ", this)
+            ))
+        }
 
-            if (!is.null(list(...)[["epi.out"]]) && list(...)[["epi.out"]] == TRUE && length(obj[[this]]) > 1) {
-                g1.tabs <- lapply(obj[[this]], "[[", "tab")
-                g1.arr <- array(
-                    as.numeric(unlist(g1.tabs)),
-                    dim=c(nrow(g1.tabs[[1]]), ncol(g1.tabs[[2]]), length(g1.tabs))
+        ## CMH test (Cochran-Mantel-Haenszel)
+        if (!is.null(epi.out) && isTRUE(epi.out) &&
+            length(obj[[this]]) > 1) {
+            g1.tabs <- lapply(obj[[this]], "[[", "tab")
+            g1.arr <- array(
+                as.numeric(unlist(g1.tabs)),
+                dim = c(nrow(g1.tabs[[1]]), ncol(g1.tabs[[2]]),
+                    length(g1.tabs))
+            )
+
+            m <- mantelhaen.test(g1.arr)
+
+            if (all(dim(g1.arr)[1:2] == 2)) {
+                cmh.stat <- c(
+                    m$method,
+                    ":\n",
+                    sprintf(
+                        "  %s = %.2f, df = %d, p = %f\n",
+                        names(m$statistic),
+                        m$statistic,
+                        m$parameter,
+                        m$p.value
+                    ),
+                    ifelse(
+                        m$estimate == 0,
+                        "  Common odds ratio unable to be estimated\n",
+                        sprintf(
+                            "  Common odds ratio: %.2f (95%% CI: %.2f, %.2f)\n",
+                            m$estimate,
+                            m$conf.int[1],
+                            m$conf.int[2]
+                        )
+                    )
                 )
-
-                m <- mantelhaen.test(g1.arr)
-
-                if (all(dim(g1.arr)[1:2] == 2)) {
-                    cmh.stat <- c(
-                        m$method,
-                        ":\n",
-                        sprintf(
-                            "  %s = %.2f, df = %d, p = %f\n",
-                            names(m$statistic),
-                            m$statistic,
-                            m$parameter,
-                            m$p.value
-                        ),
-                        ifelse(
-                            m$estimate == 0,
-                            "  Common odds ratio unable to be estimated\n",
-                            sprintf(
-                                "  Common odds ratio: %.2f (95%% CI: %.2f, %.2f)\n",
-                                m$estimate,
-                                m$conf.int[1],
-                                m$conf.int[2]
-                            )
-                        )
-
+            } else {
+                cmh.stat <- c(
+                    m$method,
+                    ":\n",
+                    sprintf(
+                        "  %s = %.2f, df = %d, p = %f\n",
+                        names(m$statistic),
+                        m$statistic,
+                        m$parameter,
+                        m$p.value
                     )
-                } else {
-                    cmh.stat <- c(
-                        m$method,
-                        ":\n",
-                        sprintf(
-                            "  %s = %.2f, df = %d, p = %f\n",
-                            names(m$statistic),
-                            m$statistic,
-                            m$parameter,
-                            m$p.value
-                        )
-                    )
-                }
-
-                add(cmh.stat)
+                )
             }
 
-            lapply(names(obj[[this]]),
-                function(o) {
-                    pl <- obj[[this]][[o]]
+            parts <- c(parts, list(paste0(cmh.stat, collapse = "")))
+        }
 
-                    xtype <- vartypes[[vnames$x]]
-                    header <- switch(xtype,
-                        "numeric" = {
-                            if ("y" %in% names(vnames)) {
-                                switch(vartypes[[vnames$y]],
-                                    "numeric" = {
-                                        sprintf("%s of %s versus %s",
-                                            stype, vnames$y, vnames$x
-                                        )
-                                    },
-                                    "factor" = {
-                                        sprintf("%s of %s by %s",
-                                            stype, vnames$x, vnames$y
-                                        )
-                                    }
-                                )
-                            } else {
-                                sprintf("%s of %s", stype, vnames$x)
-                            }
-                        },
-                        "factor" = {
-                            if ("y" %in% names(vnames)) {
-                                switch(vartypes[[vnames$y]],
-                                    "numeric" = {
-                                        sprintf("%s of the distribution of %s by %s",
-                                            stype, vnames$x, vnames$y
-                                        )
-                                    },
-                                    "factor" = {
-                                        sprintf(
-                                            "%s of the distribution of %s (%s) by %s (%s)",
-                                            stype,
-                                            vnames$x,
-                                            switch(table.direction,
-                                                vertical = "rows",
-                                                horizontal = "columns"
-                                            ),
-                                            vnames$y,
-                                            switch(table.direction,
-                                                vertical = "columns",
-                                                horizontal = "rows"
-                                            )
-                                        )
-                                    }
-                                )
-                            } else {
-                                sprintf("%s of the distribution of %s", stype, vnames$x)
-                            }
-                        }
-                    )
+        for (o in names(obj[[this]])) {
+            pl <- obj[[this]][[o]]
 
-                    if (o != "all") {
-                        add(hrule)
-                        header <- paste0(header, paste0(", for ", vnames$g1, " = ", o))
+            xtype <- vartypes[[vnames$x]]
+            header <- switch(xtype,
+                "numeric" = {
+                    if ("y" %in% names(vnames)) {
+                        switch(vartypes[[vnames$y]],
+                            "numeric" = {
+                                sprintf("%s of %s versus %s",
+                                    stype, vnames$y, vnames$x
+                                )
+                            },
+                            "factor" = {
+                                sprintf("%s of %s by %s",
+                                    stype, vnames$x, vnames$y
+                                )
+                            }
+                        )
+                    } else {
+                        sprintf("%s of %s", stype, vnames$x)
                     }
-                    header <- paste0(header, ":")
-
-                    add(header, underline = TRUE)
-                    add("")
-
-                    pl.design <- if (is.survey) design.list[[this]][[o]] else NULL
-
-                    sapply(
-                        switch(summary.type,
-                            "summary" =
-                                summary(pl, opts = inzpars,
-                                    vn = vnames, des = pl.design,
-                                    survey.options = survey.options,
-                                    privacy_controls = privacy_controls,
-                                    table.direction = table.direction
-                                ),
-                            "inference" =
-                                inference(pl, bs, inzclass,
-                                    opts = inzpars,
-                                    des = pl.design,
-                                    width = width,
-                                    vn = vnames,
-                                    nb = attr(obj, "nboot"),
-                                    hypothesis = hypothesis,
-                                    survey.options = survey.options,
-                                    privacy_controls = privacy_controls,
-                                    table.direction = table.direction,
-                                    ...
+                },
+                "factor" = {
+                    if ("y" %in% names(vnames)) {
+                        switch(vartypes[[vnames$y]],
+                            "numeric" = {
+                                sprintf("%s of the distribution of %s by %s",
+                                    stype, vnames$x, vnames$y
                                 )
-                        ),
-                        add
-                    )
-
-                    add("")
+                            },
+                            "factor" = {
+                                sprintf(
+                                    "%s of the distribution of %s (%s) by %s (%s)",
+                                    stype,
+                                    vnames$x,
+                                    switch(table.direction,
+                                        vertical = "rows",
+                                        horizontal = "columns"
+                                    ),
+                                    vnames$y,
+                                    switch(table.direction,
+                                        vertical = "columns",
+                                        horizontal = "rows"
+                                    )
+                                )
+                            }
+                        )
+                    } else {
+                        sprintf("%s of the distribution of %s", stype, vnames$x)
+                    }
                 }
             )
 
-            add("")
+            if (o != "all") {
+                parts <- c(parts, list(out_rule("-", width)))
+                header <- paste0(header, ", for ", vnames$g1, " = ", o)
+            }
+            header <- paste0(header, ":")
+
+            parts <- c(parts, list(out_h2(header), out_blank()))
+
+            pl.design <- if (is.survey) design.list[[this]][[o]] else NULL
+
+            result <- switch(summary.type,
+                "summary" =
+                    summary(pl, opts = inzpars,
+                        vn = vnames, des = pl.design,
+                        survey.options = survey.options,
+                        privacy_controls = privacy_controls,
+                        table.direction = table.direction
+                    ),
+                "inference" =
+                    inference(pl, bs, inzclass,
+                        opts = inzpars,
+                        des = pl.design,
+                        width = width,
+                        vn = vnames,
+                        nb = attr(obj, "nboot"),
+                        hypothesis = hypothesis,
+                        survey.options = survey.options,
+                        privacy_controls = privacy_controls,
+                        table.direction = table.direction,
+                        ...
+                    )
+            )
+
+            parts <- c(parts, list(result, out_blank()))
         }
-    )
 
-    add(Hrule)
+        parts <- c(parts, list(out_blank()))
+    }
 
-    ## Notes:
-    add("")
-    add("")
+    ## --- Footer ---
+    parts <- c(parts, list(out_rule("=", width), out_blank(), out_blank()))
 
-
-
+    doc <- do.call(out_doc, c(parts, list(width = width)))
+    out <- format_plain(doc, width = width)
+    attr(out, "doc") <- doc
     class(out) <- "inzight.plotsummary"
     out
 }
