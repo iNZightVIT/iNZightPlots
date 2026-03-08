@@ -307,84 +307,87 @@ summary.inzdot <- function(object, opts, des, survey.options, privacy_controls, 
     mat[grep("NA", mat)] <- ""
     mat <- gsub("NaN", "|", mat)
 
-    ## Text formatting to return a character vector - each row of matrix
-    mat <- rbind(rns, mat)
-    colnames(mat) <- NULL
-
+    ## Remove privacy-suppressed columns from mat and rns
     if (!is.null(privacy_controls)) {
-        mat <- mat[, -(8:11)]
+        mat <- mat[, -(8:11), drop = FALSE]
+        rns <- rns[-(8:11)]
     }
 
-    if (length(toplot) > 1) {
-        mat <- cbind(
-            c(
-                "",
-                rep(
-                    names(toplot),
-                    ifelse(exists("semat"),
-                        ifelse(exists("deffmat"), 3, 2),
-                        1
-                    )
-                )
-            ),
-            mat
-        )
-    }
-    rownames(mat) <- NULL
-
-    mat <- matrix(
-        apply(
-            mat, 2,
-            function(col) {
-                format(col, justify = "right")
-            }
-        ),
-        nrow = nrow(mat)
-    )
-
-    mat <- apply(
-        mat, 1,
-        function(x) paste0("   ", paste(x, collapse = "   "))
-    )
-
-    if (exists("semat") & exists("deffmat")) {
-        top <- 1:((length(mat) - 1) / 3 + 1)
-        mid <- ((length(mat) - 1) / 3 + 2):(2 * (length(mat) - 1) / 3 + 1)
-        bot <- (2 * (length(mat) - 1) / 3 + 2):length(mat)
-        out <- c(
-            ifelse(is.null(des), "Estimates", "Population estimates:"),
-            "",
-            mat[top],
-            "",
-            "Standard error of estimates:",
-            "",
-            mat[mid],
-            "",
-            "Design effects:",
-            "",
-            mat[bot]
-        )
-    } else if (exists("semat")) {
-        top <- 1:((length(mat) - 1) / 2 + 1)
-        bot <- ((length(mat) - 1) / 2 + 2):length(mat)
-        out <- c(
-            ifelse(is.null(des), "Estimates", "Population estimates:"),
-            "",
-            mat[top],
-            "",
-            "Standard error of estimates:",
-            "",
-            mat[bot]
+    ## Determine row headers (group names if multiple groups)
+    row_names <- if (length(toplot) > 1) {
+        rep(
+            names(toplot),
+            ifelse(exists("semat"),
+                ifelse(exists("deffmat"), 3, 2),
+                1
+            )
         )
     } else {
-        out <- c(
-            ifelse(is.null(des), "Estimates", "Population estimates:"),
-            "",
-            mat
+        NULL
+    }
+
+    ## Build output using out_*() nodes, splitting into sections if survey
+    header_label <- ifelse(is.null(des), "Estimates", "Population estimates:")
+
+    if (exists("semat") && exists("deffmat")) {
+        n_groups <- length(toplot)
+        est_rows <- seq_len(n_groups)
+        se_rows <- n_groups + seq_len(n_groups)
+        deff_rows <- 2L * n_groups + seq_len(n_groups)
+
+        est_rn <- if (!is.null(row_names)) row_names[est_rows] else NULL
+        se_rn <- if (!is.null(row_names)) row_names[se_rows] else NULL
+        deff_rn <- if (!is.null(row_names)) row_names[deff_rows] else NULL
+
+        node <- out_group(
+            out_text(header_label),
+            out_blank(),
+            out_table(mat[est_rows, , drop = FALSE],
+                col_headers = rns, row_headers = est_rn
+            ),
+            out_blank(),
+            out_text("Standard error of estimates:"),
+            out_blank(),
+            out_table(mat[se_rows, , drop = FALSE],
+                row_headers = se_rn
+            ),
+            out_blank(),
+            out_text("Design effects:"),
+            out_blank(),
+            out_table(mat[deff_rows, , drop = FALSE],
+                row_headers = deff_rn
+            )
+        )
+    } else if (exists("semat")) {
+        n_groups <- length(toplot)
+        est_rows <- seq_len(n_groups)
+        se_rows <- n_groups + seq_len(n_groups)
+
+        est_rn <- if (!is.null(row_names)) row_names[est_rows] else NULL
+        se_rn <- if (!is.null(row_names)) row_names[se_rows] else NULL
+
+        node <- out_group(
+            out_text(header_label),
+            out_blank(),
+            out_table(mat[est_rows, , drop = FALSE],
+                col_headers = rns, row_headers = est_rn
+            ),
+            out_blank(),
+            out_text("Standard error of estimates:"),
+            out_blank(),
+            out_table(mat[se_rows, , drop = FALSE],
+                row_headers = se_rn
+            )
+        )
+    } else {
+        node <- out_group(
+            out_text(header_label),
+            out_blank(),
+            out_table(mat, col_headers = rns, row_headers = row_names)
         )
     }
 
-    out
+    flatten_node(node)
 }
 
 summary.inzhist <- function(object, opts, des, survey.options, privacy_controls, ...) {
@@ -425,7 +428,7 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
         tab <- as.matrix(tab)
         s_mat_tab <- NULL
         if (is.survey) {
-            # needed for supressing percentages ...
+            # needed for suppressing percentages ...
             svy_tab <- svyby(~x, ~y, des, svytotal,
                 drop.empty.groups = FALSE,
                 na.rm = TRUE
@@ -489,6 +492,7 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
             mat1 <- t(mat1)
         }
 
+        # Right-justify first, then apply RSE markup if needed
         mat1 <- matrix(
             apply(
                 mat1, 2,
@@ -499,31 +503,22 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
             nrow = nrow(mat1)
         )
 
+        justify1 <- "right"
         if (!is.null(s_mat_tab)) {
             mat1[-1, -1] <- privacy_controls$markup(mat1[-1, -1], rse_mat_tab)
-            mat1 <- matrix(
-                apply(
-                    mat1, 2,
-                    function(col) {
-                        format(col, justify = "left")
-                    }
-                ),
-                nrow = nrow(mat1)
-            )
+            justify1 <- "left"
         }
 
-        mat1 <- apply(
-            mat1, 1,
-            function(x) paste0("   ", paste(x, collapse = "   "))
+        sep_after1 <- if (table.direction == "vertical") {
+            nrow(mat1) - 1L
+        } else {
+            NULL
+        }
+
+        table1_node <- out_table(mat1,
+            justify = justify1,
+            separator_after = sep_after1
         )
-
-        if (table.direction == "vertical") {
-            mat1 <- c(
-                mat1[-length(mat1)],
-                paste(c("   ", rep("-", nchar(mat1[1]) - 3L)), collapse = ""),
-                mat1[length(mat1)]
-            )
-        }
 
         cm2 <- cbind(perc, rowSums(tab))
         mat2 <- rbind(
@@ -557,44 +552,32 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
             mat2 <- t(mat2)
         }
 
-        mat2 <- matrix(
-            apply(
-                mat2, 2,
-                function(col) {
-                    format(col, justify = "right")
-                }
-            ),
-            nrow = nrow(mat2)
-        )
-
-        mat2 <- apply(
-            mat2, 1,
-            function(x) paste0("   ", paste(x, collapse = "   "))
-        )
-
-        if (table.direction == "vertical") {
-            mat2 <- c(
-                mat2[seq_len(length(mat2) - 2L)],
-                paste(c("   ", rep("-", nchar(mat2[1]) - 3L)), collapse = ""),
-                mat2[-seq_len(length(mat2) - 2L)]
-            )
+        sep_after2 <- if (table.direction == "vertical") {
+            nrow(mat2) - 2L
+        } else {
+            NULL
         }
 
-        out <- c(
-            sprintf(
+        table2_node <- out_table(mat2,
+            justify = "right",
+            separator_after = sep_after2
+        )
+
+        parts <- list(
+            out_text(sprintf(
                 "Table of %sCounts:",
                 ifelse(is.survey, "Estimated Population ", "")
-            ),
-            "",
-            mat1,
-            "",
-            sprintf(
+            )),
+            out_blank(),
+            table1_node,
+            out_blank(),
+            out_text(sprintf(
                 "Table of %sPercentages (within categories of %s):",
                 ifelse(is.survey, "Estimated Population ", ""),
                 vn$y
-            ),
-            "",
-            mat2
+            )),
+            out_blank(),
+            table2_node
         )
 
         if (is.survey) {
@@ -618,27 +601,17 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
                 mat <- t(mat)
             }
 
-            mat <- matrix(
-                apply(
-                    mat, 2,
-                    function(col) {
-                        format(col, justify = "right")
-                    }
-                ),
-                nrow = nrow(mat)
+            se_table_node <- out_table(mat,
+                justify = "right",
+                na_replace = ""
             )
-            mat[grep("NA", mat)] <- ""
-            mat <- apply(
-                mat, 1,
-                function(x) paste0("   ", paste(x, collapse = "   "))
-            )
-            out <- c(
-                out,
-                "",
-                "Standard errors of estimated percentages:",
-                "",
-                mat
-            )
+
+            parts <- c(parts, list(
+                out_blank(),
+                out_text("Standard errors of estimated percentages:"),
+                out_blank(),
+                se_table_node
+            ))
 
             if (!isFALSE(survey.options$deff)) {
                 mat <- format(deff(smry_mean), digits = opts$signif)
@@ -656,25 +629,22 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
                 if (table.direction == "vertical") {
                     mat <- t(mat)
                 }
-                mat <- matrix(
-                    apply(
-                        mat, 2,
-                        function(col) {
-                            format(col, justify = "right")
-                        }
-                    ),
-                    nrow = nrow(mat)
-                )
-                mat[grep("NA", mat)] <- ""
-                mat <- apply(
-                    mat, 1,
-                    function(x) paste0("   ", paste(x, collapse = "   "))
+
+                deff_table_node <- out_table(mat,
+                    justify = "right",
+                    na_replace = ""
                 )
 
-                out <- c(out, "", "Design effects:", "", mat)
+                parts <- c(parts, list(
+                    out_blank(),
+                    out_text("Design effects:"),
+                    out_blank(),
+                    deff_table_node
+                ))
             }
         }
-        return(out)
+
+        return(flatten_node(do.call(out_group, parts)))
     } else {
         cm <- c(tab, sum(tab))
         perc <- round(perc, opts$round_percent)
@@ -730,38 +700,29 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
             mat <- t(mat)
         }
 
-        mat <- matrix(
-            apply(
-                mat, 2,
-                function(col) {
-                    format(col, justify = "right")
-                }
-            ),
-            nrow = nrow(mat)
-        )
-
-        mat[grep("NA", mat)] <- ""
-
-        mat <- apply(
-            mat, 1,
-            function(x) paste0("   ", paste(x, collapse = "   "))
-        )
-
-        # add line separator above total in vertical tables
-        if (table.direction == "vertical") {
-            mat <- c(
-                mat[-length(mat)],
-                paste(c("   ", rep("-", nchar(mat[1]) - 3L)), collapse = ""),
-                mat[length(mat)]
-            )
+        sep_after <- if (table.direction == "vertical") {
+            nrow(mat) - 1L
+        } else {
+            NULL
         }
 
+        table_node <- out_table(mat,
+            justify = "right",
+            na_replace = "",
+            separator_after = sep_after
+        )
 
         if (is.survey) {
-            return(c("Population Estimates:", "", mat))
+            node <- out_group(
+                out_text("Population Estimates:"),
+                out_blank(),
+                table_node
+            )
         } else {
-            return(mat)
+            node <- table_node
         }
+
+        return(flatten_node(node))
     }
 }
 
@@ -774,7 +735,8 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
 
     is.survey <- !is.null(des)
 
-    out <- character()
+    parts <- list()
+
     if ("linear" %in% trend) {
         beta <- try(
             {
@@ -788,21 +750,20 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
         )
 
         if (inherits(beta, "try-error")) {
-            out <- "Unable to fit linear trend."
+            parts <- c(parts, list(out_text("Unable to fit linear trend.")))
         } else {
-            out <- c(
-                out,
-                "Linear trend:",
-                "",
-                sprintf(
+            parts <- c(parts, list(
+                out_text("Linear trend:"),
+                out_blank(),
+                out_text(sprintf(
                     "    %s = %s %s %s * %s",
                     vn$y,
                     beta[1],
                     ifelse(beta[2] < 0, "-", "+"),
                     abs(beta[2]),
                     vn$x
-                ),
-                paste0(
+                )),
+                out_text(paste0(
                     "    Linear correlation: ",
                     if (is.survey) {
                         signif(
@@ -812,11 +773,12 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
                     } else {
                         signif(cor(x, y), opts$signif)
                     }
-                ),
-                ""
-            )
+                )),
+                out_blank()
+            ))
         }
     }
+
     if ("quadratic" %in% trend) {
         beta <- try(
             {
@@ -836,13 +798,12 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
         )
 
         if (inherits(beta, "try-error")) {
-            out <- "Unable to fit quadratic trend."
+            parts <- c(parts, list(out_text("Unable to fit quadratic trend.")))
         } else {
-            out <- c(
-                out,
-                "Quadratic trend:",
-                "",
-                sprintf(
+            parts <- c(parts, list(
+                out_text("Quadratic trend:"),
+                out_blank(),
+                out_text(sprintf(
                     "    %s = %s %s %s * %s %s %s * %s^2",
                     vn$y,
                     beta[1],
@@ -852,11 +813,12 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
                     ifelse(beta[3] < 0, "-", "+"),
                     abs(beta[3]),
                     vn$x
-                ),
-                ""
-            )
+                )),
+                out_blank()
+            ))
         }
     }
+
     if ("cubic" %in% trend) {
         beta <- beta <- try(
             {
@@ -876,13 +838,12 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
         )
 
         if (inherits(beta, "try-error")) {
-            out <- "Unable to fit linear trend."
+            parts <- c(parts, list(out_text("Unable to fit linear trend.")))
         } else {
-            out <- c(
-                out,
-                "Cubic trend:",
-                "",
-                sprintf(
+            parts <- c(parts, list(
+                out_text("Cubic trend:"),
+                out_blank(),
+                out_text(sprintf(
                     "    %s = %s %s %s * %s %s %s * %s^2 %s %s * %s^3",
                     vn$y,
                     beta[1],
@@ -895,9 +856,9 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
                     ifelse(beta[4] < 0, "-", "+"),
                     abs(beta[4]),
                     vn$x
-                ),
-                ""
-            )
+                )),
+                out_blank()
+            ))
         }
     }
 
@@ -908,28 +869,26 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
                 cov2cor(as.matrix(svyvar(y ~ x, design = des, na.rm = TRUE)))[1, 2],
                 opts$signif
             )
-            out <- c(
-                out,
-                paste0(
+            parts <- c(parts, list(
+                out_text(paste0(
                     "Correlation: ",
                     signif(cor, opts$signif),
                     "  (using Pearson's Correlation)"
-                )
-            )
+                ))
+            ))
         }
     } else {
         rank.cor <- cor(x, y, method = "spearman")
-        out <- c(
-            out,
-            paste0(
+        parts <- c(parts, list(
+            out_text(paste0(
                 "Rank correlation: ",
                 signif(rank.cor, opts$signif),
                 "  (using Spearman's Rank Correlation)"
-            )
-        )
+            ))
+        ))
     }
 
-    out
+    flatten_node(do.call(out_group, parts))
 }
 summary.inzgrid <- function(object, opts, vn, des, survey.options, ...) {
     summary.inzscatter(object, opts, vn, des, ...)

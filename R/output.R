@@ -79,6 +79,7 @@ format_plain.out_table <- function(x, ...) {
             } else {
                 formatted <- as.character(col)
             }
+            formatted[is.na(formatted)] <- x$na_replace
             formatted[grep("NA", formatted)] <- x$na_replace
             if (!is.null(x$nan_replace)) {
                 formatted <- gsub("NaN", x$nan_replace, formatted)
