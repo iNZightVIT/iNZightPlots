@@ -701,7 +701,7 @@ summary.inzdata <- function(object, des, width = 100, ...) {
     ## Build numeric variables section
     num_section <- NULL
     if (n.numeric > 0) {
-        numvars <- object[, sapply(object, is.numeric)]
+        numvars <- object[, sapply(object, is.numeric), drop = FALSE]
         num_mat <- do.call(rbind,
             lapply(numvars,
                 function(x) {
@@ -723,7 +723,7 @@ summary.inzdata <- function(object, des, width = 100, ...) {
     ## Build categorical variables section
     cat_section <- NULL
     if (n.factor > 0) {
-        catvars <- object[, !sapply(object, is.numeric)]
+        catvars <- object[, !sapply(object, is.numeric), drop = FALSE]
         cat_mat <- do.call(rbind,
             lapply(catvars,
                 function(x) {
