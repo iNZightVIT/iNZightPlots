@@ -931,114 +931,66 @@ inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
     }
 
     if (twoway) {
-        mat <- inf$conf$estimate
+        parts <- list()
         dn <- dimnames(object$tab)
 
-        mat <- format(mat, digits = opts$signif)
-        # mat <- matrix(
-        #     apply(
-        #         mat, 2,
-        #         function(col) {
-        #             format(col, digits = opts$signif)
-        #         }
-        #     ),
-        #     nrow = nrow(mat)
-        # )
+        ## A. Proportion estimate table
+        mat <- inf$conf$estimate
 
-        ## Remove NA's and replace with an empty space
+        mat <- format(mat, digits = opts$signif)
         mat[grep("NA", mat)] <- ""
         mat[grep("NaN", mat)] <- ""
 
-        ## Text formatting to return a character vector - each row of matrix
-        mat <- rbind(dn[[2]], mat)
-        colnames(mat) <- NULL
+        mat <- cbind(mat, rep(1, nrow(phat)))
 
-        mat <- cbind(
-            c("", dn[[1]]),
-            mat,
-            c("Row sums", rep(1, nrow(phat)))
-        )
-        rownames(mat) <- NULL
-
-        mat <- matrix(
-            apply(
-                mat, 2,
-                function(col) {
-                    format(col, justify = "right")
-                }
-            ),
-            nrow = nrow(mat)
+        parts[[length(parts) + 1]] <- out_text("Estimated Proportions")
+        parts[[length(parts) + 1]] <- out_blank()
+        parts[[length(parts) + 1]] <- out_table(
+            mat = mat,
+            col_headers = c(dn[[2]], "Row sums"),
+            row_headers = dn[[1]]
         )
 
-        out <- apply(
-            mat, 1,
-            function(x) paste0("   ", paste(x, collapse = "   "))
-        )
-        out <- c("Estimated Proportions", "", out)
-
+        ## B. CI matrix (interleaved lower/upper rows)
         cis <- inf$conf
         cis <- rbind(cis$lower, cis$upper)
         cis <- cis[rep(1:nrow(phat), each = 2) + c(0, nrow(phat)), ]
 
         cis <- format(cis, digits = opts$signif)
-        # cis <- matrix(
-        #     apply(
-        #         cis, 2,
-        #         function(col) {
-        #             format(col, digits = opts$signif)
-        #         }
-        #     ),
-        #     nrow = nrow(cis)
-        # )
         cis[grep("NA", cis)] <- ""
         cis[grep("NaN", cis)] <- ""
 
-        cis <- rbind(dn[[2]], cis)
-        colnames(cis) <- NULL
-
-        cis <- cbind(
-            c("", rbind(dn[[1]], "")),
-            cis
-        )
-        colnames(cis) <- NULL
-
-        cis <- matrix(
-            apply(
-                cis, 2,
-                function(col) {
-                    format(col, justify = "right")
-                }
-            ),
-            nrow = nrow(cis)
-        )
+        # Row headers: interleaved row names with blank lines
+        ci_row_headers <- c(rbind(dn[[1]], ""))
 
         bsCI <- ifelse(bs, " Percentile Bootstrap", "")
-        out <- c(
-            out,
-            "",
-            paste0(100 * ci.width, "%", bsCI, " Confidence Intervals"),
-            "",
-            apply(
-                cis, 1,
-                function(x) paste0("   ", paste(x, collapse = "   "))
-            )
+        parts[[length(parts) + 1]] <- out_blank()
+        parts[[length(parts) + 1]] <- out_text(paste0(100 * ci.width, "%", bsCI, " Confidence Intervals"))
+        parts[[length(parts) + 1]] <- out_blank()
+        parts[[length(parts) + 1]] <- out_table(
+            mat = cis,
+            col_headers = dn[[2]],
+            row_headers = ci_row_headers
         )
 
-        out <- c(
-            out,
-            "",
-            HypOut,
-            "",
-            paste0(
-                "Comparing differences in ",
-                vn$x,
-                "-distribution proportions between ",
-                vn$y,
-                " groups"
-            ),
-            "(Note: CIs are not adjusted for multiple comparisons)"
-        )
+        ## C. Hypothesis test output
+        if (!is.null(HypOut)) {
+            parts[[length(parts) + 1]] <- out_blank()
+            parts <- c(parts, lapply(HypOut, out_text))
+        }
 
+        ## D. Comparing differences header
+        parts[[length(parts) + 1]] <- out_blank()
+        parts[[length(parts) + 1]] <- out_text(paste0(
+            "Comparing differences in ",
+            vn$x,
+            "-distribution proportions between ",
+            vn$y,
+            " groups"
+        ))
+        parts[[length(parts) + 1]] <- out_text("(Note: CIs are not adjusted for multiple comparisons)")
+
+        ## E. Bootstrap computation (no formatting changes)
         if (bs) {
             tab <- object$tab
             dat <- data.frame(
@@ -1081,6 +1033,7 @@ inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
         alpha_m <- 2L
         alpha_adjusted <- 1 - (1 - ci.width) / alpha_m
 
+        ## F. Per-column pairwise differences
         for (j in 1:ncol(phat)) {
             p <- phat[, j]
             n <- length(p)
@@ -1102,11 +1055,13 @@ inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
                 diffs <- freq2way(p, sum, alpha_adjusted)
             }
 
+            # Format row names as "level1 - level2"
             rnames <- cbind(diffs[, 1], "-", diffs[, 2])
             rnames[, 1] <- format(rnames[, 1], justify = "right")
             rnames[, 3] <- format(rnames[, 3], justify = "left")
             rnames <- apply(rnames, 1, paste, collapse = " ")
 
+            # Format data columns
             mat <- matrix(
                 apply(
                     diffs[3:5], 2,
@@ -1120,6 +1075,7 @@ inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
 
             mat <- cbind(format(rnames, justify = "left"), mat)
 
+            # Add header row
             mat <- rbind(c("", "Estimate", "Lower", "Upper"), mat)
             mat <- matrix(
                 apply(
@@ -1131,32 +1087,32 @@ inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
                 nrow = nrow(mat)
             )
 
+            # Collapse to character vector with separator
             mat <- apply(
                 mat, 1,
                 function(x) paste(x, collapse = "   ")
             )
+            # Insert separator line after header
             mat <- c(
                 mat[1],
                 paste(rep("-", nchar(mat[1])), collapse = ""),
                 mat[-1]
             )
 
-            out <- c(
-                out,
-                "",
-                paste0(
-                    " # Pairwise differences in proportions of ",
-                    vn$x,
-                    " = ",
-                    lev
-                ),
-                "",
-                paste("  ", mat),
-                ""
-            )
+            # Wrap each line in out_text() with "  " prefix
+            parts[[length(parts) + 1]] <- out_blank()
+            parts[[length(parts) + 1]] <- out_text(paste0(
+                " # Pairwise differences in proportions of ",
+                vn$x,
+                " = ",
+                lev
+            ))
+            parts[[length(parts) + 1]] <- out_blank()
+            parts <- c(parts, lapply(paste("  ", mat), out_text))
+            parts[[length(parts) + 1]] <- out_blank()
         }
 
-        ##### EPI CALCS #####
+        ## G. Epi calculations
         if (epi.out && ncol(object$tab) == 2) {
             or.mat <- vapply(
                 2:nrow(object$tab),
@@ -1185,19 +1141,16 @@ inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
             hypo.mat <- apply(hypo.mat, MARGIN = 1, paste0, collapse = " ")
             hypo.mat <- paste0("   ", hypo.mat)
 
-            out <- c(
-                out,
-                "",
-                "",
-                sprintf("### Odds Ratio estimates for %s = %s", vn$x, dn[[2]][2]),
-                sprintf("  (baseline: %s = %s)", vn$y, dn[[1]][1]),
-                sprintf("  Using conditional maximum likelihood estimation"),
-                "",
-                "  For each line:",
-                hypo.mat,
-                "",
-                epi.format(or.mat, "OR", names = rownames(object$tab))
-            )
+            parts[[length(parts) + 1]] <- out_blank()
+            parts[[length(parts) + 1]] <- out_blank()
+            parts[[length(parts) + 1]] <- out_text(sprintf("### Odds Ratio estimates for %s = %s", vn$x, dn[[2]][2]))
+            parts[[length(parts) + 1]] <- out_text(sprintf("  (baseline: %s = %s)", vn$y, dn[[1]][1]))
+            parts[[length(parts) + 1]] <- out_text(sprintf("  Using conditional maximum likelihood estimation"))
+            parts[[length(parts) + 1]] <- out_blank()
+            parts[[length(parts) + 1]] <- out_text("  For each line:")
+            parts <- c(parts, lapply(hypo.mat, out_text))
+            parts[[length(parts) + 1]] <- out_blank()
+            parts <- c(parts, lapply(epi.format(or.mat, "OR", names = rownames(object$tab)), out_text))
 
             #### RISK RATIO ####
 
@@ -1209,15 +1162,12 @@ inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
                 FUN.VALUE = numeric(4)
             )
 
-            out <- c(
-                out,
-                "",
-                "",
-                sprintf("### Risk Ratio estimates for %s = %s", vn$x, dn[[2]][2]),
-                sprintf("  (baseline: %s = %s)", vn$y, dn[[1]][1]),
-                "",
-                epi.format(rr.mat, "RR", names = rownames(object$tab))
-            )
+            parts[[length(parts) + 1]] <- out_blank()
+            parts[[length(parts) + 1]] <- out_blank()
+            parts[[length(parts) + 1]] <- out_text(sprintf("### Risk Ratio estimates for %s = %s", vn$x, dn[[2]][2]))
+            parts[[length(parts) + 1]] <- out_text(sprintf("  (baseline: %s = %s)", vn$y, dn[[1]][1]))
+            parts[[length(parts) + 1]] <- out_blank()
+            parts <- c(parts, lapply(epi.format(rr.mat, "RR", names = rownames(object$tab)), out_text))
 
             #### RISK DIFF ####
 
@@ -1229,72 +1179,49 @@ inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
                 FUN.VALUE = numeric(4)
             )
 
-            out <- c(
-                out,
-                "",
-                "",
-                sprintf("### Risk Difference estimates for %s = %s", vn$x, dn[[2]][2]),
-                sprintf("  (baseline: %s = %s)", vn$y, dn[[1]][1]),
-                "",
-                epi.format(rd.mat, "RD", names = rownames(object$tab), 0)
-            )
+            parts[[length(parts) + 1]] <- out_blank()
+            parts[[length(parts) + 1]] <- out_blank()
+            parts[[length(parts) + 1]] <- out_text(sprintf("### Risk Difference estimates for %s = %s", vn$x, dn[[2]][2]))
+            parts[[length(parts) + 1]] <- out_text(sprintf("  (baseline: %s = %s)", vn$y, dn[[1]][1]))
+            parts[[length(parts) + 1]] <- out_blank()
+            parts <- c(parts, lapply(epi.format(rd.mat, "RD", names = rownames(object$tab), 0), out_text))
         }
         ##### END CALCS #####
+
+        out <- flatten_node(do.call(out_group, parts))
     } else { ## one-way table
+        parts <- list()
+
+        ## Section A: Proportion CI table
+        LEVELS <- colnames(object$tab)
         mat <- t(rbind(inf$conf$estimate, inf$conf$lower, inf$conf$upper))
 
         mat <- format(mat, digits = opts$signif)
-        # mat <- matrix(
-        #     apply(
-        #         mat, 2,
-        #         function(col) {
-        #             format(col, digits = opts$signif)
-        #         }
-        #     ),
-        #     nrow = nrow(mat)
-        # )
-
-        ## Remove NA's and replace with an empty space
         mat[grep("NA", mat)] <- ""
         mat[grep("NaN", mat)] <- ""
 
-        ## Text formatting to return a character vector - each row of matrix
-        mat <- rbind(c("Estimate", "Lower", "Upper"), mat)
-        colnames(mat) <- NULL
-        LEVELS <- colnames(object$tab)
-        mat <- cbind(c("", LEVELS), mat)
-        rownames(mat) <- NULL
-
-        mat <- matrix(
-            apply(
-                mat, 2,
-                function(col) {
-                    format(col, justify = "right")
-                }
-            ),
-            nrow = nrow(mat)
-        )
-
-        out <- apply(
-            mat, 1,
-            function(x) paste0("   ", paste(x, collapse = "   "))
-        )
-
         bsCI <- ifelse(bs, " Percentile Bootstrap", "")
-        out <- c(
-            paste0(
-                sprintf(
-                    "Estimated %sProportions with %s%s",
-                    ifelse(is.survey, "Population ", ""),
-                    ci.width * 100, "%"
-                ),
-                bsCI,
-                " Confidence Interval"
+        caption <- paste0(
+            sprintf(
+                "Estimated %sProportions with %s%s",
+                ifelse(is.survey, "Population ", ""),
+                ci.width * 100, "%"
             ),
-            "",
-            out
+            bsCI,
+            " Confidence Interval"
         )
 
+        parts <- c(parts, list(
+            out_text(caption),
+            out_blank(),
+            out_table(
+                mat = mat,
+                col_headers = c("Estimate", "Lower", "Upper"),
+                row_headers = LEVELS
+            )
+        ))
+
+        ## Section B: Bootstrap or survey pairwise differences (computation only)
         if (bs) {
             ## This is about the only place we do bootstrapping within the inference function, as no such
             ## method is applicable to the plots themselves.
@@ -1342,6 +1269,7 @@ inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
             }
         }
 
+        ## Section C: Pairwise comparison table - keep existing formatting
         rnames <- cbind(diffs[, 1], "-", diffs[, 2])
         rnames[, 1] <- format(rnames[, 1], justify = "right")
         rnames[, 3] <- format(rnames[, 3], justify = "left")
@@ -1386,26 +1314,29 @@ inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
         rl <- cumsum(rl) + 2L
         mat[rl] <- paste0(mat[rl], "\n")
 
-        out <- c(
-            out,
-            "",
-            HypOut,
-            "",
-            sprintf(
+        parts <- c(parts, list(out_blank()))
+        if (!is.null(HypOut)) {
+            parts <- c(parts, lapply(HypOut, out_text))
+        }
+        parts <- c(parts, list(
+            out_blank(),
+            out_text(sprintf(
                 "### Difference in %sproportions of %s",
                 ifelse(is.survey, "population ", ""),
                 vn$x
-            ),
-            sprintf(
+            )),
+            out_text(sprintf(
                 "    with %s%s %sConfidence Intervals%s",
                 ci.width * 100,
                 "%",
                 ifelse(bs, "Percentile Bootstrap ", ""),
                 ifelse(bs, "", " (adjusted for multiple comparisons)")
-            ),
-            "",
-            paste0(" ", mat)
-        )
+            )),
+            out_blank()
+        ))
+        parts <- c(parts, lapply(paste0(" ", mat), out_text))
+
+        out <- flatten_node(do.call(out_group, parts))
     }
 
     out
@@ -1566,25 +1497,27 @@ inference.inzscatter <- function(object, des, bs, opts, nb, vn, survey.options, 
     allT <- c("linear", "quadratic", "cubic")
     tr <- (1:3)[allT %in% trend]
 
-    out <- character()
+    parts <- list()
 
     alpha <- 1 - (1 - ci.width) / 2
 
     for (t in tr) {
         if (nrow(d) <= t + 1) {
-            out <- c(
-                out,
-                "",
-                paste0(
-                    "Not enough observations (n = ",
-                    nrow(d),
-                    ") to fit ",
-                    switch(t,
-                        "Linear",
-                        "Quadratic",
-                        "Cubic"
-                    ),
-                    " trend"
+            parts <- c(
+                parts,
+                list(
+                    out_blank(),
+                    out_text(
+                        "Not enough observations (n = ",
+                        nrow(d),
+                        ") to fit ",
+                        switch(t,
+                            "Linear",
+                            "Quadratic",
+                            "Cubic"
+                        ),
+                        " trend"
+                    )
                 )
             )
             break
@@ -1644,55 +1577,57 @@ inference.inzscatter <- function(object, des, bs, opts, nb, vn, survey.options, 
                 mat <- mat[1:2, ]
             }
 
-
-            mat <- rbind(
-                c("Estimate", "Lower", "Upper", if (!bs) "p-value"),
-                mat
-            )
-
             rn <- paste0(vn$x, c("", "^2", "^3"))
-            mat <- cbind(c("", "Intercept", rn[1:t]), mat)
-            if (bs & t == 1) {
-                mat <- rbind(mat, "", c("correlation", covMat))
-            }
-            mat <- apply(
-                mat, 2,
-                function(x) format(x, justify = "right")
-            )
+            row_headers <- c("Intercept", rn[1:t])
+            col_headers <- c("Estimate", "Lower", "Upper", if (!bs) "p-value")
 
-            out <- c(
-                out,
-                "",
-                paste0(
-                    switch(t,
-                        "Linear",
-                        "Quadratic",
-                        "Cubic"
+            # Handle correlation row for bootstrap linear trend
+            if (bs & t == 1) {
+                mat <- rbind(mat, covMat)
+                row_headers <- c(row_headers, "correlation")
+                separator_after <- 2L
+            } else {
+                separator_after <- NULL
+            }
+
+            parts <- c(
+                parts,
+                list(
+                    out_blank(),
+                    out_text(
+                        switch(t,
+                            "Linear",
+                            "Quadratic",
+                            "Cubic"
+                        ),
+                        " Trend Coefficients with ", ci.width * 100, "% ",
+                        ifelse(bs, "Percentile Bootstrap ", ""),
+                        "Confidence Intervals"
                     ),
-                    " Trend Coefficients with ", ci.width * 100, "% ",
-                    ifelse(bs, "Percentile Bootstrap ", ""),
-                    "Confidence Intervals"
-                ),
-                "",
-                apply(
-                    mat, 1,
-                    function(x) paste0("   ", paste(x, collapse = "   "))
+                    out_blank(),
+                    out_table(
+                        mat,
+                        col_headers = col_headers,
+                        row_headers = row_headers,
+                        separator_after = separator_after
+                    )
                 )
             )
 
             ## add a 'key' to the end of the output
             if (t == max(tr) & !bs) {
-                out <- c(
-                    out,
-                    "",
-                    "",
-                    "   p-values for the null hypothesis of no association, H0: beta = 0"
+                parts <- c(
+                    parts,
+                    list(
+                        out_blank(2L),
+                        out_text("   p-values for the null hypothesis of no association, H0: beta = 0")
+                    )
                 )
             }
         }
     }
 
-    out
+    flatten_node(do.call(out_group, parts))
 }
 
 #' @export

@@ -1,49 +1,48 @@
 epi.format <- function(ratio.tab, label = "", names = rep("", nrow(ratio.tab)), first.val = 1) {
   ratio.tab <- t(ratio.tab)
-  
+
   ratio.tab <- rbind(
     c(first.val, NA, NA, NA),
     ratio.tab
   )
-  
+
   ratio.format <- matrix("", ncol = 5, nrow = nrow(ratio.tab))
-  
+
   ratio.format[, 1] <- names
-  
+
   ratio.format[, 3] <- ifelse(
     is.na(ratio.tab[, "ci.lwr"]) | is.na(ratio.tab[, "ci.upr"]),
     "-",
     sprintf("(%.2f, %.2f)", ratio.tab[, "ci.lwr"], ratio.tab[, "ci.upr"])
   )
-  
+
   ratio.format[, 4] <- ifelse(
     is.na(ratio.tab[, "p"]),
     "-",
     sprintf("%.3f", ratio.tab[, "p"])
   )
-  
+
   ratio.format[, 2] <- ifelse(
     is.na(ratio.tab[, "estimate"]),
     "-",
     sprintf("%.2f", ratio.tab[, "estimate"])
   )
-  
+
   ratio.format[, 5] <- ifelse(
     is.na(ratio.tab[, "estimate"]),
     sprintf("(%s cannot be estimated)", label),
     ""
   )
-  
-  ratio.format <- rbind(
-    c("", label, "95% CI", "p-value", ""),
-    ratio.format
+
+  flatten_node(
+    out_table(
+      ratio.format,
+      col_headers = c("", label, "95% CI", "p-value", ""),
+      justify = "right",
+      indent = 3L,
+      col_sep = "   "
+    )
   )
-  
-  ratio.format <- apply(ratio.format, 2, function(x) format(x, justify = "right"))
-  ratio.format <- apply(ratio.format, MARGIN = 1, paste0, collapse = "   ")
-  ratio.format <- paste0("   ", ratio.format)
-  
-  ratio.format
 }
 
 calculate_or <- function(table, conf.level = 0.95) {
