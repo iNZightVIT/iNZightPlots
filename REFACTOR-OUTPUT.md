@@ -29,8 +29,10 @@
    - [Step 16: Migrate epi.format](#step-16-migrate-epiformat)
    - [Step 17: Migrate summary.inzdata](#step-17-migrate-summaryinzdata)
    - [Step 18: Migrate the Orchestrator](#step-18-migrate-the-orchestrator)
-   - [Step 19: Cleanup](#step-19-cleanup)
-   - [Step 20: HTML Rendering](#step-20-html-rendering)
+   - [Step 19: Return Node Trees Directly](#step-19-return-node-trees-directly-done) *(DONE)*
+   - [Step 20: Cleanup](#step-20-cleanup)
+   - [Step 21: knit_print Method](#step-21-knit_print-method)
+   - [Step 22: Semantic HTML Rendering](#step-22-semantic-html-rendering)
 8. [Testing Strategy](#testing-strategy)
 9. [Risks and Mitigations](#risks-and-mitigations)
 10. [File Map](#file-map)
@@ -93,27 +95,32 @@ This duplication makes it:
 
 ### How Output Is Built
 
-All methods build a character vector `out`:
+> **Note**: Steps 1–19 are complete. Methods now build `out_node` trees, and the orchestrator returns `out_doc` directly. The legacy `add()` pattern has been fully replaced.
+
+**Current (post-migration)**:
 
 ```r
-# In the summary/inference methods:
-out <- c(out, "Section Header:", "", formatted_lines, "")
+# In summary/inference methods:
+parts <- list(out_text("Header"), out_blank(), out_table(mat, ...))
+do.call(out_group, parts)  # returns out_node, NOT character
 
-# In the orchestrator (getSummary.R):
-out <- character()
-add <- function(..., underline = FALSE) {
-    x <- paste0(..., collapse = "")
-    out <<- c(out, x)
-    if (underline) out <<- c(out, rule("-", width = nchar(x)))
-}
-# ... build everything via add() ...
-class(out) <- "inzight.plotsummary"
+# In the orchestrator:
+doc <- do.call(out_doc, c(parts, list(width = width)))
+class(doc) <- c("inzight.plotsummary", class(doc))
+doc  # returns out_doc node directly
 ```
 
-The print method is trivial:
+The print method formats on demand:
 
 ```r
-print.inzight.plotsummary <- function(x, ...) cat(x, sep = "\n")
+print.inzight.plotsummary <- function(x, ...) {
+    if (inherits(x, "out_doc")) {
+        cat(format(x, format = "plain"), sep = "\n")
+    } else {
+        cat(x, sep = "\n")  # legacy fallback
+    }
+    invisible(x)
+}
 ```
 
 ### Repeated Patterns
@@ -195,8 +202,8 @@ ind <- function(x, indent = 3) paste0(paste0(rep(" ", indent), collapse = ""), x
 1. **Each `out_*()` returns a structured S3 object**, not a string
 2. **Raw data in, formatting deferred**: nodes store raw R objects (numeric matrices, data frames, test results) and formatting parameters (digits, etc.). The `format_plain.*` methods handle number formatting, alignment, and layout. This means the same node can produce different representations (plain text, HTML via {gt}/{knitr}) without the caller worrying about formatting.
 3. **Privacy suppression operates on raw data**: privacy controls modify the raw numeric matrix/values BEFORE they are passed to `out_table()`. The node stores the (possibly suppressed) raw values, not formatted strings.
-4. **Backward compatible**: during migration, a `flatten_node()` bridge converts structured nodes back to character vectors so the orchestrator's `sapply(..., add)` pattern continues to work
-5. **Incremental**: each method can be migrated independently; old and new coexist
+4. **Backward compatible**: `print()` output is unchanged; `as.character()` returns the formatted character vector for code that needs it. The `flatten_node()` bridge is deprecated but kept for backward compat.
+5. **Incremental**: each method was migrated independently; the bridge allowed old and new to coexist during migration (now complete)
 6. **Testable at two levels**: (a) node construction can be tested by inspecting the structured data (e.g., checking `node$mat` values, `node$digits`), independent of rendering; (b) rendering can be tested by checking the character/HTML output of `format()`.
 7. **Styling attributes on text nodes**: text nodes accept optional formatting hints (bold, italic, colour, CSS class) that are ignored in plain text but rendered in HTML. This enables richer output without breaking backward compatibility.
 8. **HTML via established packages**: HTML rendering delegates to {gt} for tables and standard HTML tags + optional custom CSS for other elements, rather than hand-writing HTML.
@@ -1895,21 +1902,93 @@ summary.inzplotoutput <- function(object, summary.type = "summary", ...) {
 
 ---
 
-### Step 19: Cleanup
+### Step 19: Return Node Trees Directly (DONE)
 
-After all methods are migrated:
+**Status**: Completed
 
-1. **Remove `formatTriMat()`** from `R/inference.R` (replaced by `out_table_tri()`)
-2. **Remove `formatMat()`** from `R/inference.R` (replaced by `out_table()`)
-3. **Remove the `add()` closure pattern** from `summary.inzplotoutput` and `summary.inzdata`
+Summary and inference methods now return structured `out_node` trees instead of character vectors. This is a **breaking change** for code that indexes results as character vectors.
+
+#### Changes made:
+
+1. **Sub-methods return nodes**: Removed `flatten_node()` calls from `summary.inzdot()`, `summary.inzbar()`, `summary.inzscatter()`, `inference.inzbar()`, `inference.inzbarfreq()`, `inference.inzdot()`, and `epi.format()`.
+
+2. **Orchestrator returns `out_doc` directly**: `summary.inzplotoutput()` now returns:
+   ```r
+   doc <- do.call(out_doc, c(parts, list(width = width)))
+   class(doc) <- c("inzight.plotsummary", class(doc))
+   doc
+   ```
+
+3. **New `as.character` method**: Added `as.character.inzight.plotsummary()` for convenient conversion back to formatted character vector:
+   ```r
+   as.character.inzight.plotsummary <- function(x, ...) {
+       if (inherits(x, "out_doc")) format(x, format = "plain")
+       else unclass(x)
+   }
+   ```
+
+4. **Print method returns invisibly**: `print.inzight.plotsummary()` now returns `invisible(x)`.
+
+5. **`epi.format()` integration fixed**: In `inference.R`, changed from `lapply(epi.format(...), out_text)` to directly appending the `out_table` node returned by `epi.format()`.
+
+6. **Tests updated**: All test files that indexed results as character vectors now call `|> as.character()` on the result before string operations.
+
+#### Usage after this step:
+
+```r
+res <- inzsummary(~Sepal.Length, data = iris)
+class(res)                    # "inzight.plotsummary" "out_doc" "out_node"
+print(res)                    # identical plain text output
+as.character(res)             # formatted character vector
+format(res, format = "html")  # HTML output (currently <pre>-wrapped)
+res$nodes                     # access the structured node tree
+```
+
+---
+
+### Step 20: Cleanup
+
+After verifying all tests pass with node returns:
+
+1. **Deprecate `flatten_node()`** in `R/output.R` — add `.Deprecated()` call, keep for backward compat
+2. **Remove `formatTriMat()`** from `R/inference.R` if fully replaced by `out_table_tri()`
+3. **Remove `formatMat()`** from `R/inference.R` if fully replaced by `out_table()`
 4. **Remove `centerText()`** from `R/getSummary.R` if only used by `out_h1` (keep if used elsewhere)
-5. **Update NAMESPACE** if any `out_*` functions should be exported
+5. **Regenerate regression fixtures** — run `tests/testthat/fixtures/generate_fixtures.R` to save new `out_doc` objects as fixtures (the regression tests use `as.character()` on both sides, so this is optional but keeps fixtures up to date)
 6. **Run full test suite**: `make test` and `make check`
 7. **Verify line count reduction**: summary.R ~941 -> ~500, inference.R ~1707 -> ~900
 
 ---
 
-### Step 20: HTML Rendering
+### Step 21: `knit_print` Method
+
+**File**: `R/getSummary.R`
+**Complexity**: Low
+**Dependencies**: Add `knitr` to `Suggests` in DESCRIPTION
+
+Add a `knit_print` method so Rmd/Quarto documents automatically render HTML output:
+
+```r
+#' @exportS3Method knitr::knit_print
+knit_print.inzight.plotsummary <- function(x, ...) {
+    if (inherits(x, "out_doc")) {
+        html <- format(x, format = "html")
+        knitr::asis_output(html)
+    } else {
+        knitr::asis_output(paste0("<pre>", paste(x, collapse = "\n"), "</pre>"))
+    }
+}
+```
+
+This is the idiomatic R approach — knitr calls `knit_print()` automatically during document rendering, so the `print()` method doesn't need context detection.
+
+**Test**: Create a minimal Rmd that calls `inzsummary()` and verify HTML output renders.
+
+**Verify**: `make test` and `make check`.
+
+---
+
+### Step 22: Semantic HTML Rendering
 
 **File**: `R/output.R` (add `format_html.*` methods)
 **Complexity**: Medium
@@ -1922,23 +2001,15 @@ Because nodes store raw data, HTML rendering can leverage rich R packages rather
 
 ```r
 format_html.out_table <- function(x, ...) {
-    # Build a data.frame from the raw matrix
     df <- as.data.frame(x$mat)
-    if (!is.null(x$col_headers)) {
-        colnames(df) <- x$col_headers
-    }
-    if (!is.null(x$row_headers)) {
-        df <- cbind(` ` = x$row_headers, df)
-    }
+    if (!is.null(x$col_headers)) colnames(df) <- x$col_headers
+    if (!is.null(x$row_headers)) df <- cbind(` ` = x$row_headers, df)
 
     tbl <- gt::gt(df) |>
         gt::fmt_number(decimals = x$digits) |>
         gt::tab_options(table.css.id = "inzight-table")
 
-    if (!is.null(x$caption)) {
-        tbl <- tbl |> gt::tab_header(title = x$caption)
-    }
-
+    if (!is.null(x$caption)) tbl <- tbl |> gt::tab_header(title = x$caption)
     as.character(gt::as_raw_html(tbl))
 }
 ```
@@ -1948,8 +2019,6 @@ format_html.out_table <- function(x, ...) {
 ```r
 format_html.out_text <- function(x, ...) {
     text <- htmltools::htmlEscape(x$text)
-
-    # Apply inline styling
     if (x$.bold) text <- paste0("<strong>", text, "</strong>")
     if (x$.italic) text <- paste0("<em>", text, "</em>")
 
@@ -1976,34 +2045,22 @@ format_html.out_h2 <- function(x, ...) {
     paste0('<h2>', htmltools::htmlEscape(x$text), '</h2>')
 }
 
-format_html.out_rule <- function(x, ...) {
-    '<hr class="inzight-rule">'
-}
-
-format_html.out_blank <- function(x, ...) {
-    '<br>'
-}
+format_html.out_rule <- function(x, ...) '<hr class="inzight-rule">'
+format_html.out_blank <- function(x, ...) '<br>'
 ```
 
 #### Hypothesis tests
 
 ```r
 format_html.out_test <- function(x, ...) {
-    # Format from raw values
     opts <- x$opts %||% list(signif = 4L)
-    stat_name <- names(x$statistic)
-    stat_val <- format(x$statistic, digits = opts$signif)
-    param_name <- names(x$parameter)
-    param_val <- format(x$parameter, digits = opts$signif)
-    p_display <- format_pval(x$p_value, opts)
-
     paste0(
         '<div class="hypothesis-test">',
         '<h3>', htmltools::htmlEscape(x$name), '</h3>',
         '<p class="test-stat">',
-        stat_name, ' = ', stat_val, ', ',
-        param_name, ' = ', param_val, ', ',
-        'p-value ', p_display,
+        names(x$statistic), ' = ', format(x$statistic, digits = opts$signif), ', ',
+        names(x$parameter), ' = ', format(x$parameter, digits = opts$signif), ', ',
+        'p-value ', format_pval(x$p_value, opts),
         '</p>',
         '<dl>',
         '<dt>Null Hypothesis</dt><dd>', htmltools::htmlEscape(x$null_hyp), '</dd>',
@@ -2019,7 +2076,6 @@ format_html.out_test <- function(x, ...) {
 ```r
 format_html.out_doc <- function(x, ...) {
     body <- vapply(x$nodes, format_html, character(1))
-
     css <- x$css %||% default_inzight_css()
     paste0(
         '<div class="inzight-output">',
@@ -2027,27 +2083,6 @@ format_html.out_doc <- function(x, ...) {
         paste(body, collapse = "\n"),
         '</div>'
     )
-}
-
-default_inzight_css <- function() {
-    "
-    .inzight-output { font-family: sans-serif; max-width: 800px; }
-    .inzight-title { text-align: center; border-top: 2px solid #333; border-bottom: 1px solid #333; }
-    .inzight-rule { border: 0; border-top: 1px solid #999; }
-    .hypothesis-test { margin: 1em 0; padding: 0.5em; background: #f8f8f8; }
-    .hypothesis-test dt { font-weight: bold; }
-    "
-}
-```
-
-#### Wiring up
-
-Wire up the `html = TRUE` parameter in `getPlotSummary` (already exists but unused):
-
-```r
-# In getPlotSummary, after getting the summary object:
-if (html) {
-    return(format(result, format = "html"))
 }
 ```
 
@@ -2136,59 +2171,34 @@ make check
 
 ## File Map
 
-| File                                      | Action                                                      | Steps             |
-| ----------------------------------------- | ----------------------------------------------------------- | ----------------- |
-| `R/output.R`                              | **NEW**                                                     | 1, 2, 3, 4, 6, 20 |
-| `R/output_helpers.R`                      | **NEW**                                                     | 5                 |
-| `tests/testthat/test_output.R`            | **NEW**                                                     | 1-5               |
-| `tests/testthat/test_output_regression.R` | **NEW**                                                     | 7-18              |
-| `tests/testthat/fixtures/`                | **NEW** directory                                           | 7                 |
-| `R/getSummary.R`                          | MODIFY print method (Step 6), orchestrator (Step 18)        | 6, 17, 18         |
-| `R/summary.R`                             | MODIFY all summary methods                                  | 8-11              |
-| `R/inference.R`                           | MODIFY all inference methods, remove formatTriMat/formatMat | 12-15, 19         |
-| `R/inference_epi.R`                       | MODIFY epi.format                                           | 16                |
-| `R/general.R`                             | NO CHANGE                                                   | -                 |
-| `NAMESPACE`                               | MODIFY if exporting out\_\*                                 | 1                 |
-| `DESCRIPTION`                             | MODIFY: add `gt`, `htmltools` to Suggests (Step 20)         | 20                |
+| File                                      | Action                                                      | Steps              |
+| ----------------------------------------- | ----------------------------------------------------------- | ------------------ |
+| `R/output.R`                              | **DONE** (Steps 1-4, 6); MODIFY (Step 22)                  | 1-4, 6, 22        |
+| `R/output_helpers.R`                      | **DONE** (Step 5)                                           | 5                  |
+| `tests/testthat/test_output.R`            | **DONE** (Steps 1-5)                                        | 1-5                |
+| `tests/testthat/test_output_regression.R` | **DONE** (Steps 7-18)                                       | 7-18               |
+| `tests/testthat/fixtures/`                | **DONE** (Step 7); REFRESH (Step 20)                        | 7, 20              |
+| `R/getSummary.R`                          | **DONE** (Steps 6, 17-19); MODIFY (Step 21)                | 6, 17-19, 21       |
+| `R/summary.R`                             | **DONE** (Steps 8-11, 19)                                   | 8-11, 19           |
+| `R/inference.R`                           | **DONE** (Steps 12-15, 19); MODIFY (Step 20)               | 12-15, 19, 20      |
+| `R/inference_epi.R`                       | **DONE** (Steps 16, 19)                                     | 16, 19             |
+| `R/general.R`                             | NO CHANGE                                                   | -                  |
+| `NAMESPACE`                               | **DONE** (exports for `as.character`, `format_plain`)       | 1, 19              |
+| `DESCRIPTION`                             | MODIFY: add `knitr` to Suggests (Step 21); `gt`, `htmltools` (Step 22) | 21, 22  |
 
 ---
 
 ## Dependency Order
 
 ```
-Step 1 (core) ─→ Step 2 (out_table) ─→ Step 3 (text) ─→ Step 4 (structural)
-                                                              │
-                                                              ▼
-                                                         Step 5 (helpers)
-                                                              │
-                                                              ▼
-                                                         Step 6 (bridge)
-                                                              │
-                                                              ▼
-                                                         Step 7 (fixtures)
-                                                              │
-              ┌───────────────────────────────────────────────┤
-              ▼                                               ▼
-         Step 8 (bar 1-way)                             Step 9 (scatter)
-              │                                               │
-              ▼                                               ▼
-         Step 11 (bar 2-way)                            Step 10 (dot)
-              │                                               │
-              └───────────────┬───────────────────────────────┘
-                              ▼
-                    Step 12-16 (inference methods)
+Steps 1-18 (DONE) ─→ Step 19 (return nodes - DONE)
                               │
                               ▼
-                    Step 17 (inzdata)
+                    Step 20 (cleanup)
                               │
-                              ▼
-                    Step 18 (orchestrator)
-                              │
-                              ▼
-                    Step 19 (cleanup)
-                              │
-                              ▼
-                    Step 20 (HTML)
+                      ┌───────┴───────┐
+                      ▼               ▼
+              Step 21 (knit_print)  Step 22 (semantic HTML)
 ```
 
-Steps 8-11 and 12-16 can be done in any order within their group. Steps 8-16 can be interleaved. Step 18 can be done at any point after Step 6, but is cleanest after all methods are migrated.
+Steps 1–19 are complete. Steps 21 and 22 are independent of each other and can be done in any order. Step 20 (cleanup) should be done first to remove dead code before adding new features.
