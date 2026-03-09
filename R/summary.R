@@ -387,7 +387,7 @@ summary.inzdot <- function(object, opts, des, survey.options, privacy_controls, 
         )
     }
 
-    flatten_node(node)
+    node
 }
 
 summary.inzhist <- function(object, opts, des, survey.options, privacy_controls, ...) {
@@ -644,7 +644,7 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
             }
         }
 
-        return(flatten_node(do.call(out_group, parts)))
+        return(do.call(out_group, parts))
     } else {
         cm <- c(tab, sum(tab))
         perc <- round(perc, opts$round_percent)
@@ -722,7 +722,7 @@ summary.inzbar <- function(object, opts, vn, des, survey.options,
             node <- table_node
         }
 
-        return(flatten_node(node))
+        return(node)
     }
 }
 
@@ -888,7 +888,7 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
         ))
     }
 
-    flatten_node(do.call(out_group, parts))
+    do.call(out_group, parts)
 }
 summary.inzgrid <- function(object, opts, vn, des, survey.options, ...) {
     summary.inzscatter(object, opts, vn, des, ...)

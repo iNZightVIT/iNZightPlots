@@ -94,7 +94,7 @@ test_that("Unweighted survey counts", {
     inf <- inzsummary(sch.wide ~ both,
         data = apiclus2,
         privacy_controls = list(rounding = "RR3")
-    )
+    ) |> as.character()
 
     # 4.1.1 - empty cells as zero, unless suppress required
     expect_match(
@@ -120,7 +120,7 @@ test_that("Weighted survey counts", {
             suppression = 700L,
             secondary_suppression = FALSE
         )
-    )
+    ) |> as.character()
 
     # 4.2.1 - rounded to fixed base, fixed threshold; no secondary suppression
     tbl <- read.table(
@@ -144,7 +144,7 @@ test_that("Weighted survey counts", {
                 output = c(" *", " **", "suppress")
             )
         )
-    )
+    ) |> as.character()
     expect_match(inf, "242 **", fixed = TRUE, all = FALSE)
     expect_match(inf, "689 *", fixed = TRUE, all = FALSE)
 
@@ -169,7 +169,7 @@ test_that("Value magnitudes (cell totals and means)", {
             suppression = 500L,
             suppression_magnitude = 200L
         )
-    )
+    ) |> as.character()
 
     # 4.3.1 - suppress totals/means if unrounded count < x
     popest <- read.table(
@@ -195,7 +195,7 @@ test_that("Medians, quantiles, and percentiles", {
                 n = c(20, 10, 20)
             )
         )
-    )
+    ) |> as.character()
 
     # 4.4.1 - suppress quantiles based on scale
     popest <- read.table(
@@ -208,7 +208,7 @@ test_that("Medians, quantiles, and percentiles", {
 
 test_that("Percentages, proportions, and ratios", {
     # devtools::load_all()
-    inf <- inzsummary(~stype, design = dclus2, round_percent = 1L)
+    inf <- inzsummary(~stype, design = dclus2, round_percent = 1L) |> as.character()
 
     # 4.5.2 - round percentages to 1 d.p.
     pr <- inf[grep("Population Estimates", inf) + 5]

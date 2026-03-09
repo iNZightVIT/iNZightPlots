@@ -1150,7 +1150,7 @@ inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
             parts[[length(parts) + 1]] <- out_text("  For each line:")
             parts <- c(parts, lapply(hypo.mat, out_text))
             parts[[length(parts) + 1]] <- out_blank()
-            parts <- c(parts, lapply(epi.format(or.mat, "OR", names = rownames(object$tab)), out_text))
+            parts[[length(parts) + 1]] <- epi.format(or.mat, "OR", names = rownames(object$tab))
 
             #### RISK RATIO ####
 
@@ -1167,7 +1167,7 @@ inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
             parts[[length(parts) + 1]] <- out_text(sprintf("### Risk Ratio estimates for %s = %s", vn$x, dn[[2]][2]))
             parts[[length(parts) + 1]] <- out_text(sprintf("  (baseline: %s = %s)", vn$y, dn[[1]][1]))
             parts[[length(parts) + 1]] <- out_blank()
-            parts <- c(parts, lapply(epi.format(rr.mat, "RR", names = rownames(object$tab)), out_text))
+            parts[[length(parts) + 1]] <- epi.format(rr.mat, "RR", names = rownames(object$tab))
 
             #### RISK DIFF ####
 
@@ -1184,11 +1184,11 @@ inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
             parts[[length(parts) + 1]] <- out_text(sprintf("### Risk Difference estimates for %s = %s", vn$x, dn[[2]][2]))
             parts[[length(parts) + 1]] <- out_text(sprintf("  (baseline: %s = %s)", vn$y, dn[[1]][1]))
             parts[[length(parts) + 1]] <- out_blank()
-            parts <- c(parts, lapply(epi.format(rd.mat, "RD", names = rownames(object$tab), 0), out_text))
+            parts[[length(parts) + 1]] <- epi.format(rd.mat, "RD", names = rownames(object$tab), 0)
         }
         ##### END CALCS #####
 
-        out <- flatten_node(do.call(out_group, parts))
+        out <- do.call(out_group, parts)
     } else { ## one-way table
         parts <- list()
 
@@ -1336,7 +1336,7 @@ inference.inzbar <- function(object, des, bs, opts, nb, vn, hypothesis,
         ))
         parts <- c(parts, lapply(paste0(" ", mat), out_text))
 
-        out <- flatten_node(do.call(out_group, parts))
+        out <- do.call(out_group, parts)
     }
 
     out
@@ -1627,7 +1627,7 @@ inference.inzscatter <- function(object, des, bs, opts, nb, vn, survey.options, 
         }
     }
 
-    flatten_node(do.call(out_group, parts))
+    do.call(out_group, parts)
 }
 
 #' @export

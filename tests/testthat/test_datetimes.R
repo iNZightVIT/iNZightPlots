@@ -85,6 +85,10 @@ test_that("Summaries provide a reasonable summary", {
     expect_is(date.smry, "inzight.plotsummary")
     expect_is(time.smry, "inzight.plotsummary")
 
+    dt.smry <- as.character(dt.smry)
+    date.smry <- as.character(date.smry)
+    time.smry <- as.character(time.smry)
+
     dti <- grep("Sample Size", dt.smry)
 
     dx <- strsplit(gsub("  +", "|", dt.smry[dti + 1]), "\\|")[[1]][-1]

@@ -12,7 +12,7 @@ test_that("Survey designs work", {
 })
 
 test_that("Summary information is correct - dot plot", {
-    x <- getPlotSummary(enroll, design = dclus1)
+    x <- getPlotSummary(enroll, design = dclus1) |> as.character()
     pe <- which(grepl("Population estimates", x)) + 3
 
     xpe <- gsub("\\|", "", x[pe])
@@ -63,7 +63,7 @@ test_that("Summary information is correct - dot plot", {
 })
 
 test_that("Summary information is correct - dot plot (by factor)", {
-    x <- getPlotSummary(enroll, stype, design = dclus1)
+    x <- getPlotSummary(enroll, stype, design = dclus1) |> as.character()
     pe <- which(grepl("Population estimates", x)) + 3:5
     xpe <- gsub("\\||[A-Z]", "", x[pe])
     expect_equivalent(
@@ -116,7 +116,7 @@ test_that("Summary information is correct - dot plot (by factor)", {
 
 test_that("Design effects are included - numeric", {
     x <- getPlotSummary(enroll, design = dclus1,
-        survey.options = list(deff = TRUE))
+        survey.options = list(deff = TRUE)) |> as.character()
     de <- which(grepl("Design effects", x)) + 2
     xde <- gsub("\\||[A-Z]", "", x[de])
     expect_equivalent(
@@ -130,7 +130,7 @@ test_that("Design effects are included - numeric", {
 
 test_that("Design effects are included - numeric x categorical", {
     x <- getPlotSummary(enroll, stype, design = dclus1,
-        survey.options = list(deff = TRUE))
+        survey.options = list(deff = TRUE)) |> as.character()
     de <- which(grepl("Design effects", x)) + 2:4
     xde <- gsub("\\||[A-Z]", "", x[de])
     expect_equivalent(
@@ -167,7 +167,7 @@ test_that("Design effects are included - numeric x categorical", {
 
 test_that("Design effects are included - categorical", {
     x <- getPlotSummary(stype, design = dclus1,
-        survey.options = list(deff = TRUE))
+        survey.options = list(deff = TRUE)) |> as.character()
     de <- which(grepl("Design effects", x))
     xde <- gsub("\\||Design effects", "", x[de])
     expect_equivalent(
@@ -181,7 +181,7 @@ test_that("Design effects are included - categorical", {
 
 test_that("Design effects are included - categorical x categorical", {
     x <- getPlotSummary(stype, awards, design = dclus1,
-            survey.options = list(deff = TRUE))
+            survey.options = list(deff = TRUE)) |> as.character()
     de <- which(grepl("Design effects", x)) + 3:4
     xde <- gsub("\\||[A-Za-z]", "", x[de])
     expect_equivalent(

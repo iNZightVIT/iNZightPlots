@@ -5,7 +5,7 @@ skip_if_offline()
 cas <- read.csv("cas.csv", stringsAsFactors = TRUE)
 
 test_that("One-way table summaries are correct", {
-    p <- getPlotSummary(travel, data = cas)
+    p <- getPlotSummary(travel, data = cas) |> as.character()
     p <- p[which(grepl("Summary of the distribution", p)) + 3:5]
     expect_equal(
         scan(text = p[1], what = character(), quiet = TRUE),
@@ -22,7 +22,7 @@ test_that("One-way table summaries are correct", {
 })
 
 test_that("Vertical tables supported", {
-    p <- inzsummary(~travel, data = cas, table.direction = "vertical")
+    p <- inzsummary(~travel, data = cas, table.direction = "vertical") |> as.character()
     expect_match(
         p[which(grepl("Summary of the distribution", p)) + 3],
         "\\sCount\\s+Percent"
@@ -32,7 +32,7 @@ test_that("Vertical tables supported", {
         "-+"
     )
 
-    p2 <- inzsummary(travel~gender, data = cas, table.direction = "vertical")
+    p2 <- inzsummary(travel~gender, data = cas, table.direction = "vertical") |> as.character()
     expect_match(
         p2[grep("Summary of the distribution", p2)],
         ".+travel \\(rows\\) by gender \\(columns\\).+"

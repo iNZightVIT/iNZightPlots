@@ -13,13 +13,13 @@ test_that("Two-sample tests use appropriate CI", {
         summary.type = "inference",
         inference.type = "conf",
         hypothesis.var.equal = TRUE
-    )
+    ) |> as.character()
     pFALSE <- getPlotSummary(x, y,
         data = d,
         summary.type = "inference",
         inference.type = "conf",
         hypothesis.var.equal = FALSE
-    )
+    ) |> as.character()
 
     pvals <- sapply(list(pTRUE, pFALSE), function(p) {
         as.numeric(
@@ -72,7 +72,7 @@ s1 <- getPlotSummary(x,
     hypothesis.use.exact = FALSE,
     hypothesis.value = 0.5,
     hypothesis.alt = "two.sided"
-)
+) |> as.character()
 s2 <- getPlotSummary(x,
     data = d, summary.type = "inference",
     inference.type = "conf",
@@ -80,12 +80,12 @@ s2 <- getPlotSummary(x,
     hypothesis.use.exact = TRUE,
     hypothesis.value = 0.4,
     hypothesis.alt = "less"
-)
+) |> as.character()
 s3 <- getPlotSummary(x,
     data = d, summary.type = "inference",
     inference.type = "conf",
     hypothesis.test = "chi2"
-)
+) |> as.character()
 test_that("One-sample tests give correct p-value", {
     expect_match(
         paste(s1, collapse = "\n"),
@@ -143,7 +143,7 @@ s1 <- getPlotSummary(Machine, Course,
     data = d, summary.type = "inference",
     inference.type = "conf",
     hypothesis.test = "chi2"
-)
+) |> as.character()
 test_that("Simulated p-value is included when small expected values", {
     expect_match(
         paste(s1, collapse = "\n"),
@@ -160,7 +160,7 @@ test_that("Simulated p-value is included when requested", {
         inference.type = "conf",
         hypothesis.test = "chi2",
         hypothesis.simulated.p.value = TRUE
-    )
+    ) |> as.character()
     expect_match(paste(s, collapse = "\n"), "Simulated p-value =")
 })
 
@@ -210,7 +210,7 @@ test_that("inzinference gives the same output", {
 
 # anova
 test_that("ANOVA (one-way) output is the correct way around", {
-    inf <- inzinference(Sepal.Length ~ Species, data = iris)
+    inf <- inzinference(Sepal.Length ~ Species, data = iris) |> as.character()
     expect_match(inf, "setosa\\s+-\\s+versicolor\\s+-0.930", all = FALSE)
 })
 
@@ -353,12 +353,12 @@ test_that("Confidence level can be adjusted - dot plots", {
         y = sample(LETTERS[1:2], 100, replace = TRUE),
         stringsAsFactors = TRUE
     )
-    inf <- inzinference(y ~ x, data = d, ci.width = 0.8)
+    inf <- inzinference(y ~ x, data = d, ci.width = 0.8) |> as.character()
 
     expect_match(inf, "80% Confidence Intervals", all = FALSE)
 
     # scatter plot
-    inf <- inzinference(Sepal.Length ~ Sepal.Width, data = iris, ci.width = 0.9, trend = "linear")
+    inf <- inzinference(Sepal.Length ~ Sepal.Width, data = iris, ci.width = 0.9, trend = "linear") |> as.character()
     expect_match(
         inf,
         "Linear Trend Coefficients with 90% Confidence Intervals",

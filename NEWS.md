@@ -1,3 +1,5 @@
+- [breaking] `inzsummary()` and `inzinference()` now return structured `out_doc` node trees instead of character vectors. Use `as.character()` to get the formatted text, or `format(res, format = "html")` for HTML output. `print()` output is unchanged.
+
 # iNZightPlots 2.16
 
 - change default min p-value from base R default (1e-16) to 0.0001, and add override paramater (`min.pval`)

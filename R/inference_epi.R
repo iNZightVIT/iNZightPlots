@@ -34,14 +34,12 @@ epi.format <- function(ratio.tab, label = "", names = rep("", nrow(ratio.tab)), 
     ""
   )
 
-  flatten_node(
-    out_table(
+  out_table(
       ratio.format,
       col_headers = c("", label, "95% CI", "p-value", ""),
       justify = "right",
       indent = 3L,
       col_sep = "   "
-    )
   )
 }
 

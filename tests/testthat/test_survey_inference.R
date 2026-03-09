@@ -60,7 +60,7 @@ test_that("One sample t-test", {
 })
 
 test_that("Two sample inference", {
-    smry <- inzinference(api00 ~ both, design = dclus1, ci.width = 0.99, width = 80)
+    smry <- inzinference(api00 ~ both, design = dclus1, ci.width = 0.99, width = 80) |> as.character()
     ciline <- smry[grepl("No - Yes", smry)]
     expect_match(ciline, "-15.51", all = FALSE)
     x <- svyby(~api00, ~both, design = dclus1, svymean)
@@ -987,7 +987,7 @@ test_that("Missing values are handled appropriately", {
 
     r <- svyby(~Weight, ~Gender.cat, nhanes.svy, svymean, na.rm = TRUE)
     rci <- confint(r)
-    out <- inzinference(Weight ~ Gender.cat, design = nhanes.svy)
+    out <- inzinference(Weight ~ Gender.cat, design = nhanes.svy) |> as.character()
     outi <- grep("Population Means", out) + 3:4
     obs <- scan(textConnection(gsub("[a-zA-Z]", "", out[outi])))
     exp <- cbind(coef(r), rci[, 1], rci[, 2])
@@ -996,7 +996,7 @@ test_that("Missing values are handled appropriately", {
     expect_equal(obs, exp)
 
     # correlation
-    out <- inzsummary(Weight ~ Height, design = nhanes.svy)
+    out <- inzsummary(Weight ~ Height, design = nhanes.svy) |> as.character()
     r <- survey::svyvar(Weight ~ Height, design = nhanes.svy, na.rm = TRUE)
     r <- cov2cor(as.matrix(r))[1, 2]
     expect_match(

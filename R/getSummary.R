@@ -589,10 +589,8 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
     parts <- c(parts, list(out_rule("=", width), out_blank(), out_blank()))
 
     doc <- do.call(out_doc, c(parts, list(width = width)))
-    out <- format_plain(doc, width = width)
-    attr(out, "doc") <- doc
-    class(out) <- "inzight.plotsummary"
-    out
+    class(doc) <- c("inzight.plotsummary", class(doc))
+    doc
 }
 
 summary.inzdata <- function(object, des, width = 100, ...) {
@@ -676,12 +674,22 @@ summary.inzdata <- function(object, des, width = 100, ...) {
 
 
 #' @export
+as.character.inzight.plotsummary <- function(x, ...) {
+    if (inherits(x, "out_doc")) {
+        format(x, format = "plain")
+    } else {
+        unclass(x)
+    }
+}
+
+#' @export
 print.inzight.plotsummary <- function(x, ...) {
     if (inherits(x, "out_doc")) {
         cat(format(x, format = "plain"), sep = "\n")
     } else {
         cat(x, sep = "\n")
     }
+    invisible(x)
 }
 
 

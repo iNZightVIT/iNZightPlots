@@ -73,6 +73,7 @@ test_that("epidemiological summary tables are formatted correctly", {
   )
 
   formatted.tab <- epi.format(test.mat, label = "OR", names = letters[1:4], 1)
+  formatted.tab <- format_plain(formatted.tab)
 
   expect_match(trimws(formatted.tab[1]), "^OR")
   expect_match(trimws(formatted.tab[2]), "^a")
