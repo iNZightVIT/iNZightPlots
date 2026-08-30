@@ -33,6 +33,10 @@ jobs:
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           cache-version: ${{ matrix.config.cache  }}
+          # ggmosaic and waffle archived from CRAN
+          extra-packages: |
+            ggmosaic=?ignore
+            waffle=?ignore
           needs: |
             check
             coverage

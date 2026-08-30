@@ -1,6 +1,7 @@
 # iNZightPlots 2.16.1
 
 - fix `xlab`/`ylab` for rotated ggplots (e.g. `gg_boxplot`): custom labels now apply to the visual axes after `coord_flip`
+- exclude archived CRAN Suggests (`ggmosaic`, `waffle`) from CI installs via pak `=?ignore`
 
 # iNZightPlots 2.16
 
