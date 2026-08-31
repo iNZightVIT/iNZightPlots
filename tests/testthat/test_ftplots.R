@@ -306,6 +306,46 @@ test_that("Y-axis label for one-way numeric is blank", {
     expect_equal(p1$labels$x, "")
 })
 
+test_that("Custom xlab applies to visual x-axis for rotated boxplots", {
+    # gg_boxplot is flipped by default: aesthetic y is the visual x-axis.
+    # xlab/ylab arguments refer to visual axes (as in Lite's label UI).
+    p1 <- iNZightPlotGG(
+        iris,
+        type = "gg_boxplot",
+        x = "Sepal.Length",
+        y = "Species",
+        xlab = "CUSTOM_X",
+        extra_args = list(plottype = "gg_boxplot")
+    )
+    expect_true(inherits(p1$coordinates, "CoordFlip"))
+    expect_equal(p1$labels$y, "CUSTOM_X")
+    expect_equal(p1$labels$x, "Species")
+
+    p2 <- iNZightPlotGG(
+        iris,
+        type = "gg_boxplot",
+        x = "Sepal.Length",
+        y = "Species",
+        xlab = "CUSTOM_X",
+        ylab = "CUSTOM_Y",
+        extra_args = list(plottype = "gg_boxplot")
+    )
+    expect_equal(p2$labels$y, "CUSTOM_X")
+    expect_equal(p2$labels$x, "CUSTOM_Y")
+
+    # When un-rotated, xlab maps directly to aesthetic x (visual x).
+    p3 <- iNZightPlotGG(
+        iris,
+        type = "gg_boxplot",
+        x = "Sepal.Length",
+        y = "Species",
+        xlab = "CUSTOM_X",
+        extra_args = list(plottype = "gg_boxplot", rotation = TRUE)
+    )
+    expect_false(inherits(p3$coordinates, "CoordFlip"))
+    expect_equal(p3$labels$x, "CUSTOM_X")
+})
+
 test_that("Plots can be rotated", {
     p1 <- iNZightPlot(Sepal.Length,
         data = iris, plottype = "gg_violin",

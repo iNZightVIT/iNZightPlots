@@ -375,6 +375,7 @@ iNZightPlotGG <- function(
     gg_theme = "grey") {
   dots <- list(...)
 
+  rotate <- NULL
   if (length(extra_args) > 0) {
     rotate <- extra_args$rotation
     desc <- extra_args$desc
@@ -384,6 +385,38 @@ iNZightPlotGG <- function(
     extra_args$desc <- desc
   }
 
+  # Types that are drawn with coord_flip by default (rotation arg is inverted).
+  default_rotated <- c(
+    "gg_boxplot", "gg_violin", "gg_beeswarm", "gg_quasirandom",
+    "gg_lollipop", "gg_column2", "gg_spine"
+  )
+  # Types whose constructors already include coord_flip(); rotate() toggles it.
+  builtin_flip <- c("gg_spine", "gg_divergingstackedbar")
+
+  do_rotate_toggle <- FALSE
+  if (!(type %in% c("gg_pie", "gg_donut", "gg_cumcurve", "gg_gridplot"))) {
+    if (type %in% default_rotated) {
+      do_rotate_toggle <- if (!is.null(rotate)) !isTRUE(rotate) else TRUE
+    } else {
+      do_rotate_toggle <- isTRUE(rotate)
+    }
+  }
+  # Final plot has coord_flip if builtin XOR toggle (toggle adds or removes it).
+  final_flip <- if (type == "gg_gridplot") {
+    isTRUE(rotate)
+  } else if (isTRUE(do_rotate_toggle)) {
+    !(type %in% builtin_flip)
+  } else {
+    type %in% builtin_flip
+  }
+  # xlab/ylab are visual-axis labels; map them onto aesthetics before flip.
+  if (isTRUE(final_flip) && type != "gg_gridplot") {
+    tmp <- xlab
+    xlab <- ylab
+    ylab <- tmp
+  }
+  rotate <- do_rotate_toggle
+
   plot_args <- iNZightPlotGG_decide(data, unlist(dots), type, extra_args)
 
   plot_exprs <- do.call(
@@ -392,18 +425,10 @@ iNZightPlotGG <- function(
   )
 
   if (!(type %in% c("gg_pie", "gg_donut", "gg_cumcurve"))) {
-    if (type == "gg_gridplot" && isTRUE(rotate)) {
+    if (type == "gg_gridplot" && isTRUE(extra_args$rotation)) {
       plot_exprs$plot <- rotate_gridplot(plot_exprs$plot)
-    } else {
-      default_rotated <- c("gg_boxplot", "gg_violin", "gg_beeswarm", "gg_quasirandom", "gg_lollipop", "gg_column2", "gg_spine")
-
-      if (type %in% default_rotated) {
-        rotate <- if (!is.null(rotate)) !rotate else TRUE
-      }
-
-      if (isTRUE(rotate)) {
-        plot_exprs$plot <- rotate(plot_exprs$plot)
-      }
+    } else if (isTRUE(rotate)) {
+      plot_exprs$plot <- rotate(plot_exprs$plot)
     }
   }
 
