@@ -96,8 +96,8 @@ Currently only handles single panel plots. Coloured hex plots are currently not 
 x <- iNZightPlot(Petal.Width, Petal.Length, data = iris, colby = Species)
 exportHTML(x, "index.html")
 
-#to export more variables for scatterplots:
- exportHTML(x, "index.html", data = iris, extra.vars = c("Sepal.Length", "Sepal.Width"))
+# to export more variables for scatterplots:
+exportHTML(x, "index.html", data = iris, extra.vars = c("Sepal.Length", "Sepal.Width"))
 }
 
 }

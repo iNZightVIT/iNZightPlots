@@ -1,3 +1,4 @@
+#' @exportS3Method
 gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
     # subset the data by g2 (keep everything, so xlims can be calculated)
     # g2 can take values (0 = "_ALL", 1:ng2, ng2+1 = "_MULTI")
@@ -21,8 +22,9 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
         # if g2 specified numerically, check the value is ok, and then convert it to
         # character level anyway
         if (is.numeric(g2.level)) {
-            if (as.integer(g2.level) != g2.level)
+            if (as.integer(g2.level) != g2.level) {
                 warning(paste0("g2.level truncated to ", g2.level, "."))
+            }
 
             if (g2.level == 0) {
                 g2.level <- "_ALL"
@@ -45,7 +47,8 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
             }
 
             missing$g2 <- sum(is.na(dd[, g2]))
-            df1 <- lapply(g2l,
+            df1 <- lapply(
+                g2l,
                 function(l) {
                     dft <- eval(
                         parse(
@@ -69,18 +72,22 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
         g1 <- df$varnames["g1"]
         # take two methods of specifying g1.level (numeric or level names), and convert to a vector
         # of only character names to be plotted
-        g1l <- levels(df$data$g1)  # all levels of variable
+        g1l <- levels(df$data$g1) # all levels of variable
         if (is.null(g1.level)) g1.level <- "_MULTI"
 
         if (is.numeric(g1.level)) {
             if (any(g1.level > length(levels(dd$g1)))) g1.level <- 0
             g1.level <-
-                if (any(g1.level == 0)) "_MULTI"
-                else levels(dd$g1)[g1.level]
+                if (any(g1.level == 0)) {
+                    "_MULTI"
+                } else {
+                    levels(dd$g1)[g1.level]
+                }
         }
 
-        if (any(g1.level == "_MULTI"))
+        if (any(g1.level == "_MULTI")) {
             g1.level <- levels(df$data$g1)
+        }
 
         # track missing values due to missingness in g1
         missing$g1 <- sum(is.na(df$data$g1))
@@ -99,19 +106,27 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
     oldcall <- df$design$call
 
 
-    df.list <- lapply(df1,
+    df.list <- lapply(
+        df1,
         function(df2) {
-            df3 <- lapply(g1l,
+            df3 <- lapply(
+                g1l,
                 function(x) {
-                    if (x == "all") dfo <- df2
-                    else dfo <- eval(
-                        parse(
-                            text = sprintf("subset(df2, g1 == '%s')", x)
+                    if (x == "all") {
+                        dfo <- df2
+                    } else {
+                        dfo <- eval(
+                            parse(
+                                text = sprintf("subset(df2, g1 == '%s')", x)
+                            )
                         )
-                    )
+                    }
 
-                    if (nrow(dfo$variables) >= 1) return(dfo)
-                    else return(NULL)
+                    if (nrow(dfo$variables) >= 1) {
+                        return(dfo)
+                    } else {
+                        return(NULL)
+                    }
                 }
             )
             names(df3) <- g1l
@@ -121,34 +136,55 @@ gSubset.inz.survey <- function(df, g1.level, g2.level, df.vs, missing) {
 
     ## sum up all of the missing values
     w.df <-
-        if (is.null(g2.level)) "all"
-        else if (g2.level == "_MULTI") 1:length(df.list)
-        else g2.level
+        if (is.null(g2.level)) {
+            "all"
+        } else if (g2.level == "_MULTI") {
+            1:length(df.list)
+        } else {
+            g2.level
+        }
 
     missing$x <- sum(
-        sapply(df.list[w.df],
-            function(df) sum(
-                sapply(df,
-                    function(d)
-                        if (!is.null(d)) sum(is.na(d$variables$x))
-                        else 0
+        sapply(
+            df.list[w.df],
+            function(df) {
+                sum(
+                    sapply(
+                        df,
+                        function(d) {
+                            if (!is.null(d)) {
+                                sum(is.na(d$variables$x))
+                            } else {
+                                0
+                            }
+                        }
+                    )
                 )
-            )
+            }
         )
     )
 
-    if ("y" %in% df.vs)
+    if ("y" %in% df.vs) {
         missing$y <- sum(
-            sapply(df.list[w.df],
-                function(df) sum(
-                    sapply(df,
-                        function(d)
-                            if (!is.null(d)) sum(is.na(d$variables$y))
-                            else 0
+            sapply(
+                df.list[w.df],
+                function(df) {
+                    sum(
+                        sapply(
+                            df,
+                            function(d) {
+                                if (!is.null(d)) {
+                                    sum(is.na(d$variables$y))
+                                } else {
+                                    0
+                                }
+                            }
+                        )
                     )
-                )
+                }
             )
         )
+    }
 
     class(df.list) <- "inz.survey"
     list(
@@ -184,8 +220,9 @@ modifyCall <- function(oldcall, arg, val) {
 
     ## fix namespacing of some survey packages
     if (!exists(as.character(call[[1]])) &&
-        exists(as.character(call[[1]]), asNamespace("survey")))
+        exists(as.character(call[[1]]), asNamespace("survey"))) {
         call[[1]] <- as.name(paste0("survey:::", call[[1]]))
+    }
 
     ## if it is an "as.svrepdesign" call, need to adjust data on the inner argument ...
 
@@ -194,11 +231,13 @@ modifyCall <- function(oldcall, arg, val) {
 }
 
 get_weights <- function(obj) {
-    if (is_svyrep(obj))
+    if (is_svyrep(obj)) {
         return(as.numeric(weights(obj, type = "sampling")))
+    }
 
-    if (is_survey(obj))
+    if (is_survey(obj)) {
         return(weights(obj))
+    }
 
     return(NA)
 }

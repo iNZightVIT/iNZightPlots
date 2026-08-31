@@ -26,8 +26,8 @@
 #' x <- iNZightPlot(Petal.Width, Petal.Length, data = iris, colby = Species)
 #' exportHTML(x, "index.html")
 #'
-#' #to export more variables for scatterplots:
-#'  exportHTML(x, "index.html", data = iris, extra.vars = c("Sepal.Length", "Sepal.Width"))
+#' # to export more variables for scatterplots:
+#' exportHTML(x, "index.html", data = iris, extra.vars = c("Sepal.Length", "Sepal.Width"))
 #' }
 #'
 #' @author Yu Han Soh
@@ -38,8 +38,9 @@ exportHTML <- function(x,
                        local = FALSE,
                        dir = tempdir(),
                        extra.vars,
-                       ...)
+                       ...) {
     UseMethod("exportHTML")
+}
 
 #' @describeIn exportHTML method for an iNZightPlot-generating function
 #' @export
@@ -55,7 +56,7 @@ exportHTML.function <- function(x,
     cdev <- dev.cur()
     on.exit(dev.off(cdev), add = TRUE)
 
-    #do exporting:
+    # do exporting:
     obj <- x()
     url <- exportHTML(obj, file, data = data, local = local, dir = dir, extra.vars = extra.vars)
 
@@ -94,9 +95,9 @@ exportHTML.ggplot <- function(x,
     }
 
     # package check:
-    if( !requireNamespace("gridSVG",  quietly = TRUE) ||
-        !requireNamespace("knitr",   quietly = TRUE) ||
-        !requireNamespace("jsonlite", quietly = TRUE) ) {
+    if (!requireNamespace("gridSVG", quietly = TRUE) ||
+        !requireNamespace("knitr", quietly = TRUE) ||
+        !requireNamespace("jsonlite", quietly = TRUE)) {
         stop(
             paste("Required packages aren't installed",
                 "Use 'install.packages('iNZightPlots', dependencies = TRUE)' to install them.",
@@ -146,8 +147,8 @@ exportHTML.ggplot <- function(x,
     pal <- rev(as.vector(bar$raster))
 
     # drop the last column (geometry)
-    dt <- dt[, - which(names(dt) == "geometry")]
-    timeData <- timeData[, - which(names(timeData) == "geometry")]
+    dt <- dt[, -which(names(dt) == "geometry")]
+    timeData <- timeData[, -which(names(timeData) == "geometry")]
     tab <- if (mapObj$type == "sparklines" || multi) timeData else dt
     # only extract variables that are numeric
     t <- sapply(tab, is.numeric)
@@ -156,7 +157,7 @@ exportHTML.ggplot <- function(x,
     if (is.null(seqVar)) {
         int <- NULL
     } else {
-        d <- unique(diff(tab[,seqVar]))
+        d <- unique(diff(tab[, seqVar]))
         int <- d[which(d > 0)]
     }
 
@@ -184,7 +185,6 @@ exportHTML.ggplot <- function(x,
 
     url <- createHTML(tbl, js, file, local, dir = dir)
     invisible(url)
-
 }
 
 #' @describeIn exportHTML method for output from iNZightPlot
@@ -195,14 +195,14 @@ exportHTML.inzplotoutput <- function(x,
                                      local = FALSE,
                                      dir = tempdir(),
                                      extra.vars = NULL, ...) {
-
-    #suggest gridSVG, jsonlite, xtable:
-    if( !requireNamespace("gridSVG",  quietly = TRUE) ||
-        !requireNamespace("knitr",   quietly = TRUE) ||
-        !requireNamespace("jsonlite", quietly = TRUE) ) {
+    # suggest gridSVG, jsonlite, xtable:
+    if (!requireNamespace("gridSVG", quietly = TRUE) ||
+        !requireNamespace("knitr", quietly = TRUE) ||
+        !requireNamespace("jsonlite", quietly = TRUE)) {
         stop(paste("Required packages aren't installed",
-                "Use 'install.packages('iNZightPlots', depends = TRUE)' to install them.",
-                sep = "\n"))
+            "Use 'install.packages('iNZightPlots', depends = TRUE)' to install them.",
+            sep = "\n"
+        ))
     }
 
     x <- x
@@ -217,9 +217,9 @@ exportHTML.inzplotoutput <- function(x,
         }
     }
 
-    #condition for colored hexplots - currently unavailable:
-    if(attributes(x)$plottype == "hex" && !is.null(plot$colby)) {
-        warning('iNZight cannot handle interactive colored hex plots yet!')
+    # condition for colored hexplots - currently unavailable:
+    if (attributes(x)$plottype == "hex" && !is.null(plot$colby)) {
+        warning("iNZight cannot handle interactive colored hex plots yet!")
         return()
     }
 
@@ -233,10 +233,9 @@ exportHTML.inzplotoutput <- function(x,
     tbl <- info$tbl
     js <- info$js
 
-    #create html
+    # create html
     url <- createHTML(tbl, js, file, local, dir = dir)
     invisible(url)
-
 }
 
 ## create HTML - processes and generates HTML file
@@ -248,9 +247,7 @@ exportHTML.inzplotoutput <- function(x,
 createHTML <- function(tbl, js,
                        file = file.path(dir, "index.html"),
                        local = FALSE,
-                       dir = tempdir()
-                       ) {
-
+                       dir = tempdir()) {
     # load templates
     HTMLtemplate <- readLines(system.file("template.html", package = "iNZightPlots"))
     styles <- paste(
@@ -267,7 +264,7 @@ createHTML <- function(tbl, js,
 
     # generate HTML table
     if (is.null(tbl)) {
-        HTMLtable <- '<p> No table available. </p>'
+        HTMLtable <- "<p> No table available. </p>"
     } else {
         # switched from xtable to knitr: table in desired format for dataTables to work
         HTMLtable <- knitr::kable(tbl$tab,
@@ -282,7 +279,7 @@ createHTML <- function(tbl, js,
     jsCode <- js$jsFile
     chartCode <- paste0("var chart = ", js$chart, ";")
 
-    #finding places where to substitute code:
+    # finding places where to substitute code:
     svgLine <- grep("SVG", HTMLtemplate)
     cssLine <- grep("styles.css", HTMLtemplate)
     inzplotLine <- grep("inzplot", HTMLtemplate)
@@ -334,7 +331,6 @@ createHTML <- function(tbl, js,
         HTMLtemplate[jsLine] <- sprintf("<script src='%s/main.js'></script>", assets)
         HTMLtemplate <- sprintf(gsub("INZIGHT_LOGO", "%s/inzight_transp.png", HTMLtemplate), assets)
     } else {
-
         ## insert inline JS, CSS
         HTMLtemplate[cssLine] <-
             paste("<style>", styles, "</style>", collapse = "\n")
@@ -372,11 +368,11 @@ createHTML <- function(tbl, js,
 #' @return NULL (it's a print function, after all)
 #' @export
 print.inzHTML <- function(x, viewer = getOption("viewer", utils::browseURL), ...) {
-
-    if (!is.null(viewer))
+    if (!is.null(viewer)) {
         viewer(x)
-    else
+    } else {
         print(as.character(x))
+    }
 
     invisible(NULL)
 }
@@ -389,10 +385,11 @@ print.inzHTML <- function(x, viewer = getOption("viewer", utils::browseURL), ...
 ## @param extra.vars extra variables to be exported
 ## @return a list consisting of the table (tbl) and JSON (js)
 ## internal function
-getInfo <- function(plot, x = NULL, data = NULL, extra.vars = NULL)  {
+getInfo <- function(plot, x = NULL, data = NULL, extra.vars = NULL) {
     UseMethod("getInfo")
 }
 
+#' @exportS3Method
 getInfo.inzbar <- function(plot, x, ...) {
     # generation of table of counts:
     # plot <- x$all$all
@@ -411,42 +408,40 @@ getInfo.inzbar <- function(plot, x, ...) {
     prop.df <- as.data.frame(t(prop))
     counts.df <- as.data.frame(counts)
     group <- length(percent)
-    pct <- as.data.frame(t(round(prop*100, 2)))
+    pct <- as.data.frame(t(round(prop * 100, 2)))
 
     dt <- cbind(counts, pct)
-    colnames(dt) <- c('varx', 'counts', 'pct')
-    colCounts <- NULL;
-    order <- NULL;
+    colnames(dt) <- c("varx", "counts", "pct")
+    colCounts <- NULL
+    order <- NULL
 
     if (all(percent != 1)) {
         # This condition is used to identify if it's a two way plot...
         # different table for two way bar plots
         tab <- cbind(
-            round(prop,4),
-            format(round(rowSums(prop),4), nsmall = 4),
+            round(prop, 4),
+            format(round(rowSums(prop), 4), nsmall = 4),
             rowSums(counts)
         )
-        colnames(tab)[(ncol(prop)+1):ncol(tab)] <- c("Total", "Row N")
+        colnames(tab)[(ncol(prop) + 1):ncol(tab)] <- c("Total", "Row N")
 
         ## for JSON:
         prop.df <- as.data.frame(prop)
         dt <- cbind(prop.df, counts.df$Freq)
         colnames(dt) <- c("var1", "var2", "pct", "counts")
-        dt$pct <- round(dt$pct*100, 2)
-        colCounts <- c("Col N", round(colSums(counts)/n,4), 1)
-
+        dt$pct <- round(dt$pct * 100, 2)
+        colCounts <- c("Col N", round(colSums(counts) / n, 4), 1)
     } else if (!is.null(colorMatch) && (all(c(0, 1) %in% colorMatch) == FALSE)) {
         # for stacked bar plots - a special two-way table
         colorMatchRev <- colorMatch[nrow(colorMatch):1, ]
         proportions <- round(rbind(colorMatchRev, colSums(colorMatchRev)), 4)
-        tab <- rbind(proportions,counts)
+        tab <- rbind(proportions, counts)
         rownames(tab)[nrow(proportions):nrow(tab)] <- c("Total", "Col N")
-
     } else {
         # creating table for 1 way plots
-        tab <- rbind(counts, round(prop*100,2))
+        tab <- rbind(counts, round(prop * 100, 2))
         tab <- cbind(tab, rowSums(tab))
-        tab[2,] <- paste0(tab[2,], "%")
+        tab[2, ] <- paste0(tab[2, ], "%")
         colnames(tab)[ncol(tab)] <- "Total"
         rownames(tab) <- c("Counts", "Percent")
 
@@ -464,13 +459,13 @@ getInfo.inzbar <- function(plot, x, ...) {
         order <- matrix(1:length(colorMatch), ncol = ncol(colorMatch), byrow = TRUE)
         order <- as.vector(apply(order, 1, rev))
         dt <- as.data.frame(as.table(colorMatch), stringsAsFactors = FALSE)
-        dt$pct <- round(dt$Freq*100, 2)
-        #counts are in the counts value -> need to merge on var2
+        dt$pct <- round(dt$Freq * 100, 2)
+        # counts are in the counts value -> need to merge on var2
         colnames(counts.df) <- c("Var2", "c1")
         dt <- merge(dt, counts.df)
-        dt <- dt[order(dt$Var1),]
+        dt <- dt[order(dt$Var1), ]
         # calculate counts
-        dt$counts <- with(dt, c1*Freq)
+        dt$counts <- with(dt, c1 * Freq)
         dt <- cbind(dt, order)
         dt <- dt[order(dt$order), ]
 
@@ -480,10 +475,10 @@ getInfo.inzbar <- function(plot, x, ...) {
     }
 
     # attributes for HTML table
-    cap <- 'Table of Counts and Proportions'
+    cap <- "Table of Counts and Proportions"
     includeRow <- TRUE
     tableInfo <- list(caption = cap, includeRow = includeRow, tab = tab, n = n)
-    #returning all data in a list:
+    # returning all data in a list:
     chart <- list(
         type = type,
         data = dt,
@@ -500,8 +495,9 @@ getInfo.inzbar <- function(plot, x, ...) {
     return(list(tbl = tableInfo, js = JSData))
 }
 
+#' @exportS3Method
 getInfo.inzhist <- function(plot, x, ...) {
-    #plot <- x$all$all or plot <- x$all[[1]]
+    # plot <- x$all$all or plot <- x$all[[1]]
 
     toPlot <- plot$toplot$all
     if (is.null(toPlot)) {
@@ -518,7 +514,7 @@ getInfo.inzhist <- function(plot, x, ...) {
     # freq distribution table:
     lower <- round(intervals[-length(intervals)], 2)
     upper <- round(intervals[-1], 2)
-    interval <- paste(lower, upper, sep ="-")
+    interval <- paste(lower, upper, sep = "-")
     tab <- cbind(interval, counts)
     colnames(tab) <- c("Class Interval", "Frequency")
     tab <- rbind(tab, c("Total", sum(counts)))
@@ -572,12 +568,13 @@ getInfo.inzhist <- function(plot, x, ...) {
     return(list(tbl = tableInfo, js = JSData))
 }
 
+#' @exportS3Method
 getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
     plots <- plot$toplot
     levels <- names(plots)
-    varNames <-attributes(x)$varnames
+    varNames <- attributes(x)$varnames
 
-    if (length(levels) > 1)  { # for multi-level dot plots
+    if (length(levels) > 1) { # for multi-level dot plots
 
         levList <- list()
         dd <- list()
@@ -589,15 +586,16 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
 
 
         for (i in 1:length(levels)) {
-            #currently only takes variable plotted
+            # currently only takes variable plotted
             levList[[i]] <- plots[[i]]$x
             order <- attr(plots[[i]], "order")
 
             ## exported data frame with extra variables:
             if (!is.null(extra.vars) && !is.null(data)) {
-                dataByLevel <- data[which(data[,varNames$y] == levels[i]), ]
+                dataByLevel <- data[which(data[, varNames$y] == levels[i]), ]
                 dd[[i]] <- varSelect(varNames, plots[[i]],
-                    order, extra.vars, dataByLevel, levels = TRUE
+                    order, extra.vars, dataByLevel,
+                    levels = TRUE
                 )
             } else {
                 dd[[i]] <- cbind(levList[[i]], levels[i])
@@ -608,7 +606,7 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
             }
 
             if (!is.null(plot$boxinfo)) {
-                #obtain boxplot information
+                # obtain boxplot information
                 box <- plot$boxinfo
                 quantiles <- box[[i]]$quantiles
                 min <- box[[i]]$min
@@ -625,10 +623,10 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
             }
 
             # get cumulative frequency of counts for each group:
-            countsTab[i+1] <- sum(plots[[i]]$counts, countsTab[i])
+            countsTab[i + 1] <- sum(plots[[i]]$counts, countsTab[i])
         }
 
-        #bind all groups together:
+        # bind all groups together:
         tab <- do.call("rbind", dd)
         chart <- list(
             type = "dot",
@@ -640,19 +638,18 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
             varNames = colnames(tab),
             meanData = meanList
         )
-
-    } else { #for single dot plots
+    } else { # for single dot plots
 
         colGroupNo <- nlevels(plot$toplot$all$colby)
         pl <- plot$toplot$all
         # note that the order given is with non-missing values (data has been filtered)
         order <- attr(pl, "order")
 
-        #variable selection
+        # variable selection
         tab <- varSelect(varNames, pl, order, extra.vars, data)
 
         if (!is.null(plot$boxinfo)) {
-            #To obtain box whisker plot information:
+            # To obtain box whisker plot information:
             boxInfo <- plot$boxinfo$all
             quantiles <- boxInfo$quantiles
             min <- boxInfo$min
@@ -679,7 +676,7 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
         )
     }
 
-    ##Attributes for HTML table
+    ## Attributes for HTML table
     cap <- "Data"
     includeRow <- TRUE
     tableInfo <- list(
@@ -696,6 +693,7 @@ getInfo.inzdot <- function(plot, x, data = NULL, extra.vars = NULL) {
     return(list(tbl = tableInfo, js = JSData))
 }
 
+#' @exportS3Method
 getInfo.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
     obj <- x
     x <- plot$x
@@ -728,7 +726,7 @@ getInfo.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
     if (is.null(plot$trend)) {
         trendInfo <- NA
     } else {
-        trendInfo <- list(linear = NA, quadratic = NA, cubic = NA,  rank.cor = NA)
+        trendInfo <- list(linear = NA, quadratic = NA, cubic = NA, rank.cor = NA)
 
         if ("linear" %in% plot$trend) {
             beta <- signif(coef(lm(y ~ x)), 4)
@@ -767,6 +765,7 @@ getInfo.inzscatter <- function(plot, x, data = NULL, extra.vars = NULL) {
     return(list(tbl = tbl, js = JSData))
 }
 
+#' @exportS3Method
 getInfo.inzhex <- function(plot, x = NULL, ...) {
     warning("No table available for hexbin plots.")
     tbl <- NULL
@@ -778,7 +777,7 @@ getInfo.inzhex <- function(plot, x = NULL, ...) {
     n <- plot$hex@n
 
     tab <- as.data.frame(cbind(counts, xcm, ycm))
-    tab$pct <- round(tab$counts/n*100, 2)
+    tab$pct <- round(tab$counts / n * 100, 2)
 
     # JS
     chart <- list(type = "hex", data = tab, n = n)
@@ -791,6 +790,7 @@ getInfo.inzhex <- function(plot, x = NULL, ...) {
     return(list(tbl = tbl, js = JSData))
 }
 
+#' @exportS3Method
 getInfo.default <- function(plot, x, ...) {
     warning("There may not be an interactive version of this plot yet...")
     return()
@@ -806,9 +806,7 @@ getInfo.default <- function(plot, x, ...) {
 # @param levels logical on whether there are levels to be considered (dot plots only)
 # @return returns a data frame to be exported
 varSelect <- function(varNames, pl, order, extra.vars, data, levels = FALSE) {
-
     if (!is.null(extra.vars) && !is.null(data)) {
-
         # filter missing data
         # This is not required for scatter plots as the order listed takes missing data
         # into account
@@ -824,9 +822,7 @@ varSelect <- function(varNames, pl, order, extra.vars, data, levels = FALSE) {
         tab <- data[order, colNum, drop = FALSE]
 
         rownames(tab) <- 1:nrow(tab)
-
     } else {
-
         # default
         xVal <- pl$x
         tab <- data.frame(xVal)
@@ -851,11 +847,9 @@ varSelect <- function(varNames, pl, order, extra.vars, data, levels = FALSE) {
             tab <- cbind(tab, as.data.frame(sizeby))
             names(tab)[ncol(tab)] <- varNames$sizeby
         }
-
     }
 
     return(tab)
-
 }
 
 
@@ -899,7 +893,7 @@ can.interact.inzplotoutput <- function(x) {
         pl <- x$all[[1]]
     }
     # coloured hex-plots not available
-    if(attributes(x)$plottype == "hex" && !is.null(pl$colby)) {
+    if (attributes(x)$plottype == "hex" && !is.null(pl$colby)) {
         return(FALSE)
     }
     TRUE

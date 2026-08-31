@@ -140,6 +140,7 @@ smaller, while values larger than 1 will magnify everything}
 \item{'round'}{integer specifying optional rounding of numerical output, default NA (ignored)}
 \item{'round_percent'}{integer specifying rounding for percentages (default 2)}
 \item{'signif'}{integer specifying number of significant figured in numeric output (default 2). Ignored if \code{round} is not NA.}
+\item{'min.pval'}{numeric specifying the minimum p-value to display (default 0.0001)}
 }
 }
 \examples{
