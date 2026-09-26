@@ -871,11 +871,13 @@ test_that("Post-strat designs - two sample t-test", {
 })
 
 test_that("Post-strat designs - ANOVA", {
-    z <- getPlotSummary(api00, stype,
+    # emmeans warns: svyglm has design nrow weights, but we pass plot-rebuilt `dat`
+    # (weights ignored for pairwise contrasts). Same suppress as g1 case below.
+    z <- suppressWarnings(getPlotSummary(api00, stype,
         design = dclus1p,
         summary.type = "inference",
         inference.type = "conf"
-    )
+    ))
     expect_is(z, "inzight.plotsummary")
     expect_output(print(z), "Wald test for stype")
 

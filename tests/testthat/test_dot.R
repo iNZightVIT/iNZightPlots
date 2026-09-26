@@ -13,18 +13,23 @@ test_that("Colour by", {
 
 test_that("Colour by with quantiles", {
     expect_is(
-        iNZightPlot(Sepal.Width, colby = Petal.Width, col.method = "rank",
-            data = iris),
+        iNZightPlot(Sepal.Width,
+            colby = Petal.Width, col.method = "rank",
+            data = iris
+        ),
         "inzplotoutput"
     )
 })
 
 test_that("Mean indicator", {
     pl <- iNZightPlot(Sepal.Width, data = iris, mean_indicator = TRUE)
-    pl <- iNZightPlot(Sepal.Width, data = iris, mean_indicator = TRUE,
+    expect_equal(pl$all$all$meaninfo$all$mean, mean(iris$Sepal.Width))
+    pl <- iNZightPlot(Sepal.Width,
+        data = iris, mean_indicator = TRUE,
         plottype = "hist",
         cex.dotpt = 5
     )
+    expect_equal(pl$all$all$meaninfo$all$mean, mean(iris$Sepal.Width))
 })
 
 test_that("Inference information is correct", {
@@ -75,7 +80,6 @@ test_that("Inference information is correct", {
     #     inference.par = "iqr",
     #     inference.type = "conf"
     # )
-
 })
 
 test_that("Dot plot with single unique value", {
@@ -84,27 +88,35 @@ test_that("Dot plot with single unique value", {
 })
 
 test_that("Transformations for dot plots", {
-    inzplot(~Sepal.Length, data = iris, transform = list(x = "log"))
+    p <- inzplot(~Sepal.Length, data = iris, transform = list(x = "log"))
+    expect_equal(p$all$all$toplot$all$x, sort(log(iris$Sepal.Length)))
 })
 
 test_that("Confidence level can be adjusted", {
     # single x
-    p <- inzplot(~Sepal.Length, data = iris,
+    p <- inzplot(~Sepal.Length,
+        data = iris,
         inference.type = "conf", ci.width = 0.9,
-        inference.par = "mean", plot = FALSE)
+        inference.par = "mean", plot = FALSE
+    )
     t <- t.test(iris$Sepal.Length,
-        conf.level = 0.9)
+        conf.level = 0.9
+    )
     expect_equivalent(
         p$all$all$inf$mean$conf,
         c(t$conf.int, t$estimate)
     )
 
     # by factor
-    p <- inzplot(Sepal.Length ~ Species, data = iris,
+    p <- inzplot(Sepal.Length ~ Species,
+        data = iris,
         inference.type = "conf", ci.width = 0.9,
-        inference.par = "mean", plot = FALSE)
+        inference.par = "mean", plot = FALSE
+    )
     t <- tapply(iris$Sepal.Length, iris$Species,
-        t.test, conf.level = 0.9)
+        t.test,
+        conf.level = 0.9
+    )
     expect_equivalent(
         p$all$all$inf$mean$conf,
         t(sapply(t, function(x) c(x$conf.int, x$estimate)))
