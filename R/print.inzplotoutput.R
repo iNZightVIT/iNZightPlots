@@ -12,8 +12,7 @@ print.inzplotoutput <- function(x, ...) {
     if (is.null(ctx)) {
         stop(
             "Cannot print this inzplotoutput: missing draw context. ",
-            "Recreate the plot with plot = TRUE (Phase 1a; full redraw ",
-            "from create-only objects comes in later Phase 1 steps)."
+            "Recreate the plot with iNZightPlot()."
         )
     }
 
@@ -164,25 +163,9 @@ print.inzplotoutput <- function(x, ...) {
     ## plot.list still contains all the levels of g1 that wont be plotted
     ## - for axis scaling etc
     ## so figure this one out somehow ...
-    ng1 <- ifelse("g1" %in% names(df$data), length(g1.level), 1)
-    ng2 <- ifelse(
-        "g2" %in% names(df$data),
-        ifelse(
-            matrix.plot,
-            ifelse(
-                g2.level == "_MULTI",
-                length(plot.list),
-                length(g2.level)
-            ),
-            1
-        ),
-        1
-    )
-    N <- ng1 * ng2 # length(plot.list) * length(g1.level)
-    NN <- if (matrix.plot) length(plot.list) * length(plot.list[[1]]) else N
-    # this has absolutely no theoretical reasoning,
-    # it just does a reasonably acceptable job (:
-    multi.cex <- max(1.2 * sqrt(sqrt(NN) / NN), 0.5)
+    panel_scale <- inz_panel_scale(plot.list, df, g1.level, g2.level, matrix.plot)
+    N <- panel_scale$N
+    multi.cex <- panel_scale$mcex
 
 
     # --- WIDTHS of various things
@@ -318,7 +301,10 @@ print.inzplotoutput <- function(x, ...) {
     yfact <- if (ynull) FALSE else yfact
     ynum <- if (ynull) FALSE else !yfact
 
-    col.args <- list(missing = opts$col.missing)
+    col.args <- inz_col_args(
+        plot.list, opts, df, varnames, TYPE, barplot,
+        xfact, yfact, ynull, locate.col
+    )
     if ("colby" %in% names(varnames) &&
         (any(TYPE %in% c("dot", "scatter", "hex")) ||
             (any(TYPE %in% c("grid", "hex")) && !is.null(opts$trend) &&
@@ -382,7 +368,6 @@ print.inzplotoutput <- function(x, ...) {
                 ptcol <- c(ptcol, opts$col.missing)
                 f.levels <- c(f.levels, "missing")
             }
-            col.args$f.cols <- structure(ptcol, .Names = f.levels)
         } else {
             misscol <- any(
                 sapply(
@@ -402,8 +387,6 @@ print.inzplotoutput <- function(x, ...) {
                 opts = opts
             )
             leg.grob1 <- leg.grobL$fg
-            col.args$n.range <- range(df$data$colby, na.rm = TRUE)
-            col.args$n.cols <- leg.grobL$n.cols
         }
     } else if (xfact & yfact) {
         nby <- length(levels(as.factor(df$data$y)))
@@ -424,10 +407,7 @@ print.inzplotoutput <- function(x, ...) {
             title = df$short_labels$y %||% varnames$y,
             opts = opts
         )
-        col.args$b.cols <- barcol
     }
-
-    if (!is.null(locate.col)) col.args$locate.col <- locate.col
 
     if ("sizeby" %in% names(varnames) & any(TYPE %in% c("scatter"))) {
         misssize <- any(
@@ -1066,6 +1046,9 @@ print.inzplotoutput <- function(x, ...) {
                 upViewport()
             }
             opts$ZOOM <- NULL
+            opts$rowNum <- NULL
+            opts$colNum <- NULL
+            opts$bar.nmax <- NULL
 
             ## update the counters
             if (g1id < NG1) {
@@ -1077,6 +1060,8 @@ print.inzplotoutput <- function(x, ...) {
         }
     }
 
+    opts$rot <- NULL
+
     dev.flush()
 
     ## Restore create-time attributes dropped by panel filtering
@@ -1084,7 +1069,7 @@ print.inzplotoutput <- function(x, ...) {
         attr(plot.list, nm) <- .keep_attrs[[nm]]
     }
 
-    ## Attach full $gen for drawn objects (Phase 1a; unify with plot=FALSE in 1b)
+    ## Refresh $gen after draw (opts may have changed; mcex/col.args match create)
     plot.list$gen <- list(
         opts = opts,
         mcex = multi.cex,
@@ -1108,12 +1093,13 @@ print.inzplotoutput <- function(x, ...) {
                 ), 5)
     }
 
-    ## Keep ctx so a later print(x) can redraw; reopen device next time
+    ## Keep ctx so a later print(x) can redraw; reopen device next time.
+    ## `[<-` keeps NULL levels; `$<- NULL` would drop the element.
     ctx2 <- ctx
     ctx2$already_open <- FALSE
     ctx2$panels_unfiltered <- panels_unfiltered
-    ctx2$g1.level_orig <- g1.level_orig
-    ctx2$g2.level_orig <- g2.level_orig
+    ctx2["g1.level_orig"] <- list(g1.level_orig)
+    ctx2["g2.level_orig"] <- list(g2.level_orig)
     attr(plot.list, "._print_ctx") <- ctx2
 
     class(plot.list) <- "inzplotoutput"
@@ -1125,4 +1111,106 @@ print.inzplotoutput <- function(x, ...) {
 #' @exportS3Method graphics::plot
 plot.inzplotoutput <- function(x, y, ...) {
     print(x, ...)
+}
+
+## Panel count and multi-plot cex. Uses the unfiltered panel list so
+## g1/g2 subsets still size text from the full grid.
+inz_panel_scale <- function(plot.list, df, g1.level, g2.level, matrix.plot) {
+    ng1 <- ifelse("g1" %in% names(df$data), length(g1.level), 1)
+    ng2 <- ifelse(
+        "g2" %in% names(df$data),
+        ifelse(
+            matrix.plot,
+            ifelse(
+                g2.level == "_MULTI",
+                length(plot.list),
+                length(g2.level)
+            ),
+            1
+        ),
+        1
+    )
+    N <- ng1 * ng2
+    NN <- if (matrix.plot) length(plot.list) * length(plot.list[[1]]) else N
+    # this has absolutely no theoretical reasoning,
+    # it just does a reasonably acceptable job (:
+    list(
+        N = N,
+        mcex = max(1.2 * sqrt(sqrt(NN) / NN), 0.5)
+    )
+}
+
+## Colour mapping stored on $gen$col.args. Legend grobs are built separately
+## in print(); this does not draw.
+inz_col_args <- function(plot.list, opts, df, varnames, TYPE, barplot,
+                         xfact, yfact, ynull, locate.col) {
+    yfact <- if (ynull) FALSE else yfact
+    col.args <- list(missing = opts$col.missing)
+
+    if ("colby" %in% names(varnames) &&
+        (any(TYPE %in% c("dot", "scatter", "hex")) ||
+            (any(TYPE %in% c("grid", "hex")) && !is.null(opts$trend) &&
+                opts$trend.by) ||
+            (any(TYPE == "bar") && ynull && is.factor(df$data$colby)))) {
+        colby <- df$data$colby
+        if (any(TYPE == "hex")) {
+            colby <- convert.to.factor(colby)
+        }
+
+        if (is.factor(colby)) {
+            nby <- length(levels(as.factor(colby)))
+            if (length(opts$col.pt) >= nby) {
+                ptcol <- opts$col.pt[1:nby]
+            } else {
+                ptcol <-
+                    if (!is.null(opts$col.fun)) {
+                        opts$col.fun(nby)
+                    } else {
+                        opts$col.default$cat(nby)
+                    }
+            }
+
+            if (all(TYPE != "bar")) {
+                misscol <- any(
+                    sapply(
+                        plot.list,
+                        function(x) sapply(x, function(y) y$nacol)
+                    )
+                )
+            } else {
+                misscol <- FALSE
+            }
+
+            f.levels <- levels(as.factor(colby))
+            if (misscol) {
+                ptcol <- c(ptcol, opts$col.missing)
+                f.levels <- c(f.levels, "missing")
+            }
+            col.args$f.cols <- structure(ptcol, .Names = f.levels)
+        } else {
+            col.args$n.range <- range(colby, na.rm = TRUE)
+            col.args$n.cols <-
+                if (!is.null(opts$col.fun)) {
+                    opts$col.fun(200)
+                } else {
+                    opts$col.default$cont(200)
+                }
+        }
+    } else if (xfact & yfact) {
+        nby <- length(levels(as.factor(df$data$y)))
+        if (length(opts$col.pt) >= nby) {
+            barcol <- opts$col.pt[1:nby]
+        } else {
+            barcol <-
+                if (!is.null(opts$col.fun)) {
+                    opts$col.fun(nby)
+                } else {
+                    opts$col.default$cat(nby)
+                }
+        }
+        col.args$b.cols <- barcol
+    }
+
+    if (!is.null(locate.col)) col.args$locate.col <- locate.col
+    col.args
 }

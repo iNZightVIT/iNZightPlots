@@ -433,6 +433,8 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
     epi.out <- list(...)[["epi.out"]]
 
     for (this in names(obj)) {
+        ## $gen / $xlim / $ylim are object slots, not g2 panels
+        if (this %in% c("gen", "xlim", "ylim")) next
         if (this != "all") {
             parts <- c(parts, list(
                 out_rule("=", width),

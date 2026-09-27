@@ -742,7 +742,7 @@ iNZightPlot <- function(x,
     }
 
     if (itsADotplot) {
-        if (!plot || is.null(dev.list())) {
+        if (is.null(dev.list())) {
             xattr$symbol.width <- 1
         } else {
             xattr$symbol.width <- convertWidth(unit(opts$cex.dotpt, "char"),
@@ -800,11 +800,14 @@ iNZightPlot <- function(x,
             )
         )
     } else {
-        try(
-            {
-                jpeg(FILE <- tempfile())
-            },
-            silent = TRUE
+        ## Same canvas as a drawn plot so dot/hist binning does not depend on plot=
+        sz <- if (is.null(dev.list())) c(7, 7) else dev.size()
+        pdf(FILE <- tempfile(fileext = ".pdf"), width = sz[1], height = sz[2])
+        pushViewport(
+            viewport(
+                gp = gpar(cex = opts$cex),
+                name = "container"
+            )
         )
     }
 
@@ -877,6 +880,12 @@ iNZightPlot <- function(x,
             plot.list,
             function(x) lapply(x, function(y) y$ntotal)
         )
+        ## Axis scale tag used by draw; keep it on both plot=TRUE and plot=FALSE
+        opts$transform$y <-
+            ifelse(opts$bar.counts, "bar_counts", "bar_percentage")
+        if (opts$bar.counts) {
+            opts$bar.n <- nrow(df$data)
+        }
     }
 
     if (diff(range(xlim)) == 0) {
@@ -1003,7 +1012,7 @@ iNZightPlot <- function(x,
         missing.info = missing.info,
         locate.col = locate.col,
         zoombars = zoombars,
-        dots = dots,
+        dots = dots[setdiff(names(dots), "plot")],
         xlab = if (missing(xlab)) NULL else xlab,
         ylab = if (missing(ylab)) NULL else ylab,
         xlab_was_missing = missing(xlab),
@@ -1012,7 +1021,10 @@ iNZightPlot <- function(x,
         BARPLOT.N = if (barplot) BARPLOT.N else NULL,
         itsADotplot = itsADotplot,
         xattr = xattr,
-        already_open = isTRUE(plot)
+        already_open = isTRUE(plot),
+        panels_unfiltered = plot.list,
+        g1.level_orig = g1.level,
+        g2.level_orig = g2.level
     )
 
     attr(plot.list, "varnames") <- varnames
@@ -1051,14 +1063,23 @@ iNZightPlot <- function(x,
         }
         plot.list <- lapply(plot.list, function(x) x[g1.level])
 
-        attr(plot.list, "plotargs") <- list(
-            gen = list(
-                opts = opts,
-                maxcount = maxcnt
-            ),
-            xlim = xlim,
-            ylim = ylim
+        panel_scale <- inz_panel_scale(
+            print_ctx$panels_unfiltered, df,
+            print_ctx$g1.level_orig, print_ctx$g2.level_orig,
+            matrix.plot
         )
+        attr(plot.list, "nplots") <- panel_scale$N
+        plot.list$gen <- list(
+            opts = opts,
+            mcex = panel_scale$mcex,
+            col.args = inz_col_args(
+                print_ctx$panels_unfiltered, opts, df, varnames, TYPE, barplot,
+                xfact, yfact, ynull, locate.col
+            ),
+            maxcount = maxcnt
+        )
+        plot.list$xlim <- xlim
+        plot.list$ylim <- ylim
 
         ## lapply drops attributes — restore from print_ctx / earlier assignments
         attr(plot.list, "varnames") <- varnames
@@ -1070,7 +1091,6 @@ iNZightPlot <- function(x,
         attr(plot.list, "bootstrap") <- opts$bs.inference
         attr(plot.list, "nboot") <- opts$n.boot
         attr(plot.list, "inzclass") <- xattr$class
-        attr(plot.list, "nplots") <- NULL
         if (xattr$class == "inz.survey") {
             attr(plot.list, "main.design") <- design
             attr(plot.list, "design") <- df.list
@@ -1079,6 +1099,26 @@ iNZightPlot <- function(x,
         if (any(attr(plot.list, "plottype") %in% c("dot", "hist"))) {
             attr(plot.list, "nbins") <-
                 length(plot.list[[1]][[1]]$toplot[[1]]$counts)
+        }
+        if (itsADotplot) {
+            ## Same comparison print() makes once the panel scale is active
+            opened <- FALSE
+            if (is.null(dev.list())) {
+                pdf(dotf <- tempfile(fileext = ".pdf"), width = 7, height = 7)
+                opened <- TRUE
+            }
+            pushViewport(viewport(xscale = xlim))
+            attr(plot.list, "dotplot.redraw") <-
+                round(xattr$symbol.width, 5) !=
+                    round(convertWidth(unit(opts$cex.dotpt, "char"),
+                        "native",
+                        valueOnly = TRUE
+                    ), 5)
+            popViewport()
+            if (opened) {
+                dev.off()
+                unlink(dotf)
+            }
         }
         class(plot.list) <- "inzplotoutput"
         attr(plot.list, "._print_ctx") <- print_ctx
