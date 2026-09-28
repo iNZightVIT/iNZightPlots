@@ -18,13 +18,13 @@ dchis <- suppressWarnings(svrepdesign(
 # r2 <- suppressWarnings(as.svrepdesign(dclus2))
 
 test_that("Replicate weight designs supported - basic plots", {
-    expect_is(iNZightPlot(bmi_p, design = dchis, plot = FALSE), "inzplotoutput")
-    expect_is(iNZightPlot(bmi_p, smoke, design = dchis, plot = FALSE), "inzplotoutput")
-    expect_is(iNZightPlot(smoke, sex, design = dchis, plot = FALSE), "inzplotoutput")
-    expect_is(iNZightPlot(smoke, design = dchis, plot = FALSE), "inzplotoutput")
-    expect_is(iNZightPlot(sex, design = dchis, plot = FALSE), "inzplotoutput")
+    expect_is(iNZightPlot(bmi_p, design = dchis), "inzplotoutput")
+    expect_is(iNZightPlot(bmi_p, smoke, design = dchis), "inzplotoutput")
+    expect_is(iNZightPlot(smoke, sex, design = dchis), "inzplotoutput")
+    expect_is(iNZightPlot(smoke, design = dchis), "inzplotoutput")
+    expect_is(iNZightPlot(sex, design = dchis), "inzplotoutput")
     expect_is(
-        suppressWarnings(iNZightPlot(bmi_p, rakedw0, design = dchis, plot = FALSE)),
+        suppressWarnings(iNZightPlot(bmi_p, rakedw0, design = dchis)),
         "inzplotoutput"
     )
 })
@@ -33,8 +33,8 @@ test_that("Replicate weight designs supported - plot inference - hist", {
     expect_equivalent(
         as.numeric(
             iNZightPlot(bmi_p, design = dchis,
-                inference.type = "conf", inference.par = "mean",
-                plot = FALSE)$all$all$inference.info$mean$conf
+                inference.type = "conf", inference.par = "mean"
+            )$all$all$inference.info$mean$conf
         ),
         c(
             svymean(~bmi_p, design = dchis)[1],
@@ -45,8 +45,8 @@ test_that("Replicate weight designs supported - plot inference - hist", {
     expect_equivalent(
         as.matrix(
             iNZightPlot(bmi_p, sex, design = dchis,
-                inference.type = "conf", inference.par = "mean",
-                plot = FALSE)$all$all$inference.info$mean$conf
+                inference.type = "conf", inference.par = "mean"
+            )$all$all$inference.info$mean$conf
         ),
         cbind(
             svyby(~bmi_p, ~sex, dchis, svymean)[,2],
@@ -58,15 +58,14 @@ test_that("Replicate weight designs supported - plot inference - hist", {
 test_that("Replicate weight designs supported - plot inference - scatter", {
     expect_is(
         suppressWarnings(
-            iNZightPlot(bmi_p, marit, design = dchis, trend = "linear",
-                plot = FALSE)
+            iNZightPlot(bmi_p, marit, design = dchis, trend = "linear")
         ),
         "inzplotoutput"
     )
 
     expect_is(
         suppressWarnings(iNZightPlot(bmi_p, marit, design = dchis,
-            colby = smoke, plot = FALSE)
+            colby = smoke)
         ),
         "inzplotoutput"
     )
@@ -75,8 +74,8 @@ test_that("Replicate weight designs supported - plot inference - scatter", {
 test_that("Replicate weight designs supported - plot inference - bar", {
     ## one way
     inf <- iNZightPlot(smoke, design = dchis,
-        inference.type = "conf", inference.par = "prop",
-        plot = FALSE)$all$all$inference$conf
+        inference.type = "conf", inference.par = "prop"
+    )$all$all$inference$conf
     expect_equivalent(
         inf$estimate,
         coef(svymean(~smoke, dchis))
@@ -88,8 +87,8 @@ test_that("Replicate weight designs supported - plot inference - bar", {
 
     ## two way
     inf <- iNZightPlot(smoke, sex, design = dchis,
-        inference.type = "conf",
-        plot = FALSE)$all$all$inference$conf
+        inference.type = "conf"
+    )$all$all$inference$conf
     sinf <- svyby(~smoke, ~sex, dchis, svymean)
     expect_equivalent(
         inf$estimate,

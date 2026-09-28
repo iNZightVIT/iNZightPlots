@@ -5,29 +5,31 @@ df$y <- 0.2 * df$x + rnorm(100, 5, 1)
 df$ex <- 10^df$x
 df$ey <- 10^df$y
 
-plotit <- FALSE
-
 px <- iNZightPlot(x, data = df,
-    plot = plotit,
     inference.par = "median",
     inference.type = "conf"
 )
 plex <- iNZightPlot(ex, data = df,
-    plot = plotit,
     transform = list(x = "log10"),
     inference.par = "median",
     inference.type = "conf"
 )
 
 pxy <- iNZightPlot(x, y, data = df,
-    plot = plotit,
     trend = "linear"
 )
 plexley <- iNZightPlot(ex, ey, data = df,
-    plot = plotit,
     transform = list(x = "log10", y = "log10"),
     trend = "linear"
 )
+
+plotit <- FALSE
+if (plotit) {
+    print(px)
+    print(plex)
+    print(pxy)
+    print(plexley)
+}
 
 test_that("Log 10 transform", {
     expect_equal(px$all$all$xlim, plex$all$all$xlim)

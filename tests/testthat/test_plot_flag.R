@@ -144,36 +144,37 @@ test_that("assigning a plot opens no device", {
     expect_null(dev.list())
 
     ## A bare call auto-prints once and opens one device.
-    options(inz_nprint = 0L)
-    trace(
-        print.inzplotoutput,
-        quote(options(inz_nprint = getOption("inz_nprint") + 1L)),
-        where = asNamespace("iNZightPlots"),
-        print = FALSE
-    )
+    ## registerS3method, not trace(): dispatch keeps the method seen on the
+    ## first print(), so a later trace() of the namespace copy is skipped.
+    ns <- asNamespace("iNZightPlots")
+    orig_print <- getS3method("print", "inzplotoutput")
+    box <- new.env(parent = emptyenv())
+    box$n <- 0L
+    wrapped_print <- function(x, ...) {
+        box$n <- box$n + 1L
+        orig_print(x, ...)
+    }
+    registerS3method("print", "inzplotoutput", wrapped_print, envir = ns)
     on.exit(
-        {
-            untrace(print.inzplotoutput, where = asNamespace("iNZightPlots"))
-            options(inz_nprint = NULL)
-        },
+        registerS3method("print", "inzplotoutput", orig_print, envir = ns),
         add = TRUE
     )
     source(
         textConnection("iNZightPlot(Species, data = iris)"),
         print.eval = TRUE,
-        local = TRUE
+        local = FALSE
     )
-    expect_equal(getOption("inz_nprint"), 1L)
+    expect_equal(box$n, 1L)
     expect_length(dev.list(), 1L)
     dev.off()
 
-    options(inz_nprint = 0L)
+    box$n <- 0L
     source(
         textConnection("p <- iNZightPlot(Species, data = iris)"),
         print.eval = TRUE,
-        local = TRUE
+        local = FALSE
     )
-    expect_equal(getOption("inz_nprint"), 0L)
+    expect_equal(box$n, 0L)
     expect_null(dev.list())
 
     ## print() draws on the current device and does not open another.

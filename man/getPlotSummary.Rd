@@ -122,13 +122,17 @@ Works much the same as \code{iNZightPlot}
 }
 \examples{
 getPlotSummary(Species, data = iris)
-getPlotSummary(Species, data = iris,
-    summary.type = "inference", inference.type = "conf")
+getPlotSummary(Species,
+    data = iris,
+    summary.type = "inference", inference.type = "conf"
+)
 
 # perform hypothesis testing
-getPlotSummary(Sepal.Length, data = iris,
+getPlotSummary(Sepal.Length,
+    data = iris,
     summary.type = "inference", inference.type = "conf",
-    hypothesis.value = 5)
+    hypothesis.value = 5
+)
 
 # if you prefer a formula interface
 inzsummary(Sepal.Length ~ Species, data = iris)
@@ -138,7 +142,8 @@ inzinference(Sepal.Length ~ Species, data = iris)
 # random rounding and suppression:
 HairEyeColor_df <- as.data.frame(HairEyeColor)
 inzsummary(Hair ~ Eye, data = HairEyeColor_df, freq = Freq)
-inzsummary(Hair ~ Eye, data = HairEyeColor_df, freq = Freq,
+inzsummary(Hair ~ Eye,
+    data = HairEyeColor_df, freq = Freq,
     privacy_controls = list(
         rounding = "RR3",
         suppression = 10

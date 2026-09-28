@@ -6,7 +6,7 @@ dclus1 <- svydesign(id = ~dnum, weights = ~pw,
 
 test_that("Survey designs work", {
     expect_is(
-        iNZightPlot(api00, api99, design = dclus1, plot = FALSE),
+        iNZightPlot(api00, api99, design = dclus1),
         "inzplotoutput"
     )
 })
@@ -212,33 +212,35 @@ test_that("Scatter plots work for surveys", {
     nhanes.svy <- svydesign(~SDMVPSU, strata = ~SDMVSTRA,
         weights = ~WTINT2YR, data = nhanes, nest = TRUE)
 
-    px <- inzplot(Weight ~ Height, design = nhanes.svy, plot = FALSE)
+    px <- inzplot(Weight ~ Height, design = nhanes.svy)
 
     sx <- nhanes.svy$variables$Height
     sx <- sx[!is.na(sx) & !is.na(nhanes.svy$variables$Weight)]
     expect_equal(px$all$all$x, sx)
 
-    tp <- tempfile(fileext=".pdf")
-    on.exit(unlink(tp))
+    tp <- tempfile(fileext = ".pdf")
     pdf(tp)
-    expect_is(
-        inzplot(Weight ~ Height, design = nhanes.svy, plot = TRUE,
-            smooth = 0.8),
-        "inzplotoutput"
+    on.exit(
+        {
+            dev.off()
+            unlink(tp)
+        },
+        add = TRUE
     )
+    p <- inzplot(Weight ~ Height, design = nhanes.svy, smooth = 0.8)
+    print(p)
+    expect_is(p, "inzplotoutput")
 })
 
 test_that("Factors with one level return error", {
     dclus1$variables$test <- factor(rep("test", nrow(dclus1$variables)))
     dclus1$variables$test2 <- factor(rep("test", nrow(dclus1$variables)))
-    expect_error(inzplot(test ~ api00, design = dclus1, plot = FALSE))
+    expect_error(inzplot(test ~ api00, design = dclus1))
 })
 
 test_that("Log transformation works with surveys", {
     expect_is(
-        inzplot(~meals, design = dclus1, transform = list(x = "log"),
-            plot = FALSE
-        ),
+        inzplot(~meals, design = dclus1, transform = list(x = "log")),
         "inzplotoutput"
     )
 })

@@ -32,7 +32,7 @@ test_that("Survey calls are correctly modified", {
 
 test_that("Mean indicator uses correct weights", {
     expect_is(
-        p <- inzplot(~api00, design = dclus2, mean_indicator = TRUE, plot = FALSE),
+        p <- inzplot(~api00, design = dclus2, mean_indicator = TRUE),
         "inzplotoutput"
     )
     expect_equivalent(p$all$all$meaninfo$all$mean, svymean(~api00, dclus2))
@@ -56,8 +56,8 @@ test_that("Subsetting replicate weight surveys is correct", {
         n3 = n
     )
 
-    expect_is(inzplot(~f | sex, data = dchis2, plot = FALSE), "inzplotoutput")
-    expect_is(inzplot(ab30 ~ f | sex, data = dchis2, plot = FALSE), "inzplotoutput")
-    expect_is(inzplot(n2 ~ n | sex, data = dchis2, plot = FALSE), "inzplotoutput")
-    expect_is(inzplot(n3 ~ n | sex, data = dchis2, plot = FALSE), "inzplotoutput")
+    expect_is(inzplot(~f | sex, data = dchis2), "inzplotoutput")
+    expect_is(inzplot(ab30 ~ f | sex, data = dchis2), "inzplotoutput")
+    expect_is(inzplot(n2 ~ n | sex, data = dchis2), "inzplotoutput")
+    expect_is(inzplot(n3 ~ n | sex, data = dchis2), "inzplotoutput")
 })
