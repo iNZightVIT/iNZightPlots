@@ -21,5 +21,5 @@
 }
 \description{
 Draws an \code{inzplotoutput} created by \code{\link{iNZightPlot}}.
-Called automatically when \code{plot = TRUE}; call explicitly to redraw.
+Called automatically when the object is printed; call explicitly to redraw.
 }

@@ -64,8 +64,9 @@
 #'        multiple plots
 #' @param layout.only logical, if \code{TRUE}, only the layout is drawn
 #'        (useful if a custom plot is to be drawn)
-#' @param plot logical, if \code{FALSE}, the plot is not drawn
-#'        (used by \code{summary})
+#' @param plot logical, soft-deprecated. Omit it: a bare call draws via
+#'        auto-print, and assigning the result does not. \code{plot = FALSE}
+#'        still returns invisibly without drawing (used by \code{summary}).
 #' @param xaxis logical, whether or not to draw the x-axis
 #' @param yaxis logical, whether or not to draw the y-axis
 #' @param xlim specify the x limits of the plot
@@ -76,7 +77,8 @@
 #'        while the second number is the number of bars to show.
 #' @param hide.legend logical, if TRUE, the \code{legend} will not be drawn
 #' @return An \code{inzightplotoutput} object, which contains the information
-#'         displayed in the plot
+#'         displayed in the plot. Returned visibly: a bare call draws, and
+#'         assignment does not.
 #'
 #' @import stats grid grDevices boot survey quantreg survey hexbin iNZightMR
 #'         colorspace dichromat
@@ -180,6 +182,21 @@ iNZightPlot <- function(x,
 
     ################################################################################
     ################################################################################
+
+    ## Soft-deprecate plot=. Missing means ggplot-style: visible return, draw
+    ## only when the object is printed. Capture before any `plot <-` below.
+    plot_supplied <- !missing(plot)
+    if (plot_supplied) {
+        rlang::warn(
+            paste(
+                "The `plot` argument of `iNZightPlot()` is deprecated and will be removed.",
+                "Omit it: a bare call draws, and assigning the result does not.",
+                "`plot = FALSE` still returns invisibly without drawing."
+            ),
+            .frequency = "once",
+            .frequency_id = "iNZightPlots_plot_arg"
+        )
+    }
 
     # ---------------------------------------------------------------------------- #
     # 1. The data step
@@ -785,9 +802,14 @@ iNZightPlot <- function(x,
     }
 
 
+    ## Explicit plot=TRUE still draws on this device. Otherwise (plot omitted
+    ## or plot=FALSE) measure on a temporary canvas so assignment does not
+    ## open a page. Auto-print draws the visible default return.
+    draw_now <- plot_supplied && isTRUE(plot)
+
     ## createPlot - uses various things such as "grobWidth" which causes
     ## a new device to open so create a NULL device and delete it afterwards ...
-    if (plot) {
+    if (draw_now) {
         # The Main Viewport: this one is simply the canvas, and global CEX value
         dd <- dev.flush(dev.flush()) # flush everything ...
 
@@ -818,7 +840,7 @@ iNZightPlot <- function(x,
 
     plot.class <- class(plot.list[[1]][[1]])
 
-    if (!plot) {
+    if (!draw_now) {
         try(
             {
                 dev.off()
@@ -1021,7 +1043,7 @@ iNZightPlot <- function(x,
         BARPLOT.N = if (barplot) BARPLOT.N else NULL,
         itsADotplot = itsADotplot,
         xattr = xattr,
-        already_open = isTRUE(plot),
+        already_open = draw_now,
         panels_unfiltered = plot.list,
         g1.level_orig = g1.level,
         g2.level_orig = g2.level
@@ -1052,7 +1074,7 @@ iNZightPlot <- function(x,
     class(plot.list) <- "inzplotoutput"
     attr(plot.list, "._print_ctx") <- print_ctx
 
-    if (plot) {
+    if (draw_now) {
         ## create → print (device/container already opened above for createPlot)
         plot.list <- print(plot.list)
     } else {
@@ -1124,5 +1146,10 @@ iNZightPlot <- function(x,
         attr(plot.list, "._print_ctx") <- print_ctx
     }
 
-    return(invisible(plot.list))
+    ## Visible only for the default call. plot= and the too-many-levels
+    ## refusal stay invisible so they do not auto-print.
+    if (plot_supplied || !isTRUE(plot)) {
+        return(invisible(plot.list))
+    }
+    plot.list
 }

@@ -23,7 +23,7 @@ exploreAllPlots <- function(data) {
     oask <- devAskNewPage(TRUE)
     on.exit(devAskNewPage(oask))
     for (i in 1:ncol(data)) {
-        iNZightPlot(data[, i], varnames = list(x = colnames(data)[i]))
+        print(iNZightPlot(data[, i], varnames = list(x = colnames(data)[i])))
         dev.flush()
     }
     devAskNewPage(oask)

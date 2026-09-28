@@ -48,13 +48,17 @@
 #' @export
 #' @examples
 #' getPlotSummary(Species, data = iris)
-#' getPlotSummary(Species, data = iris,
-#'     summary.type = "inference", inference.type = "conf")
+#' getPlotSummary(Species,
+#'     data = iris,
+#'     summary.type = "inference", inference.type = "conf"
+#' )
 #'
 #' # perform hypothesis testing
-#' getPlotSummary(Sepal.Length, data = iris,
+#' getPlotSummary(Sepal.Length,
+#'     data = iris,
 #'     summary.type = "inference", inference.type = "conf",
-#'     hypothesis.value = 5)
+#'     hypothesis.value = 5
+#' )
 #'
 #' # if you prefer a formula interface
 #' inzsummary(Sepal.Length ~ Species, data = iris)
@@ -64,7 +68,8 @@
 #' # random rounding and suppression:
 #' HairEyeColor_df <- as.data.frame(HairEyeColor)
 #' inzsummary(Hair ~ Eye, data = HairEyeColor_df, freq = Freq)
-#' inzsummary(Hair ~ Eye, data = HairEyeColor_df, freq = Freq,
+#' inzsummary(Hair ~ Eye,
+#'     data = HairEyeColor_df, freq = Freq,
 #'     privacy_controls = list(
 #'         rounding = "RR3",
 #'         suppression = 10
@@ -82,15 +87,15 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            hypothesis.var.equal = FALSE,
                            hypothesis.use.exact = FALSE,
                            hypothesis.test =
-                                c("default", "t.test", "anova", "chi2", "proportion"),
+                               c("default", "t.test", "anova", "chi2", "proportion"),
                            hypothesis.simulated.p.value = FALSE,
                            hypothesis = list(
-                                value = hypothesis.value,
-                                alternative = match.arg(hypothesis.alt),
-                                var.equal = hypothesis.var.equal,
-                                use.exact = hypothesis.use.exact,
-                                test = match.arg(hypothesis.test),
-                                simulated.p.value = hypothesis.simulated.p.value
+                               value = hypothesis.value,
+                               alternative = match.arg(hypothesis.alt),
+                               var.equal = hypothesis.var.equal,
+                               use.exact = hypothesis.use.exact,
+                               test = match.arg(hypothesis.test),
+                               simulated.p.value = hypothesis.simulated.p.value
                            ),
                            survey.options = list(),
                            width = 100,
@@ -99,7 +104,6 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
                            html = FALSE,
                            ...,
                            env = parent.frame()) {
-
     # if (inherits(x, "data.frame")) {
     if (missing(x)) {
         x <- data
@@ -126,7 +130,6 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ## fix up some subsetting group stuff
     if (is.null(m$g1)) {
         if (!is.null(m$g2)) {
-
             mc <- match.call(expand.dots = TRUE)
             mc$g1 <- NULL
             mc$g1.level <- NULL
@@ -145,11 +148,13 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
 
     ## remove these as they aren't necessary and cause problems with "n.missing"
     rmv <- which(names(m) %in% c("colby", "sizeby"))
-    if (length(rmv) > 0)
+    if (length(rmv) > 0) {
         m <- m[-rmv]
+    }
 
-    if (!"df" %in% ls())
+    if (!"df" %in% ls()) {
         df <- inzDataframe(m, data = md, names = varnames, g1.level, g2.level, env = env)
+    }
 
 
     ### This is getting complex... so for now ignore manual use.
@@ -157,8 +162,10 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ## ## Modify `inzpars` for the inference:
     if (!is.null(list(...)[["inference.type"]]) &&
         list(...)[["inference.type"]] == "comp") {
-        warning("Comparison intervals not yet available for Inferential output.\n",
-            "Defaulting to confidence intervals.")
+        warning(
+            "Comparison intervals not yet available for Inferential output.\n",
+            "Defaulting to confidence intervals."
+        )
     }
     dots <- list(...)
     inzpars <- modifyList(inzpars, dots)
@@ -191,12 +198,13 @@ getPlotSummary <- function(x, y = NULL, g1 = NULL, g1.level = NULL,
     ##         bs.inference <- dots$bs.inference
     ## }
 
-    obj <- iNZightPlot(x = x, y = y, g1 = g1, g1.level = g1.level,
+    obj <- iNZightPlot(
+        x = x, y = y, g1 = g1, g1.level = g1.level,
         g2 = g2, g2.level = g2.level, varnames = varnames,
         colby = NULL, sizeby = NULL,
         data = data, design = design, freq = freq,
         missing.info = missing.info, inzpars = inzpars,
-        plot = FALSE, df = df, env = env, ...
+        df = df, env = env, ...
     )
 
     ### Now we just loop over everything ...
@@ -226,8 +234,9 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
         warning("Only using the first element of `summary.type`")
         summary.type <- summary.type[1]
     }
-    if (!summary.type %in% c("summary", "inference"))
+    if (!summary.type %in% c("summary", "inference")) {
         stop("`summary.type` must be either `summary` or `inference`")
+    }
 
     obj <- object
     table.direction <- match.arg(table.direction)
@@ -249,21 +258,27 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
         set.seed(privacy_controls$get("seed"))
     }
 
-    ind <- function(x, indent = 3)
+    ind <- function(x, indent = 3) {
         paste0(paste0(rep(" ", indent), collapse = ""), x)
+    }
 
     parts <- list()
 
     ## --- Title ---
     title_text <- switch(summary.type,
         "summary" =
-            paste0("iNZight Summary",
-                ifelse(is.survey, " - Survey Design", "")),
+            paste0(
+                "iNZight Summary",
+                ifelse(is.survey, " - Survey Design", "")
+            ),
         "inference" =
-            paste("iNZight Inference using",
+            paste(
+                "iNZight Inference using",
                 ifelse(bs,
                     "the Nonparametric Bootstrap",
-                    "Normal Theory"))
+                    "Normal Theory"
+                )
+            )
     )
     parts <- c(parts, list(out_h1(title_text, width)))
 
@@ -285,7 +300,8 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
         paste0(
             ifelse(scatter, vnames$y, vnames$x),
             " (",
-            gsub("factor", "categorical",
+            gsub(
+                "factor", "categorical",
                 vartypes[[ifelse(scatter, vnames$y, vnames$x)]]
             ),
             ")"
@@ -308,7 +324,8 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                 paste0(
                     ifelse(scatter, vnames$x, vnames$y),
                     " (",
-                    gsub("factor", "categorical",
+                    gsub(
+                        "factor", "categorical",
                         vartypes[[ifelse(scatter, vnames$x, vnames$y)]]
                     ),
                     ")"
@@ -319,8 +336,9 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
 
     wg <- c("g1", "g2") %in% names(vnames)
 
-    if (is.null(g.levels$g2[1]))
+    if (is.null(g.levels$g2[1])) {
         wg[2] <- FALSE
+    }
 
     if (any(wg)) {
         mat <- rbind(mat, "")
@@ -328,7 +346,8 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
             mat,
             cbind(
                 ind("Subset by: "),
-                do.call(paste,
+                do.call(
+                    paste,
                     c(
                         vnames[c("g1", "g2")[wg]],
                         list(sep = " and ")
@@ -347,13 +366,16 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
             mat,
             cbind(
                 ind("Number omitted due to missingness: "),
-                paste0(total.missing,
+                paste0(
+                    total.missing,
                     if (length(missing) > 1) {
-                        paste0(" (",
-                                paste(sapply(nn, function(i) {
-                                    paste0(missing[[i]], " in ", vnames[[i]])
-                                }), collapse = ", "),
-                                ")")
+                        paste0(
+                            " (",
+                            paste(sapply(nn, function(i) {
+                                paste0(missing[[i]], " in ", vnames[[i]])
+                            }), collapse = ", "),
+                            ")"
+                        )
                     }
                 )
             ),
@@ -393,13 +415,16 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
         design_lines <- character()
         for (o in design_output) {
             if (o != "NULL") {
-                design_lines <- c(design_lines,
-                    ind(gsub("Call: NULL", "Replicate weights design", o)))
+                design_lines <- c(
+                    design_lines,
+                    ind(gsub("Call: NULL", "Replicate weights design", o))
+                )
             }
         }
         design.list <- attr(object, "design")
-        if (!is.null(tmpdesign$postStrata))
+        if (!is.null(tmpdesign$postStrata)) {
             design_lines <- c(design_lines, ind("(calibrated)"))
+        }
 
         parts <- c(parts, list(out_rule("-", width), design_lines))
     }
@@ -422,8 +447,8 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
     stype <- simpleCap(summary.type)
 
     if (!is.null(vnames$y) &&
-         vartypes[[vnames$x]] == "factor" &&
-         vartypes[[vnames$y]] == "numeric") {
+        vartypes[[vnames$x]] == "factor" &&
+        vartypes[[vnames$y]] == "numeric") {
         tmpx <- vnames$y
         vnames$y <- vnames$x
         vnames$x <- tmpx
@@ -438,8 +463,10 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
         if (this != "all") {
             parts <- c(parts, list(
                 out_rule("=", width),
-                paste0(ind("For the subset where ", 5),
-                    vnames$g2, " = ", this)
+                paste0(
+                    ind("For the subset where ", 5),
+                    vnames$g2, " = ", this
+                )
             ))
         }
 
@@ -449,8 +476,10 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
             g1.tabs <- lapply(obj[[this]], "[[", "tab")
             g1.arr <- array(
                 as.numeric(unlist(g1.tabs)),
-                dim = c(nrow(g1.tabs[[1]]), ncol(g1.tabs[[2]]),
-                    length(g1.tabs))
+                dim = c(
+                    nrow(g1.tabs[[1]]), ncol(g1.tabs[[2]]),
+                    length(g1.tabs)
+                )
             )
 
             m <- mantelhaen.test(g1.arr)
@@ -503,12 +532,14 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                     if ("y" %in% names(vnames)) {
                         switch(vartypes[[vnames$y]],
                             "numeric" = {
-                                sprintf("%s of %s versus %s",
+                                sprintf(
+                                    "%s of %s versus %s",
                                     stype, vnames$y, vnames$x
                                 )
                             },
                             "factor" = {
-                                sprintf("%s of %s by %s",
+                                sprintf(
+                                    "%s of %s by %s",
                                     stype, vnames$x, vnames$y
                                 )
                             }
@@ -521,7 +552,8 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                     if ("y" %in% names(vnames)) {
                         switch(vartypes[[vnames$y]],
                             "numeric" = {
-                                sprintf("%s of the distribution of %s by %s",
+                                sprintf(
+                                    "%s of the distribution of %s by %s",
                                     stype, vnames$x, vnames$y
                                 )
                             },
@@ -560,7 +592,8 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
 
             result <- switch(summary.type,
                 "summary" =
-                    summary(pl, opts = inzpars,
+                    summary(pl,
+                        opts = inzpars,
                         vn = vnames, des = pl.design,
                         survey.options = survey.options,
                         privacy_controls = privacy_controls,
@@ -609,8 +642,10 @@ summary.inzdata <- function(object, des, width = 100, ...) {
     num_section <- NULL
     if (n.numeric > 0) {
         numvars <- object[, sapply(object, is.numeric), drop = FALSE]
-        num_mat <- do.call(rbind,
-            lapply(numvars,
+        num_mat <- do.call(
+            rbind,
+            lapply(
+                numvars,
                 function(x) {
                     c(min(x, na.rm = TRUE), max(x, na.rm = TRUE), sum(is.na(x)))
                 }
@@ -631,8 +666,10 @@ summary.inzdata <- function(object, des, width = 100, ...) {
     cat_section <- NULL
     if (n.factor > 0) {
         catvars <- object[, !sapply(object, is.numeric), drop = FALSE]
-        cat_mat <- do.call(rbind,
-            lapply(catvars,
+        cat_mat <- do.call(
+            rbind,
+            lapply(
+                catvars,
                 function(x) {
                     nlev <- length(levels(x))
                     c(nlev, sum(is.na(x)))

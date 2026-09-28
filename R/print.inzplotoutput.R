@@ -1,7 +1,7 @@
 #' Print an iNZight plot object
 #'
 #' Draws an \code{inzplotoutput} created by \code{\link{iNZightPlot}}.
-#' Called automatically when \code{plot = TRUE}; call explicitly to redraw.
+#' Called automatically when the object is printed; call explicitly to redraw.
 #'
 #' @param x an \code{inzplotoutput} object
 #' @param ... additional arguments (ignored)

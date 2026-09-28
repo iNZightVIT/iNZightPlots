@@ -36,12 +36,12 @@ test_that("Inference information is correct", {
     set.seed(1)
     x <- rnorm(100, sd = 10)
     pl <- iNZightPlot(x,
-        plot = interactive(),
         inference.par = "mean",
         inference.type = "conf",
         mean_indicator = FALSE,
         boxplot = TRUE
     )
+    if (interactive()) print(pl)
     xbar <- mean(x)
     wd <- qt(0.975, length(x) - 1) * sd(x) / sqrt(length(x))
     expect_equal(
@@ -55,12 +55,12 @@ test_that("Inference information is correct", {
     expect_null(pl$all$all$boxinfo)
 
     pl <- iNZightPlot(x,
-        plot = interactive(),
         inference.par = "median",
         inference.type = "conf",
         mean_indicator = TRUE,
         boxplot = FALSE
     )
+    if (interactive()) print(pl)
     # 1.5 * IQR / sqrt(N)
     xbar <- median(x)
     wd <- 1.5 * as.numeric(diff(quantile(x, c(0.25, 0.75)))) / sqrt(length(x))
@@ -97,7 +97,7 @@ test_that("Confidence level can be adjusted", {
     p <- inzplot(~Sepal.Length,
         data = iris,
         inference.type = "conf", ci.width = 0.9,
-        inference.par = "mean", plot = FALSE
+        inference.par = "mean"
     )
     t <- t.test(iris$Sepal.Length,
         conf.level = 0.9
@@ -111,7 +111,7 @@ test_that("Confidence level can be adjusted", {
     p <- inzplot(Sepal.Length ~ Species,
         data = iris,
         inference.type = "conf", ci.width = 0.9,
-        inference.par = "mean", plot = FALSE
+        inference.par = "mean"
     )
     t <- tapply(iris$Sepal.Length, iris$Species,
         t.test,

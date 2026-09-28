@@ -11,51 +11,51 @@ pr <- tab / nrow(df)
 # CI width
 wd <- as.numeric(qnorm(0.975) * sqrt(pr * (1 - pr) / nrow(df)))
 
-plotit <- FALSE
+bar1 <- iNZightPlot(x, data = df)
 
-bar1 <- iNZightPlot(x, data = df,
-    plot = plotit,
-)
+bar1_counts <- iNZightPlot(x, data = df, bar.counts = TRUE)
 
-bar1_counts <- iNZightPlot(x, data = df,
-    plot = plotit,
-    bar.counts = TRUE
-)
+bar2 <- iNZightPlot(x, colby = y, data = df)
 
-bar2 <- iNZightPlot(x, colby = y, data = df,
-    plot = plotit,
-)
+bar2_counts <- iNZightPlot(x, colby = y, data = df, bar.counts = TRUE)
 
-bar2_counts <- iNZightPlot(x, colby = y, data = df,
-    plot = plotit,
-    bar.counts = TRUE
-)
-
-bar1inf <- iNZightPlot(x, data = df,
-    plot = plotit,
+bar1inf <- iNZightPlot(x,
+    data = df,
     inference.type = "conf",
     inference.par = "proportion"
 )
 
-bar1inf_counts <- iNZightPlot(x, data = df,
-    plot = plotit,
+bar1inf_counts <- iNZightPlot(x,
+    data = df,
     inference.type = "conf",
     inference.par = "proportion",
     bar.counts = TRUE
 )
 
-bar2inf <- iNZightPlot(x, colby = y, data = df,
-    plot = plotit,
+bar2inf <- iNZightPlot(x,
+    colby = y, data = df,
     inference.type = "conf",
     inference.par = "proportion",
 )
 
-bar2inf_counts <- iNZightPlot(x, colby = y, data = df,
-    plot = plotit,
+bar2inf_counts <- iNZightPlot(x,
+    colby = y, data = df,
     inference.type = "conf",
     inference.par = "proportion",
     bar.counts = TRUE
 )
+
+plotit <- FALSE
+if (plotit) {
+    print(bar1)
+    print(bar1_counts)
+    print(bar2)
+    print(bar2_counts)
+    print(bar1inf)
+    print(bar1inf_counts)
+    print(bar2inf)
+    print(bar2inf_counts)
+}
 
 test_that("Y axis limits computed correctly", {
     expect_equal(bar1$all$all$ylim, c(0, max(pr)))
@@ -70,7 +70,7 @@ test_that("Y axis limits computed correctly", {
 })
 
 test_that("Y axis is labelled correctly", {
-    iNZightPlot(x, data = df)
+    print(iNZightPlot(x, data = df))
     expect_equal(grid.get("inz-ylab")$label, "Percentage (%)")
     expect_equal(
         grid.get("inz-yaxis-left.1.1")$label,

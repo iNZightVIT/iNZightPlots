@@ -13,38 +13,41 @@ wd <- unclass(qnorm(0.975) * sqrt(
     sweep(pr * (1 - pr), 1, rowSums(tab), "/")
 ))
 
-plotit <- FALSE
+bar <- iNZightPlot(x, y, data = df)
 
-bar <- iNZightPlot(x, y, data = df,
-    plot = plotit,
-)
+bar_counts <- iNZightPlot(x, y, data = df, bar.counts = TRUE)
 
-bar_counts <- iNZightPlot(x, y, data = df,
-    plot = plotit,
-    bar.counts = TRUE
-)
-
-barinf <- iNZightPlot(x, y, data = df,
-    plot = plotit,
+barinf <- iNZightPlot(x, y,
+    data = df,
     inference.type = c("comp", "conf"),
     inference.par = "proportion"
 )
 
-barinf_counts <- iNZightPlot(x, y, data = df,
-    plot = plotit,
+barinf_counts <- iNZightPlot(x, y,
+    data = df,
     inference.type = c("comp", "conf"),
     inference.par = "proportion",
     bar.counts = TRUE
 )
 
+plotit <- FALSE
+if (plotit) {
+    print(bar)
+    print(bar_counts)
+    print(barinf)
+    print(barinf_counts)
+}
+
 test_that("Y axis limits computed correctly", {
     expect_equal(bar$all$all$ylim, c(0, max(pr)))
-    expect_equal(bar_counts$all$all$ylim,
+    expect_equal(
+        bar_counts$all$all$ylim,
         c(0, max(sweep(pr, 1, rowSums(tab), "*")))
     )
 
     expect_equal(barinf$all$all$ylim, c(0, max(pr + wd)))
-    expect_equal(barinf_counts$all$all$ylim,
+    expect_equal(
+        barinf_counts$all$all$ylim,
         c(0, max(sweep(pr, 1, rowSums(tab), "*")))
     )
 })
@@ -59,7 +62,8 @@ test_that("Inference information is correct", {
         moecalc(seBinprops(rowSums(tab), pr[, i]), est = pr[, i])
     })
     names(comp) <- colnames(tab)
-    comp <- lapply(list(
+    comp <- lapply(
+        list(
             lower = sapply(comp, function(x) x$compL),
             upper = sapply(comp, function(x) x$compU)
         ),
@@ -84,8 +88,10 @@ test_that("Inference information is correct", {
 cas <- read.csv("cas.csv", stringsAsFactors = TRUE)
 test_that("Subsetting works", {
     expect_is(
-        iNZightPlot(travel, gender, g1 = cellsource, g2 = getlunch,
-            g2.level = "_MULTI", data = cas),
+        iNZightPlot(travel, gender,
+            g1 = cellsource, g2 = getlunch,
+            g2.level = "_MULTI", data = cas
+        ),
         "inzplotoutput"
     )
     expect_is(
@@ -93,8 +99,10 @@ test_that("Subsetting works", {
         "inzplotoutput"
     )
     expect_is(
-        iNZightPlot(travel, gender, g1 = cellsource, data = cas,
-            bar.counts = TRUE),
+        iNZightPlot(travel, gender,
+            g1 = cellsource, data = cas,
+            bar.counts = TRUE
+        ),
         "inzplotoutput"
     )
     expect_is(
@@ -102,8 +110,10 @@ test_that("Subsetting works", {
         "inzplotoutput"
     )
     expect_is(
-        iNZightPlot(travel, g1 = cellsource, data = cas,
-            bar.counts = TRUE),
+        iNZightPlot(travel,
+            g1 = cellsource, data = cas,
+            bar.counts = TRUE
+        ),
         "inzplotoutput"
     )
 })

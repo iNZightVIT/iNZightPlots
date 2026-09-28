@@ -12,6 +12,7 @@ test_that("Axis label formatting is consistent for large values", {
 
     p <- inzplot(y ~ x, data = d)
     expect_is(p, "inzplotoutput")
+    print(p)
     labs <- grid.get("inz-xaxis-bottom.1.1")$label
 
     skip_if(length(labs) != 4)

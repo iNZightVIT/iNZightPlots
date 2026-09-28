@@ -121,8 +121,9 @@ multiple plots}
 \item{layout.only}{logical, if \code{TRUE}, only the layout is drawn
 (useful if a custom plot is to be drawn)}
 
-\item{plot}{logical, if \code{FALSE}, the plot is not drawn
-(used by \code{summary})}
+\item{plot}{logical, soft-deprecated. Omit it: a bare call draws via
+auto-print, and assigning the result does not. \code{plot = FALSE}
+still returns invisibly without drawing (used by \code{summary}).}
 
 \item{xaxis}{logical, whether or not to draw the x-axis}
 
@@ -147,7 +148,8 @@ while the second number is the number of bars to show.}
 }
 \value{
 An \code{inzightplotoutput} object, which contains the information
-        displayed in the plot
+        displayed in the plot. Returned visibly: a bare call draws, and
+        assignment does not.
 }
 \description{
 A general plotting function that automatically detects variable type and
