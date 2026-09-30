@@ -16,10 +16,11 @@ test_that("one-way bar matches species counts", {
     expect_equal(s$panels[[1L]]$total, 150)
     expect_equal(
         s$panels[[1L]]$data,
-        list(
-            list(label = "setosa", count = 50, proportion = 50 / 150),
-            list(label = "versicolor", count = 50, proportion = 50 / 150),
-            list(label = "virginica", count = 50, proportion = 50 / 150)
+        data.frame(
+            label = c("setosa", "versicolor", "virginica"),
+            count = c(50, 50, 50),
+            proportion = c(50, 50, 50) / 150,
+            stringsAsFactors = FALSE
         )
     )
     expect_type(jsonlite::toJSON(s, auto_unbox = TRUE, digits = NA), "character")
@@ -43,22 +44,21 @@ test_that("two-way bar keeps series proportions and pre-zoom totals", {
     expect_equal(panel$total, 100)
     expect_equal(
         panel$seriesTotals,
-        list(
-            list(label = "Child", total = 20),
-            list(label = "Adult", total = 80)
-        )
-    )
-    expect_equal(panel$data[[1L]]$label, "Bus")
-    expect_equal(
-        panel$data[[1L]]$series,
-        list(
-            list(label = "Child", count = 6, proportion = 0.3),
-            list(label = "Adult", count = 40, proportion = 0.5)
+        data.frame(
+            label = c("Child", "Adult"),
+            total = c(20, 80),
+            stringsAsFactors = FALSE
         )
     )
     expect_equal(
-        panel$data[[2L]]$series[[1L]],
-        list(label = "Child", count = 14, proportion = 0.7)
+        panel$data,
+        data.frame(
+            label = c("Bus", "Bus", "Walk", "Walk"),
+            series = c("Child", "Adult", "Child", "Adult"),
+            count = c(6, 40, 14, 40),
+            proportion = c(0.3, 0.5, 0.7, 0.5),
+            stringsAsFactors = FALSE
+        )
     )
 })
 
@@ -74,14 +74,24 @@ test_that("segmented bar emits factor order and cell counts", {
 
     expect_equal(s$variables$colby, "Weather")
     expect_null(s$variables$v2)
-    mon <- s$panels[[1L]]$data[[1L]]
-    expect_equal(mon$count, 30)
-    expect_equal(mon$proportion, 0.3)
+    panel <- s$panels[[1L]]
     expect_equal(
-        mon$segments,
-        list(
-            list(label = "Rain", count = 12, proportion = 0.4),
-            list(label = "Dry", count = 18, proportion = 0.6)
+        panel$data,
+        data.frame(
+            label = c("Mon", "Tue"),
+            count = c(30, 70),
+            proportion = c(0.3, 0.7),
+            stringsAsFactors = FALSE
+        )
+    )
+    expect_equal(
+        panel$segments,
+        data.frame(
+            label = c("Mon", "Mon", "Tue", "Tue"),
+            segment = c("Rain", "Dry", "Rain", "Dry"),
+            count = c(12, 18, 14, 56),
+            proportion = c(0.4, 0.6, 0.2, 0.8),
+            stringsAsFactors = FALSE
         )
     )
 })
@@ -91,10 +101,10 @@ test_that("segment counts stay below the bar when colby is missing", {
         Day = factor(rep("Mon", 5)),
         Weather = factor(c("Rain", "Rain", "Dry", "Dry", NA), levels = c("Rain", "Dry"))
     )
-    mon <- as_plot(iNZightPlot(Day, colby = Weather, data = d))$panels[[1L]]$data[[1L]]
-    expect_equal(mon$count, 5)
-    expect_equal(vapply(mon$segments, `[[`, character(1), "label"), c("Rain", "Dry"))
-    expect_equal(unname(vapply(mon$segments, `[[`, numeric(1), "count")), c(2, 2))
+    panel <- as_plot(iNZightPlot(Day, colby = Weather, data = d))$panels[[1L]]
+    expect_equal(panel$data$count, 5)
+    expect_equal(panel$segments$segment, c("Rain", "Dry"))
+    expect_equal(panel$segments$count, c(2, 2))
 })
 
 test_that("dot groups stack observed values and keep the box R computed", {

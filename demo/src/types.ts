@@ -20,35 +20,43 @@ export type Box = {
   max: number;
 };
 
-export type BarDatum = {
-  label: string;
-  count: number;
-  proportion: number;
+export type BarData = {
+  label: string[];
+  count: number[];
+  proportion: number[];
 };
 
 export type BarPanel = {
   s1?: string;
   s2?: string;
   total: number;
-  data: BarDatum[];
+  data: BarData;
 };
 
 export type BarTwoWayPanel = {
   s1?: string;
   s2?: string;
   total: number;
-  seriesTotals: Array<{ label: string; total: number }>;
-  data: Array<{
-    label: string;
-    series: BarDatum[];
-  }>;
+  seriesTotals: { label: string[]; total: number[] };
+  data: {
+    label: string[];
+    series: string[];
+    count: number[];
+    proportion: number[];
+  };
 };
 
 export type BarSegmentPanel = {
   s1?: string;
   s2?: string;
   total: number;
-  data: Array<BarDatum & { segments: BarDatum[] }>;
+  data: BarData;
+  segments: {
+    label: string[];
+    segment: string[];
+    count: number[];
+    proportion: number[];
+  };
 };
 
 export type DotPanel = {

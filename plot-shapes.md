@@ -6,7 +6,7 @@ Temporary notes for the drawing payload a front end needs. They will move into t
 
 The TypeScript blocks are the intended JSON. The `ts_list()` blocks are a draft RserveTS result type for the same object. A named `ts_list()` currently requires every name to be present, so a `ts_optional()` field is sent as `undefined` rather than omitted. `ts_list(element)` (one unnamed type) is a JSON array of that element. `ts_numeric(2L)` is a length-2 numeric vector.
 
-Dot `points`, scatter `data`, hex `data`, and grid `data` are data frames: one column per field, equal length, in draw order. A column is on the frame or it is absent. Bars stay nested objects. The histogram is already vectors.
+Bar `data` and `segments`, bar `seriesTotals`, dot `points`, scatter `data`, hex `data`, and grid `data` are data frames: one column per field, equal length, in draw order. A column is on the frame or it is absent. The histogram is already vectors.
 
 ## Envelope
 
@@ -79,31 +79,31 @@ A panel carries `s1` and `s2` for the level it shows, including a single named l
 
 `count` is `tab`. `proportion` is `phat`. `total` is `ntotal`, once per panel. On a survey design, `tab` comes from `svytable` and `phat` from `svymean`, so the client uses `proportion` as given and does not divide `count` by `total`.
 
+`data` has one row per level of `v1`.
+
 ```ts
 type BarPanel = {
   s1?: string
   s2?: string
   total: number
-  data: Array<{
-    label: string
-    count: number
-    proportion: number
-  }>
+  data: {
+    label: string[]
+    count: number[]
+    proportion: number[]
+  }
 }
 ```
 
 ```r
-bar_datum <- ts_list(
-  label = ts_character(1L),
-  count = ts_numeric(1L),
-  proportion = ts_numeric(1L)
-)
-
 bar_panel <- ts_list(
   s1 = ts_optional(ts_character(1L)),
   s2 = ts_optional(ts_character(1L)),
   total = ts_numeric(1L),
-  data = ts_list(bar_datum)
+  data = ts_dataframe(
+    label = ts_character(0L),
+    count = ts_numeric(0L),
+    proportion = ts_numeric(0L)
+  )
 )
 ```
 
@@ -115,17 +115,17 @@ bar_panel <- ts_list(
   panels: [
     {
       total: 150,
-      data: [
-        { label: "setosa", count: 50, proportion: 1 / 3 },
-        { label: "versicolor", count: 50, proportion: 1 / 3 },
-        { label: "virginica", count: 50, proportion: 1 / 3 }
-      ]
+      data: {
+        label: ["setosa", "versicolor", "virginica"],
+        count: [50, 50, 50],
+        proportion: [1 / 3, 1 / 3, 1 / 3]
+      }
     }
   ]
 }
 ```
 
-With `s1` set and `_MULTI`, the same `data` arrays are returned as one panel per level, and each panel includes its `s1` value.
+With `s1` set and `_MULTI`, the same `data` frame is returned as one panel per level, and each panel includes its `s1` value.
 
 ## Bar, two variables
 
@@ -133,46 +133,38 @@ Still `type: "bar"`. `v1` is the axis cluster (one level of `x`). `v2` is the si
 
 `seriesTotals` is the sum of each `v2` level across every `v1` level, in the same units as `count`, computed before zoom drops columns. Relative bar widths use these totals. Summing the visible `count`s is wrong once a zoom has removed columns: the widths stay at the pre-zoom totals. When every `v1` level is present, `seriesTotals` matches those sums. Widths are equal when `bar.counts` is set or `bar.relative.width` is not. `widths`, `edges`, and `nn` are not sent.
 
+`seriesTotals` is a data frame. `data` is a data frame with one row per cluster and series: each `v1` level, then each `v2` level inside it.
+
 ```ts
 type BarTwoWayPanel = {
   s1?: string
   s2?: string
   total: number
-  seriesTotals: Array<{ label: string; total: number }>
-  data: Array<{
-    label: string
-    series: Array<{
-      label: string
-      count: number
-      proportion: number
-    }>
-  }>
+  seriesTotals: { label: string[]; total: number[] }
+  data: {
+    label: string[]
+    series: string[]
+    count: number[]
+    proportion: number[]
+  }
 }
 ```
 
 ```r
-bar_series <- ts_list(
-  label = ts_character(1L),
-  count = ts_numeric(1L),
-  proportion = ts_numeric(1L)
-)
-
-bar_cluster <- ts_list(
-  label = ts_character(1L),
-  series = ts_list(bar_series)
-)
-
-bar_series_total <- ts_list(
-  label = ts_character(1L),
-  total = ts_numeric(1L)
-)
-
 bar_twoway_panel <- ts_list(
   s1 = ts_optional(ts_character(1L)),
   s2 = ts_optional(ts_character(1L)),
   total = ts_numeric(1L),
-  seriesTotals = ts_list(bar_series_total),
-  data = ts_list(bar_cluster)
+  seriesTotals = ts_dataframe(
+    label = ts_character(0L),
+    total = ts_numeric(0L)
+  ),
+  data = ts_dataframe(
+    label = ts_character(0L),
+    series = ts_character(0L),
+    count = ts_numeric(0L),
+    proportion = ts_numeric(0L)
+  )
 )
 ```
 
@@ -184,26 +176,16 @@ bar_twoway_panel <- ts_list(
   panels: [
     {
       total: 100,
-      seriesTotals: [
-        { label: "Child", total: 20 },
-        { label: "Adult", total: 80 }
-      ],
-      data: [
-        {
-          label: "Bus",
-          series: [
-            { label: "Child", count: 6, proportion: 0.3 },
-            { label: "Adult", count: 40, proportion: 0.5 }
-          ]
-        },
-        {
-          label: "Walk",
-          series: [
-            { label: "Child", count: 14, proportion: 0.7 },
-            { label: "Adult", count: 40, proportion: 0.5 }
-          ]
-        }
-      ]
+      seriesTotals: {
+        label: ["Child", "Adult"],
+        total: [20, 80]
+      },
+      data: {
+        label: ["Bus", "Bus", "Walk", "Walk"],
+        series: ["Child", "Adult", "Child", "Adult"],
+        count: [6, 40, 14, 40],
+        proportion: [0.3, 0.5, 0.7, 0.5]
+      }
     }
   ]
 }
@@ -213,41 +195,43 @@ Child is 6 + 14 and Adult is 40 + 40, which is what `seriesTotals` records. The 
 
 ## Bar, segmented
 
-Still `type: "bar"`, and only when there is no `v2`. The one-way bar stays. `variables.colby` names the colour variable, drawn as a stack. `segments` carry the cell `count` (`table`, `xtabs`, or `svytable`, before the column is scaled to 1) and the `proportion` (`p.colby`). The cell count is not `proportion * count`: rows with a missing `colby` stay in the bar `count` and are absent from the segments, so a bar of 5 can have segment counts that sum to 4. The bar’s own `proportion` is still the marginal `phat`. The first `colby` level is the **top** of the stack. Emit factor-level order, not the reversed rows stored on `p.colby`.
+Still `type: "bar"`, and only when there is no `v2`. The one-way bar stays in `data`. `variables.colby` names the colour variable, drawn as a stack. `segments` is a data frame of the cell `count` (`table`, `xtabs`, or `svytable`, before the column is scaled to 1) and the `proportion` (`p.colby`), one row per bar and segment: each `v1` level, then each `colby` level inside it. The cell count is not `proportion * count`: rows with a missing `colby` stay in the bar `count` and are absent from `segments`, so a bar of 5 can have segment counts that sum to 4. The bar’s own `proportion` is still the marginal `phat`. The first `colby` level is the **top** of the stack. Emit factor-level order, not the reversed rows stored on `p.colby`.
 
 ```ts
 type BarSegmentPanel = {
   s1?: string
   s2?: string
   total: number
-  data: Array<{
-    label: string
-    count: number
-    proportion: number
-    segments: Array<{ label: string; count: number; proportion: number }>
-  }>
+  data: {
+    label: string[]
+    count: number[]
+    proportion: number[]
+  }
+  segments: {
+    label: string[]
+    segment: string[]
+    count: number[]
+    proportion: number[]
+  }
 }
 ```
 
 ```r
-bar_segment <- ts_list(
-  label = ts_character(1L),
-  count = ts_numeric(1L),
-  proportion = ts_numeric(1L)
-)
-
-bar_segmented_datum <- ts_list(
-  label = ts_character(1L),
-  count = ts_numeric(1L),
-  proportion = ts_numeric(1L),
-  segments = ts_list(bar_segment)
-)
-
 bar_segmented_panel <- ts_list(
   s1 = ts_optional(ts_character(1L)),
   s2 = ts_optional(ts_character(1L)),
   total = ts_numeric(1L),
-  data = ts_list(bar_segmented_datum)
+  data = ts_dataframe(
+    label = ts_character(0L),
+    count = ts_numeric(0L),
+    proportion = ts_numeric(0L)
+  ),
+  segments = ts_dataframe(
+    label = ts_character(0L),
+    segment = ts_character(0L),
+    count = ts_numeric(0L),
+    proportion = ts_numeric(0L)
+  )
 )
 ```
 
@@ -259,26 +243,17 @@ bar_segmented_panel <- ts_list(
   panels: [
     {
       total: 100,
-      data: [
-        {
-          label: "Mon",
-          count: 30,
-          proportion: 0.3,
-          segments: [
-            { label: "Rain", count: 12, proportion: 0.4 },
-            { label: "Dry", count: 18, proportion: 0.6 }
-          ]
-        },
-        {
-          label: "Tue",
-          count: 70,
-          proportion: 0.7,
-          segments: [
-            { label: "Rain", count: 14, proportion: 0.2 },
-            { label: "Dry", count: 56, proportion: 0.8 }
-          ]
-        }
-      ]
+      data: {
+        label: ["Mon", "Tue"],
+        count: [30, 70],
+        proportion: [0.3, 0.7]
+      },
+      segments: {
+        label: ["Mon", "Mon", "Tue", "Tue"],
+        segment: ["Rain", "Dry", "Rain", "Dry"],
+        count: [12, 18, 14, 56],
+        proportion: [0.4, 0.6, 0.2, 0.8]
+      }
     }
   ]
 }

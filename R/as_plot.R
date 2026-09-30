@@ -95,61 +95,62 @@ panel_bar <- function(panel, ctx) {
     phat <- panel$phat
     labels <- colnames(tab)
     if (is.null(labels)) labels <- as.character(seq_len(ncol(tab)))
+    labels <- as.character(labels)
 
     if (!is.null(panel$p.colby)) {
-        segments <- bar_segments(panel)
-        data <- lapply(seq_along(labels), function(j) {
-            list(
-                label = labels[[j]],
-                count = as.numeric(tab[, j]),
-                proportion = as.numeric(phat[, j]),
-                segments = segments[[j]]
-            )
-        })
-        return(list(total = as.numeric(panel$ntotal), data = data))
+        return(list(
+            total = as.numeric(panel$ntotal),
+            data = bar_frame(labels, as.numeric(tab), as.numeric(phat)),
+            segments = bar_segment_frame(panel, labels)
+        ))
     }
 
     if (isTRUE(ctx$has_y)) {
         series <- rownames(tab)
         if (is.null(series)) series <- as.character(seq_len(nrow(tab)))
+        series <- as.character(series)
         totals <- panel$series.totals
         if (is.null(totals)) totals <- rowSums(tab)
-        data <- lapply(seq_along(labels), function(j) {
-            list(
-                label = labels[[j]],
-                series = lapply(seq_along(series), function(i) {
-                    list(
-                        label = series[[i]],
-                        count = as.numeric(tab[i, j]),
-                        proportion = as.numeric(phat[i, j])
-                    )
-                })
-            )
-        })
+        total_labels <- names(totals)
+        if (is.null(total_labels) || !length(total_labels)) {
+            total_labels <- series
+        }
+        total_labels <- ifelse(
+            is.na(total_labels) | !nzchar(total_labels),
+            series,
+            total_labels
+        )
+        ## Column-major: one cluster, then each series inside it.
         return(list(
             total = as.numeric(panel$ntotal),
-            seriesTotals = lapply(seq_along(totals), function(i) {
-                lab <- names(totals)[[i]]
-                if (is.null(lab) || !nzchar(lab)) lab <- series[[i]]
-                list(label = lab, total = as.numeric(totals[[i]]))
-            }),
-            data = data
+            seriesTotals = mark_frame(list(
+                label = as.character(total_labels),
+                total = as.numeric(totals)
+            )),
+            data = mark_frame(list(
+                label = rep(labels, each = length(series)),
+                series = rep(series, times = length(labels)),
+                count = as.numeric(tab),
+                proportion = as.numeric(phat)
+            ))
         ))
     }
 
     list(
         total = as.numeric(panel$ntotal),
-        data = lapply(seq_along(labels), function(j) {
-            list(
-                label = labels[[j]],
-                count = as.numeric(tab[, j]),
-                proportion = as.numeric(phat[, j])
-            )
-        })
+        data = bar_frame(labels, as.numeric(tab), as.numeric(phat))
     )
 }
 
-bar_segments <- function(panel) {
+bar_frame <- function(label, count, proportion) {
+    mark_frame(list(
+        label = as.character(label),
+        count = as.numeric(count),
+        proportion = as.numeric(proportion)
+    ))
+}
+
+bar_segment_frame <- function(panel, labels) {
     counts <- panel$colby.tab
     if (is.null(counts)) {
         stop("segmented bar is missing colby counts")
@@ -168,16 +169,22 @@ bar_segments <- function(panel) {
     seg_labels <- rownames(counts)
     if (is.null(seg_labels)) seg_labels <- rownames(props)
     if (is.null(seg_labels)) seg_labels <- as.character(seq_len(nrow(counts)))
+    seg_labels <- as.character(seg_labels)
+    n_seg <- length(seg_labels)
+    n_bar <- ncol(counts)
+    if (is.null(n_bar) || !length(n_bar)) n_bar <- 0L
+    bar_labels <- as.character(labels)
+    if (length(bar_labels) != n_bar) {
+        bar_labels <- if (n_bar) colnames(counts) else character()
+        if (is.null(bar_labels)) bar_labels <- as.character(seq_len(n_bar))
+    }
 
-    lapply(seq_len(ncol(counts)), function(j) {
-        lapply(seq_along(seg_labels), function(i) {
-            list(
-                label = seg_labels[[i]],
-                count = as.numeric(counts[i, j]),
-                proportion = as.numeric(props[i, j])
-            )
-        })
-    })
+    mark_frame(list(
+        label = rep(bar_labels, each = n_seg),
+        segment = rep(seg_labels, times = n_bar),
+        count = as.numeric(counts),
+        proportion = as.numeric(props)
+    ))
 }
 
 panel_dot <- function(panel, ctx, hist) {
