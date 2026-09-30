@@ -6,6 +6,8 @@ Temporary notes for the drawing payload a front end needs. They will move into t
 
 The TypeScript blocks are the intended JSON. The `ts_list()` blocks are a draft RserveTS result type for the same object. A named `ts_list()` currently requires every name to be present, so a `ts_optional()` field is sent as `undefined` rather than omitted. `ts_list(element)` (one unnamed type) is a JSON array of that element. `ts_numeric(2L)` is a length-2 numeric vector.
 
+Dot `points`, scatter `data`, hex `data`, and grid `data` are data frames: one column per field, equal length, in draw order. A column is on the frame or it is absent. Bars stay nested objects. The histogram is already vectors.
+
 ## Envelope
 
 Every plot uses the same envelope. `panels` is always a list, including when there is only one panel, so a facet adds panels without changing what `data` means.
@@ -304,7 +306,7 @@ type DotPanel = {
   s2?: string
   groups: Array<{
     label?: string
-    points: Array<{ x: number }>
+    points: { x: number[] }
     boxplot?: Box
     mean?: number
   }>
@@ -320,13 +322,9 @@ box_summary <- ts_list(
   max = ts_numeric(1L)
 )
 
-dot_point <- ts_list(
-  x = ts_numeric(1L)
-)
-
 dot_group <- ts_list(
   label = ts_optional(ts_character(1L)),
-  points = ts_list(dot_point),
+  points = ts_dataframe(x = ts_numeric(0L)),
   boxplot = ts_optional(box_summary),
   mean = ts_optional(ts_numeric(1L))
 )
@@ -348,12 +346,12 @@ dot_panel <- ts_list(
       groups: [
         {
           label: "a",
-          points: [{ x: 1 }, { x: 1 }, { x: 2 }],
+          points: { x: [1, 1, 2] },
           boxplot: { min: 1, q1: 1, median: 1, q3: 1.5, max: 2 }
         },
         {
           label: "b",
-          points: [{ x: 5 }, { x: 5 }, { x: 5 }, { x: 6 }]
+          points: { x: [5, 5, 5, 6] }
         }
       ]
     }
@@ -422,39 +420,37 @@ hist_panel <- ts_list(
 
 `size` is sent only when it varies by data, and it is the value **before** multiplying by `cex.pt`: frequency `freq / max.freq * 4 + 0.5`, varying survey weights `weight / max.weight * 2 + 0.5`, or the resolved `sizeby` cex. Equal survey weights omit `size`. The survey design is not sent.
 
-`symbol` is sent only for `symbolby` (R pch). `colby` is the raw colour-by value. `highlight` is sent only on highlighted points. Trend and smooth lines are not in this shape.
+`symbol` is a column only for `symbolby` (R pch). `colby` is a column only when a colour-by variable is set, and it keeps a factor as a factor; missing values stay missing. `highlight` is a logical column only when at least one point is highlighted, and it is false on the other rows. Trend and smooth lines are not in this shape.
 
 ```ts
 type ScatterPanel = {
   s1?: string
   s2?: string
-  data: Array<{
-    id: number
-    x: number
-    y: number
-    size?: number
-    symbol?: number
-    colby?: string | number
-    highlight?: boolean
-  }>
+  data: {
+    id: number[]
+    x: number[]
+    y: number[]
+    size?: number[]
+    symbol?: number[]
+    colby?: Array<string | number | null>
+    highlight?: boolean[]
+  }
 }
 ```
 
 ```r
-scatter_point <- ts_list(
-  id = ts_integer(1L),
-  x = ts_numeric(1L),
-  y = ts_numeric(1L),
-  size = ts_optional(ts_numeric(1L)),
-  symbol = ts_optional(ts_integer(1L)),
-  colby = ts_optional(ts_union(ts_character(1L), ts_numeric(1L))),
-  highlight = ts_optional(ts_logical(1L))
-)
-
 scatter_panel <- ts_list(
   s1 = ts_optional(ts_character(1L)),
   s2 = ts_optional(ts_character(1L)),
-  data = ts_list(scatter_point)
+  data = ts_dataframe(
+    id = ts_integer(0L),
+    x = ts_numeric(0L),
+    y = ts_numeric(0L),
+    size = ts_optional(ts_numeric(0L)),
+    symbol = ts_optional(ts_integer(0L)),
+    colby = ts_optional(ts_union(ts_character(0L), ts_numeric(0L))),
+    highlight = ts_optional(ts_logical(0L))
+  )
 )
 ```
 
@@ -465,11 +461,14 @@ scatter_panel <- ts_list(
   variables: { v1: "height", v2: "weight" },
   panels: [
     {
-      data: [
-        { id: 3, x: 160, y: 54 },
-        { id: 1, x: 171, y: 66, colby: "B", symbol: 22, highlight: true },
-        { id: 8, x: 182, y: 79, colby: "A", symbol: 21 }
-      ]
+      data: {
+        id: [3, 1, 8],
+        x: [160, 171, 182],
+        y: [54, 66, 79],
+        colby: [null, "B", "A"],
+        symbol: [null, 22, 21],
+        highlight: [false, true, false]
+      }
     }
   ]
 }
@@ -489,25 +488,17 @@ type HexPanel = {
   yBounds: [number, number]
   xBins: number
   shape: number
-  data: Array<{
-    x: number
-    y: number
-    count: number
-    meanX: number
-    meanY: number
-  }>
+  data: {
+    x: number[]
+    y: number[]
+    count: number[]
+    meanX: number[]
+    meanY: number[]
+  }
 }
 ```
 
 ```r
-hex_cell <- ts_list(
-  x = ts_numeric(1L),
-  y = ts_numeric(1L),
-  count = ts_numeric(1L),
-  meanX = ts_numeric(1L),
-  meanY = ts_numeric(1L)
-)
-
 hex_panel <- ts_list(
   s1 = ts_optional(ts_character(1L)),
   s2 = ts_optional(ts_character(1L)),
@@ -515,7 +506,13 @@ hex_panel <- ts_list(
   yBounds = ts_numeric(2L),
   xBins = ts_integer(1L),
   shape = ts_numeric(1L),
-  data = ts_list(hex_cell)
+  data = ts_dataframe(
+    x = ts_numeric(0L),
+    y = ts_numeric(0L),
+    count = ts_numeric(0L),
+    meanX = ts_numeric(0L),
+    meanY = ts_numeric(0L)
+  )
 )
 ```
 
@@ -530,10 +527,13 @@ hex_panel <- ts_list(
       yBounds: [1, 4],
       xBins: 5,
       shape: 1,
-      data: [
-        { x: 1, y: 1, count: 2, meanX: 1.1, meanY: 1.05 },
-        { x: 2.5, y: 2.5588, count: 1, meanX: 2.4, meanY: 2.8 }
-      ]
+      data: {
+        x: [1, 2.5],
+        y: [1, 2.5588],
+        count: [2, 1],
+        meanX: [1.1, 2.4],
+        meanY: [1.05, 2.8]
+      }
     }
   ]
 }
@@ -550,32 +550,30 @@ type GridPanel = {
   xBounds: [number, number]
   yBounds: [number, number]
   n: number
-  data: Array<{
-    x0: number
-    x1: number
-    y0: number
-    y1: number
-    count: number
-  }>
+  data: {
+    x0: number[]
+    x1: number[]
+    y0: number[]
+    y1: number[]
+    count: number[]
+  }
 }
 ```
 
 ```r
-grid_cell <- ts_list(
-  x0 = ts_numeric(1L),
-  x1 = ts_numeric(1L),
-  y0 = ts_numeric(1L),
-  y1 = ts_numeric(1L),
-  count = ts_numeric(1L)
-)
-
 grid_panel <- ts_list(
   s1 = ts_optional(ts_character(1L)),
   s2 = ts_optional(ts_character(1L)),
   xBounds = ts_numeric(2L),
   yBounds = ts_numeric(2L),
   n = ts_integer(1L),
-  data = ts_list(grid_cell)
+  data = ts_dataframe(
+    x0 = ts_numeric(0L),
+    x1 = ts_numeric(0L),
+    y0 = ts_numeric(0L),
+    y1 = ts_numeric(0L),
+    count = ts_numeric(0L)
+  )
 )
 ```
 
@@ -589,10 +587,13 @@ grid_panel <- ts_list(
       xBounds: [1, 4],
       yBounds: [1, 4],
       n: 4,
-      data: [
-        { x0: 1, x1: 1.75, y0: 1, y1: 1.75, count: 1 },
-        { x0: 1.75, x1: 2.5, y0: 2.5, y1: 3.25, count: 2 }
-      ]
+      data: {
+        x0: [1, 1.75],
+        x1: [1.75, 2.5],
+        y0: [1, 2.5],
+        y1: [1.75, 3.25],
+        count: [1, 2]
+      }
     }
   ]
 }

@@ -162,6 +162,10 @@ create.inz.barplot <- function(obj, ...) {
     )
 
     if (SEG) out$p.colby <- p2[nrow(p2):1, ]
+    ## Cell counts in factor-level order. `p.colby` stays reversed for drawing.
+    if (SEG) out$colby.tab <- tab2
+    ## Series sums before zoom drops columns.
+    if (!ynull) out$series.totals <- nn
     if (!is.null(ZOOM)) out$zoom.index <- ww
 
     class(out) <- "inzbar"
