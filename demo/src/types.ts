@@ -1,17 +1,15 @@
-export type IdSpace = "row" | "plotLocal" | "none";
-
 export type PlotVariables = {
   v1: string;
   v2?: string;
   s1?: string;
   s2?: string;
   colby?: string;
+  symbolby?: string;
+  sizeby?: string;
 };
 
 export type PlotLayout = {
   matrix: boolean;
-  s1Levels?: string[];
-  s2Levels?: string[];
 };
 
 export type Box = {
@@ -135,7 +133,6 @@ export type Plot = {
   schemaVersion: 1;
   type: string;
   variables: PlotVariables;
-  capabilities: { idSpace: IdSpace };
-  layout: PlotLayout;
+  layout?: PlotLayout;
   panels: Panel[];
 };

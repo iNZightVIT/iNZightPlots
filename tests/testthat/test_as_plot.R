@@ -10,9 +10,7 @@ test_that("one-way bar matches species counts", {
     expect_equal(s$schemaVersion, 1L)
     expect_equal(s$type, "bar")
     expect_equal(s$variables, list(v1 = "Species"))
-    expect_equal(s$capabilities$idSpace, "none")
-    expect_false(s$layout$matrix)
-    expect_null(s$layout$s1Levels)
+    expect_null(s$layout)
     expect_length(s$panels, 1L)
     expect_null(s$panels[[1L]]$s1)
     expect_equal(s$panels[[1L]]$total, 150)
@@ -109,7 +107,6 @@ test_that("dot groups stack observed values and keep the box R computed", {
 
     expect_equal(s$type, "dot")
     expect_equal(s$variables, list(v1 = "sw", v2 = "g"))
-    expect_equal(s$capabilities$idSpace, "none")
     expect_equal(groups[[1L]]$label, "a")
     expect_equal(groups[[1L]]$points, data.frame(x = c(1, 1, 2)))
     expect_equal(
@@ -135,7 +132,6 @@ test_that("histogram uses the server edges and counts", {
     panel <- s$panels[[1L]]
 
     expect_equal(s$type, "hist")
-    expect_equal(s$capabilities$idSpace, "none")
     expect_equal(panel$groups[[1L]]$counts, c(11, 46, 68, 21, 4))
     expect_length(panel$edges, length(panel$groups[[1L]]$counts) + 1L)
     expect_equal(
@@ -151,7 +147,7 @@ test_that("scatter sends row ids and omits constant size and symbol", {
     pts <- s$panels[[1L]]$data
 
     expect_equal(s$type, "scatter")
-    expect_equal(s$capabilities$idSpace, "row")
+    expect_equal(s$variables, list(v1 = "Sepal.Width", v2 = "Sepal.Length"))
     expect_s3_class(pts, "data.frame")
     expect_equal(nrow(pts), 150L)
     expect_false(any(c("size", "symbol", "colby") %in% names(pts)))
@@ -172,6 +168,8 @@ test_that("scatter sends colby, symbol, highlight, and varying size", {
     ))
     pts <- s$panels[[1L]]$data
 
+    expect_equal(s$variables$colby, "grp")
+    expect_equal(s$variables$symbolby, "sym")
     expect_s3_class(pts$colby, "factor")
     expect_equal(as.character(pts$colby[pts$id == 1L]), "B")
     expect_equal(pts$symbol[pts$id == 1L], 21L)
@@ -182,7 +180,9 @@ test_that("scatter sends colby, symbol, highlight, and varying size", {
 
     sized <- data.frame(x = 1:3, y = 1:3, s = c(1, 4, 9))
     sp <- iNZightPlot(x, y, data = sized, sizeby = s)
-    sizes <- as_plot(sp)$panels[[1L]]$data$size
+    sized_plot <- as_plot(sp)
+    expect_equal(sized_plot$variables$sizeby, "s")
+    sizes <- sized_plot$panels[[1L]]$data$size
     expect_equal(sizes, as.numeric(sp$all$all$propsize / sp$gen$opts$cex.pt))
 })
 
@@ -194,7 +194,6 @@ test_that("hex sends occupied cells and drops raw coordinates", {
     panel <- s$panels[[1L]]
 
     expect_equal(s$type, "hex")
-    expect_equal(s$capabilities$idSpace, "none")
     expect_equal(panel$xBins, 5L)
     expect_equal(panel$shape, 1)
     expect_s3_class(panel$data, "data.frame")
@@ -220,8 +219,6 @@ test_that("an s1 facet is a flat list of panels", {
     s <- as_plot(iNZightPlot(Sepal.Width, Sepal.Length, g1 = Species, data = iris))
 
     expect_false(s$layout$matrix)
-    expect_equal(s$layout$s1Levels, c("setosa", "versicolor", "virginica"))
-    expect_null(s$layout$s2Levels)
     expect_equal(s$variables$s1, "Species")
     expect_equal(
         vapply(s$panels, `[[`, character(1), "s1"),
@@ -237,10 +234,30 @@ test_that("a named s1 level is not a facet", {
     ))
 
     expect_equal(s$variables$s1, "Species")
-    expect_null(s$layout$s1Levels)
+    expect_null(s$layout)
     expect_length(s$panels, 1L)
-    expect_null(s$panels[[1L]]$s1)
+    expect_equal(s$panels[[1L]]$s1, "setosa")
+    expect_null(s$panels[[1L]]$s2)
     expect_equal(nrow(s$panels[[1L]]$data), sum(iris$Species == "setosa"))
+})
+
+test_that("a named s2 level is recorded and _ALL is not", {
+    iris2 <- iris
+    iris2$hand <- factor(rep(c("left", "right"), length.out = nrow(iris)))
+
+    fixed <- as_plot(iNZightPlot(
+        Sepal.Width, Sepal.Length,
+        g1 = Species, g2 = hand, g2.level = "left", data = iris2
+    ))
+    expect_equal(fixed$variables$s2, "hand")
+    expect_false(fixed$layout$matrix)
+    expect_equal(unique(vapply(fixed$panels, `[[`, character(1), "s2")), "left")
+
+    collapsed <- as_plot(iNZightPlot(
+        Sepal.Width, Sepal.Length,
+        g1 = Species, g2 = hand, g2.level = "_ALL", data = iris2
+    ))
+    expect_null(collapsed$panels[[1L]]$s2)
 })
 
 test_that("an s1 by s2 matrix keeps row then column order", {
@@ -252,8 +269,6 @@ test_that("an s1 by s2 matrix keeps row then column order", {
     ))
 
     expect_true(s$layout$matrix)
-    expect_equal(s$layout$s1Levels, levels(iris$Species))
-    expect_equal(s$layout$s2Levels, levels(iris$Species))
     expect_length(s$panels, 9L)
     expect_equal(s$panels[[1L]]$s2, "setosa")
     expect_equal(s$panels[[1L]]$s1, "setosa")

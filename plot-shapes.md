@@ -22,14 +22,11 @@ type Plot = {
     s1?: string
     s2?: string
     colby?: string
+    symbolby?: string
+    sizeby?: string
   }
-  capabilities: {
-    idSpace: "row" | "plotLocal" | "none"
-  }
-  layout: {
+  layout?: {
     matrix: boolean
-    s1Levels?: string[]
-    s2Levels?: string[]
   }
   panels: Panel[]
 }
@@ -41,7 +38,9 @@ plot_variables <- ts_list(
   v2 = ts_optional(ts_character(1L)),
   s1 = ts_optional(ts_character(1L)),
   s2 = ts_optional(ts_character(1L)),
-  colby = ts_optional(ts_character(1L))
+  colby = ts_optional(ts_character(1L)),
+  symbolby = ts_optional(ts_character(1L)),
+  sizeby = ts_optional(ts_character(1L))
 )
 
 # `panel` is the per-type list below.
@@ -49,35 +48,30 @@ plot_result <- ts_list(
   schemaVersion = ts_integer(1L),
   type = ts_character(1L),
   variables = plot_variables,
-  capabilities = ts_list(
-    idSpace = ts_character(1L) # "row" | "plotLocal" | "none"
-  ),
-  layout = ts_list(
-    matrix = ts_logical(1L),
-    s1Levels = ts_optional(ts_character(0L)),
-    s2Levels = ts_optional(ts_character(0L))
-  ),
+  layout = ts_optional(ts_list(
+    matrix = ts_logical(1L)
+  )),
   panels = ts_list(panel)
 )
 ```
 
 `type` is the plot that was requested, and it has to be valid for those variables. A one-variable factor can be `"bar"`. A numeric variable can be `"dot"` or `"hist"`. Two numerics can be `"scatter"`, `"hex"`, or `"grid"`. An invalid combination is an error. R does not substitute another type: a survey dot is not returned as a histogram, and a large scatter is not returned as a hex.
 
-`capabilities.idSpace` says what an id in the payload means. `"row"` is a shared row id (scatter `point.order`). `"plotLocal"` is reserved for a later secure plot, where the handle is meaningful only to R. `"none"` means this plot has nothing to brush by row: bars, histograms, hexes, and grids. Highlighting those is a round-trip. Hex and grid cells do not carry row ids.
+There is no `capabilities` field. What an id means, and anything that needs a backend, stays on the `PlotController`. Scatter `id` is still `point.order`. Hex and grid cells do not carry row ids.
 
 | Field | Meaning |
 |-------|---------|
 | `v1`, `v2` | Variable 1 and Variable 2. The widget already sends these as `x` and `y`. |
 | `s1`, `s2` | Subset variables. The widget already sends these as `subset1` and `subset2`, which `iNZightPlot` takes as `g1` and `g2`. |
-| `colby` | Segmented bar only. Not `v2`. |
+| `colby` | The colour variable, when one is set. Stacking factor on a segmented bar (not `v2`). Names the scatter `colby` column. |
+| `symbolby` | The symbol variable, when one is set. Names the scatter `symbol` column. |
+| `sizeby` | The size variable, when one is set. Names the scatter `size` column, which is omitted when every plotted size is equal. |
 | `s1` level | `subset1Level`. `_MULTI` returns one panel per level. A named level returns that panel only. |
 | `s2` level | `subset2Level`. `_ALL` means no second split. `_MULTI` returns the `s1` by `s2` panels. |
 
-The level list for the subset dropdown stays on the existing levels call. `layout` is the plot’s own axis order, which that call does not provide.
+The level list for the subset dropdown stays on the existing levels call. `layout` is omitted for a single panel, including one named level. When it is present, `matrix` is `true` for an `s1` by `s2` grid and `false` for a wrap (`s2` is `_ALL` or absent). Direction and where the first panel sits are client parameters. Panel order is `s2` outer and `s1` inner for a matrix, and `s1` order for a wrap. `panels` stays a flat list.
 
-`layout.matrix` is true only for an `s1` by `s2` matrix. R lays that out as `s2` rows by `s1` columns, in factor order. `s1Levels` is the column order when `s1` is faceting, and is omitted otherwise. `s2Levels` is the row order when `matrix` is true, and is omitted otherwise. A single `s1` multi is `matrix: false` with `s1Levels` set, and the client chooses the wrap. An empty level stays in these arrays even when no panel carries it. `panels` stays a flat list.
-
-A panel carries `s1` and `s2` only when that variable is faceting. Inside a panel, a second variable (`v2`) is groups or series, not another panel.
+A panel carries `s1` and `s2` for the level it shows, including a single named level such as `gender = female`. Inside a panel, a second variable (`v2`) is groups or series, not another panel.
 
 ## Bar, one variable
 
@@ -219,7 +213,7 @@ Child is 6 + 14 and Adult is 40 + 40, which is what `seriesTotals` records. The 
 
 ## Bar, segmented
 
-Still `type: "bar"`, and only when there is no `v2`. The one-way bar stays. `variables.colby` names the stacking factor. `segments` carry the cell `count` (`table`, `xtabs`, or `svytable`, before the column is scaled to 1) and the `proportion` (`p.colby`). The cell count is not `proportion * count`: rows with a missing `colby` stay in the bar `count` and are absent from the segments, so a bar of 5 can have segment counts that sum to 4. The bar’s own `proportion` is still the marginal `phat`. The first `colby` level is the **top** of the stack. Emit factor-level order, not the reversed rows stored on `p.colby`.
+Still `type: "bar"`, and only when there is no `v2`. The one-way bar stays. `variables.colby` names the colour variable, drawn as a stack. `segments` carry the cell `count` (`table`, `xtabs`, or `svytable`, before the column is scaled to 1) and the `proportion` (`p.colby`). The cell count is not `proportion * count`: rows with a missing `colby` stay in the bar `count` and are absent from the segments, so a bar of 5 can have segment counts that sum to 4. The bar’s own `proportion` is still the marginal `phat`. The first `colby` level is the **top** of the stack. Emit factor-level order, not the reversed rows stored on `p.colby`.
 
 ```ts
 type BarSegmentPanel = {
@@ -420,7 +414,7 @@ hist_panel <- ts_list(
 
 `size` is sent only when it varies by data, and it is the value **before** multiplying by `cex.pt`: frequency `freq / max.freq * 4 + 0.5`, varying survey weights `weight / max.weight * 2 + 0.5`, or the resolved `sizeby` cex. Equal survey weights omit `size`. The survey design is not sent.
 
-`symbol` is a column only for `symbolby` (R pch). `colby` is a column only when a colour-by variable is set, and it keeps a factor as a factor; missing values stay missing. `highlight` is a logical column only when at least one point is highlighted, and it is false on the other rows. Trend and smooth lines are not in this shape.
+`symbol` is a column only for `symbolby` (R pch); the variable name is `variables.symbolby`. `colby` is a column only when `variables.colby` is set, and it keeps a factor as a factor; missing values stay missing. `variables.sizeby` is set whenever a size variable was mapped, including when equal sizes omit the `size` column. `highlight` is a logical column only when at least one point is highlighted, and it is false on the other rows. Trend and smooth lines are not in this shape.
 
 ```ts
 type ScatterPanel = {
@@ -458,7 +452,7 @@ scatter_panel <- ts_list(
 {
   schemaVersion: 1,
   type: "scatter",
-  variables: { v1: "height", v2: "weight" },
+  variables: { v1: "height", v2: "weight", colby: "group", symbolby: "mark" },
   panels: [
     {
       data: {

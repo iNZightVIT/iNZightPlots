@@ -6,7 +6,7 @@
 #'
 #' @param obj an \code{inzplotoutput} object from \code{\link{iNZightPlot}}.
 #' @return A list with \code{schemaVersion}, \code{type}, \code{variables},
-#'   \code{capabilities}, \code{layout}, and \code{panels}.
+#'   \code{panels}, and \code{layout} when the plot is faceted.
 #' @export
 as_plot <- function(obj) {
     if (!inherits(obj, "inzplotoutput")) {
@@ -28,25 +28,18 @@ as_plot <- function(obj) {
     if (!length(g2_names)) {
         stop("'obj' has no panels")
     }
-    g1_names <- names(obj[[g2_names[[1L]]]])
-    if (is.null(g1_names)) g1_names <- character()
-
-    s1_faceting <- !is.null(vn$g1) && (
-        level_requests_all(gl$g1.level) || length(g1_names) > 1L
-    )
     matrix_layout <- !is.null(vn$g2) && (
         level_requests_matrix(gl$g2.level) || length(g2_names) > 1L
     )
-
-    first <- obj[[g2_names[[1L]]]][[g1_names[[1L]]]]
-    segmented <- inherits(first, "inzbar") && !is.null(first$p.colby)
 
     variables <- omit_null(list(
         v1 = scalar_chr(vn$x),
         v2 = scalar_chr(vn$y),
         s1 = scalar_chr(vn$g1),
         s2 = scalar_chr(vn$g2),
-        colby = if (segmented) scalar_chr(vn$colby) else NULL
+        colby = scalar_chr(vn$colby),
+        symbolby = scalar_chr(vn$symbolby),
+        sizeby = scalar_chr(vn$sizeby)
     ))
 
     ctx <- list(
@@ -65,8 +58,8 @@ as_plot <- function(obj) {
         if (is.null(g1s)) next
         for (g1 in g1s) {
             base <- omit_null(list(
-                s1 = if (s1_faceting) g1 else NULL,
-                s2 = if (matrix_layout) g2 else NULL
+                s1 = if (!is.null(vn$g1)) g1 else NULL,
+                s2 = if (!is.null(vn$g2) && !identical(g2, "all")) g2 else NULL
             ))
             panels[[length(panels) + 1L]] <- c(
                 base,
@@ -75,20 +68,13 @@ as_plot <- function(obj) {
         }
     }
 
-    list(
+    omit_null(list(
         schemaVersion = 1L,
         type = type,
         variables = variables,
-        capabilities = list(
-            idSpace = if (identical(type, "scatter")) "row" else "none"
-        ),
-        layout = omit_null(list(
-            matrix = isTRUE(matrix_layout),
-            s1Levels = if (s1_faceting) as.character(g1_names) else NULL,
-            s2Levels = if (matrix_layout) as.character(g2_names) else NULL
-        )),
+        layout = if (length(panels) > 1L) list(matrix = isTRUE(matrix_layout)) else NULL,
         panels = panels
-    )
+    ))
 }
 
 panel_payload <- function(panel, ctx) {
@@ -386,17 +372,6 @@ grid_frame <- function(x0 = numeric(), x1 = numeric(), y0 = numeric(),
 
 scalar_chr <- function(x) {
     if (is.null(x) || !length(x)) NULL else as.character(x[[1L]])
-}
-
-## NULL g1.level means every level. Numeric 0 is the same request.
-level_requests_all <- function(level) {
-    if (is.null(level)) {
-        return(TRUE)
-    }
-    if (any(as.character(level) == "_MULTI")) {
-        return(TRUE)
-    }
-    is.numeric(level) && any(level == 0)
 }
 
 ## NULL g2.level means no second split. Only an explicit matrix request counts.

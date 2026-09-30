@@ -39,7 +39,7 @@ find_pkg_root <- function() {
 
 pkgload::load_all(find_pkg_root(), quiet = TRUE)
 
-cas <- iNZightMR::census.at.school.5000
+cas <- read.csv(file.path(find_pkg_root(), "demo", "cas500.csv"))
 
 ## Keep a one-row data-frame column as a JSON array. Factors become strings.
 preserve_columns <- function(x) {
@@ -50,7 +50,9 @@ preserve_columns <- function(x) {
         })
         return(x)
     }
-    if (is.list(x)) return(lapply(x, preserve_columns))
+    if (is.list(x)) {
+        return(lapply(x, preserve_columns))
+    }
     x
 }
 
@@ -116,6 +118,27 @@ examples <- list(
         title = "Grid: height and armspan",
         plot = suppressWarnings(
             iNZightPlot(height, armspan, data = cas, plottype = "grid")
+        )
+    ),
+    list(
+        id = "bar-subset",
+        title = "Bar: travel, subset by gender",
+        plot = iNZightPlot(travel, g1 = gender, data = cas)
+    ),
+    list(
+        id = "scatter-subset-level",
+        title = "Scatter: height and armspan, gender = female",
+        plot = iNZightPlot(
+            height, armspan,
+            g1 = gender, g1.level = "female", data = cas
+        )
+    ),
+    list(
+        id = "scatter-subset-matrix",
+        title = "Scatter: height and armspan by gender and getlunch",
+        plot = iNZightPlot(
+            height, armspan,
+            g1 = gender, g2 = getlunch, g2.level = "_MULTI", data = cas
         )
     )
 )
