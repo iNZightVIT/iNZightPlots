@@ -9,6 +9,7 @@ test_that("one-way bar matches species counts", {
     expect_true(is.function(p$gen$opts$col.default$cat))
     expect_equal(s$schemaVersion, 1L)
     expect_equal(s$type, "bar")
+    expect_equal(s$availablePlotTypes, list("bar"))
     expect_equal(s$variables, list(v1 = "Species"))
     expect_null(s$layout)
     expect_length(s$panels, 1L)
@@ -133,6 +134,7 @@ test_that("dot groups stack observed values and keep the box R computed", {
 test_that("one-way dot omits the group label", {
     s <- as_plot(iNZightPlot(Sepal.Width, data = iris))
     expect_equal(s$type, "dot")
+    expect_equal(s$availablePlotTypes, list("dot", "hist"))
     expect_null(s$panels[[1L]]$groups[[1L]]$label)
     expect_equal(nrow(s$panels[[1L]]$groups[[1L]]$points), 150L)
 })
@@ -142,6 +144,7 @@ test_that("histogram uses the server edges and counts", {
     panel <- s$panels[[1L]]
 
     expect_equal(s$type, "hist")
+    expect_equal(s$histBins, 5L)
     expect_equal(panel$groups[[1L]]$counts, c(11, 46, 68, 21, 4))
     expect_length(panel$edges, length(panel$groups[[1L]]$counts) + 1L)
     expect_equal(
@@ -157,6 +160,7 @@ test_that("scatter sends row ids and omits constant size and symbol", {
     pts <- s$panels[[1L]]$data
 
     expect_equal(s$type, "scatter")
+    expect_equal(s$availablePlotTypes, list("scatter", "grid", "hex"))
     expect_equal(s$variables, list(v1 = "Sepal.Width", v2 = "Sepal.Length"))
     expect_s3_class(pts, "data.frame")
     expect_equal(nrow(pts), 150L)

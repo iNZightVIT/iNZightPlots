@@ -71,10 +71,65 @@ as_plot <- function(obj) {
     omit_null(list(
         schemaVersion = 1L,
         type = type,
+        availablePlotTypes = as.list(available_plot_types(obj)),
+        histBins = hist_bin_count(obj),
         variables = variables,
         layout = if (length(panels) > 1L) list(matrix = isTRUE(matrix_layout)) else NULL,
         panels = panels
     ))
+}
+
+# Types createPlot will keep for this plot. The same checks live in createPlot's
+# plottype switch: a factor axis with no numeric partner is a bar; one numeric
+# axis is a dot plot or a histogram; two numeric axes are scatter, grid, or hex.
+available_plot_types <- function(obj) {
+    varnames <- attr(obj, "varnames")
+    vartypes <- attr(obj, "vartypes")
+    if (is.null(varnames) || is.null(vartypes)) {
+        return(character())
+    }
+    xname <- varnames$x
+    if (is.null(xname) || !length(xname)) {
+        return(character())
+    }
+    xname <- as.character(xname)[[1L]]
+    xtype <- vartypes[[xname]]
+    if (is.null(xtype) || !length(xtype)) {
+        return(character())
+    }
+    xfact <- identical(as.character(xtype)[[1L]], "factor")
+    yname <- varnames$y
+    ynull <- is.null(yname) || !length(yname) || !nzchar(as.character(yname)[[1L]])
+    yfact <- FALSE
+    if (!ynull) {
+        yname <- as.character(yname)[[1L]]
+        ytype <- vartypes[[yname]]
+        if (is.null(ytype) || !length(ytype)) {
+            return(character())
+        }
+        yfact <- identical(as.character(ytype)[[1L]], "factor")
+    }
+    xnum <- !xfact
+    ynum <- !ynull && !yfact
+    types <- character()
+    if (xfact && (ynull || yfact)) types <- c(types, "bar")
+    if ((xnum && !ynum) || (!xnum && ynum)) types <- c(types, "dot", "hist")
+    if (xnum && ynum) types <- c(types, "scatter", "grid", "hex")
+    types
+}
+
+# Bin count the histogram actually used, including R's default.
+hist_bin_count <- function(obj) {
+    type <- attr(obj, "plottype")
+    type <- if (is.null(type) || !length(type)) "" else as.character(type[[1L]])
+    if (!identical(type, "hist")) {
+        return(NULL)
+    }
+    nbins <- attr(obj, "nbins")
+    if (is.null(nbins) || !length(nbins) || is.na(nbins[[1L]])) {
+        return(NULL)
+    }
+    as.integer(nbins[[1L]])
 }
 
 panel_payload <- function(panel, ctx) {
