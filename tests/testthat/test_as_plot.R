@@ -131,6 +131,21 @@ test_that("dot groups stack observed values and keep the box R computed", {
     expect_false(is.null(groups[[2L]]$boxplot))
 })
 
+test_that("dot sends colby beside each stacked point", {
+    d <- data.frame(
+        sw = c(1, 2, 3),
+        grp = factor(c("B", "A", "B"), levels = c("A", "B"))
+    )
+    s <- as_plot(iNZightPlot(sw, data = d, colby = grp))
+    pts <- s$panels[[1L]]$groups[[1L]]$points
+
+    expect_equal(s$type, "dot")
+    expect_equal(s$variables$colby, "grp")
+    expect_equal(pts$x, c(1, 2, 3))
+    expect_s3_class(pts$colby, "factor")
+    expect_equal(as.character(pts$colby), c("B", "A", "B"))
+})
+
 test_that("one-way dot omits the group label", {
     s <- as_plot(iNZightPlot(Sepal.Width, data = iris))
     expect_equal(s$type, "dot")

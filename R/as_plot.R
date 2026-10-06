@@ -272,7 +272,11 @@ panel_dot <- function(panel, ctx, hist) {
             }
         } else {
             xs <- if (is.null(tp)) numeric() else as.numeric(tp$x)
-            g$points <- mark_frame(list(x = xs))
+            point_cols <- list(x = xs)
+            if (!is.null(tp) && !is.null(tp$colby)) {
+                point_cols$colby <- col_column(tp$colby)
+            }
+            g$points <- mark_frame(point_cols)
         }
         g$boxplot <- box_payload(group_info(panel$boxinfo, i))
         g$mean <- mean_payload(group_info(panel$meaninfo, i))
