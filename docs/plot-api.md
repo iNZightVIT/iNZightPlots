@@ -59,7 +59,7 @@ Every panel may have `s1` and `s2` as above. The fields below are the rest.
 
 ### Bar
 
-`type` is `bar`. Three shapes, told apart by fields rather than by `type`.
+`type` is `bar`. Two panel shapes. A second variable uses one frame either way: `variables.v2` is side by side, and `variables.colby` is stacked.
 
 One variable. `count` is `tab`. `proportion` is `phat`. `total` is `ntotal`. On a survey, use `proportion` as given.
 
@@ -72,34 +72,20 @@ One variable. `count` is `tab`. `proportion` is `phat`. `total` is `ntotal`. On 
 
 `data` has one row per `v1` level.
 
-Two variables. `v1` is the cluster. `v2` is the side-by-side series. `count` is `tab[y, x]`. `proportion` is the share of that `x` within that `y`, taken before zoom and not renormalised, so a zoomed series need not sum to 1. `data` has one row per cluster and series: each `v1` level, then each `v2` level inside it.
+Two variables. `v1` is the cluster. `series` is a level of `v2` or of `colby`. `count` is the cell count. Each row has both shares, and the chart picks one. `prop_series` is the share of that `x` within that series. Side-by-side bars use it. On a survey with `v2` it is `svymean` and must be used as given. `prop_total` is the cell divided by the sum of every cell. A stack uses it. A level that is 5% of each series, with equal series totals, stacks to about 5%, and each segment's `prop_total` is about half of that. Both are taken before zoom and are not renormalised. `data` has one row per cluster and series: each `v1` level, then each series level inside it. The first `colby` level is the top of the stack. A missing `y` or `colby` is dropped, so `total` is the sum of the visible cells.
 
 | Field | Type |
 |-------|------|
-| `total` | number |
-| `seriesTotals.label` | string. Level of `v2`. |
+| `total` | number. Sum of the visible cell counts. |
+| `seriesTotals.label` | string. Level of `v2` or `colby`. |
 | `seriesTotals.total` | number. Sum of that series across every `v1` level, before zoom drops columns. |
 | `data.label` | string. Level of `v1`. |
-| `data.series` | string. Level of `v2`. |
+| `data.series` | string. Level of `v2` or `colby`. |
 | `data.count` | number |
-| `data.proportion` | number |
+| `data.prop_series` | number. Share of this `v1` level within the series. Side-by-side height. |
+| `data.prop_total` | number. Share of the whole population. Stacked segment height. |
 
 `seriesTotals` is a data frame. `widths`, `edges`, and `nn` are not sent. Relative widths use `seriesTotals`, not the sum of visible counts.
-
-Segmented. No `v2`. `variables.colby` is the colour variable, drawn as a stack. `data` is the one-variable bar. `segments` is a data frame, one row per bar and segment: each `v1` level, then each `colby` level inside it. Segment order is factor-level order; the first level is the top of the stack.
-
-| Field | Type |
-|-------|------|
-| `total` | number |
-| `data.label` | string |
-| `data.count` | number. Marginal bar count. |
-| `data.proportion` | number. Marginal `phat`. |
-| `segments.label` | string. Level of `v1`. Joins to `data.label`. |
-| `segments.segment` | string. Level of `colby`. |
-| `segments.count` | number. Cell count, not `proportion * count`. |
-| `segments.proportion` | number. `p.colby`. |
-
-Rows with a missing `colby` stay in the bar `count` and are absent from `segments`, so a bar of 5 can have segment counts that sum to 4.
 
 ### Dot
 
@@ -171,6 +157,6 @@ Non-zero rectangles on the shared axis window, in data coordinates, `x` bin then
 
 ## Mark tables
 
-Bar `data` and `segments`, bar `seriesTotals`, dot `points`, scatter `data`, hex `data`, and grid `data` are data frames: one column per field, equal length, in the order above. The histogram is already vectors.
+Bar `data`, bar `seriesTotals`, dot `points`, scatter `data`, hex `data`, and grid `data` are data frames: one column per field, equal length, in the order above. The histogram is already vectors.
 
 On the wire, Rserve writes a data frame as packed columns. A client that wants one object per mark zips those columns by index. Nulls in a present column stay on the row.

@@ -153,11 +153,7 @@ panel_bar <- function(panel, ctx) {
     labels <- as.character(labels)
 
     if (!is.null(panel$p.colby)) {
-        return(list(
-            total = as.numeric(panel$ntotal),
-            data = bar_frame(labels, as.numeric(tab), as.numeric(phat)),
-            segments = bar_segment_frame(panel, labels)
-        ))
+        return(bar_colby_payload(panel))
     }
 
     if (isTRUE(ctx$has_y)) {
@@ -176,18 +172,16 @@ panel_bar <- function(panel, ctx) {
             total_labels
         )
         ## Column-major: one cluster, then each series inside it.
-        return(list(
-            total = as.numeric(panel$ntotal),
-            seriesTotals = mark_frame(list(
-                label = as.character(total_labels),
-                total = as.numeric(totals)
-            )),
-            data = mark_frame(list(
-                label = rep(labels, each = length(series)),
-                series = rep(series, times = length(labels)),
-                count = as.numeric(tab),
-                proportion = as.numeric(phat)
-            ))
+        ## `phat` is the within-series share R already computed (survey `svymean`).
+        ## `prop_total` is the same cell over the pre-zoom population.
+        grand <- sum(as.numeric(totals))
+        prop_total <- if (is.finite(grand) && grand > 0) {
+            as.numeric(tab) / grand
+        } else {
+            as.numeric(tab) * 0
+        }
+        return(bar_series_payload(
+            labels, series, tab, phat, prop_total, total_labels, totals, panel$ntotal
         ))
     }
 
@@ -205,41 +199,58 @@ bar_frame <- function(label, count, proportion) {
     ))
 }
 
-bar_segment_frame <- function(panel, labels) {
+## One frame for a second categorical variable. `v2` and `colby` both use it.
+## Column-major: each cluster (`labels`), then each series inside it.
+bar_series_payload <- function(labels, series, count, prop_series, prop_total, total_labels, totals, total) {
+    series <- as.character(series)
+    labels <- as.character(labels)
+    list(
+        total = as.numeric(total),
+        seriesTotals = mark_frame(list(
+            label = as.character(total_labels),
+            total = as.numeric(totals)
+        )),
+        data = mark_frame(list(
+            label = rep(labels, each = length(series)),
+            series = rep(series, times = length(labels)),
+            count = as.numeric(count),
+            prop_series = as.numeric(prop_series),
+            prop_total = as.numeric(prop_total)
+        ))
+    )
+}
+
+## `colby.tab` is the full cell table (rows are the colour, columns are `v1`),
+## including columns a zoom later drops. `prop_series` is the cell over that
+## colour's total. `prop_total` is the cell over the whole table, so equal
+## series of 5% stack to about 5%, with each segment about half of that.
+## `p.colby` is the within-bar share the grid drawer still uses, and is not sent.
+bar_colby_payload <- function(panel) {
     counts <- panel$colby.tab
-    if (is.null(counts)) {
+    if (is.null(counts) || is.null(dim(counts))) {
         stop("segmented bar is missing colby counts")
     }
-    props <- panel$p.colby
-    ## One row or one column drops to a vector in `p.colby`.
-    if (is.null(dim(props))) {
-        props <- matrix(unname(props), nrow = nrow(counts), ncol = ncol(counts))
+    series <- rownames(counts)
+    if (is.null(series)) series <- as.character(seq_len(nrow(counts)))
+    totals <- rowSums(counts)
+    grand <- sum(totals)
+    prop_total <- if (is.finite(grand) && grand > 0) counts / grand else counts * 0
+    prop_series <- counts * 0
+    keep <- is.finite(totals) & totals > 0
+    if (any(keep)) {
+        prop_series[keep, ] <- sweep(counts[keep, , drop = FALSE], 1, totals[keep], "/")
     }
-    props <- props[rev(seq_len(nrow(props))), , drop = FALSE]
     ww <- panel$zoom.index
     if (!is.null(ww)) {
         counts <- counts[, ww, drop = FALSE]
-        props <- props[, ww, drop = FALSE]
+        prop_series <- prop_series[, ww, drop = FALSE]
+        prop_total <- prop_total[, ww, drop = FALSE]
     }
-    seg_labels <- rownames(counts)
-    if (is.null(seg_labels)) seg_labels <- rownames(props)
-    if (is.null(seg_labels)) seg_labels <- as.character(seq_len(nrow(counts)))
-    seg_labels <- as.character(seg_labels)
-    n_seg <- length(seg_labels)
-    n_bar <- ncol(counts)
-    if (is.null(n_bar) || !length(n_bar)) n_bar <- 0L
-    bar_labels <- as.character(labels)
-    if (length(bar_labels) != n_bar) {
-        bar_labels <- if (n_bar) colnames(counts) else character()
-        if (is.null(bar_labels)) bar_labels <- as.character(seq_len(n_bar))
-    }
-
-    mark_frame(list(
-        label = rep(bar_labels, each = n_seg),
-        segment = rep(seg_labels, times = n_bar),
-        count = as.numeric(counts),
-        proportion = as.numeric(props)
-    ))
+    labels <- colnames(counts)
+    if (is.null(labels)) labels <- as.character(seq_len(ncol(counts)))
+    bar_series_payload(
+        labels, series, counts, prop_series, prop_total, series, totals, sum(counts)
+    )
 }
 
 panel_dot <- function(panel, ctx, hist) {

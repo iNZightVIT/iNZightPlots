@@ -6,7 +6,7 @@ Temporary notes for the drawing payload a front end needs. They will move into t
 
 The TypeScript blocks are the intended JSON. The `ts_list()` blocks are a draft RserveTS result type for the same object. A named `ts_list()` currently requires every name to be present, so a `ts_optional()` field is sent as `undefined` rather than omitted. `ts_list(element)` (one unnamed type) is a JSON array of that element. `ts_numeric(2L)` is a length-2 numeric vector.
 
-Bar `data` and `segments`, bar `seriesTotals`, dot `points`, scatter `data`, hex `data`, and grid `data` are data frames: one column per field, equal length, in draw order. A column is on the frame or it is absent. The histogram is already vectors.
+Bar `data`, bar `seriesTotals`, dot `points`, scatter `data`, hex `data`, and grid `data` are data frames: one column per field, equal length, in draw order. A column is on the frame or it is absent. The histogram is already vectors.
 
 ## Envelope
 
@@ -129,14 +129,18 @@ With `s1` set and `_MULTI`, the same `data` frame is returned as one panel per l
 
 ## Bar, two variables
 
-Still `type: "bar"`. `v1` is the axis cluster (one level of `x`). `v2` is the side-by-side series inside the cluster (levels of `y`). `count` is `tab[y, x]`. `proportion` is the share of that `x` **within that `y`**. On a survey, `proportion` is `svymean` of `x` by `y` and must not be recomputed from the counts. Those proportions are taken before any zoom and are not renormalised, so a series in a zoomed payload need not sum to 1.
+Still `type: "bar"`. The same panel is used when the second variable is `v2` or `colby`. `variables.v2` is drawn side by side. `variables.colby` is drawn as a stack. The payload does not carry a separate orientation field.
 
-`seriesTotals` is the sum of each `v2` level across every `v1` level, in the same units as `count`, computed before zoom drops columns. Relative bar widths use these totals. Summing the visible `count`s is wrong once a zoom has removed columns: the widths stay at the pre-zoom totals. When every `v1` level is present, `seriesTotals` matches those sums. Widths are equal when `bar.counts` is set or `bar.relative.width` is not. `widths`, `edges`, and `nn` are not sent.
+`v1` is the axis cluster (one level of `x`). `series` is a level of `v2` or of `colby`. `count` is the cell of `table`, `xtabs`, or `svytable` (`tab[y, x]`, or `colby.tab[colour, x]`).
 
-`seriesTotals` is a data frame. `data` is a data frame with one row per cluster and series: each `v1` level, then each `v2` level inside it.
+Every series row carries both shares. The chart picks one. `prop_series` is the share of that `x` **within that series**. Side-by-side bars use it. On a survey with `v2` it is `svymean` of `x` by `y` and must not be recomputed from the counts. For `colby` it is the cell divided by that colour's series total. `prop_total` is the cell divided by the sum of every cell, the segment's share of the whole population. A stack uses it. A level that is 5% of each series, with equal series totals, is a stack of about 5%, and each segment's `prop_total` is about half of that. Both are taken before any zoom and are not renormalised, so a zoomed payload need not sum to 1.
+
+`seriesTotals` is the sum of each series across every `v1` level, in the same units as `count`, computed before zoom drops columns. Relative bar widths use these totals. Summing the visible `count`s is wrong once a zoom has removed columns: the widths stay at the pre-zoom totals. When every `v1` level is present, `seriesTotals` matches those sums. Widths are equal when `bar.counts` is set or `bar.relative.width` is not. `widths`, `edges`, and `nn` are not sent.
+
+`seriesTotals` is a data frame. `data` is a data frame with one row per cluster and series: each `v1` level, then each series level inside it. Factor order: the first `colby` level is the top of the stack. Rows with a missing `y` or a missing `colby` are dropped before the table is built, so `total` counts complete cases only.
 
 ```ts
-type BarTwoWayPanel = {
+type BarSeriesPanel = {
   s1?: string
   s2?: string
   total: number
@@ -145,13 +149,14 @@ type BarTwoWayPanel = {
     label: string[]
     series: string[]
     count: number[]
-    proportion: number[]
+    prop_series: number[]
+    prop_total: number[]
   }
 }
 ```
 
 ```r
-bar_twoway_panel <- ts_list(
+bar_series_panel <- ts_list(
   s1 = ts_optional(ts_character(1L)),
   s2 = ts_optional(ts_character(1L)),
   total = ts_numeric(1L),
@@ -163,7 +168,8 @@ bar_twoway_panel <- ts_list(
     label = ts_character(0L),
     series = ts_character(0L),
     count = ts_numeric(0L),
-    proportion = ts_numeric(0L)
+    prop_series = ts_numeric(0L),
+    prop_total = ts_numeric(0L)
   )
 )
 ```
@@ -184,56 +190,17 @@ bar_twoway_panel <- ts_list(
         label: ["Bus", "Bus", "Walk", "Walk"],
         series: ["Child", "Adult", "Child", "Adult"],
         count: [6, 40, 14, 40],
-        proportion: [0.3, 0.5, 0.7, 0.5]
+        prop_series: [0.3, 0.5, 0.7, 0.5],
+        prop_total: [0.06, 0.4, 0.14, 0.4]
       }
     }
   ]
 }
 ```
 
-Child is 6 + 14 and Adult is 40 + 40, which is what `seriesTotals` records. The proportions sum to 1 across clusters within a series (Child 0.3 + 0.7), not within a cluster, and only when no zoom has dropped a column.
+Child is 6 + 14 and Adult is 40 + 40, which is what `seriesTotals` records. `prop_series` sums to 1 across clusters within a series (Child 0.3 + 0.7), not within a cluster, and only when no zoom has dropped a column. `prop_total` is the same cell over 100.
 
-## Bar, segmented
-
-Still `type: "bar"`, and only when there is no `v2`. The one-way bar stays in `data`. `variables.colby` names the colour variable, drawn as a stack. `segments` is a data frame of the cell `count` (`table`, `xtabs`, or `svytable`, before the column is scaled to 1) and the `proportion` (`p.colby`), one row per bar and segment: each `v1` level, then each `colby` level inside it. The cell count is not `proportion * count`: rows with a missing `colby` stay in the bar `count` and are absent from `segments`, so a bar of 5 can have segment counts that sum to 4. The bar’s own `proportion` is still the marginal `phat`. The first `colby` level is the **top** of the stack. Emit factor-level order, not the reversed rows stored on `p.colby`.
-
-```ts
-type BarSegmentPanel = {
-  s1?: string
-  s2?: string
-  total: number
-  data: {
-    label: string[]
-    count: number[]
-    proportion: number[]
-  }
-  segments: {
-    label: string[]
-    segment: string[]
-    count: number[]
-    proportion: number[]
-  }
-}
-```
-
-```r
-bar_segmented_panel <- ts_list(
-  s1 = ts_optional(ts_character(1L)),
-  s2 = ts_optional(ts_character(1L)),
-  total = ts_numeric(1L),
-  data = ts_dataframe(
-    label = ts_character(0L),
-    count = ts_numeric(0L),
-    proportion = ts_numeric(0L)
-  ),
-  segments = ts_dataframe(
-    label = ts_character(0L),
-    segment = ts_character(0L),
-    count = ts_numeric(0L),
-    proportion = ts_numeric(0L)
-  )
-)
-```
+A colour-by bar is that same panel. `variables.colby` names the series. Rain is 12 + 14 and Dry is 18 + 56. Monday's stack reads `prop_total`: 0.12 + 0.18 = 0.30 of the population. The same cells' `prop_series` are 12/26 of Rain and 18/74 of Dry, which a side-by-side chart would use.
 
 ```ts
 {
@@ -243,16 +210,16 @@ bar_segmented_panel <- ts_list(
   panels: [
     {
       total: 100,
-      data: {
-        label: ["Mon", "Tue"],
-        count: [30, 70],
-        proportion: [0.3, 0.7]
+      seriesTotals: {
+        label: ["Rain", "Dry"],
+        total: [26, 74]
       },
-      segments: {
+      data: {
         label: ["Mon", "Mon", "Tue", "Tue"],
-        segment: ["Rain", "Dry", "Rain", "Dry"],
+        series: ["Rain", "Dry", "Rain", "Dry"],
         count: [12, 18, 14, 56],
-        proportion: [0.4, 0.6, 0.2, 0.8]
+        prop_series: [12 / 26, 18 / 74, 14 / 26, 56 / 74],
+        prop_total: [0.12, 0.18, 0.14, 0.56]
       }
     }
   ]

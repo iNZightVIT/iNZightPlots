@@ -33,7 +33,8 @@ export type BarPanel = {
   data: BarData;
 };
 
-export type BarTwoWayPanel = {
+/** Second categorical variable. `v2` is side by side, `colby` is stacked. */
+export type BarSeriesPanel = {
   s1?: string;
   s2?: string;
   total: number;
@@ -42,20 +43,8 @@ export type BarTwoWayPanel = {
     label: string[];
     series: string[];
     count: number[];
-    proportion: number[];
-  };
-};
-
-export type BarSegmentPanel = {
-  s1?: string;
-  s2?: string;
-  total: number;
-  data: BarData;
-  segments: {
-    label: string[];
-    segment: string[];
-    count: number[];
-    proportion: number[];
+    prop_series: number[];
+    prop_total: number[];
   };
 };
 
@@ -129,8 +118,7 @@ export type GridPanel = {
 
 export type Panel =
   | BarPanel
-  | BarTwoWayPanel
-  | BarSegmentPanel
+  | BarSeriesPanel
   | DotPanel
   | HistPanel
   | ScatterPanel

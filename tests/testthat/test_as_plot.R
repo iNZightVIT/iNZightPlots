@@ -57,13 +57,14 @@ test_that("two-way bar keeps series proportions and pre-zoom totals", {
             label = c("Bus", "Bus", "Walk", "Walk"),
             series = c("Child", "Adult", "Child", "Adult"),
             count = c(6, 40, 14, 40),
-            proportion = c(0.3, 0.5, 0.7, 0.5),
+            prop_series = c(0.3, 0.5, 0.7, 0.5),
+            prop_total = c(0.06, 0.40, 0.14, 0.40),
             stringsAsFactors = FALSE
         )
     )
 })
 
-test_that("segmented bar emits factor order and cell counts", {
+test_that("colour-by bar uses the series frame", {
     d <- data.frame(
         Day = factor(c(rep("Mon", 30), rep("Tue", 70)), levels = c("Mon", "Tue")),
         Weather = factor(
@@ -76,36 +77,73 @@ test_that("segmented bar emits factor order and cell counts", {
     expect_equal(s$variables$colby, "Weather")
     expect_null(s$variables$v2)
     panel <- s$panels[[1L]]
+    expect_equal(panel$total, 100)
+    expect_null(panel$segments)
     expect_equal(
-        panel$data,
+        panel$seriesTotals,
         data.frame(
-            label = c("Mon", "Tue"),
-            count = c(30, 70),
-            proportion = c(0.3, 0.7),
+            label = c("Rain", "Dry"),
+            total = c(26, 74),
             stringsAsFactors = FALSE
         )
     )
     expect_equal(
-        panel$segments,
+        panel$data,
         data.frame(
             label = c("Mon", "Mon", "Tue", "Tue"),
-            segment = c("Rain", "Dry", "Rain", "Dry"),
+            series = c("Rain", "Dry", "Rain", "Dry"),
             count = c(12, 18, 14, 56),
-            proportion = c(0.4, 0.6, 0.2, 0.8),
+            prop_series = c(12, 18, 14, 56) / c(26, 74, 26, 74),
+            prop_total = c(12, 18, 14, 56) / 100,
             stringsAsFactors = FALSE
         )
     )
 })
 
-test_that("segment counts stay below the bar when colby is missing", {
+test_that("colour-by bar drops rows with a missing colour", {
     d <- data.frame(
         Day = factor(rep("Mon", 5)),
         Weather = factor(c("Rain", "Rain", "Dry", "Dry", NA), levels = c("Rain", "Dry"))
     )
     panel <- as_plot(iNZightPlot(Day, colby = Weather, data = d))$panels[[1L]]
-    expect_equal(panel$data$count, 5)
-    expect_equal(panel$segments$segment, c("Rain", "Dry"))
-    expect_equal(panel$segments$count, c(2, 2))
+    expect_equal(panel$total, 4)
+    expect_null(panel$segments)
+    expect_equal(
+        panel$seriesTotals,
+        data.frame(
+            label = c("Rain", "Dry"),
+            total = c(2, 2),
+            stringsAsFactors = FALSE
+        )
+    )
+    expect_equal(
+        panel$data,
+        data.frame(
+            label = c("Mon", "Mon"),
+            series = c("Rain", "Dry"),
+            count = c(2, 2),
+            prop_series = c(1, 1),
+            prop_total = c(0.5, 0.5),
+            stringsAsFactors = FALSE
+        )
+    )
+})
+
+test_that("colour-by bar keeps pre-zoom series totals", {
+    d <- data.frame(
+        Day = factor(c(rep("Mon", 30), rep("Tue", 70)), levels = c("Mon", "Tue")),
+        Weather = factor(
+            c(rep("Rain", 12), rep("Dry", 18), rep("Rain", 14), rep("Dry", 56)),
+            levels = c("Rain", "Dry")
+        )
+    )
+    panel <- as_plot(iNZightPlot(Day, colby = Weather, data = d, zoombars = c(1, 1)))$panels[[1L]]
+    expect_equal(panel$total, 30)
+    expect_equal(panel$seriesTotals$total, c(26, 74))
+    expect_equal(panel$data$label, c("Mon", "Mon"))
+    expect_equal(panel$data$count, c(12, 18))
+    expect_equal(panel$data$prop_series, c(12 / 26, 18 / 74))
+    expect_equal(panel$data$prop_total, c(12, 18) / 100)
 })
 
 test_that("dot groups stack observed values and keep the box R computed", {
