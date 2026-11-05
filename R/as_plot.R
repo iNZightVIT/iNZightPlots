@@ -281,6 +281,14 @@ panel_dot <- function(panel, ctx, hist) {
             } else {
                 as.numeric(tp$counts)
             }
+            ## Share of this group's counts. Survey counts are already weighted,
+            ## so dividing by their sum is that group's weighted share.
+            total <- sum(g$counts)
+            g$proportions <- if (is.finite(total) && total > 0) {
+                g$counts / total
+            } else {
+                g$counts * 0
+            }
         } else {
             xs <- if (is.null(tp)) numeric() else as.numeric(tp$x)
             point_cols <- list(x = xs)

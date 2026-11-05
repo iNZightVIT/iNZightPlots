@@ -199,12 +199,28 @@ test_that("histogram uses the server edges and counts", {
     expect_equal(s$type, "hist")
     expect_equal(s$histBins, 5L)
     expect_equal(panel$groups[[1L]]$counts, c(11, 46, 68, 21, 4))
+    expect_equal(panel$groups[[1L]]$proportions, c(11, 46, 68, 21, 4) / 150)
     expect_length(panel$edges, length(panel$groups[[1L]]$counts) + 1L)
     expect_equal(
         panel$groups[[1L]]$boxplot,
         list(min = 2, q1 = 2.8, median = 3, q3 = 3.3, max = 4.4)
     )
     expect_null(panel$groups[[1L]]$label)
+})
+
+test_that("histogram proportions are within each group", {
+    s <- as_plot(iNZightPlot(
+        Sepal.Width, Species,
+        data = iris, plottype = "hist", hist.bins = 5
+    ))
+    groups <- s$panels[[1L]]$groups
+
+    expect_length(groups, 3L)
+    for (group in groups) {
+        expect_length(group$proportions, length(group$counts))
+        expect_equal(group$proportions, group$counts / sum(group$counts))
+        expect_equal(sum(group$proportions), 1)
+    }
 })
 
 test_that("scatter sends row ids and omits constant size and symbol", {
