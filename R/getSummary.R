@@ -265,6 +265,7 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
     parts <- list()
 
     ## --- Title ---
+    title_key <- NULL
     title_text <- switch(summary.type,
         "summary" =
             paste0(
@@ -280,7 +281,10 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
                 )
             )
     )
-    parts <- c(parts, list(out_h1(title_text, width)))
+    if (summary.type == "summary" && !is.survey) {
+        title_key <- "plotSummary.title"
+    }
+    parts <- c(parts, list(out_h1(title_text, width, .key = title_key)))
 
     ## --- Header metadata ---
     scatter <- FALSE

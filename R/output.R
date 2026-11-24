@@ -135,15 +135,26 @@ format_plain.out_table <- function(x, ...) {
 
 # --- text primitives ---------------------------------------------------------
 
+out_with_i18n <- function(node, key = NULL, values = NULL) {
+    if (!is.null(key)) node$.i18n_key <- key
+    if (!is.null(values)) node$.i18n_values <- values
+    node
+}
+
 out_text <- function(..., .bold = FALSE, .italic = FALSE,
-                     .colour = NULL, .css_class = NULL) {
+                     .colour = NULL, .css_class = NULL,
+                     .key = NULL, .values = NULL) {
     text <- paste0(..., collapse = "")
-    out_node("text",
-        text = text,
-        .bold = .bold,
-        .italic = .italic,
-        .colour = .colour,
-        .css_class = .css_class
+    out_with_i18n(
+        out_node("text",
+            text = text,
+            .bold = .bold,
+            .italic = .italic,
+            .colour = .colour,
+            .css_class = .css_class
+        ),
+        .key,
+        .values
     )
 }
 
@@ -186,8 +197,12 @@ format_plain.out_indent <- function(x, ...) {
 
 # --- structural primitives ---------------------------------------------------
 
-out_h1 <- function(text, width = 100L) {
-    out_node("h1", text = text, width = as.integer(width))
+out_h1 <- function(text, width = 100L, .key = NULL, .values = NULL) {
+    out_with_i18n(
+        out_node("h1", text = text, width = as.integer(width)),
+        .key,
+        .values
+    )
 }
 
 #' @exportS3Method format_plain out_h1
@@ -200,8 +215,8 @@ format_plain.out_h1 <- function(x, ...) {
     )
 }
 
-out_h2 <- function(text) {
-    out_node("h2", text = text)
+out_h2 <- function(text, .key = NULL, .values = NULL) {
+    out_with_i18n(out_node("h2", text = text), .key, .values)
 }
 
 #' @exportS3Method format_plain out_h2
