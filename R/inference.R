@@ -10,192 +10,77 @@ inference.inzdot <- function(object, des, bs, opts, class, width,
     inf <- object$inference.info
 
     if (is.character(inf)) {
-        return("Sample too small to get inference")
+        return(out_text("Sample too small to get inference"))
     }
 
     if (is.null(inf[[1]]$conf)) {
         warning("Please specify `inference.type = conf` to get inference information.")
-        return("No inference information available. Sample size too small?")
+        return(out_text("No inference information available. Sample size too small?"))
     }
 
     is.survey <- !is.null(des)
-
     ci.width <- attr(inf, "ci.width")
-    mat <- inf$mean$conf[, c("mean", "lower", "upper"), drop = FALSE]
-
-    mat <- format(mat, digits = opts$signif)
-
-    ## Remove NA's and replace with an empty space
-    mat[grep("NA", mat)] <- ""
-
-    ## Text formatting to return a character vector - each row of matrix
-    mat <- rbind(c("Estimate", "Lower", "Upper"), mat)
-    colnames(mat) <- NULL
-
     byFactor <- length(toplot) > 1
+    digits <- opts$signif
+    parts <- list()
 
-    if (byFactor) {
-        mat <- cbind(c("", names(toplot)), mat)
+    mean_mat <- inf$mean$conf[, c("mean", "lower", "upper"), drop = FALSE]
+    mean_label <- if (byFactor) {
+        if (is.survey) "Population Means" else "Group Means"
+    } else {
+        if (is.survey) "Population Mean" else "Mean"
     }
-    rownames(mat) <- NULL
-
-    mat <- matrix(
-        apply(
-            mat, 2,
-            function(col) {
-                format(col, justify = "right")
-            }
-        ),
-        nrow = nrow(mat)
-    )
-
-    out <- apply(
-        mat, 1,
-        function(x) paste0("   ", paste(x, collapse = "   "))
-    )
-
-    plural <- ifelse(byFactor, "s", "")
-    bsCI <- ifelse(bs, " Percentile Bootstrap", "")
-    out <- c(
-        paste0(
-            ifelse(byFactor,
-                ifelse(is.survey, "Population Means", "Group Means"),
-                ifelse(is.survey, "Population Mean", "Mean")
-            ),
-            " with ", ci.width * 100, "%",
-            bsCI,
-            " Confidence Interval",
-            plural
-        ),
-        "",
-        out
+    parts[[length(parts) + 1L]] <- out_ci_section(
+        estimates = mean_mat[, "mean"],
+        lower = mean_mat[, "lower"],
+        upper = mean_mat[, "upper"],
+        label = mean_label,
+        ci_width = ci.width,
+        bootstrap = bs,
+        by_factor = byFactor,
+        factor_names = if (byFactor) names(toplot) else NULL,
+        digits = digits
     )
 
     if (bs) {
         if (is.survey) {
-            return("Bootstrap inference not yet implemented for survey data.")
+            return(out_text("Bootstrap inference not yet implemented for survey data."))
         }
 
-        ## BOOTSTRAP MEDIAN
-        mat <- inf$median$conf[, c("mean", "lower", "upper"), drop = FALSE]
-
-        mat <- format(mat, digits = opts$signif)
-        # mat <- matrix(
-        #     apply(
-        #         mat, 2,
-        #         function(col) {
-        #             format(col, digits = opts$signif)
-        #         }
-        #     ),
-        #     nrow = nrow(mat)
-        # )
-
-        ## Remove NA's and replace with an empty space
-        mat[grep("NA", mat)] <- ""
-
-        ## Text formatting to return a character vector - each row of matrix
-        mat <- rbind(c("Estimate", "Lower", "Upper"), mat)
-        colnames(mat) <- NULL
-
-        byFactor <- length(toplot) > 1
-
-        if (byFactor) {
-            mat <- cbind(c("", names(toplot)), mat)
-        }
-        rownames(mat) <- NULL
-
-        mat <- matrix(
-            apply(
-                mat, 2,
-                function(col) {
-                    format(col, justify = "right")
-                }
-            ),
-            nrow = nrow(mat)
+        med_mat <- inf$median$conf[, c("mean", "lower", "upper"), drop = FALSE]
+        parts[[length(parts) + 1L]] <- out_blank()
+        parts[[length(parts) + 1L]] <- out_ci_section(
+            estimates = med_mat[, "mean"],
+            lower = med_mat[, "lower"],
+            upper = med_mat[, "upper"],
+            label = if (byFactor) "Group Medians" else "Median",
+            ci_width = ci.width,
+            bootstrap = TRUE,
+            by_factor = byFactor,
+            factor_names = if (byFactor) names(toplot) else NULL,
+            digits = digits
         )
 
-        mat <- apply(
-            mat, 1,
-            function(x) paste0("   ", paste(x, collapse = "   "))
-        )
-
-        out <- c(
-            out,
-            "",
-            paste0(
-                ifelse(byFactor, "Group Medians", "Median"),
-                " with ", ci.width * 100, "%",
-                bsCI,
-                " Confidence Interval",
-                plural
-            ),
-            "",
-            mat
-        )
-
-
-        ## BOOTSTRAP INTERQUARTILE RANGE
-        mat <- inf$iqr$conf[, c("mean", "lower", "upper"), drop = FALSE]
-
-        mat <- format(mat, digits = opts$signif)
-        # mat <- matrix(
-        #     apply(
-        #         mat, 2,
-        #         function(col) {
-        #             format(col, digits = opts$signif)
-        #         }
-        #     ),
-        #     nrow = nrow(mat)
-        # )
-
-        ## Remove NA's and replace with an empty space
-        mat[grep("NA", mat)] <- ""
-
-        ## Text formatting to return a character vector - each row of matrix
-        mat <- rbind(c("Estimate", "Lower", "Upper"), mat)
-        colnames(mat) <- NULL
-
-        byFactor <- length(toplot) > 1
-
-        if (byFactor) {
-            mat <- cbind(c("", names(toplot)), mat)
-        }
-        rownames(mat) <- NULL
-
-        mat <- matrix(
-            apply(
-                mat, 2,
-                function(col) {
-                    format(col, justify = "right")
-                }
-            ),
-            nrow = nrow(mat)
-        )
-
-        mat <- apply(
-            mat, 1,
-            function(x) paste0("   ", paste(x, collapse = "   "))
-        )
-
-        out <- c(
-            out,
-            "",
-            paste0(
-                ifelse(byFactor,
-                    "Group Interquartile Ranges",
-                    "Interquartile Range"
-                ),
-                " with ", ci.width * 100, "%",
-                bsCI,
-                " Confidence Interval",
-                plural
-            ),
-            "",
-            mat
+        iqr_mat <- inf$iqr$conf[, c("mean", "lower", "upper"), drop = FALSE]
+        parts[[length(parts) + 1L]] <- out_blank()
+        parts[[length(parts) + 1L]] <- out_ci_section(
+            estimates = iqr_mat[, "mean"],
+            lower = iqr_mat[, "lower"],
+            upper = iqr_mat[, "upper"],
+            label = if (byFactor) {
+                "Group Interquartile Ranges"
+            } else {
+                "Interquartile Range"
+            },
+            ci_width = ci.width,
+            bootstrap = TRUE,
+            by_factor = byFactor,
+            factor_names = if (byFactor) names(toplot) else NULL,
+            digits = digits
         )
     }
 
-    if (byFactor & !bs) {
+    if (byFactor && !bs) {
         if (!is.null(hypothesis)) {
             if (length(toplot) == 2 && hypothesis$test %in% c("default", "t.test")) {
                 if (is.survey) {
@@ -216,57 +101,33 @@ inference.inzdot <- function(object, des, bs, opts, class, width,
                 }
 
                 if (!inherits(test.out, "try-error")) {
-                    pval <- format_pval(test.out$p.value, opts)
-                    out <- c(
-                        out,
-                        "",
-                        ifelse(is.survey,
-                            "Design-based Two Sample T-test",
-                            paste0(
-                                ifelse(hypothesis$var.equal, "", "Welch "),
-                                "Two Sample t-test",
-                                ifelse(hypothesis$var.equal,
-                                    " assuming equal variance", ""
-                                )
-                            )
-                        ),
-                        "",
+                    test_name <- if (is.survey) {
+                        "Design-based Two Sample T-test"
+                    } else {
                         paste0(
-                            "   t = ",
-                            format(test.out$statistic, digits = 5),
-                            ", df = ",
-                            format(test.out$parameter, digits = 5),
-                            ", p-value ",
-                            ifelse(substr(pval, 1, 1) == "<", "", "= "),
-                            pval
-                        ),
-                        "",
-                        paste0(
-                            "          Null Hypothesis: true difference in means is equal to ",
-                            test.out$null.value
-                        ),
-                        paste0(
-                            "   Alternative Hypothesis: true difference in means is ",
-                            ifelse(test.out$alternative == "two.sided",
-                                "not equal to",
-                                paste0(test.out$alternative, " than")
-                            ),
-                            " ",
-                            test.out$null.value
+                            if (hypothesis$var.equal) "" else "Welch ",
+                            "Two Sample t-test",
+                            if (hypothesis$var.equal) {
+                                " assuming equal variance"
+                            } else {
+                                ""
+                            }
                         )
-                    )
+                    }
+                    alt_text <- if (test.out$alternative == "two.sided") {
+                        "not equal to"
+                    } else {
+                        paste0(test.out$alternative, " than")
+                    }
 
+                    extras <- NULL
                     if (!is.survey && hypothesis$var.equal) {
-                        ## F test for equal variance
                         ftest <- var.test(toplot[[1]]$x, toplot[[2]]$x)
-
                         svar <- sapply(toplot, function(d) var(d$x))
                         sn <- sapply(toplot, function(d) length(d$x))
                         var.pooled <- sum((sn - 1) * svar) / sum(sn - 1)
-                        pval <- format_pval(ftest$p.value, opts)
-                        out <- c(
-                            out,
-                            "",
+                        fpval <- format_pval(ftest$p.value, opts)
+                        extras <- c(
                             paste0(
                                 "          Pooled Variance: ",
                                 format(var.pooled, digits = 5)
@@ -278,15 +139,34 @@ inference.inzdot <- function(object, des, bs, opts, class, width,
                                 "   F = ",
                                 format(ftest$statistic, digits = 5),
                                 ", df = ",
-                                paste(format(ftest$parameter, digits = 5),
+                                paste(
+                                    format(ftest$parameter, digits = 5),
                                     collapse = " and "
                                 ),
                                 ", p-value ",
-                                ifelse(substr(pval, 1, 1) == "<", "", "= "),
-                                pval
+                                if (startsWith(fpval, "<")) "" else "= ",
+                                fpval
                             )
                         )
                     }
+
+                    parts[[length(parts) + 1L]] <- out_blank()
+                    parts[[length(parts) + 1L]] <- out_test(
+                        name = test_name,
+                        statistic = c(t = unname(test.out$statistic)),
+                        parameter = c(df = unname(test.out$parameter)),
+                        p_value = test.out$p.value,
+                        null_hyp = paste0(
+                            "true difference in means is equal to ",
+                            test.out$null.value
+                        ),
+                        alt_hyp = paste0(
+                            "true difference in means is ",
+                            alt_text, " ", test.out$null.value
+                        ),
+                        extras = extras,
+                        opts = opts
+                    )
                 }
             }
         }
@@ -308,7 +188,6 @@ inference.inzdot <- function(object, des, bs, opts, class, width,
             )
         )
         if (is.survey) {
-            fmla <- if (is.numeric(des$variables$x)) x ~ y else y ~ x
             fit <- try(
                 if (is.numeric(des$variables$x)) {
                     svyglm(x ~ y, des)
@@ -322,13 +201,11 @@ inference.inzdot <- function(object, des, bs, opts, class, width,
         }
 
         if (!is.null(hypothesis) &&
-            (length(toplot) > 2 | hypothesis$test == "anova")) {
+            (length(toplot) > 2 || hypothesis$test == "anova")) {
             if (is.survey) {
                 fstat <- regTermTest(
                     fit,
                     if (is.numeric(des$variables$x)) ~y else ~x
-                    # hypothesis values here
-                    # null = ...
                 )
                 Fval <- fstat$Ftest[1]
                 Fdf <- c(fstat$df, fstat$ddf)
@@ -344,36 +221,20 @@ inference.inzdot <- function(object, des, bs, opts, class, width,
                 fpval <- pf(fstat[1], fstat[2], fstat[3], lower.tail = FALSE)
                 Fname <- "One-way Analysis of Variance (ANOVA F-test)"
             }
-            fpval <- format_pval(fpval, opts, digits = 5)
 
-            Ftest <- c(
-                Fname,
-                "",
-                paste0(
-                    "   F = ",
-                    signif(Fval, 5),
-                    ", df = ",
-                    Fdf[1],
-                    " and ",
-                    Fdf[2],
-                    ", p-value ",
-                    ifelse(substr(fpval, 1, 1) == "<", "", "= "),
-                    fpval
-                )
-            )
-            out <- c(
-                out,
-                "",
-                Ftest,
-                "",
-                "          Null Hypothesis: true group means are all equal",
-                "   Alternative Hypothesis: true group means are not all equal"
+            parts[[length(parts) + 1L]] <- out_blank()
+            parts[[length(parts) + 1L]] <- out_test(
+                name = Fname,
+                statistic = c(F = unname(Fval)),
+                parameter = setNames(as.numeric(Fdf), rep("df", length(Fdf))),
+                p_value = fpval,
+                null_hyp = "true group means are all equal",
+                alt_hyp = "true group means are not all equal",
+                opts = opts
             )
         }
 
         if (length(toplot) == 2) {
-            ## Two sample t-test
-
             if (is.survey) {
                 fmla <- if (is.numeric(des$variables$x)) x ~ y else y ~ x
                 ttest <- try(
@@ -381,79 +242,43 @@ inference.inzdot <- function(object, des, bs, opts, class, width,
                     silent = TRUE
                 )
                 if (inherits(ttest, "try-error")) {
-                    mat <- rbind(
-                        c("Estimate", "Lower", "Upper"),
-                        rep(NA, 3)
-                    )
+                    est <- lower <- upper <- NA_real_
                 } else {
-                    ## the survey t-test is "level[2] - level[1]",
-                    ## rather than "level[1] - level[2]"
+                    ## survey t-test is level[2] - level[1]; flip to level[1] - level[2]
                     ci <- confint(ttest, level = ci.width)
-                    mat <- rbind(
-                        c("Estimate", "Lower", "Upper"),
-                        format(-c(ttest$estimate[[1]], ci[[2]], ci[[1]]), digits = opts$signif)
-                    )
-                    colnames(mat) <- NULL
+                    est <- -ttest$estimate[[1]]
+                    lower <- -ci[[2]]
+                    upper <- -ci[[1]]
                 }
             } else {
                 ttest <- t.test(toplot[[1]]$x, toplot[[2]]$x,
                     var.equal = if (is.null(hypothesis)) TRUE else hypothesis$var.equal,
                     conf.level = ci.width
                 )
-                mat <- rbind(
-                    c("Estimate", "Lower", "Upper"),
-                    format(
-                        c(
-                            diff(rev(ttest$estimate)),
-                            ttest$conf.int[1],
-                            ttest$conf.int[2]
-                        ),
-                        digits = opts$signif
-                    )
-                )
-                colnames(mat) <- NULL
+                est <- diff(rev(ttest$estimate))
+                lower <- ttest$conf.int[1]
+                upper <- ttest$conf.int[2]
             }
 
-            if (any(is.na(mat))) {
-                out <- c(out, "")
-            } else {
-                mat <- cbind(
-                    c("", paste0(names(toplot)[1], " - ", names(toplot)[2])),
-                    mat
-                )
-
-                mat <- matrix(
-                    apply(
-                        mat, 2,
-                        function(col) {
-                            format(col, justify = "right")
-                        }
+            parts[[length(parts) + 1L]] <- out_blank()
+            if (!anyNA(c(est, lower, upper))) {
+                parts[[length(parts) + 1L]] <- out_ci_section(
+                    estimates = est,
+                    lower = lower,
+                    upper = upper,
+                    label = sprintf(
+                        "Difference in %s means",
+                        if (is.survey) "population" else "group"
                     ),
-                    nrow = nrow(mat)
-                )
-
-                mat <- apply(
-                    mat, 1,
-                    function(x) paste0("   ", paste(x, collapse = "   "))
-                )
-
-                out <- c(
-                    out,
-                    "",
-                    sprintf(
-                        "Difference in %s means with %s%s Confidence Interval",
-                        ifelse(is.survey, "population", "group"),
-                        ci.width * 100,
-                        "%"
+                    ci_width = ci.width,
+                    by_factor = FALSE,
+                    factor_names = paste0(
+                        names(toplot)[1], " - ", names(toplot)[2]
                     ),
-                    "",
-                    mat
+                    digits = digits
                 )
             }
         } else if (length(toplot) > 2) {
-            ## For x ~ factor, we also include an F test, and multiple comparisons
-            ## (estimates, pvalues, and confidence intervals).
-
             LEVELS <- levels(dat$y)
 
             if (is.survey) {
@@ -465,7 +290,6 @@ inference.inzdot <- function(object, des, bs, opts, class, width,
                     ),
                     level = ci.width
                 )
-
                 mc <- mc$contrasts
                 rownames(mc) <- mc[, 1]
                 mc <- mc[, c("estimate", "lower.CL", "upper.CL", "p.value")]
@@ -476,12 +300,13 @@ inference.inzdot <- function(object, des, bs, opts, class, width,
                 )
             }
 
+            parts[[length(parts) + 1L]] <- out_blank()
             if (!inherits(mc, "try-error")) {
                 mat <- matrix(
                     apply(
                         mc, 2,
                         function(col) {
-                            format(col, digits = opts$signif, justify = "right")
+                            format(col, digits = digits, justify = "right")
                         }
                     ),
                     nrow = nrow(mc)
@@ -495,60 +320,41 @@ inference.inzdot <- function(object, des, bs, opts, class, width,
                 rnames[, 2] <- format(rnames[, 2], justify = "left")
                 rnames <- apply(rnames, 1, paste, collapse = " - ")
                 mat <- cbind(format(rnames, justify = "left"), mat)
-
-                mat <- rbind(c("", "Estimate", "Lower", "Upper", "P-value"), mat)
-                mat <- matrix(
-                    apply(
-                        mat, 2,
-                        function(col) {
-                            format(col, justify = "right")
-                        }
-                    ),
-                    nrow = nrow(mat)
+                mat <- rbind(
+                    c("", "Estimate", "Lower", "Upper", "P-value"),
+                    mat
                 )
 
-                mat <- apply(
-                    mat, 1,
-                    function(x) paste(x, collapse = "   ")
+                parts[[length(parts) + 1L]] <- out_text(sprintf(
+                    "Pairwise differences in %sgroup means with %s%s Confidence Intervals and P-values",
+                    if (is.survey) "population " else "",
+                    ci.width * 100,
+                    "%"
+                ))
+                parts[[length(parts) + 1L]] <- out_text(
+                    "(The CIs and P-values have been adjusted for multiple comparisons)"
                 )
-                mat <- c(
-                    mat[1],
-                    paste(rep("-", nchar(mat[1])), collapse = ""),
-                    mat[-1]
+                parts[[length(parts) + 1L]] <- out_blank()
+                parts[[length(parts) + 1L]] <- out_table_pairwise(
+                    mat,
+                    levels = LEVELS,
+                    digits = digits,
+                    indent = 1L
                 )
-
-                # add a new line each time the LHS changes
-                rl <- (length(LEVELS) - 1L):1L
-                rl <- cumsum(rl) + 2L
-                mat[rl] <- paste0(mat[rl], "\n")
-
-                out <- c(
-                    out,
-                    "",
-                    sprintf(
-                        "Pairwise differences in %sgroup means with %s%s Confidence Intervals and P-values",
-                        ifelse(is.survey, "population ", ""),
-                        ci.width * 100,
-                        "%"
-                    ),
-                    "(The CIs and P-values have been adjusted for multiple comparisons)",
-                    "",
-                    paste0(" ", mat),
-                    "",
-                    "          Null Hypothesis: true difference in group means is zero",
+                parts[[length(parts) + 1L]] <- out_blank()
+                parts[[length(parts) + 1L]] <- out_text(
+                    "          Null Hypothesis: true difference in group means is zero"
+                )
+                parts[[length(parts) + 1L]] <- out_text(
                     "   Alternative Hypothesis: true difference in group means is not zero"
                 )
             } else {
-                # make standard table ...
-                out <- c(
-                    out,
-                    "",
+                parts[[length(parts) + 1L]] <- out_text(
                     "Unable to compute confidence intervals and p-values."
                 )
             }
         }
-    } else if (!is.null(hypothesis) & !bs) {
-        ## hypothesis testing - one sample
+    } else if (!is.null(hypothesis) && !bs) {
         if (is.survey) {
             des <- eval(parse(text = "update(des, .h0 = x - hypothesis$value)"))
             test.out <- svyttest(.h0 ~ 1, des, na.rm = TRUE)
@@ -558,42 +364,30 @@ inference.inzdot <- function(object, des, bs, opts, class, width,
                 mu = hypothesis$value
             )
         }
-        pval <- format_pval(test.out$p.value, opts)
-        out <- c(
-            out,
-            "",
-            sprintf(
-                "%sOne Sample t-test",
-                ifelse(is.survey, "Design-based ", "")
+        alt_text <- if (test.out$alternative == "two.sided") {
+            "not equal to"
+        } else {
+            paste0(test.out$alternative, " than")
+        }
+
+        parts[[length(parts) + 1L]] <- out_blank()
+        parts[[length(parts) + 1L]] <- out_test(
+            name = paste0(
+                if (is.survey) "Design-based " else "",
+                "One Sample t-test"
             ),
-            "",
-            paste0(
-                "   t = ",
-                format(test.out$statistic, digits = 5),
-                ", df = ",
-                test.out$parameter,
-                ", p-value ",
-                ifelse(substr(pval, 1, 1) == "<", "", "= "),
-                pval
+            statistic = c(t = unname(test.out$statistic)),
+            parameter = c(df = unname(test.out$parameter)),
+            p_value = test.out$p.value,
+            null_hyp = paste0("true mean is equal to ", hypothesis$value),
+            alt_hyp = paste0(
+                "true mean is ", alt_text, " ", hypothesis$value
             ),
-            "",
-            paste0(
-                "          Null Hypothesis: true mean is equal to ",
-                hypothesis$value
-            ),
-            paste0(
-                "   Alternative Hypothesis: true mean is ",
-                ifelse(test.out$alternative == "two.sided",
-                    "not equal to",
-                    paste0(test.out$alternative, " than")
-                ),
-                " ",
-                hypothesis$value
-            )
+            opts = opts
         )
     }
 
-    out
+    do.call(out_group, parts)
 }
 
 formatTriMat <- function(mat, names, digits = 3) {

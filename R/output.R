@@ -64,30 +64,52 @@ out_table <- function(mat,
 format_plain.out_table <- function(x, ...) {
     mat <- x$mat
 
-    mat <- matrix(
-        vapply(seq_len(ncol(mat)), function(j) {
-            col <- mat[, j]
-            if (is.numeric(col)) {
-                fmt_args <- list(col, scientific = x$scientific)
-                if (x$digits > 0L) {
-                    fmt_args$digits <- x$digits
+    ## Format a fully-numeric matrix in one pass so digit widths match
+    ## across columns (e.g. 5.710 not 5.71 beside 5.843 / 5.977).
+    if (is.numeric(mat)) {
+        fmt_args <- list(mat, scientific = x$scientific)
+        if (x$digits > 0L) {
+            fmt_args$digits <- x$digits
+        } else {
+            fmt_args$nsmall <- 0L
+            fmt_args$big.mark <- ""
+        }
+        formatted <- do.call(format, fmt_args)
+        ## is.na(NaN) is TRUE — keep NaN for nan_replace, only blank true NA
+        na_only <- is.na(mat)
+        if (is.double(mat)) na_only <- na_only & !is.nan(mat)
+        formatted[na_only] <- x$na_replace
+        if (!is.null(x$nan_replace)) {
+            formatted <- gsub("NaN", x$nan_replace, formatted)
+        }
+        formatted[grep("NA", formatted)] <- x$na_replace
+        mat <- formatted
+    } else {
+        mat <- matrix(
+            vapply(seq_len(ncol(mat)), function(j) {
+                col <- mat[, j]
+                if (is.numeric(col)) {
+                    fmt_args <- list(col, scientific = x$scientific)
+                    if (x$digits > 0L) {
+                        fmt_args$digits <- x$digits
+                    } else {
+                        fmt_args$nsmall <- 0L
+                        fmt_args$big.mark <- ""
+                    }
+                    formatted <- do.call(format, fmt_args)
                 } else {
-                    fmt_args$nsmall <- 0L
-                    fmt_args$big.mark <- ""
+                    formatted <- as.character(col)
                 }
-                formatted <- do.call(format, fmt_args)
-            } else {
-                formatted <- as.character(col)
-            }
-            formatted[is.na(formatted)] <- x$na_replace
-            formatted[grep("NA", formatted)] <- x$na_replace
-            if (!is.null(x$nan_replace)) {
-                formatted <- gsub("NaN", x$nan_replace, formatted)
-            }
-            formatted
-        }, character(nrow(mat))),
-        nrow = nrow(mat)
-    )
+                formatted[is.na(formatted)] <- x$na_replace
+                if (!is.null(x$nan_replace)) {
+                    formatted <- gsub("NaN", x$nan_replace, formatted)
+                }
+                formatted[grep("NA", formatted)] <- x$na_replace
+                formatted
+            }, character(nrow(mat))),
+            nrow = nrow(mat)
+        )
+    }
 
     if (!is.null(x$col_headers)) {
         mat <- rbind(x$col_headers, mat)
@@ -302,10 +324,24 @@ format_plain.out_test <- function(x, ...) {
         names(x$statistic), " = ",
         format(x$statistic, digits = 5)
     )
-    param_parts <- paste0(
-        names(x$parameter), " = ",
-        format(x$parameter, digits = 5)
-    )
+    ## Collapse multi-value params that share a name as "df = 2 and 147"
+    if (length(x$parameter) == 0L) {
+        param_parts <- character(0)
+    } else if (length(unique(names(x$parameter))) == 1L &&
+        length(x$parameter) > 1L) {
+        param_parts <- paste0(
+            names(x$parameter)[1L], " = ",
+            paste(
+                format(unname(x$parameter), digits = 5, trim = TRUE),
+                collapse = " and "
+            )
+        )
+    } else {
+        param_parts <- paste0(
+            names(x$parameter), " = ",
+            format(x$parameter, digits = 5)
+        )
+    }
     pval <- format_pval(x$p_value, x$opts %||% list(min_pval = 2.2e-16))
     pval_prefix <- if (startsWith(pval, "<")) "" else "= "
 
