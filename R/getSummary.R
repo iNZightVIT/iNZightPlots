@@ -294,121 +294,87 @@ summary.inzplotoutput <- function(object, summary.type = "summary",
         }
     }
 
-    mat <- cbind(
-        ind(
-            ifelse(scatter,
-                "Response/outcome variable: ",
-                "Primary variable of interest: "
-            )
-        ),
+    type_label <- function(name) {
         paste0(
-            ifelse(scatter, vnames$y, vnames$x),
-            " (",
-            gsub(
-                "factor", "categorical",
-                vartypes[[ifelse(scatter, vnames$y, vnames$x)]]
-            ),
+            name, " (",
+            gsub("factor", "categorical", vartypes[[name]]),
             ")"
         )
-    )
+    }
+
+    var_pairs <- list()
+    primary_key <- if (scatter) {
+        "Response/outcome variable"
+    } else {
+        "Primary variable of interest"
+    }
+    primary_name <- if (scatter) vnames$y else vnames$x
+    var_pairs[[primary_key]] <- type_label(primary_name)
 
     if ("y" %in% names(vnames)) {
-        mat <- rbind(
-            mat,
-            cbind(
-                ind(
-                    paste0(
-                        ifelse(scatter,
-                            "Predictor/explanatory",
-                            "Secondary"
-                        ),
-                        " variable: "
-                    )
-                ),
-                paste0(
-                    ifelse(scatter, vnames$x, vnames$y),
-                    " (",
-                    gsub(
-                        "factor", "categorical",
-                        vartypes[[ifelse(scatter, vnames$x, vnames$y)]]
-                    ),
-                    ")"
-                )
-            )
-        )
+        secondary_key <- if (scatter) {
+            "Predictor/explanatory variable"
+        } else {
+            "Secondary variable"
+        }
+        secondary_name <- if (scatter) vnames$x else vnames$y
+        var_pairs[[secondary_key]] <- type_label(secondary_name)
     }
 
     wg <- c("g1", "g2") %in% names(vnames)
-
     if (is.null(g.levels$g2[1])) {
         wg[2] <- FALSE
     }
-
     if (any(wg)) {
-        mat <- rbind(mat, "")
-        mat <- rbind(
-            mat,
-            cbind(
-                ind("Subset by: "),
-                do.call(
-                    paste,
-                    c(
-                        vnames[c("g1", "g2")[wg]],
-                        list(sep = " and ")
-                    )
-                )
-            )
+        var_pairs[["Subset by"]] <- do.call(
+            paste,
+            c(vnames[c("g1", "g2")[wg]], list(sep = " and "))
         )
     }
 
-    mat <- rbind(mat, "", cbind("Total number of observations: ", total.obs))
+    count_pairs <- list()
+    count_pairs[["Total number of observations"]] <- as.character(total.obs)
     if (total.missing > 0) {
         allnames <- c("x", "y", "g1", "g2")
         nn <- allnames[allnames %in% names(missing)]
         nn <- nn[sapply(missing[nn], function(m) m > 0)]
-        mat <- rbind(
-            mat,
-            cbind(
-                ind("Number omitted due to missingness: "),
+        count_pairs[["Number omitted due to missingness"]] <- paste0(
+            total.missing,
+            if (length(missing) > 1) {
                 paste0(
-                    total.missing,
-                    if (length(missing) > 1) {
-                        paste0(
-                            " (",
-                            paste(sapply(nn, function(i) {
-                                paste0(missing[[i]], " in ", vnames[[i]])
-                            }), collapse = ", "),
-                            ")"
-                        )
-                    }
+                    " (",
+                    paste(sapply(nn, function(i) {
+                        paste0(missing[[i]], " in ", vnames[[i]])
+                    }), collapse = ", "),
+                    ")"
                 )
-            ),
-            cbind(
-                ind("Total number of observations used: "),
-                total.obs - total.missing
-            )
+            }
         )
+        count_pairs[["Total number of observations used"]] <-
+            as.character(total.obs - total.missing)
     }
     if (is.survey) {
         des <- attr(obj, "main.design")
-        mat <- rbind(
-            mat,
-            cbind(
-                "Estimated population size: ",
-                paste0(
-                    round(
-                        coef(
-                            svytotal(matrix(rep(1, nrow(des$variables)), ncol = 1), des)
-                        )
+        count_pairs[["Estimated population size"]] <- as.character(
+            round(
+                coef(
+                    svytotal(
+                        matrix(rep(1, nrow(des$variables)), ncol = 1),
+                        des
                     )
                 )
             )
         )
     }
-    mat <- cbind(format(mat[, 1], justify = "right"), mat[, 2])
-    header_lines <- apply(mat, 1, function(row) paste0(row, collapse = ""))
-    names(header_lines) <- NULL
-    parts <- c(parts, list(header_lines))
+
+    parts <- c(
+        parts,
+        list(
+            out_kv(var_pairs),
+            out_blank(),
+            out_kv(count_pairs)
+        )
+    )
 
     ## --- Survey design info ---
     design.list <- NULL
