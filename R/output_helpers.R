@@ -112,3 +112,62 @@ out_privacy_section <- function(privacy_controls, width = 100L) {
         out_blank()
     )
 }
+
+## Pretty-print polynomial trend equations: "y = a + b × x + c × x²"
+format_trend_equation <- function(y, x, beta) {
+    beta <- as.numeric(beta)
+    n <- length(beta)
+    if (n < 2L) {
+        stop("beta must include an intercept and at least one slope")
+    }
+    # "", ², ³ for powers 1–3 (iNZight only fits up to cubic)
+    power_marks <- c("", "\u00b2", "\u00b3")
+    pieces <- character(n - 1L)
+    for (p in seq_len(n - 1L)) {
+        b <- beta[[p + 1L]]
+        mark <- if (p <= length(power_marks)) power_marks[[p]] else paste0("^", p)
+        pieces[[p]] <- sprintf(
+            "%s %s \u00d7 %s%s",
+            if (b < 0) "-" else "+",
+            abs(b),
+            x,
+            mark
+        )
+    }
+    paste0("    ", y, " = ", beta[[1L]], " ", paste(pieces, collapse = " "))
+}
+
+## Row labels for trend coefficient tables: x, x², x³
+format_trend_power_labels <- function(x, degree) {
+    power_marks <- c("", "\u00b2", "\u00b3")
+    vapply(seq_len(degree), function(p) {
+        mark <- if (p <= length(power_marks)) power_marks[[p]] else paste0("^", p)
+        paste0(x, mark)
+    }, character(1L))
+}
+
+## Text node with raw coefficients in .values so the UI can re-round (sf/dp).
+out_trend_equation <- function(y, x, beta, digits = 4L) {
+    beta <- as.numeric(unname(beta))
+    values <- c(
+        list(y = y, x = x, degree = as.integer(length(beta) - 1L)),
+        stats::setNames(as.list(beta), paste0("b", seq_along(beta) - 1L))
+    )
+    out_text(
+        format_trend_equation(y, x, signif(beta, digits)),
+        .key = "output.trendEquation",
+        .values = values
+    )
+}
+
+## Correlation / rank-correlation line with raw r for client rounding.
+out_correlation_line <- function(label, r, suffix = "", digits = 4L,
+                                 indent = "    ") {
+    r <- as.numeric(unname(r))[[1L]]
+    plain <- paste0(indent, label, signif(r, digits), suffix)
+    out_text(
+        plain,
+        .key = "output.correlationLine",
+        .values = list(label = paste0(indent, label), r = r, suffix = suffix)
+    )
+}

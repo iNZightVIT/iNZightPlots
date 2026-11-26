@@ -1336,9 +1336,9 @@ inference.inzscatter <- function(object, des, bs, opts, nb, vn, survey.options, 
                     R = object$n.boot
                 )
                 mat <- cbind(
-                    sprintf("%.5g", colMeans(b$t, na.rm = TRUE)),
-                    sprintf("%.5g", apply(b$t, 2, quantile, probs = 1 - alpha, na.rm = TRUE)),
-                    sprintf("%.5g", apply(b$t, 2, quantile, probs = alpha, na.rm = TRUE))
+                    colMeans(b$t, na.rm = TRUE),
+                    apply(b$t, 2, quantile, probs = 1 - alpha, na.rm = TRUE),
+                    apply(b$t, 2, quantile, probs = alpha, na.rm = TRUE)
                 )
             } else {
                 if (is.survey) {
@@ -1358,21 +1358,24 @@ inference.inzscatter <- function(object, des, bs, opts, nb, vn, survey.options, 
                 cc <- summary(fit)$coef
                 ci <- confint(fit, level = ci.width)
 
-                mat <- cbind(
-                    sprintf("%.5g", cc[, 1]),
-                    sprintf("%.5g", ci[, 1]),
-                    sprintf("%.5g", ci[, 2]),
-                    format_pval(cc[, 4], opts, digits = opts$signif)
+                ## data.frame keeps estimates numeric for client sf/dp; p as text
+                mat <- data.frame(
+                    Estimate = cc[, 1],
+                    Lower = ci[, 1],
+                    Upper = ci[, 2],
+                    `p-value` = format_pval(cc[, 4], opts, digits = opts$signif),
+                    check.names = FALSE,
+                    stringsAsFactors = FALSE
                 )
             }
 
             if (bs & t == 1) {
-                covMat <- mat[3, ]
-                mat <- mat[1:2, ]
+                covMat <- mat[3, , drop = FALSE]
+                mat <- mat[1:2, , drop = FALSE]
             }
 
-            rn <- paste0(vn$x, c("", "^2", "^3"))
-            row_headers <- c("Intercept", rn[1:t])
+            rn <- format_trend_power_labels(vn$x, t)
+            row_headers <- c("Intercept", rn)
             col_headers <- c("Estimate", "Lower", "Upper", if (!bs) "p-value")
 
             # Handle correlation row for bootstrap linear trend

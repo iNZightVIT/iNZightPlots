@@ -741,9 +741,9 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
         beta <- try(
             {
                 if (is.survey) {
-                    signif(coef(svyglm(y ~ x, design = des)), opts$signif)
+                    coef(svyglm(y ~ x, design = des))
                 } else {
-                    signif(coef(lm(y ~ x)), opts$signif)
+                    coef(lm(y ~ x))
                 }
             },
             silent = TRUE
@@ -752,28 +752,20 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
         if (inherits(beta, "try-error")) {
             parts <- c(parts, list(out_text("Unable to fit linear trend.")))
         } else {
+            r <- if (is.survey) {
+                cov2cor(as.matrix(svyvar(y ~ x, design = des)))[1, 2]
+            } else {
+                cor(x, y)
+            }
             parts <- c(parts, list(
                 out_text("Linear trend:"),
                 out_blank(),
-                out_text(sprintf(
-                    "    %s = %s %s %s * %s",
-                    vn$y,
-                    beta[1],
-                    ifelse(beta[2] < 0, "-", "+"),
-                    abs(beta[2]),
-                    vn$x
-                )),
-                out_text(paste0(
-                    "    Linear correlation: ",
-                    if (is.survey) {
-                        signif(
-                            cov2cor(as.matrix(svyvar(y ~ x, design = des)))[1, 2],
-                            opts$signif
-                        )
-                    } else {
-                        signif(cor(x, y), opts$signif)
-                    }
-                )),
+                out_trend_equation(vn$y, vn$x, beta, digits = opts$signif),
+                out_correlation_line(
+                    "Linear correlation: ",
+                    r,
+                    digits = opts$signif
+                ),
                 out_blank()
             ))
         }
@@ -783,15 +775,9 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
         beta <- try(
             {
                 if (is.survey) {
-                    signif(
-                        coef(svyglm(y ~ x + I(x^2), design = des)),
-                        opts$signif
-                    )
+                    coef(svyglm(y ~ x + I(x^2), design = des))
                 } else {
-                    signif(
-                        coef(lm(y ~ x + I(x^2))),
-                        opts$signif
-                    )
+                    coef(lm(y ~ x + I(x^2)))
                 }
             },
             silent = TRUE
@@ -803,60 +789,31 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
             parts <- c(parts, list(
                 out_text("Quadratic trend:"),
                 out_blank(),
-                out_text(sprintf(
-                    "    %s = %s %s %s * %s %s %s * %s^2",
-                    vn$y,
-                    beta[1],
-                    ifelse(beta[2] < 0, "-", "+"),
-                    abs(beta[2]),
-                    vn$x,
-                    ifelse(beta[3] < 0, "-", "+"),
-                    abs(beta[3]),
-                    vn$x
-                )),
+                out_trend_equation(vn$y, vn$x, beta, digits = opts$signif),
                 out_blank()
             ))
         }
     }
 
     if ("cubic" %in% trend) {
-        beta <- beta <- try(
+        beta <- try(
             {
                 if (is.survey) {
-                    signif(
-                        coef(svyglm(y ~ x + I(x^2) + I(x^3), design = des)),
-                        opts$signif
-                    )
+                    coef(svyglm(y ~ x + I(x^2) + I(x^3), design = des))
                 } else {
-                    signif(
-                        coef(lm(y ~ x + I(x^2) + I(x^3))),
-                        opts$signif
-                    )
+                    coef(lm(y ~ x + I(x^2) + I(x^3)))
                 }
             },
             silent = TRUE
         )
 
         if (inherits(beta, "try-error")) {
-            parts <- c(parts, list(out_text("Unable to fit linear trend.")))
+            parts <- c(parts, list(out_text("Unable to fit cubic trend.")))
         } else {
             parts <- c(parts, list(
                 out_text("Cubic trend:"),
                 out_blank(),
-                out_text(sprintf(
-                    "    %s = %s %s %s * %s %s %s * %s^2 %s %s * %s^3",
-                    vn$y,
-                    beta[1],
-                    ifelse(beta[2] < 0, "-", "+"),
-                    abs(beta[2]),
-                    vn$x,
-                    ifelse(beta[3] < 0, "-", "+"),
-                    abs(beta[3]),
-                    vn$x,
-                    ifelse(beta[4] < 0, "-", "+"),
-                    abs(beta[4]),
-                    vn$x
-                )),
+                out_trend_equation(vn$y, vn$x, beta, digits = opts$signif),
                 out_blank()
             ))
         }
@@ -865,26 +822,29 @@ summary.inzscatter <- function(object, opts, vn, des, survey.options, ...) {
     if (is.survey) {
         ## rank.cor <- cov2cor(coef(svyvar(rank(y) ~ rank(x), design = des)))[1,2]
         if (!"linear" %in% trend) {
-            cor <- signif(
-                cov2cor(as.matrix(svyvar(y ~ x, design = des, na.rm = TRUE)))[1, 2],
-                opts$signif
-            )
+            r <- cov2cor(
+                as.matrix(svyvar(y ~ x, design = des, na.rm = TRUE))
+            )[1, 2]
             parts <- c(parts, list(
-                out_text(paste0(
+                out_correlation_line(
                     "Correlation: ",
-                    signif(cor, opts$signif),
-                    "  (using Pearson's Correlation)"
-                ))
+                    r,
+                    suffix = "  (using Pearson's Correlation)",
+                    digits = opts$signif,
+                    indent = ""
+                )
             ))
         }
     } else {
         rank.cor <- cor(x, y, method = "spearman")
         parts <- c(parts, list(
-            out_text(paste0(
+            out_correlation_line(
                 "Rank correlation: ",
-                signif(rank.cor, opts$signif),
-                "  (using Spearman's Rank Correlation)"
-            ))
+                rank.cor,
+                suffix = "  (using Spearman's Rank Correlation)",
+                digits = opts$signif,
+                indent = ""
+            )
         ))
     }
 

@@ -43,7 +43,11 @@ out_table <- function(mat,
                       separator_after = NULL,
                       caption = NULL) {
     stopifnot(is.matrix(mat) || is.data.frame(mat))
-    mat <- as.matrix(mat)
+    ## Keep data.frames so mixed numeric/character columns survive for the wire
+    ## (e.g. estimates as numbers + format_pval strings). Matrices stay matrices.
+    if (!is.data.frame(mat)) {
+        mat <- as.matrix(mat)
+    }
     out_node("table",
         mat = mat,
         col_headers = col_headers,
@@ -64,50 +68,52 @@ out_table <- function(mat,
 format_plain.out_table <- function(x, ...) {
     mat <- x$mat
 
+    format_col <- function(col) {
+        if (is.numeric(col)) {
+            fmt_args <- list(col, scientific = x$scientific)
+            if (x$digits > 0L) {
+                fmt_args$digits <- x$digits
+            } else {
+                fmt_args$nsmall <- 0L
+                fmt_args$big.mark <- ""
+            }
+            formatted <- do.call(format, fmt_args)
+            ## is.na(NaN) is TRUE — keep NaN for nan_replace, only blank true NA
+            na_only <- is.na(col)
+            if (is.double(col)) na_only <- na_only & !is.nan(col)
+            formatted[na_only] <- x$na_replace
+            if (!is.null(x$nan_replace)) {
+                formatted <- gsub("NaN", x$nan_replace, formatted)
+            }
+            formatted[grep("NA", formatted)] <- x$na_replace
+            formatted
+        } else {
+            formatted <- as.character(col)
+            formatted[is.na(formatted)] <- x$na_replace
+            if (!is.null(x$nan_replace)) {
+                formatted <- gsub("NaN", x$nan_replace, formatted)
+            }
+            formatted[grep("NA", formatted)] <- x$na_replace
+            formatted
+        }
+    }
+
     ## Format a fully-numeric matrix in one pass so digit widths match
     ## across columns (e.g. 5.710 not 5.71 beside 5.843 / 5.977).
-    if (is.numeric(mat)) {
-        fmt_args <- list(mat, scientific = x$scientific)
-        if (x$digits > 0L) {
-            fmt_args$digits <- x$digits
-        } else {
-            fmt_args$nsmall <- 0L
-            fmt_args$big.mark <- ""
-        }
-        formatted <- do.call(format, fmt_args)
-        ## is.na(NaN) is TRUE — keep NaN for nan_replace, only blank true NA
-        na_only <- is.na(mat)
-        if (is.double(mat)) na_only <- na_only & !is.nan(mat)
-        formatted[na_only] <- x$na_replace
-        if (!is.null(x$nan_replace)) {
-            formatted <- gsub("NaN", x$nan_replace, formatted)
-        }
-        formatted[grep("NA", formatted)] <- x$na_replace
+    if (is.matrix(mat) && is.numeric(mat)) {
+        formatted <- format_col(mat)
+        dim(formatted) <- dim(mat)
         mat <- formatted
     } else {
+        n_row <- nrow(mat)
+        n_col <- ncol(mat)
+        is_df <- is.data.frame(mat)
         mat <- matrix(
-            vapply(seq_len(ncol(mat)), function(j) {
-                col <- mat[, j]
-                if (is.numeric(col)) {
-                    fmt_args <- list(col, scientific = x$scientific)
-                    if (x$digits > 0L) {
-                        fmt_args$digits <- x$digits
-                    } else {
-                        fmt_args$nsmall <- 0L
-                        fmt_args$big.mark <- ""
-                    }
-                    formatted <- do.call(format, fmt_args)
-                } else {
-                    formatted <- as.character(col)
-                }
-                formatted[is.na(formatted)] <- x$na_replace
-                if (!is.null(x$nan_replace)) {
-                    formatted <- gsub("NaN", x$nan_replace, formatted)
-                }
-                formatted[grep("NA", formatted)] <- x$na_replace
-                formatted
-            }, character(nrow(mat))),
-            nrow = nrow(mat)
+            vapply(seq_len(n_col), function(j) {
+                col <- if (is_df) mat[[j]] else mat[, j]
+                format_col(col)
+            }, character(n_row)),
+            nrow = n_row
         )
     }
 
